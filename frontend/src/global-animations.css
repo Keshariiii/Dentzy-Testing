@@ -1,0 +1,592 @@
+/* =============================================================================
+   DENTZY — GLOBAL ANIMATION & SMOOTHNESS SYSTEM
+   Matches the quality of the UserDashboard animations across all pages.
+   Import this in index.css or main.jsx — it cascades everywhere.
+============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   1. EASING CUSTOM PROPERTIES
+--------------------------------------------------------------------------- */
+:root {
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out:    cubic-bezier(0.0,  0.0,  0.2,  1.0);
+  --ease-inout:  cubic-bezier(0.4,  0.0,  0.2,  1.0);
+  --trans-fast:  0.18s;
+  --trans-base:  0.25s;
+  --trans-slow:  0.4s;
+}
+
+/* ---------------------------------------------------------------------------
+   2. SMOOTH SCROLLING & SELECTION
+--------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgba(112, 140, 128, 0.32);
+  color: #1a382b;
+}
+
+/* ── Smart Selection: Dark & Colored Surfaces → White Highlight ── */
+/*
+ * CSS custom property inheritance applies to pseudo-elements in modern browsers.
+ * We override the selection variables on any dark/colored container so text
+ * selected inside them automatically gets a high-contrast white highlight.
+ */
+
+/* Dark surface containers */
+.dz-footer,
+.hero,
+.hero-section,
+.home-hero,
+.m-hero,
+.m-hero-section,
+.cta-section,
+.home-cta,
+.m-cta,
+.auth-sidebar,
+.dark-surface,
+[class*="--dark"],
+[data-theme="dark"] {
+  --dz-sel-bg:    #ffffff;
+  --dz-sel-color: #1e2824;
+}
+
+/* Sage green on primary/accent elements */
+.btn-primary,
+.m-btn-primary,
+[class*="btn--primary"],
+[class*="badge"],
+[class*="tag-"] {
+  --dz-sel-bg:    #ffffff;
+  --dz-sel-color: #1e2824;
+}
+
+/* Scoped ::selection rules (full cross-browser fallback) */
+.dz-footer ::selection,
+.hero ::selection,
+.hero-section ::selection,
+.home-hero ::selection,
+.m-hero ::selection,
+.m-hero-section ::selection,
+.cta-section ::selection,
+.home-cta ::selection,
+.m-cta ::selection,
+.auth-sidebar ::selection,
+.dark-surface ::selection,
+.btn-primary ::selection,
+.m-btn-primary ::selection {
+  background: #ffffff;
+  color: #1e2824;
+}
+
+/* ---------------------------------------------------------------------------
+   3. SCROLL-REVEAL: animated entry classes
+   Applied via IntersectionObserver in App.jsx (see note below).
+   We support 4 directions + staggered children.
+--------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.7s var(--ease-smooth),
+    transform 0.7s var(--ease-smooth);
+}
+
+.reveal.from-bottom  { transform: translateY(40px); }
+.reveal.from-top     { transform: translateY(-30px); }
+.reveal.from-left    { transform: translateX(-40px); }
+.reveal.from-right   { transform: translateX(40px); }
+.reveal.scale-in     { transform: scale(0.94); }
+
+.reveal.visible {
+  opacity: 1;
+  transform: translate(0) scale(1);
+}
+
+/* Stagger delays for children of .reveal-stagger */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.6s var(--ease-smooth),
+    transform 0.6s var(--ease-smooth);
+}
+
+.reveal-stagger.visible > *:nth-child(1)  { opacity: 1; transform: none; transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2)  { opacity: 1; transform: none; transition-delay: 0.12s; }
+.reveal-stagger.visible > *:nth-child(3)  { opacity: 1; transform: none; transition-delay: 0.19s; }
+.reveal-stagger.visible > *:nth-child(4)  { opacity: 1; transform: none; transition-delay: 0.26s; }
+.reveal-stagger.visible > *:nth-child(5)  { opacity: 1; transform: none; transition-delay: 0.33s; }
+.reveal-stagger.visible > *:nth-child(6)  { opacity: 1; transform: none; transition-delay: 0.40s; }
+
+/* ---------------------------------------------------------------------------
+   4. KEYFRAME ANIMATION LIBRARY
+--------------------------------------------------------------------------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  70%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(112, 140, 128, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(112, 140, 128, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(112, 140, 128, 0);   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Utility animation classes */
+.anim-fade-up    { animation: fadeUp    0.6s var(--ease-smooth) both; }
+.anim-fade-in    { animation: fadeIn    0.5s var(--ease-smooth) both; }
+.anim-slide-left { animation: slideLeft 0.6s var(--ease-smooth) both; }
+.anim-scale-in   { animation: scaleIn   0.5s var(--ease-smooth) both; }
+.anim-pop-in     { animation: popIn     0.45s var(--ease-spring) both; }
+.anim-float      { animation: float     6s ease-in-out infinite; }
+
+.delay-0   { animation-delay: 0s; }
+.delay-1   { animation-delay: 0.1s; }
+.delay-2   { animation-delay: 0.2s; }
+.delay-3   { animation-delay: 0.3s; }
+.delay-4   { animation-delay: 0.4s; }
+.delay-5   { animation-delay: 0.5s; }
+.delay-6   { animation-delay: 0.6s; }
+.delay-7   { animation-delay: 0.7s; }
+
+/* ---------------------------------------------------------------------------
+   5. GLOBAL BUTTON ENHANCEMENTS
+   Upgrades all .btn without changing colour scheme
+--------------------------------------------------------------------------- */
+.btn {
+  transition:
+    background-color var(--trans-base),
+    color            var(--trans-base),
+    transform        var(--trans-fast),
+    box-shadow       var(--trans-base) !important;
+  will-change: transform;
+}
+
+.btn:hover  { transform: translateY(-2px) !important; }
+.btn:active { transform: translateY(0)    !important; }
+
+.btn-sm {
+  transition:
+    background-color var(--trans-base),
+    color            var(--trans-base),
+    transform        var(--trans-fast),
+    box-shadow       var(--trans-base) !important;
+}
+
+/* CTA button pulse on load */
+.btn-cta {
+  animation: pulse-ring 2.5s ease-out 1.5s 3;
+}
+
+/* ---------------------------------------------------------------------------
+   6. NAVIGATION ENHANCEMENTS
+--------------------------------------------------------------------------- */
+
+/* Logo subtle entrance */
+.logo {
+  animation: fadeIn 0.5s var(--ease-smooth) both;
+}
+
+/* Smooth nav item hover — already has underline; add color easing */
+.nav a:not(.btn-sm) {
+  transition:
+    color            var(--trans-base),
+    letter-spacing   0.3s;
+}
+
+.nav a:not(.btn-sm):hover {
+  letter-spacing: 0.02em;
+}
+
+/* Hamburger bars smooth cross */
+.mobile-menu-btn .bar {
+  transition: all 0.28s var(--ease-smooth) !important;
+}
+
+/* Drawer slide-in */
+.nav {
+  transition: transform 0.32s var(--ease-smooth) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   7. HERO SECTION
+--------------------------------------------------------------------------- */
+.hero-content {
+  animation: fadeUp 1s var(--ease-smooth) 0.2s both;
+}
+
+.hero h1 {
+  will-change: transform;
+}
+
+.hero-subtext {
+  animation: fadeUp 1s var(--ease-smooth) 0.45s both;
+}
+
+/* ---------------------------------------------------------------------------
+   8. SERVICE CARDS
+--------------------------------------------------------------------------- */
+.service-card {
+  transition:
+    transform   var(--trans-slow) var(--ease-smooth),
+    box-shadow  var(--trans-slow),
+    border-color var(--trans-base) !important;
+  will-change: transform;
+}
+
+.service-card:hover {
+  transform: translateY(-8px) scale(1.015) !important;
+  box-shadow: 0 20px 48px rgba(30, 80, 56, 0.14) !important;
+  border-color: #708c80 !important;
+}
+
+.service-image img {
+  transition: transform 0.55s var(--ease-smooth) !important;
+}
+
+.service-card:hover .service-image img {
+  transform: scale(1.08) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   9. PROCESS STEPS
+--------------------------------------------------------------------------- */
+.step-content {
+  transition:
+    filter      0.3s var(--ease-smooth),
+    background  0.3s var(--ease-smooth) !important;
+}
+
+.process-step {
+  transition: transform 0.38s var(--ease-spring) !important;
+  will-change: transform;
+}
+
+.process-step:hover {
+  transform: translateY(-10px) scale(1.04) !important;
+  z-index: 10;
+}
+
+/* ---------------------------------------------------------------------------
+   10. DENTZY MAKES US — feature items
+--------------------------------------------------------------------------- */
+.makes-us-item {
+  transition:
+    transform  var(--trans-slow) var(--ease-smooth),
+    opacity    var(--trans-slow) !important;
+}
+
+.makes-us-item:hover {
+  transform: translateY(-8px) !important;
+}
+
+.makes-us-image img {
+  transition:
+    transform  0.55s var(--ease-smooth),
+    box-shadow var(--trans-slow) !important;
+}
+
+.makes-us-item:hover .makes-us-image img {
+  transform: scale(1.06) !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* h3 underline grows in on hover */
+.makes-us-text h3::after {
+  transition: width 0.35s var(--ease-smooth) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   11. FOOTER
+--------------------------------------------------------------------------- */
+
+/* Footer links */
+.links-col ul li a {
+  transition:
+    color           var(--trans-base),
+    padding-left    var(--trans-base);
+  display: inline-block;
+}
+
+.links-col ul li a:hover {
+  padding-left: 5px;
+  color: #1e5038 !important;
+  text-decoration: none !important;
+}
+
+/* Social icons */
+.social-icon {
+  transition:
+    transform   var(--trans-base) var(--ease-spring),
+    color       var(--trans-base) !important;
+}
+
+.social-icon:hover {
+  transform: scale(1.22) rotate(-5deg) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   12. CONTACT FORM
+--------------------------------------------------------------------------- */
+.form-bar {
+  transition: box-shadow var(--trans-base) !important;
+}
+
+.form-bar:focus-within {
+  box-shadow: 0 12px 40px rgba(112, 140, 128, 0.35) !important;
+}
+
+.form-input {
+  transition:
+    background-color var(--trans-base),
+    box-shadow       var(--trans-base) !important;
+}
+
+.send-msg-btn {
+  transition:
+    background-color var(--trans-base),
+    color            var(--trans-base),
+    transform        var(--trans-fast),
+    box-shadow       var(--trans-base) !important;
+}
+
+.send-msg-btn:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   13. AUTH PAGES (Login / Register)
+--------------------------------------------------------------------------- */
+
+/* Card entrance */
+.auth-card {
+  animation: fadeUp 0.55s var(--ease-smooth) both;
+}
+
+/* Left panel text */
+.auth-left-content {
+  animation: slideRight 0.7s var(--ease-smooth) 0.1s both;
+}
+
+/* Input focus ring */
+.auth-input {
+  transition:
+    border-color var(--trans-base),
+    box-shadow   var(--trans-base),
+    background   var(--trans-base) !important;
+}
+
+/* Submit button */
+.auth-submit {
+  transition:
+    background   var(--trans-base),
+    transform    var(--trans-fast),
+    box-shadow   var(--trans-base) !important;
+}
+
+.auth-submit:not(:disabled):hover {
+  transform: translateY(-2px) !important;
+}
+
+.auth-submit:not(:disabled):active {
+  transform: translateY(0) !important;
+}
+
+/* Role selector card */
+.role-card {
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
+   14. SCROLL-TO-TOP BUTTON
+--------------------------------------------------------------------------- */
+.scroll-top-btn,
+.scroll-to-top {
+  transition:
+    opacity    var(--trans-base),
+    transform  var(--trans-base) var(--ease-spring),
+    box-shadow var(--trans-base) !important;
+  will-change: transform, opacity;
+}
+
+.scroll-top-btn:hover,
+.scroll-to-top:hover {
+  transform: translateY(-4px) scale(1.1) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   15. ABOUT / CONNECT SECTIONS
+--------------------------------------------------------------------------- */
+.about-title,
+.connect-title {
+  will-change: transform;
+}
+
+/* CTA section button */
+.btn-cta {
+  transition:
+    background  var(--trans-base),
+    transform   var(--trans-fast),
+    box-shadow  var(--trans-base) !important;
+}
+
+.btn-cta:hover {
+  transform: translateY(-3px) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   16. GLOBAL INTERACTIVE SURFACE IMPROVEMENTS
+   These polish every interactive element without per-component changes
+--------------------------------------------------------------------------- */
+
+/* All clickable surfaces get a smoother cursor + subtle active press */
+a, button {
+  cursor: pointer;
+}
+
+button:active,
+a:active {
+  transform: scale(0.98);
+}
+
+/* Remove default outline and replace with brand ring */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.4) !important;
+  border-radius: 4px;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s var(--ease-smooth);
+}
+
+/* ---------------------------------------------------------------------------
+   17. PAGE TRANSITIONS  (wrap your <Routes> in .page-transition-wrapper)
+--------------------------------------------------------------------------- */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity   0.35s var(--ease-smooth),
+    transform 0.35s var(--ease-smooth);
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-smooth);
+}
+
+/* ---------------------------------------------------------------------------
+   18. PARTNER / LOGO SECTIONS
+--------------------------------------------------------------------------- */
+.partner-logo,
+.logo-item {
+  transition:
+    transform   var(--trans-base) var(--ease-spring),
+    filter      var(--trans-base),
+    opacity     var(--trans-base) !important;
+  filter: grayscale(30%);
+  opacity: 0.8;
+}
+
+.partner-logo:hover,
+.logo-item:hover {
+  transform: scale(1.08) !important;
+  filter: grayscale(0%) !important;
+  opacity: 1 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   19. PERFECT SMILE / FUTURE SERVICES CARDS
+--------------------------------------------------------------------------- */
+.smile-card,
+.future-card,
+.product-card,
+.info-card {
+  transition:
+    transform   var(--trans-slow) var(--ease-smooth),
+    box-shadow  var(--trans-slow),
+    border-color var(--trans-base) !important;
+  will-change: transform;
+}
+
+.smile-card:hover,
+.future-card:hover,
+.product-card:hover,
+.info-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 16px 40px rgba(30, 80, 56, 0.12) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   20. REDUCED MOTION SUPPORT  (accessibility)
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal,
+  .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

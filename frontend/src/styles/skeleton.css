@@ -1,0 +1,76 @@
+/**
+ * ================================================================
+ *  DENTZY — Skeleton Loading Animations
+ * ================================================================
+ *
+ *  Shimmer animation system for data-fetching placeholder states.
+ *
+ *  Usage:
+ *    <div className="skeleton skeleton--text" />
+ *    <div className="skeleton skeleton--circle" />
+ *    <div className="skeleton skeleton--rect" style={{ height: '120px' }} />
+ */
+
+/* ── Shimmer Keyframes ─────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* ── Base Skeleton Class ───────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--dz-color-border-light, #f0f2f1) 0%,
+    var(--dz-color-bg-surface-alt, #f8faf9) 40%,
+    var(--dz-color-border-light, #f0f2f1) 80%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--dz-radius-sm, 6px);
+}
+
+/* ── Shape Variants ────────────────────────────────────────────── */
+.skeleton--text {
+  height: 14px;
+  width: 100%;
+  border-radius: var(--dz-radius-sm, 6px);
+}
+
+.skeleton--text-short {
+  height: 14px;
+  width: 60%;
+  border-radius: var(--dz-radius-sm, 6px);
+}
+
+.skeleton--heading {
+  height: 22px;
+  width: 45%;
+  border-radius: var(--dz-radius-sm, 6px);
+}
+
+.skeleton--circle {
+  border-radius: var(--dz-radius-full, 9999px);
+}
+
+.skeleton--rect {
+  border-radius: var(--dz-radius-md, 10px);
+}
+
+.skeleton--button {
+  height: 36px;
+  width: 100px;
+  border-radius: var(--dz-radius-full, 9999px);
+}
+
+/* ── Reduced Motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    opacity: 0.6;
+  }
+}

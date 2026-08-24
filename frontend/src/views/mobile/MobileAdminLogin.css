@@ -1,0 +1,31 @@
+/* MobileAdminLogin — base styles */
+
+.mobile-admin-login {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+    padding: 1.5rem;
+}
+
+.mobile-admin-login__placeholder {
+    text-align: center;
+}
+
+.mobile-admin-login__placeholder h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.mobile-admin-login__placeholder p {
+    font-size: 1rem;
+    opacity: 0.6;
+}

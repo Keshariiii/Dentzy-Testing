@@ -1,0 +1,118 @@
+.dentzy-makes-us {
+    background-color: var(--color-white);
+    padding: clamp(3rem, 6vw, 6.25rem) 0;
+}
+
+.makes-us-title {
+    font-size: clamp(1.6rem, 2vw + 0.5rem, 2.5rem);
+    margin-bottom: clamp(2rem, 5vw, 5rem);
+    font-weight: 700;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.makes-us-title span {
+    font-weight: 800;
+    color: var(--color-charcoal);
+}
+
+.makes-us-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(1.5rem, 4vw, 3.75rem);
+    margin-bottom: clamp(2.5rem, 6vw, 6.25rem);
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    opacity: 0.95;
+}
+
+.makes-us-item:hover {
+    transform: translateY(-10px);
+    /* Lift effect */
+    opacity: 1;
+}
+
+.makes-us-item:last-child {
+    margin-bottom: 0;
+}
+
+.makes-us-item.reverse {
+    flex-direction: row-reverse;
+}
+
+.makes-us-text {
+    flex: 1;
+}
+
+.makes-us-text h3 {
+    font-size: clamp(1.4rem, 1.5vw + 0.5rem, 2rem);
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+    color: var(--color-charcoal);
+    position: relative;
+    display: inline-block;
+}
+
+.makes-us-text h3::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-color: #708c80;
+    transition: width 0.3s ease;
+}
+
+.makes-us-item:hover .makes-us-text h3::after {
+    width: 100%;
+    /* Underline animation on hover */
+}
+
+.makes-us-text p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.makes-us-item:hover .makes-us-text p {
+    color: #333;
+    /* Darken text on hover for readability */
+}
+
+.makes-us-image {
+    flex: 1;
+    overflow: hidden;
+    /* For image zoom effect */
+    border-radius: 4px;
+}
+
+.makes-us-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+}
+
+.makes-us-item:hover .makes-us-image img {
+    transform: scale(1.05);
+    /* Zoom in image */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 900px) {
+
+    .makes-us-item,
+    .makes-us-item.reverse {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .makes-us-title {
+        font-size: 2rem;
+        margin-bottom: 40px;
+    }
+}

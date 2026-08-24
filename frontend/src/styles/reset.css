@@ -1,0 +1,145 @@
+/**
+ * ================================================================
+ *  DENTZY — CSS Reset
+ * ================================================================
+ *
+ *  A modern, opinionated reset that normalizes browser defaults
+ *  and establishes a predictable baseline for all elements.
+ *
+ *  Includes:
+ *    - Universal box-sizing
+ *    - Margin/padding reset
+ *    - Fluid viewport height (100dvh fallback)
+ *    - Media element defaults
+ *    - Form element normalization
+ *    - Tap highlight suppression for mobile
+ */
+
+/* ── Universal Box Model ───────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Document ──────────────────────────────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Body ──────────────────────────────────────────────────────── */
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  line-height: var(--dz-line-height-normal, 1.5);
+  font-family: var(--dz-font-family, system-ui, sans-serif);
+  color: var(--dz-color-text-body, #444);
+  background-color: var(--dz-color-bg-page, #f4f7f5);
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Typography Reset ──────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: var(--dz-line-height-tight, 1.2);
+  overflow-wrap: break-word;
+}
+
+p {
+  overflow-wrap: break-word;
+}
+
+/* ── Lists ─────────────────────────────────────────────────────── */
+ul, ol {
+  list-style: none;
+}
+
+/* ── Links ─────────────────────────────────────────────────────── */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ── Media Elements ────────────────────────────────────────────── */
+img, picture, video, canvas {
+  display: block;
+  max-width: 100%;
+}
+
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+/* ── Form Elements ─────────────────────────────────────────────── */
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea {
+  border: none;
+  outline: none;
+  background: none;
+}
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+fieldset {
+  border: none;
+}
+
+/* ── Table ─────────────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* ── Mobile Touch ──────────────────────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Accessibility: Reduced Motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Focus Visible ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--dz-color-border-focus, #708c80);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}

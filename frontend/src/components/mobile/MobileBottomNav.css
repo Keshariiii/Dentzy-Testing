@@ -1,0 +1,73 @@
+/* ================================================================
+   MobileBottomNav — iOS/Android-style fixed bottom tab bar
+   ================================================================ */
+
+.m-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.m-bnav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 0;
+  color: #94a3b8;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+}
+
+.m-bnav-item--active {
+  color: var(--color-primary, #708c80);
+}
+
+.m-bnav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 30px;
+  border-radius: 16px;
+  transition: background 0.25s, transform 0.15s;
+}
+
+.m-bnav-item--active .m-bnav-icon {
+  background: rgba(112, 140, 128, 0.12);
+  transform: scale(1.05);
+}
+
+.m-bnav-item:active .m-bnav-icon {
+  transform: scale(0.9);
+}
+
+.m-bnav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.m-bnav-item--active .m-bnav-label {
+  font-weight: 700;
+  color: var(--color-primary-dark, #4a6a5a);
+}

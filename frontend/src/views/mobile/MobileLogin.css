@@ -1,0 +1,398 @@
+/* ================================================================
+   Mobile Auth Pages — Shared styles for Login, Register, Forgot
+   ================================================================ */
+
+.m-auth-page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px 32px;
+  background-image: url('/images/auth-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #2d3b34;
+  overflow-x: hidden;
+}
+
+.m-auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 30, 24, 0.72) 0%,
+    rgba(40, 60, 48, 0.55) 100%
+  );
+  z-index: 1;
+}
+
+.m-auth-back-btn,
+.m-auth-logo,
+.m-auth-card {
+  position: relative;
+  z-index: 10;
+}
+
+.m-auth-back-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-charcoal, #1e2824);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 20;
+}
+
+.m-auth-back-btn:active {
+  transform: scale(0.92);
+  background: #fff;
+}
+
+.m-auth-logo {
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 8px 22px;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-auth-logo img {
+  height: 36px;
+  width: auto;
+}
+
+.m-auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
+}
+
+/* ── Role Switcher ──────────────────────────── */
+.m-role-switcher {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  margin-bottom: 20px;
+}
+
+.m-role-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-role-tab--active {
+  background: #fff;
+  color: var(--color-charcoal, #1e2824);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Title ──────────────────────────────────── */
+.m-auth-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-charcoal, #1e2824);
+  margin: 0 0 4px;
+}
+
+.m-auth-subtitle {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0 0 20px;
+}
+
+/* ── Error ──────────────────────────────────── */
+.m-auth-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.m-auth-error-action {
+  display: block;
+  margin-top: 6px;
+  border: none;
+  background: none;
+  color: #1e40af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Input Group ────────────────────────────── */
+.m-auth-input-group {
+  margin-bottom: 16px;
+}
+
+.m-auth-input-group label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.m-auth-input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-charcoal, #1e2824);
+  background: #fafbfc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.m-auth-input-group input:focus {
+  outline: none;
+  border-color: var(--color-primary, #708c80);
+  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.12);
+  background: #fff;
+}
+
+.m-auth-input-group input::placeholder {
+  color: #cbd5e1;
+}
+
+/* ── Password wrap ──────────────────────────── */
+.m-auth-pw-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.m-auth-pw-wrap input {
+  padding-right: 48px !important;
+}
+
+.m-pw-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-primary, #708c80);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 5;
+  touch-action: manipulation;
+}
+
+.m-pw-toggle:active {
+  background: rgba(112, 140, 128, 0.15);
+  color: var(--color-primary-dark, #4a6a5a);
+  transform: translateY(-50%) scale(0.92);
+}
+
+/* ── Submit Button ──────────────────────────── */
+.m-auth-submit {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-primary, #708c80), var(--color-primary-dark, #4a6a5a));
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(112, 140, 128, 0.35);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-auth-submit:active {
+  transform: scale(0.97);
+}
+
+.m-auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Links ──────────────────────────────────── */
+.m-auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.m-auth-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary, #708c80);
+}
+
+/* ── Password Strength Bar (Register) ──────── */
+.m-pw-strength-wrap {
+  margin-top: 8px;
+}
+
+.m-pw-strength-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.m-pw-strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s, background 0.3s;
+}
+
+.m-pw-strength-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.m-pw-rules {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.m-pw-rule {
+  font-size: 0.68rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.m-pw-rule--pass { color: #16a34a; }
+.m-pw-rule--fail { color: #94a3b8; }
+
+.m-pw-rule-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.m-pw-rule--pass .m-pw-rule-dot { background: #16a34a; }
+.m-pw-rule--fail .m-pw-rule-dot { background: #cbd5e1; }
+
+/* ── CAPTCHA (Register) ─────────────────────── */
+.m-captcha-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.m-captcha-img {
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  min-width: 100px;
+  min-height: 36px;
+}
+
+.m-captcha-img svg {
+  display: block;
+}
+
+.m-captcha-input {
+  flex: 1;
+}
+
+.m-captcha-refresh {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+}
+
+/* ── Back to login link ─────────────────────── */
+.m-auth-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.m-auth-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: var(--color-primary, #708c80);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}

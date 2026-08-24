@@ -1,0 +1,1073 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* =============================================================================
+   DENTZY ADMIN DASHBOARD
+   Exact same design language as UserDashboard.css
+   Palette: #1e5038  #1a3028  #708c80  #eef6f2  #f4f6f5
+============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   ROOT LAYOUT  — mirrors .ud-layout / .ud-body
+--------------------------------------------------------------------------- */
+.ad-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f4f6f5;
+  color: #2d3a34;
+}
+
+.ad-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------------------------------------------------------------------------
+   TOP HEADER BAR  — mirrors .ud-header
+--------------------------------------------------------------------------- */
+.ad-top-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 28px;
+  height: 60px;
+  background: #ffffff;
+  border-bottom: 1px solid #e4ebe7;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+/* Hamburger toggle button */
+.ad-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1.5px solid #e4ebe7;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.ad-hamburger:hover { background: #f0f4f2; border-color: #c5d8ce; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.ad-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #2d3a34;
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.2s;
+}
+
+.ad-header-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ad-logo-img {
+  height: 34px;
+  width: auto;
+}
+
+/* Search in top header */
+.ad-header-search {
+  flex: 1;
+  max-width: 360px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ad-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #a3b5ac;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ad-search {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  border: 1.5px solid #e0e8e4;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #333;
+  background: #f9fbfa;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.ad-search:focus {
+  border-color: #7aa08d;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+}
+
+.ad-search::placeholder { color: #bcc8c2; }
+
+/* Admin info — mirrors .ud-header-user */
+.ad-header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.ad-header-user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ad-header-admin-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1a3028;
+  line-height: 1.2;
+}
+
+.ad-header-admin-role {
+  font-size: 0.7rem;
+  color: #99b0a8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Live dot — same as ud-live-dot */
+.ad-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: ad-pulse-dot 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ad-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+}
+
+.ad-header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5038, #3a8062);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+/* ---------------------------------------------------------------------------
+   SIDEBAR  — mirrors .ud-sidebar exactly
+--------------------------------------------------------------------------- */
+.ad-sidebar {
+  width: 210px;
+  min-width: 210px;
+  background: #1e5038;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 12px;
+  overflow-y: auto;
+  position: fixed;
+  top: 60px;
+  left: -210px;
+  bottom: 0;
+  z-index: 200;
+  transition: left 0.28s cubic-bezier(.4,0,.2,1);
+}
+.ad-sidebar--open {
+  left: 0;
+}
+
+/* Sidebar backdrop overlay */
+.ad-sidebar-overlay {
+  position: fixed;
+  inset: 60px 0 0 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 199;
+  cursor: pointer;
+}
+
+.ad-sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Nav — mirrors .ud-nav / .ud-nav-item */
+.ad-nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+
+.ad-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.84rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ad-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+
+.ad-nav-item.active {
+  background: #ffffff;
+  color: #1e5038;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.ad-nav-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ad-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+/* Sidebar stats section label */
+.ad-stats-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 10px 14px 4px;
+}
+
+/* Stat pills — styled like ud-stat-card but compact, sidebar variant */
+.ad-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.ad-stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.ad-stat-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.07);
+  transition: background 0.2s;
+}
+
+.ad-stat-pill:hover { background: rgba(255,255,255,0.12); }
+
+.ad-stat-num {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.ad-stat-lbl {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.ad-stat-pending  { background: rgba(245,158,11,0.2) !important; }
+.ad-stat-approved { background: rgba(16,185,129,0.2) !important; }
+.ad-stat-rejected { background: rgba(239,68,68,0.2)  !important; }
+
+/* Logout — mirrors .ud-logout */
+.ad-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.ad-logout:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   MAIN CONTENT  — mirrors .ud-main / .ud-content-inner
+--------------------------------------------------------------------------- */
+.ad-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #f4f6f5;
+}
+
+.ad-content-inner {
+  padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1rem, 3vw, 2.25rem);
+  max-width: var(--dz-content-max-wide, 1440px);
+  margin: 0 auto;
+  width: 100%;
+  animation: ad-fadeInUp 0.26s ease;
+}
+
+@keyframes ad-fadeInUp {
+  from { transform: translateY(12px); }
+  to   { transform: translateY(0); }
+}
+
+/* Greeting — mirrors .ud-greeting / .ud-greet-sub */
+.ad-greeting {
+  font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.55rem);
+  font-weight: 800;
+  color: #1a3028;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Header live dot inside greeting */
+.ad-header-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: ad-pulse-dot 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.ad-subheading {
+  font-size: 0.84rem;
+  color: #8aa59d;
+  margin-bottom: 26px;
+}
+
+/* ---------------------------------------------------------------------------
+   DASH TOP ROW  — date pill + total badge (mirrors ud-dash-top / ud-date-pill)
+--------------------------------------------------------------------------- */
+.ad-dash-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 16px;
+}
+
+.ad-date-pill {
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #e0ebe5;
+  border-radius: 99px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #708c80;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+.ad-total-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid #e4ebe7;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.82rem;
+  color: #5a7a6d;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.ad-total-badge span {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1e5038;
+}
+
+/* ---------------------------------------------------------------------------
+   STAT CARDS  — mirrors .ud-stats-grid / .ud-stat-card
+--------------------------------------------------------------------------- */
+.ad-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--dz-fluid-grid-gap, 16px);
+  margin-bottom: clamp(1.25rem, 2vw, 1.875rem);
+}
+
+.ad-stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1px solid #eef2f0;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ad-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border-color: #d4e6dc;
+}
+
+/* Colored top accent — mirrors ud-stat-card--green etc. */
+.ad-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.ad-sc--total::before    { background: #708c80; }
+.ad-sc--pending::before  { background: #f59e0b; }
+.ad-sc--approved::before { background: #10b981; }
+.ad-sc--rejected::before { background: #ef4444; }
+
+/* Icon wrap — mirrors .ud-stat-icon-wrap */
+.ad-sc-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-sc--total    .ad-sc-icon-wrap { background: #f0f5f2; color: #708c80; }
+.ad-sc--pending  .ad-sc-icon-wrap { background: #fff7ed; color: #f59e0b; }
+.ad-sc--approved .ad-sc-icon-wrap { background: #ecfdf5; color: #10b981; }
+.ad-sc--rejected .ad-sc-icon-wrap { background: #fef2f2; color: #ef4444; }
+
+.ad-sc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Stat number — mirrors .ud-stat-num */
+.ad-sc-num {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #1a3028;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+/* Stat label — mirrors .ud-stat-lbl */
+.ad-sc-lbl {
+  font-size: 0.75rem;
+  color: #8aa59d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   SECTION HEADING  — mirrors .ud-section-title / .ud-tab-title
+--------------------------------------------------------------------------- */
+.ad-section-header {
+  margin-bottom: 16px;
+}
+
+.ad-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5a7a6d;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   CONTROLS  — tabs + search + sort
+--------------------------------------------------------------------------- */
+.ad-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Tabs — mirrors .ud-tab-header */
+.ad-tabs { display: flex; gap: 4px; }
+
+.ad-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6a8a7c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ad-tab:hover { background: #e8f0ed; color: #1e5038; }
+
+.ad-tab-active {
+  background: #1e5038;
+  color: #fff;
+}
+
+.ad-tab-active:hover { background: #1e5038; color: #fff; }
+
+.ad-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.2);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.ad-tab:not(.ad-tab-active) .ad-tab-count {
+  background: #e4ebe7;
+  color: #5a7a6d;
+}
+
+/* Controls right side */
+.ad-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search wrap */
+.ad-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid #e0e8e4;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #a3b5ac;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ad-search-wrap:focus-within {
+  border-color: #7aa08d;
+  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+}
+
+.ad-search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #333;
+  padding: 8px 0;
+  width: 180px;
+  transition: width 0.25s ease;
+}
+
+.ad-search-input:focus { width: 220px; }
+.ad-search-input::placeholder { color: #bcc8c2; }
+
+/* Sort */
+.ad-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #6a8a7c;
+  font-weight: 600;
+}
+
+.ad-sort-select {
+  border: 1.5px solid #e0e8e4;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: #2d4a3d;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  font-weight: 500;
+  transition: border-color 0.2s;
+}
+
+.ad-sort-select:focus { border-color: #7aa08d; }
+
+/* Divider */
+.ad-divider {
+  height: 1px;
+  background: #e4ebe7;
+  margin-bottom: 16px;
+}
+
+/* ---------------------------------------------------------------------------
+   USER LIST CONTENT AREA
+--------------------------------------------------------------------------- */
+
+.ad-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* User card — mirrors .ud-table tr hover style but as cards */
+.ad-user-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #eef2f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ad-user-card::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 3px;
+}
+
+.ad-user-card.pending::before  { background: #f59e0b; }
+.ad-user-card.approved::before { background: #10b981; }
+.ad-user-card.rejected::before { background: #ef4444; }
+
+.ad-user-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  border-color: #d4e6dc;
+}
+
+/* Avatar — mirrors .ud-user-avatar / .ud-settings-avatar */
+.ad-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5038, #3a8062);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+.ad-user-info { flex: 1; min-width: 0; }
+
+.ad-user-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a3028;
+  margin-bottom: 2px;
+}
+
+.ad-user-email {
+  font-size: 0.8rem;
+  color: #6a8a7c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-user-date {
+  font-size: 0.72rem;
+  color: #a3b5ac;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Password display — mirrors .ud-code / password field styling */
+.ad-user-pw {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: #8a6d3b;
+  font-size: 0.74rem;
+}
+
+.ad-pw-value {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.76rem;
+  color: #5a4020;
+  background: #fef9c3;
+  padding: 1px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  user-select: all;
+  border: 1px solid #fde68a;
+}
+
+.ad-pw-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a3b5ac;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.ad-pw-toggle:hover {
+  color: #1e5038;
+  background: #e8f0ed;
+}
+
+/* ---------------------------------------------------------------------------
+   BADGES  — mirrors .ud-badge
+--------------------------------------------------------------------------- */
+.ad-badge {
+  padding: 3px 11px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-pending  { background: #fef9c3; color: #854d0e; }
+.badge-approved { background: #dcfce7; color: #166534; }
+.badge-rejected { background: #fecaca; color: #991b1b; }
+
+/* ---------------------------------------------------------------------------
+   ACTION BUTTONS  — mirrors .ud-qa-btn style + specific variants
+--------------------------------------------------------------------------- */
+.ad-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ad-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.ad-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+.ad-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ad-btn-approve {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ad-btn-approve:hover:not(:disabled) {
+  background: #166534;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(30,80,56,0.2);
+}
+
+.ad-btn-reject {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.ad-btn-reject:hover:not(:disabled) {
+  background: #991b1b;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(153,27,27,0.2);
+}
+
+.ad-btn-delete {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 7px 10px;
+}
+
+.ad-btn-delete:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239,68,68,0.2);
+}
+
+.ad-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ad-spin 0.6s linear infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   SKELETON LOADING  — mirrors ud-skeleton-card shimmer
+--------------------------------------------------------------------------- */
+.ad-loading { padding: 4px 0; }
+
+.ad-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ad-skeleton-card {
+  height: 82px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f0f4f2 25%, #e6ede9 50%, #f0f4f2 75%);
+  background-size: 200% 100%;
+  animation: ad-shimmer 1.6s infinite;
+}
+
+@keyframes ad-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------------------------------------------------------------------------
+   EMPTY STATE  — mirrors .ud-empty
+--------------------------------------------------------------------------- */
+.ad-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 70px 30px;
+  color: #8aa59d;
+  text-align: center;
+}
+
+.ad-empty p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6a8a7c;
+}
+
+/* ---------------------------------------------------------------------------
+   SPIN ANIMATION
+--------------------------------------------------------------------------- */
+@keyframes ad-spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------------------
+   TOAST  — mirrors ud-toast style
+--------------------------------------------------------------------------- */
+.ad-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  z-index: 9999;
+  animation: ad-toast-in 0.3s ease both;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.ad-toast-success { background: #1e5038; }
+.ad-toast-error   { background: #dc2626; }
+
+@keyframes ad-toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------------------------------------------------------
+   LIVE NOTIFICATION BANNERS
+--------------------------------------------------------------------------- */
+.ad-live-notifs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ad-live-notif {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #eef2f0;
+  border-left: 3px solid #10b981;
+  border-radius: 10px;
+  padding: 12px 16px;
+  animation: ad-notif-slide 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes ad-notif-slide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.ad-live-notif-icon {
+  color: #10b981;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ad-live-notif-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ad-live-notif-body strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a3028;
+}
+
+.ad-live-notif-body span {
+  font-size: 0.76rem;
+  color: #6a8a7c;
+}
+
+.ad-live-notif-close {
+  background: none;
+  border: none;
+  color: #a3b5ac;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ad-live-notif-close:hover {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* ---------------------------------------------------------------------------
+   SCROLLBARS  — mirrors ud-main / ud-sidebar scrollbar
+--------------------------------------------------------------------------- */
+.ad-main::-webkit-scrollbar { width: 5px; }
+.ad-main::-webkit-scrollbar-track { background: transparent; }
+.ad-main::-webkit-scrollbar-thumb { background: #c5d8ce; border-radius: 99px; }
+
+.ad-sidebar::-webkit-scrollbar { width: 3px; }
+.ad-sidebar::-webkit-scrollbar-track { background: transparent; }
+.ad-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
+
+/* ---------------------------------------------------------------------------
+   RESPONSIVE
+--------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .ad-stat-cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .ad-top-header { padding: 0 16px; }
+
+  .ad-content-inner { padding: 20px 16px; }
+
+  .ad-stat-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .ad-controls { flex-direction: column; align-items: flex-start; }
+  .ad-search-input { width: 100%; }
+
+  .ad-dash-top { flex-direction: column; gap: 10px; }
+}

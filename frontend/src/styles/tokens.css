@@ -1,0 +1,167 @@
+/**
+ * ================================================================
+ *  DENTZY — Design Tokens (CSS Custom Properties)
+ * ================================================================
+ *
+ *  Single source of truth for the entire application's visual language.
+ *  Organized by category: Color, Typography, Spacing, Elevation, Radius, Transitions.
+ *
+ *  Naming Convention:  --dz-{category}-{variant}
+ *  Spacing System:     Base-8 (4px increments)
+ *
+ *  Usage:
+ *    color: var(--dz-color-text-primary);
+ *    padding: var(--dz-space-4);
+ *    font-size: var(--dz-font-size-body);
+ */
+
+:root {
+  /* ── Color: Brand ────────────────────────────────────────────── */
+  --dz-color-primary:         #708c80;   /* Sage Green                */
+  --dz-color-primary-dark:    #4a6a5a;   /* Deep Sage                 */
+  --dz-color-primary-light:   #a3bfb1;   /* Light Sage                */
+  --dz-color-primary-muted:   rgba(112, 140, 128, 0.12); /* Subtle tint */
+
+  /* ── Color: Neutrals ─────────────────────────────────────────── */
+  --dz-color-charcoal:        #1e2824;   /* Dark Forest Charcoal      */
+  --dz-color-dark:            #2a3d35;   /* Forest Dark               */
+  --dz-color-white:           #ffffff;
+  --dz-color-black:           #000000;
+
+  /* ── Color: Backgrounds & Surfaces ───────────────────────────── */
+  --dz-color-bg-page:         #f4f7f5;   /* Main page background      */
+  --dz-color-bg-surface:      #ffffff;   /* Card / elevated surfaces  */
+  --dz-color-bg-surface-alt:  #f8faf9;   /* Alternate surface         */
+  --dz-color-bg-overlay:      rgba(0, 0, 0, 0.45); /* Modal overlay   */
+
+  /* ── Color: Text ─────────────────────────────────────────────── */
+  --dz-color-text-primary:    #1e2824;   /* Headings, strong text     */
+  --dz-color-text-body:       #444444;   /* Body paragraphs           */
+  --dz-color-text-muted:      #64748b;   /* Captions, labels          */
+  --dz-color-text-light:      #94a3b8;   /* Placeholders, disabled    */
+  --dz-color-text-inverse:    #ffffff;   /* Text on dark bg            */
+
+  /* ── Color: Borders ──────────────────────────────────────────── */
+  --dz-color-border:          #e2e8f0;   /* Default border            */
+  --dz-color-border-light:    #f0f2f1;   /* Subtle separator          */
+  --dz-color-border-focus:    #708c80;   /* Input focus ring          */
+
+  /* ── Color: Text Selection ───────────────────────────────────── */
+  --dz-color-selection-light-bg:   rgba(112, 140, 128, 0.32); /* Sage green on light bg  */
+  --dz-color-selection-light-text: #1a382b;                    /* Dark forest text        */
+  --dz-color-selection-dark-bg:    #ffffff;                    /* White on dark surfaces  */
+  --dz-color-selection-dark-text:  #1e2824;                    /* Charcoal contrast text  */
+
+  /* ── Color: Status (Semantic) ────────────────────────────────── */
+  --dz-color-success:         #22c55e;
+  --dz-color-success-bg:      #dcfce7;
+  --dz-color-success-text:    #166534;
+
+  --dz-color-warning:         #f59e0b;
+  --dz-color-warning-bg:      #fef3c7;
+  --dz-color-warning-text:    #92400e;
+
+  --dz-color-error:           #ef4444;
+  --dz-color-error-bg:        #fee2e2;
+  --dz-color-error-text:      #991b1b;
+
+  --dz-color-info:            #3b82f6;
+  --dz-color-info-bg:         #dbeafe;
+  --dz-color-info-text:       #1e40af;
+
+  /* ── Typography: Font Family ─────────────────────────────────── */
+  --dz-font-family:           'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                               'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --dz-font-family-mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* ── Typography: Font Sizes ──────────────────────────────────── */
+  --dz-font-size-display:     2.25rem;   /* 36px — Hero headings      */
+  --dz-font-size-h1:          1.75rem;   /* 28px                      */
+  --dz-font-size-h2:          1.375rem;  /* 22px                      */
+  --dz-font-size-h3:          1.125rem;  /* 18px                      */
+  --dz-font-size-h4:          1rem;      /* 16px                      */
+  --dz-font-size-body:        0.875rem;  /* 14px — Default body       */
+  --dz-font-size-sm:          0.8125rem; /* 13px — Secondary text     */
+  --dz-font-size-xs:          0.75rem;   /* 12px — Captions, badges   */
+  --dz-font-size-micro:       0.625rem;  /* 10px — Tiny labels        */
+
+  /* ── Typography: Font Weights ────────────────────────────────── */
+  --dz-font-weight-regular:   400;
+  --dz-font-weight-medium:    500;
+  --dz-font-weight-semibold:  600;
+  --dz-font-weight-bold:      700;
+
+  /* ── Typography: Line Heights ────────────────────────────────── */
+  --dz-line-height-tight:     1.2;       /* Headings                  */
+  --dz-line-height-normal:    1.5;       /* Body text                 */
+  --dz-line-height-relaxed:   1.65;      /* Long-form text            */
+
+  /* ── Spacing (Base-8 System) ─────────────────────────────────── */
+  --dz-space-0:    0;
+  --dz-space-1:    4px;      /* 0.5 unit */
+  --dz-space-2:    8px;      /* 1 unit   */
+  --dz-space-3:    12px;     /* 1.5 units */
+  --dz-space-4:    16px;     /* 2 units  */
+  --dz-space-5:    20px;     /* 2.5 units */
+  --dz-space-6:    24px;     /* 3 units  */
+  --dz-space-8:    32px;     /* 4 units  */
+  --dz-space-10:   40px;     /* 5 units  */
+  --dz-space-12:   48px;     /* 6 units  */
+  --dz-space-16:   64px;     /* 8 units  */
+  --dz-space-20:   80px;     /* 10 units */
+  --dz-space-24:   96px;     /* 12 units */
+
+  /* ── Border Radius ───────────────────────────────────────────── */
+  --dz-radius-sm:    6px;
+  --dz-radius-md:    10px;
+  --dz-radius-lg:    14px;
+  --dz-radius-xl:    20px;
+  --dz-radius-2xl:   28px;
+  --dz-radius-full:  9999px;  /* Pill / circle */
+
+  /* ── Elevation (Box Shadows) ─────────────────────────────────── */
+  --dz-shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.04);
+  --dz-shadow-sm:    0 1px 4px rgba(0, 0, 0, 0.06);
+  --dz-shadow-md:    0 4px 12px rgba(0, 0, 0, 0.08);
+  --dz-shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.10);
+  --dz-shadow-xl:    0 16px 48px rgba(0, 0, 0, 0.14);
+  --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.25); /* Focus ring */
+
+  /* ── Transitions ─────────────────────────────────────────────── */
+  --dz-transition-fast:    0.15s ease;
+  --dz-transition-normal:  0.25s ease;
+  --dz-transition-slow:    0.4s ease;
+  --dz-transition-spring:  0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Z-Index Scale ───────────────────────────────────────────── */
+  --dz-z-base:       1;
+  --dz-z-dropdown:   100;
+  --dz-z-sticky:     200;
+  --dz-z-overlay:    400;
+  --dz-z-modal:      500;
+  --dz-z-toast:      600;
+  --dz-z-tooltip:    700;
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  --dz-sidebar-width:       260px;
+  --dz-header-height:       60px;
+  --dz-mobile-header-height: 56px;
+  --dz-mobile-nav-height:   64px;
+  --dz-content-max-width:   1200px;
+
+  /* ── Fluid Typography (clamp scales: 768px → 1536px) ────────── */
+  --dz-fluid-display:     clamp(2.5rem, 4vw + 1rem, 4.5rem);
+  --dz-fluid-h1:          clamp(2rem, 3vw + 0.8rem, 3.5rem);
+  --dz-fluid-h2:          clamp(1.5rem, 2vw + 0.6rem, 2.8rem);
+  --dz-fluid-h3:          clamp(1.15rem, 1.2vw + 0.5rem, 1.6rem);
+  --dz-fluid-body:        clamp(0.9rem, 0.3vw + 0.8rem, 1.1rem);
+  --dz-fluid-sm:          clamp(0.8rem, 0.2vw + 0.72rem, 0.95rem);
+
+  /* ── Fluid Spacing ─────────────────────────────────────────── */
+  --dz-fluid-section-pad: clamp(2.5rem, 5vw, 6.25rem);
+  --dz-fluid-grid-gap:    clamp(1rem, 2vw, 2rem);
+  --dz-fluid-container-pad: clamp(1rem, 3vw, 2.5rem);
+
+  /* ── Content Max-Width (ultra-wide containment) ─────────────── */
+  --dz-content-max-wide:  1440px;
+}

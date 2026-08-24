@@ -1,0 +1,91 @@
+.about-dentzy {
+    position: relative;
+    padding: clamp(6rem, 15vw, 15.625rem) 0;
+    color: var(--color-white);
+    text-align: center;
+    overflow: hidden;
+    margin-top: 5rem;
+    scroll-margin-top: 100px;
+}
+
+.about-bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+.about-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    /* Dark overlay */
+    z-index: -1;
+}
+
+.about-title {
+    font-size: clamp(2.5rem, 4vw + 0.5rem, 4rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    color: var(--color-white);
+    letter-spacing: 2px;
+}
+
+.about-title span {
+    color: #708c80;
+    /* Green T - Sage Green Match */
+}
+
+.about-subtitle {
+    font-size: clamp(1rem, 0.8vw + 0.5rem, 1.25rem);
+    font-weight: 500;
+    margin-bottom: 4rem;
+    letter-spacing: 1px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+.about-details {
+    margin-top: 2rem;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.about-details h3 {
+    font-size: clamp(1.8rem, 2vw + 0.5rem, 2.5rem);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--color-white);
+}
+
+.about-details .about-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #eee;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .about-title {
+        font-size: 2.5rem;
+    }
+
+    .about-subtitle {
+        font-size: 1rem;
+    }
+
+    .about-details h3 {
+        font-size: 1.8rem;
+    }
+}

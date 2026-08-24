@@ -1,0 +1,22 @@
+{
+  "name": "project-d",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 5173",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-qrcode-logo": "^4.1.0",
+    "web-haptics": "^0.0.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3"
+  }
+}

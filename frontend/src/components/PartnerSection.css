@@ -1,0 +1,62 @@
+.partner-section {
+    position: relative;
+    padding: clamp(6rem, 15vw, 15.625rem) 0;
+    background-color: var(--color-white);
+    /* Clean background */
+    text-align: center;
+    overflow: hidden;
+}
+
+.partner-content {
+    position: relative;
+    z-index: 3;
+}
+
+.partner-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/images/partner-shades.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    z-index: 1;
+}
+
+.partner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(32, 58, 67, 0.5) 50%, rgba(44, 83, 100, 0.7) 100%);
+    z-index: 2;
+}
+
+.partner-title {
+    font-size: clamp(1.6rem, 2vw + 0.5rem, 2.5rem);
+    font-weight: 700;
+    color: var(--color-white);
+    /* White text */
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+}
+
+.partner-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    font-weight: 400;
+    max-width: 900px;
+    margin: 0 auto;
+    color: #e0e0e0;
+    /* Light Gray text */
+}
+
+@media (max-width: 768px) {
+    .partner-text {
+        font-size: 1.2rem;
+        padding: 0 15px;
+    }
+}
