@@ -1292,13 +1292,13 @@
   transition: all 0.3s ease;
 }
 
-.ud-ts-step.past .ud-ts-icon {
+.ud-ts-step.ud-ts-past .ud-ts-icon {
   background: #1e5038;
   border-color: #1e5038;
   color: #ffffff;
 }
 
-.ud-ts-step.current .ud-ts-icon {
+.ud-ts-step.ud-ts-current .ud-ts-icon {
   background: #1e5038;
   border-color: #1e5038;
   color: #fff;
@@ -1321,8 +1321,8 @@
   white-space: pre-line;
 }
 
-.ud-ts-step.past .ud-ts-label    { color: #708c80; }
-.ud-ts-step.current .ud-ts-label { color: #1a3028; font-weight: 700; }
+.ud-ts-step.ud-ts-past .ud-ts-label    { color: #708c80; }
+.ud-ts-step.ud-ts-current .ud-ts-label { color: #1a3028; font-weight: 700; }
 
 /* Connector lines */
 .ud-ts-connector {

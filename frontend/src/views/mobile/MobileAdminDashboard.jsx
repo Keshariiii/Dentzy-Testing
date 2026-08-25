@@ -45,6 +45,7 @@ const MobileAdminDashboard = () => {
   const [liveNotifs, setLiveNotifs]       = useState([]);
   const [visiblePw, setVisiblePw]         = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [openMenuId, setOpenMenuId]       = useState(null);
   const [error, setError]                 = useState(null);
 
   const sseRef        = useRef(null);
@@ -352,7 +353,10 @@ const MobileAdminDashboard = () => {
           <div className="ma-user-list">
             {filteredUsers.map(user => (
               <div key={user._id} className={`ma-user-card ma-uc--${user.status}`}
-                onClick={() => setSelectedUserId(user._id)}
+                onClick={() => {
+                  if (openMenuId === user._id) setOpenMenuId(null);
+                  else setSelectedUserId(user._id);
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="ma-uc-top">
@@ -368,13 +372,35 @@ const MobileAdminDashboard = () => {
                       }) : '—'}
                     </span>
                   </div>
-                  <span className={`ma-badge ${STATUS_BADGE[user.status]?.cls}`}>
-                    {STATUS_BADGE[user.status]?.label}
-                  </span>
+                  <div style={{ position: 'relative' }}>
+                    <button className="ma-action-btn" onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === user._id ? null : user._id); }} style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                      {Ico.moreVertical(18)}
+                    </button>
+                    {openMenuId === user._id && (
+                      <div className="ma-dropdown-menu" style={{ position: 'absolute', right: 0, top: '30px', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '130px', overflow: 'hidden' }}>
+                        {user.status !== 'approved' && (
+                          <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#16a34a' }}
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleApprove(user._id, user.name); }}>
+                            {Ico.check(14)} Approve
+                          </button>
+                        )}
+                        {user.status !== 'rejected' && (
+                          <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: user.status !== 'approved' ? '1px solid var(--border)' : 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#eab308' }}
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleReject(user._id, user.name); }}>
+                            {Ico.x(14)} Reject
+                          </button>
+                        )}
+                        <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#ef4444' }}
+                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleDelete(user._id, user.name); }}>
+                          {Ico.trash(14)} Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {user.plainPassword && (
-                  <div className="ma-uc-pw">
+                  <div className="ma-uc-pw" style={{ marginTop: '12px' }}>
                     {Ico.lock(11)}
                     <span className="ma-pw-value">
                       {visiblePw === user._id ? user.plainPassword : '--------'}
@@ -386,35 +412,6 @@ const MobileAdminDashboard = () => {
                     </button>
                   </div>
                 )}
-
-                <div className="ma-uc-actions">
-                  {user.status !== 'approved' && (
-                    <button className="ma-action-btn ma-action--approve"
-                      onClick={(e) => { e.stopPropagation(); handleApprove(user._id, user.name); }}
-                      disabled={actionLoading === user._id + '_approve'}>
-                      {actionLoading === user._id + '_approve'
-                        ? <span className="ma-btn-spinner" />
-                        : <>{Ico.check(12)} Approve</>}
-                    </button>
-                  )}
-                  {user.status !== 'rejected' && (
-                    <button className="ma-action-btn ma-action--reject"
-                      onClick={(e) => { e.stopPropagation(); handleReject(user._id, user.name); }}
-                      disabled={actionLoading === user._id + '_reject'}>
-                      {actionLoading === user._id + '_reject'
-                        ? <span className="ma-btn-spinner" />
-                        : <>{Ico.x(12)} Reject</>}
-                    </button>
-                  )}
-                  <button className="ma-action-btn ma-action--delete"
-                    onClick={(e) => { e.stopPropagation(); handleDelete(user._id, user.name); }}
-                    disabled={actionLoading === user._id + '_delete'}
-                    title="Delete user">
-                    {actionLoading === user._id + '_delete'
-                      ? <span className="ma-btn-spinner" />
-                      : Ico.trash(13)}
-                  </button>
-                </div>
               </div>
             ))}
           </div>
