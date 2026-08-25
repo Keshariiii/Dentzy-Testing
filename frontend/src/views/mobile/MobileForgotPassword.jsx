@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { getAuthUrl } from '../../api/client';
-const dentzyLogo = '/dentzy-logo-v3.jpg';
+const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css'; /* Shared mobile auth styles */
 
 const MobileForgotPassword = () => {

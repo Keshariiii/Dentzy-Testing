@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthUrl } from '../api/client';
-const dentzyLogo = '/dentzy-logo-v3.jpg';
+const dentzyLogo = '/dentzy-logo-v2.png';
 import './Register.css';
 
 // Password requirement rules

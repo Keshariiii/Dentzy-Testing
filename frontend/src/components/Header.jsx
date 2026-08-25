@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import './Header.css';
-const dentzyLogo = '/dentzy-logo-v3.jpg';
+const dentzyLogo = '/dentzy-logo-v2.png';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
