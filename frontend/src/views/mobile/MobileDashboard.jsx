@@ -98,10 +98,12 @@ const MobilePipelineRow = ({ order }) => {
 };
 
 const MobilePipeline = ({ stats, orders, onViewOrders }) => {
+  const [showAllPipelines, setShowAllPipelines] = useState(false);
   const inProgress = stats?.orders?.inProgress ?? 0;
   
   const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const displayOrders = unfinishedOrders.length > 0 ? unfinishedOrders : [orders?.[0]];
+  const activeOrder = unfinishedOrders[0] || orders?.[0];
+  const displayOrders = showAllPipelines ? unfinishedOrders : [activeOrder];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -122,6 +124,14 @@ const MobilePipeline = ({ stats, orders, onViewOrders }) => {
                   <span className="m-pulse-dot" />
                   {inProgress} In Progress
                 </span>
+              )}
+              {index === 0 && unfinishedOrders.length > 1 && (
+                <button 
+                  className="m-link-btn" 
+                  onClick={() => setShowAllPipelines(!showAllPipelines)}
+                >
+                  {showAllPipelines ? 'View Less' : 'View More'}
+                </button>
               )}
             </div>
           </div>
