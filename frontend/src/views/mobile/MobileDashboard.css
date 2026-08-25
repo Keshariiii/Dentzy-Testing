@@ -451,8 +451,8 @@
 }
 
 .m-ps-past .m-ps-icon {
-    background: #dcfce7;
-    color: #16a34a;
+    background: var(--color-primary, #708c80);
+    color: #fff;
 }
 
 .m-ps-current .m-ps-icon {
