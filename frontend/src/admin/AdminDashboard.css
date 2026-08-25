@@ -685,7 +685,6 @@
   padding: 16px 20px;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
   position: relative;
-  overflow: hidden;
 }
 
 /* User card colored side accents removed per strict minimalist rule */
