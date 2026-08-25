@@ -529,7 +529,7 @@ const MobileDashboard = () => {
         )}
 
         {/* Pipeline */}
-        {stats && <Pipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
+        {stats && <MobilePipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
         {/* Action Hub */}
         <div className="m-section">
