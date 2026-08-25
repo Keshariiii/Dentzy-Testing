@@ -97,72 +97,38 @@ const MobilePipelineRow = ({ order }) => {
   );
 };
 
-const MobileMultiplePipelinesModal = ({ orders, onClose }) => {
-  return (
-    <div className="m-modal-overlay" onClick={onClose} style={{ zIndex: 10000 }}>
-      <div className="m-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="m-modal-header" style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Active Pipelines</h2>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
-        </div>
-        <div className="m-modal-body" style={{ overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {orders.map(order => (
-            <div key={order._id} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '12px' }}>
-              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Case {order.caseId}</div>
-                  <div style={{ fontWeight: '600' }}>{order.patientName}</div>
-                </div>
-                <StatusPill status={order.status} />
-              </div>
-              <MobilePipelineRow order={order} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MobilePipeline = ({ stats, orders, onViewOrders }) => {
-  const [showAllPipelines, setShowAllPipelines] = useState(false);
   const inProgress = stats?.orders?.inProgress ?? 0;
   
   const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const activeOrder = unfinishedOrders[0] || orders?.[0];
+  const displayOrders = unfinishedOrders.length > 0 ? unfinishedOrders : [orders?.[0]];
 
   return (
-    <div className="m-pipeline-card">
-      <div className="m-pipeline-hdr">
-        <div>
-          <h3 className="m-pipeline-title">Production Pipeline</h3>
-          <p className="m-pipeline-sub">
-            {activeOrder 
-              ? `Case ${activeOrder.caseId} • ${activeOrder.patientName}`
-              : 'Live status of your active lab cases'}
-          </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {displayOrders.map((order, index) => (
+        <div key={order?._id || index} className="m-pipeline-card">
+          <div className="m-pipeline-hdr">
+            <div>
+              <h3 className="m-pipeline-title">Production Pipeline</h3>
+              <p className="m-pipeline-sub">
+                {order 
+                  ? `Case ${order.caseId} • ${order.patientName}`
+                  : 'Live status of your active lab cases'}
+              </p>
+            </div>
+            <div className="m-pipeline-hdr-right" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+              {index === 0 && inProgress > 0 && (
+                <span className="m-live-pill">
+                  <span className="m-pulse-dot" />
+                  {inProgress} In Progress
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <MobilePipelineRow order={order} />
         </div>
-        <div className="m-pipeline-hdr-right" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-          {inProgress > 0 && (
-            <span className="m-live-pill">
-              <span className="m-pulse-dot" />
-              {inProgress} In Progress
-            </span>
-          )}
-          {unfinishedOrders.length > 1 && (
-            <button className="m-link-btn" onClick={() => setShowAllPipelines(true)}>View More</button>
-          )}
-        </div>
-      </div>
-      
-      <MobilePipelineRow order={activeOrder} />
-
-      {showAllPipelines && (
-        <MobileMultiplePipelinesModal 
-          orders={unfinishedOrders} 
-          onClose={() => setShowAllPipelines(false)} 
-        />
-      )}
+      ))}
     </div>
   );
 };

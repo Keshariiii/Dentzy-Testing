@@ -113,71 +113,37 @@ const PipelineRow = ({ order }) => {
   );
 };
 
-const MultiplePipelinesModal = ({ orders, onClose }) => {
-  return (
-    <div className="ud-modal-overlay" onClick={onClose}>
-      <div className="ud-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-        <div className="ud-modal-header">
-          <h2>Active Production Pipelines</h2>
-          <button className="ud-modal-close" onClick={onClose}>&times;</button>
-        </div>
-        <div className="ud-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-          {orders.map(order => (
-            <div key={order._id} style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
-              <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ margin: 0 }}>Case {order.caseId} • {order.patientName}</h4>
-                <StatusBadge status={order.status} />
-              </div>
-              <PipelineRow order={order} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const LabTimeline = ({ stats, orders, onViewOrders }) => {
-  const [showAllPipelines, setShowAllPipelines] = useState(false);
   const inProgress = stats?.orders?.inProgress ?? 0;
   
   const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const activeOrder = unfinishedOrders[0] || orders?.[0];
+  const displayOrders = unfinishedOrders.length > 0 ? unfinishedOrders : [orders?.[0]];
   
   return (
-    <div className="ud-timeline-card">
-      <div className="ud-timeline-header">
-        <div>
-          <h3 className="ud-timeline-title">Production Pipeline</h3>
-          <p className="ud-timeline-sub">
-            {activeOrder 
-              ? `Case ${activeOrder.caseId} • ${activeOrder.patientName} (${activeOrder.serviceType})`
-              : 'Live status of your active lab cases'}
-          </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {displayOrders.map((order, index) => (
+        <div key={order?._id || index} className="ud-timeline-card">
+          <div className="ud-timeline-header">
+            <div>
+              <h3 className="ud-timeline-title">Production Pipeline</h3>
+              <p className="ud-timeline-sub">
+                {order 
+                  ? `Case ${order.caseId} • ${order.patientName} (${order.serviceType})`
+                  : 'Live status of your active lab cases'}
+              </p>
+            </div>
+            <div className="ud-timeline-hdr-right">
+              {index === 0 && inProgress > 0 && (
+                <span className="ud-live-pill">
+                  <span className="ud-pulse-dot" />
+                  {inProgress} In Progress
+                </span>
+              )}
+            </div>
+          </div>
+          <PipelineRow order={order} />
         </div>
-        <div className="ud-timeline-hdr-right">
-          {inProgress > 0 && (
-            <span className="ud-live-pill">
-              <span className="ud-pulse-dot" />
-              {inProgress} In Progress
-            </span>
-          )}
-          {unfinishedOrders.length > 1 && (
-            <button className="ud-timeline-view-btn" style={{ marginLeft: '1rem' }} onClick={() => setShowAllPipelines(true)}>
-              View More
-            </button>
-          )}
-        </div>
-      </div>
-
-      <PipelineRow order={activeOrder} />
-
-      {showAllPipelines && (
-        <MultiplePipelinesModal 
-          orders={unfinishedOrders} 
-          onClose={() => setShowAllPipelines(false)} 
-        />
-      )}
+      ))}
     </div>
   );
 };
