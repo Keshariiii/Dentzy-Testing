@@ -149,12 +149,9 @@ const MobilePipeline = ({ stats, orders, onViewOrders }) => {
               {inProgress} In Progress
             </span>
           )}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {unfinishedOrders.length > 1 && (
-              <button className="m-link-btn" onClick={() => setShowAllPipelines(true)}>View More</button>
-            )}
-            <button className="m-link-btn" onClick={onViewOrders}>View All</button>
-          </div>
+          {unfinishedOrders.length > 1 && (
+            <button className="m-link-btn" onClick={() => setShowAllPipelines(true)}>View More</button>
+          )}
         </div>
       </div>
       
