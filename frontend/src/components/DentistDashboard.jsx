@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 
 /* =============================================================================
    SVG ICON LIBRARY — shared across desktop & mobile dashboards

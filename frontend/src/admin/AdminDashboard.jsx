@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import DentistDetailModal from './DentistDetailModal';
 import './AdminDashboard.css';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 

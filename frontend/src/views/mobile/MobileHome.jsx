@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import Footer from '../../components/Footer';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 import './MobileHome.css';
 
 /* ============================================================

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo } from 'react';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 import { getAuthUrl } from '../api/client';
 import './Register.css';
 

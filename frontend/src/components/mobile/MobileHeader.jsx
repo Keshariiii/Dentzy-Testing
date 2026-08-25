@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * MobileHeader — Sleek app-style top bar for mobile views.
  *
@@ -7,7 +7,7 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 import './MobileHeader.css';
 
 const MobileHeader = ({ title = null, showBack = false, transparent = false, showLogin = true, onAvatarClick = null, children = null, rightElement = null }) => {

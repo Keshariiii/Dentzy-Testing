@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminAuth } from '../../admin/AdminAuthContext';
-const dentzyLogo = '/dentzy-logo-v2.png';
+const dentzyLogo = '/dentzy-logo-v3.jpg';
 import './MobileLogin.css';
 
 const MobileLogin = () => {
