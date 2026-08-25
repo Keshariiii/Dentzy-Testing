@@ -379,7 +379,8 @@ export const updateOrderStage = async (req, res) => {
     });
 
     // Broadcast to the owning dentist SSE
-    broadcastToUser(order.owner._id.toString(), 'order-stage-updated', {
+    const ownerId = order.owner?._id ? order.owner._id.toString() : order.owner.toString();
+    broadcastToUser(ownerId, 'order-stage-updated', {
       orderId: order._id,
       caseId: order.caseId,
       oldStage,

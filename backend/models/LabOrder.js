@@ -6,7 +6,7 @@ const labOrderSchema = new mongoose.Schema(
   {
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Dentist',
+      ref: 'User',
       required: true,
     },
     patientName: { type: String, required: true, trim: true },
