@@ -184,7 +184,7 @@ const MobileDashboard = () => {
   const [orders,      setOrders]      = useState([]);
   const [payments,    setPayments]    = useState([]);
   const [loading,     setLoading]     = useState(false);
-
+  const [error,       setError]       = useState(null);
   // Settings state
   const [profileForm, setProfileForm]           = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
   const [profileMsg,  setProfileMsg]            = useState({ type: '', text: '' });
@@ -221,10 +221,12 @@ const MobileDashboard = () => {
   const fetchStats = useCallback(async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
     if (!token) return;
+    setError(null);
     try {
       const res = await authFetch(`${DASH_URL}/stats`);
       if (res.ok) setStats(await res.json());
-    } catch {}
+      else setError('Failed to load stats');
+    } catch { setError('Network error while loading stats'); }
   }, [authFetch, DASH_URL]);
 
   const fetchOrders = useCallback(async () => {
@@ -234,11 +236,13 @@ const MobileDashboard = () => {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const q = search ? `&search=${encodeURIComponent(search)}` : '';
       const res = await authFetch(`${DASH_URL}/orders?limit=50${q}`);
       if (res.ok) { const d = await res.json(); setOrders(d.orders || []); }
-    } catch {}
+      else setError('Failed to load orders');
+    } catch { setError('Network error while loading orders'); }
     setLoading(false);
   }, [authFetch, DASH_URL, search]);
 
@@ -249,12 +253,14 @@ const MobileDashboard = () => {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const statusMap = { 'revenue-pending': 'Pending', 'revenue-paid': 'Paid' };
       const statusParam = statusMap[revenueTab] ? `&status=${statusMap[revenueTab]}` : '';
       const res = await authFetch(`${DASH_URL}/payments?limit=50${statusParam}`);
       if (res.ok) { const d = await res.json(); setPayments(d.payments || []); }
-    } catch {}
+      else setError('Failed to load payments');
+    } catch { setError('Network error while loading payments'); }
     setLoading(false);
   }, [authFetch, DASH_URL, revenueTab]);
 
@@ -427,7 +433,12 @@ const MobileDashboard = () => {
         </div>
 
         {/* Stat Cards */}
-        {stats ? (
+        {error && !stats ? (
+          <div className="m-error-banner">
+            <span>{error}</span>
+            <button onClick={fetchStats}>Retry</button>
+          </div>
+        ) : stats ? (
           <div className="m-stats-row">
             <div className="m-stat-card m-stat--primary">
               <div className="m-stat-top">
@@ -574,6 +585,13 @@ const MobileDashboard = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="m-error-banner">
+          <span>{error}</span>
+          <button onClick={fetchOrders}>Retry</button>
+        </div>
+      )}
+
       {loading ? (
         <SkeletonGroup>
           <OrderSkeleton count={4} />
@@ -660,6 +678,12 @@ const MobileDashboard = () => {
             </button>
           ))}
         </div>
+        {error && (
+          <div className="m-error-banner">
+            <span>{error}</span>
+            <button onClick={fetchPayments}>Retry</button>
+          </div>
+        )}
         {loading ? (
           <SkeletonGroup>
             <OrderSkeleton count={3} />

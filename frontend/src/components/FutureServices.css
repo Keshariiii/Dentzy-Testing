@@ -32,36 +32,60 @@
     /* Lighter on hover */
 }
 
-/* Floating animation for text */
-@keyframes floatText {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+.future-services .section-title {
+    margin-bottom: 3rem;
+    color: var(--color-white);
 }
 
-.future-services-text {
-    font-size: clamp(1.3rem, 1.5vw + 0.5rem, 2rem);
-    /* Large and readable */
-    font-weight: 300;
-    letter-spacing: 0.5px;
-    line-height: 1.4;
-    max-width: 900px;
-    margin: 0 auto;
+.future-services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.future-service-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: left;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.future-service-card:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.future-service-card h3 {
+    font-size: 1.3rem;
+    color: #fff;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.future-service-card p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    margin: 0;
 }
 
 @media (max-width: 768px) {
     .future-services {
         padding: 80px 0;
     }
-
-    .future-services-text {
-        font-size: 1.5rem;
-        padding: 0 20px;
+    
+    .future-services-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 0 15px;
+    }
+    
+    .future-service-card h3 {
+        font-size: 1.2rem;
     }
 }
