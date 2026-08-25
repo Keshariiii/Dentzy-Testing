@@ -366,7 +366,6 @@
   padding: 16px;
   border-radius: 14px;
   background: rgba(112, 140, 128, 0.06);
-  border-left: 3px solid var(--color-primary, #708c80);
   margin-bottom: 14px;
 }
 

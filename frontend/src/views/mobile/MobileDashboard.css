@@ -276,13 +276,7 @@
     min-height: 90px;
 }
 
-.m-stat--primary {
-    border-left: 3px solid var(--color-primary, #708c80);
-}
-
-.m-stat--success {
-    border-left: 3px solid #22c55e;
-}
+/* Stat card left colored borders removed per strict minimalist rule */
 
 .m-stat-skeleton {
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);

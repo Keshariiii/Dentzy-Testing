@@ -46,7 +46,6 @@
     width: 100%;
     text-align: center;
     z-index: 2;
-    border-left: 5px solid var(--color-primary);
     clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%);
     transition: all 0.3s ease;
     /* Smooth transition for background/shadow */
