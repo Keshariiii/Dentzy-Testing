@@ -540,17 +540,7 @@
     transform: scale(0.96);
 }
 
-.m-action-card--green {
-    border-top: 3px solid #22c55e;
-}
-
-.m-action-card--teal {
-    border-top: 3px solid var(--color-primary, #708c80);
-}
-
-.m-action-card--amber {
-    border-top: 3px solid #f59e0b;
-}
+/* Action card color accents removed for minimalism */
 
 .m-action-icon {
     margin-bottom: 8px;

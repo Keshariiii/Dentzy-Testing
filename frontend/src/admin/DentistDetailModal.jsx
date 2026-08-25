@@ -16,11 +16,10 @@ const STAGE_LABELS = {
   qc: 'QC', dispatched: 'Dispatched', completed: 'Completed',
 };
 
-const PRIORITY_CLS = { Low: 'ddm-p-low', Normal: 'ddm-p-normal', High: 'ddm-p-high', Urgent: 'ddm-p-urgent' };
+
 const STATUS_CLS   = { pending: 'ddm-s-pending', approved: 'ddm-s-approved', rejected: 'ddm-s-rejected' };
 
-const fmt    = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-const fmtDue = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 /* ─── Pipeline Progress Bar ──────────────────────────────────────────────── */
 const PipelineBar = ({ stage }) => {
@@ -269,13 +268,13 @@ const DentistDetailModal = ({ userId, onClose }) => {
                         <div className="ddm-order-top">
                           <div className="ddm-order-id-row">
                             <span className="ddm-order-caseid">{order.caseId}</span>
-                            <span className={`ddm-priority-badge ${PRIORITY_CLS[order.priority] || ''}`}>{order.priority}</span>
+                            <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
                           </div>
                           <div className="ddm-order-patient">{order.patientName}</div>
                           <div className="ddm-order-meta-row">
                             <span className="ddm-order-service">{order.serviceType}</span>
                             {order.dueDate && (
-                              <span className="ddm-order-due">{Ico.calendar(12)} Due: {fmtDue(order.dueDate)}</span>
+                              <span className="ddm-order-due">{Ico.calendar(12)} Due: {fmt(order.dueDate)}</span>
                             )}
                           </div>
                         </div>

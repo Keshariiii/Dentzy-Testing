@@ -476,18 +476,7 @@
   border-color: #d4e6dc;
 }
 
-/* Colored top accent — mirrors ud-stat-card--green etc. */
-.ad-stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-}
-
-.ad-sc--total::before    { background: #708c80; }
-.ad-sc--pending::before  { background: #f59e0b; }
-.ad-sc--approved::before { background: #10b981; }
-.ad-sc--rejected::before { background: #ef4444; }
+/* Colored top accent removed for minimalism */
 
 /* Icon wrap — mirrors .ud-stat-icon-wrap */
 .ad-sc-icon-wrap {

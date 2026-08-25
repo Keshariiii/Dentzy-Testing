@@ -1153,11 +1153,7 @@
   margin-top: 4px;
 }
 
-/* -- Stat Card Color Accents (border-top lines) ------------------------------ */
-.ud-stat-card--green  { border-top: 3px solid #1e5038; }
-.ud-stat-card--emerald { border-top: 3px solid #10b981; }
-.ud-stat-card--teal   { border-top: 3px solid #708c80; }
-.ud-stat-card--amber  { border-top: 3px solid #f59e0b; }
+/* -- Stat Card Color Accents Removed for Minimalism ---------------------------- */
 
 /* -- Skeleton Loader --------------------------------------------------------- */
 .ud-stats-skeleton {
@@ -1383,19 +1379,7 @@
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s;
 }
 
-/* Colored top border per variant */
-.ud-action-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: #e4ebe7;
-  transition: background 0.25s;
-}
-
-.ud-action-card--green::before  { background: #1e5038; }
-.ud-action-card--teal::before   { background: #708c80; }
-.ud-action-card--amber::before  { background: #f59e0b; }
+/* Action Card color accents removed for minimalism */
 
 .ud-action-card:hover {
   transform: translateY(-5px);

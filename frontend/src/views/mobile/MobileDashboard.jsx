@@ -61,21 +61,23 @@ const PIPELINE_STEPS = [
   { key: 'dispatched', label: 'Dispatched',  d: 'M5 12h14M12 5l7 7-7 7' },
 ];
 
-const Pipeline = ({ stats, onViewOrders }) => {
+const Pipeline = ({ stats, orders, onViewOrders }) => {
   const inProgress = stats?.orders?.inProgress ?? 0;
-  const pending    = stats?.orders?.pending ?? 0;
-  const completed  = stats?.orders?.completed ?? 0;
-  let activeIdx = -1;
-  if (pending > 0 && inProgress === 0) activeIdx = 0;
-  else if (inProgress > 0)             activeIdx = 2;
-  else if (completed > 0)              activeIdx = 4;
+  
+  const activeOrder = orders?.find(o => o.status !== 'Completed' && o.status !== 'Cancelled') || orders?.[0];
+  
+  const activeIdx = activeOrder ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(activeOrder.stage) : -1;
 
   return (
     <div className="m-pipeline-card">
       <div className="m-pipeline-hdr">
         <div>
           <h3 className="m-pipeline-title">Production Pipeline</h3>
-          <p className="m-pipeline-sub">Live status of your active lab cases</p>
+          <p className="m-pipeline-sub">
+            {activeOrder 
+              ? `Case ${activeOrder.caseId} • ${activeOrder.patientName}`
+              : 'Live status of your active lab cases'}
+          </p>
         </div>
         <div className="m-pipeline-hdr-right">
           {inProgress > 0 && (
@@ -96,15 +98,22 @@ const Pipeline = ({ stats, onViewOrders }) => {
             <React.Fragment key={step.key}>
               <div className={`m-ps-step m-ps-${cls}`}>
                 <div className="m-ps-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={step.d} />
-                  </svg>
+                  {isPast || activeOrder?.stage === 'completed' ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={step.d} />
+                    </svg>
+                  )}
                 </div>
                 <span className="m-ps-label">{step.label}</span>
               </div>
               {idx < PIPELINE_STEPS.length - 1 && (
-                <div className={`m-ps-connector${isPast || isCurrent ? ' filled' : ''}`} />
+                <div className={`m-ps-connector${isPast || activeOrder?.stage === 'completed' ? ' filled' : ''}`} />
               )}
             </React.Fragment>
           );
@@ -479,7 +488,7 @@ const MobileDashboard = () => {
         )}
 
         {/* Pipeline */}
-        {stats && <Pipeline stats={stats} onViewOrders={() => setActiveTab('orders')} />}
+        {stats && <Pipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
         {/* Action Hub */}
         <div className="m-section">

@@ -40,7 +40,7 @@ labOrderSchema.pre('save', function (next) {
     const stg = this.stage;
     if (stg === 'completed') {
       this.status = 'Completed';
-    } else if (stg === 'received' && this.isNew) {
+    } else if (stg === 'received') {
       this.status = 'Pending';
     } else {
       this.status = 'In Progress';

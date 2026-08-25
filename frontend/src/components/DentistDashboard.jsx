@@ -77,22 +77,24 @@ const PIPELINE_STEPS = [
   { key: 'dispatched', label: 'Dispatched', iconD: 'M5 12h14M12 5l7 7-7 7' },
 ];
 
-const LabTimeline = ({ stats, onViewOrders }) => {
+const LabTimeline = ({ stats, orders, onViewOrders }) => {
   const inProgress = stats?.orders?.inProgress ?? 0;
-  const pending    = stats?.orders?.pending ?? 0;
-  const completed  = stats?.orders?.completed ?? 0;
-
-  let activeIdx = -1;
-  if (pending > 0 && inProgress === 0)  activeIdx = 0;
-  else if (inProgress > 0)              activeIdx = 2;
-  else if (completed > 0)               activeIdx = 4;
+  
+  // Find latest active order or default to most recent
+  const activeOrder = orders?.find(o => o.status !== 'Completed' && o.status !== 'Cancelled') || orders?.[0];
+  
+  const activeIdx = activeOrder ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(activeOrder.stage) : -1;
 
   return (
     <div className="ud-timeline-card">
       <div className="ud-timeline-header">
         <div>
           <h3 className="ud-timeline-title">Production Pipeline</h3>
-          <p className="ud-timeline-sub">Live status of your active lab cases</p>
+          <p className="ud-timeline-sub">
+            {activeOrder 
+              ? `Case ${activeOrder.caseId} • ${activeOrder.patientName} (${activeOrder.serviceType})`
+              : 'Live status of your active lab cases'}
+          </p>
         </div>
         <div className="ud-timeline-hdr-right">
           {inProgress > 0 && (
@@ -116,15 +118,22 @@ const LabTimeline = ({ stats, onViewOrders }) => {
             <React.Fragment key={step.key}>
               <div className={`ud-ts-step ud-ts-${cls}`}>
                 <div className="ud-ts-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={step.iconD}/>
-                  </svg>
+                  {isPast || activeOrder?.stage === 'completed' ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={step.iconD}/>
+                    </svg>
+                  )}
                 </div>
                 <span className="ud-ts-label">{step.label}</span>
               </div>
               {idx < PIPELINE_STEPS.length - 1 && (
-                <div className={`ud-ts-connector${isPast || isCurrent ? ' filled' : ''}`} />
+                <div className={`ud-ts-connector${isPast || activeOrder?.stage === 'completed' ? ' filled' : ''}`} />
               )}
             </React.Fragment>
           );
@@ -365,8 +374,8 @@ const DentistDashboard = () => {
     ];
 
     const RESOURCES = [
-      { id: 'res-lab-form', emoji: '📋', title: 'Lab Prescription Form',   desc: 'Standard case submission form' },
-      { id: 'res-warranty', emoji: '🛡️', title: 'Warranty Certificate',     desc: 'Dentzy 1-year quality guarantee' },
+      { id: 'res-lab-form', icon: Icons.fileText(20), title: 'Lab Prescription Form',   desc: 'Standard case submission form' },
+      { id: 'res-warranty', icon: Icons.shield(20), title: 'Warranty Certificate',     desc: 'Dentzy 1-year quality guarantee' },
     ];
 
     return (
@@ -417,7 +426,7 @@ const DentistDashboard = () => {
 
         {/* Production Pipeline Timeline */}
         {stats && (
-          <LabTimeline stats={stats} onViewOrders={() => setActiveTab('orders')} />
+          <LabTimeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />
         )}
 
         {/* Important Sections — Action Hub */}
@@ -461,21 +470,13 @@ const DentistDashboard = () => {
           </div>
           <div className="ud-resources-grid">
             {RESOURCES.map(r => (
-              <div key={r.id} id={r.id} className="ud-resource-card">
-                <span className="ud-resource-emoji">{r.emoji}</span>
+              <div className="ud-resource-card" key={r.id}>
+                <div className="ud-resource-icon-wrap">{r.icon}</div>
                 <div className="ud-resource-info">
-                  <span className="ud-resource-title">{r.title}</span>
-                  <span className="ud-resource-desc">{r.desc}</span>
+                  <h4 className="ud-resource-title">{r.title}</h4>
+                  <p className="ud-resource-desc">{r.desc}</p>
                 </div>
-                <span className="ud-resource-badge">PDF</span>
-                <button className="ud-resource-dl-btn" aria-label={`Download ${r.title}`}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                </button>
+                <div className="ud-resource-download">{Icons.download(16)}</div>
               </div>
             ))}
           </div>
