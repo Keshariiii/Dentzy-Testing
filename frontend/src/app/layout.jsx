@@ -2,7 +2,6 @@ import '../styles/tokens.css';
 import '../styles/reset.css';
 import '../styles/skeleton.css';
 import '../index.css';
-import '../App.css';
 import '../global-animations.css';
 import '../responsive.css';
 import '../admin/AdminDashboard.css';
