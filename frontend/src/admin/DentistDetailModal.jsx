@@ -145,7 +145,20 @@ const DentistDetailModal = ({ userId, onClose }) => {
     } catch { showToast('Network error', 'error'); }
     setSubmitting(false);
   };
-
+  /* ── Delete order ─────────────────────────────────────────────────────── */
+  const handleDeleteOrder = async (orderId, caseId) => {
+    if (!window.confirm(`Are you sure you want to delete order ${caseId}? This cannot be undone.`)) return;
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => o._id !== orderId));
+        showToast('Order deleted successfully.');
+      } else {
+        showToast(data.message || 'Failed to delete order', 'error');
+      }
+    } catch { showToast('Network error', 'error'); }
+  };
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
     <div className="ddm-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -249,7 +262,7 @@ const DentistDetailModal = ({ userId, onClose }) => {
                     <div className="ddm-form-actions">
                       <button type="button" className="ddm-form-cancel" onClick={() => setShowForm(false)}>Cancel</button>
                       <button type="submit" className="ddm-form-submit" disabled={submitting}>
-                        {submitting ? <span className="ddm-btn-spinner" /> : <>{Ico.plus(13)} Create Order</>}
+                        {submitting ? <span className="ddm-btn-spinner" /> : <>Create Order</>}
                       </button>
                     </div>
                   </form>
@@ -268,7 +281,17 @@ const DentistDetailModal = ({ userId, onClose }) => {
                         <div className="ddm-order-top">
                           <div className="ddm-order-id-row">
                             <span className="ddm-order-caseid">{order.caseId}</span>
-                            <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
+                              <button 
+                                className="ddm-close" 
+                                style={{ position: 'relative', top: 'auto', right: 'auto', padding: '2px', background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer' }}
+                                onClick={() => handleDeleteOrder(order._id, order.caseId)}
+                                title="Delete Order"
+                              >
+                                {Ico.trash(14)}
+                              </button>
+                            </div>
                           </div>
                           <div className="ddm-order-patient">{order.patientName}</div>
                           <div className="ddm-order-meta-row">

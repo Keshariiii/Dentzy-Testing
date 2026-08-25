@@ -77,14 +77,73 @@ const PIPELINE_STEPS = [
   { key: 'dispatched', label: 'Dispatched', iconD: 'M5 12h14M12 5l7 7-7 7' },
 ];
 
+const PipelineRow = ({ order }) => {
+  const activeIdx = order ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(order.stage) : -1;
+  return (
+    <div className="ud-timeline-steps">
+      {PIPELINE_STEPS.map((step, idx) => {
+        const isPast    = activeIdx >= 0 && idx < activeIdx;
+        const isCurrent = idx === activeIdx;
+        const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
+        return (
+          <React.Fragment key={step.key}>
+            <div className={`ud-ts-step ud-ts-${cls}`}>
+              <div className="ud-ts-icon">
+                {isPast || order?.stage === 'completed' ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={step.iconD}/>
+                  </svg>
+                )}
+              </div>
+              <span className="ud-ts-label">{step.label}</span>
+            </div>
+            {idx < PIPELINE_STEPS.length - 1 && (
+              <div className={`ud-ts-connector${isPast || order?.stage === 'completed' ? ' filled' : ''}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const MultiplePipelinesModal = ({ orders, onClose }) => {
+  return (
+    <div className="ud-modal-overlay" onClick={onClose}>
+      <div className="ud-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+        <div className="ud-modal-header">
+          <h2>Active Production Pipelines</h2>
+          <button className="ud-modal-close" onClick={onClose}>&times;</button>
+        </div>
+        <div className="ud-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+          {orders.map(order => (
+            <div key={order._id} style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ margin: 0 }}>Case {order.caseId} • {order.patientName}</h4>
+                <StatusBadge status={order.status} />
+              </div>
+              <PipelineRow order={order} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LabTimeline = ({ stats, orders, onViewOrders }) => {
+  const [showAllPipelines, setShowAllPipelines] = useState(false);
   const inProgress = stats?.orders?.inProgress ?? 0;
   
-  // Find latest active order or default to most recent
-  const activeOrder = orders?.find(o => o.status !== 'Completed' && o.status !== 'Cancelled') || orders?.[0];
+  const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
+  const activeOrder = unfinishedOrders[0] || orders?.[0];
   
-  const activeIdx = activeOrder ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(activeOrder.stage) : -1;
-
   return (
     <div className="ud-timeline-card">
       <div className="ud-timeline-header">
@@ -103,42 +162,22 @@ const LabTimeline = ({ stats, orders, onViewOrders }) => {
               {inProgress} In Progress
             </span>
           )}
-          <button className="ud-timeline-view-btn" onClick={onViewOrders}>
-            View All Orders
-          </button>
+          {unfinishedOrders.length > 1 && (
+            <button className="ud-timeline-view-btn" style={{ marginLeft: '1rem' }} onClick={() => setShowAllPipelines(true)}>
+              View More
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="ud-timeline-steps">
-        {PIPELINE_STEPS.map((step, idx) => {
-          const isPast    = activeIdx >= 0 && idx < activeIdx;
-          const isCurrent = idx === activeIdx;
-          const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
-          return (
-            <React.Fragment key={step.key}>
-              <div className={`ud-ts-step ud-ts-${cls}`}>
-                <div className="ud-ts-icon">
-                  {isPast || activeOrder?.stage === 'completed' ? (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={step.iconD}/>
-                    </svg>
-                  )}
-                </div>
-                <span className="ud-ts-label">{step.label}</span>
-              </div>
-              {idx < PIPELINE_STEPS.length - 1 && (
-                <div className={`ud-ts-connector${isPast || activeOrder?.stage === 'completed' ? ' filled' : ''}`} />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
+      <PipelineRow order={activeOrder} />
+
+      {showAllPipelines && (
+        <MultiplePipelinesModal 
+          orders={unfinishedOrders} 
+          onClose={() => setShowAllPipelines(false)} 
+        />
+      )}
     </div>
   );
 };
@@ -279,14 +318,8 @@ const DentistDashboard = () => {
         const url = `${DASH_URL}/events?token=${encodeURIComponent(token)}`;
         es = new EventSource(url);
         es.addEventListener('connected', () => { retryCount = 0; });
-        es.addEventListener('new-order', () => {
-          fetchStatsRef.current?.();
-          fetchOrdersRef.current?.();
-        });
-        es.addEventListener('order-stage-updated', () => {
-          fetchStatsRef.current?.();
-          fetchOrdersRef.current?.();
-        });
+        const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };
+        ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt => es.addEventListener(evt, refresh));
         es.onerror = () => {
           if (es) { es.close(); es = null; }
           if (!stopped && retryCount < 3) {

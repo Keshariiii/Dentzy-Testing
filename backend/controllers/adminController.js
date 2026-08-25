@@ -307,7 +307,7 @@ export const createOrder = async (req, res) => {
     await order.save();
 
     // Populate owner for response
-    await order.populate('owner', 'name email clinicName');
+    await order.populate({ path: 'owner', select: 'name email clinicName' });
 
     auditLog('ORDER_CREATED', { orderId: order._id, caseId, dentistId, adminUsername: req.admin.username });
 
@@ -359,7 +359,7 @@ export const updateOrderStage = async (req, res) => {
     }
 
     await order.save();
-    await order.populate('owner', 'name email clinicName');
+    await order.populate({ path: 'owner', select: 'name email clinicName' });
 
     auditLog('ORDER_STAGE_UPDATED', {
       orderId: order._id,
@@ -392,5 +392,23 @@ export const updateOrderStage = async (req, res) => {
   } catch (error) {
     logger.error('Admin stage update error', { error: error.message });
     return res.status(500).json({ message: 'Failed to update stage.' });
+  }
+};
+
+// ─── DELETE /api/admin/orders/:id ─────────────────────────────────────────────
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await LabOrder.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found.' });
+
+    auditLog('ORDER_DELETED_BY_ADMIN', { orderId: req.params.id, adminUsername: req.admin.username });
+    
+    broadcastToAdmin('order-deleted', { orderId: req.params.id });
+    broadcastToUser(order.owner.toString(), 'order-deleted', { orderId: req.params.id });
+
+    return res.json({ message: 'Order deleted successfully.' });
+  } catch (error) {
+    logger.error('Admin delete order error', { error: error.message });
+    return res.status(500).json({ message: 'Failed to delete order.' });
   }
 };

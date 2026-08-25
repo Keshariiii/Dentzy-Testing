@@ -61,12 +61,75 @@ const PIPELINE_STEPS = [
   { key: 'dispatched', label: 'Dispatched',  d: 'M5 12h14M12 5l7 7-7 7' },
 ];
 
-const Pipeline = ({ stats, orders, onViewOrders }) => {
+const MobilePipelineRow = ({ order }) => {
+  const activeIdx = order ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(order.stage) : -1;
+  return (
+    <div className="m-pipeline-steps">
+      {PIPELINE_STEPS.map((step, idx) => {
+        const isPast    = activeIdx >= 0 && idx < activeIdx;
+        const isCurrent = idx === activeIdx;
+        const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
+        return (
+          <React.Fragment key={step.key}>
+            <div className={`m-ps-step m-ps-${cls}`}>
+              <div className="m-ps-icon">
+                {isPast || order?.stage === 'completed' ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={step.d} />
+                  </svg>
+                )}
+              </div>
+              <span className="m-ps-label">{step.label}</span>
+            </div>
+            {idx < PIPELINE_STEPS.length - 1 && (
+              <div className={`m-ps-connector${isPast || order?.stage === 'completed' ? ' filled' : ''}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+const MobileMultiplePipelinesModal = ({ orders, onClose }) => {
+  return (
+    <div className="m-modal-overlay" onClick={onClose} style={{ zIndex: 10000 }}>
+      <div className="m-modal" onClick={e => e.stopPropagation()} style={{ width: '90%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="m-modal-header" style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Active Pipelines</h2>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+        </div>
+        <div className="m-modal-body" style={{ overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {orders.map(order => (
+            <div key={order._id} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Case {order.caseId}</div>
+                  <div style={{ fontWeight: '600' }}>{order.patientName}</div>
+                </div>
+                <StatusPill status={order.status} />
+              </div>
+              <MobilePipelineRow order={order} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MobilePipeline = ({ stats, orders, onViewOrders }) => {
+  const [showAllPipelines, setShowAllPipelines] = useState(false);
   const inProgress = stats?.orders?.inProgress ?? 0;
   
-  const activeOrder = orders?.find(o => o.status !== 'Completed' && o.status !== 'Cancelled') || orders?.[0];
-  
-  const activeIdx = activeOrder ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(activeOrder.stage) : -1;
+  const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
+  const activeOrder = unfinishedOrders[0] || orders?.[0];
 
   return (
     <div className="m-pipeline-card">
@@ -79,46 +142,30 @@ const Pipeline = ({ stats, orders, onViewOrders }) => {
               : 'Live status of your active lab cases'}
           </p>
         </div>
-        <div className="m-pipeline-hdr-right">
+        <div className="m-pipeline-hdr-right" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
           {inProgress > 0 && (
             <span className="m-live-pill">
               <span className="m-pulse-dot" />
               {inProgress} In Progress
             </span>
           )}
-          <button className="m-link-btn" onClick={onViewOrders}>View All</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {unfinishedOrders.length > 1 && (
+              <button className="m-link-btn" onClick={() => setShowAllPipelines(true)}>View More</button>
+            )}
+            <button className="m-link-btn" onClick={onViewOrders}>View All</button>
+          </div>
         </div>
       </div>
-      <div className="m-pipeline-steps">
-        {PIPELINE_STEPS.map((step, idx) => {
-          const isPast    = activeIdx >= 0 && idx < activeIdx;
-          const isCurrent = idx === activeIdx;
-          const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
-          return (
-            <React.Fragment key={step.key}>
-              <div className={`m-ps-step m-ps-${cls}`}>
-                <div className="m-ps-icon">
-                  {isPast || activeOrder?.stage === 'completed' ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={step.d} />
-                    </svg>
-                  )}
-                </div>
-                <span className="m-ps-label">{step.label}</span>
-              </div>
-              {idx < PIPELINE_STEPS.length - 1 && (
-                <div className={`m-ps-connector${isPast || activeOrder?.stage === 'completed' ? ' filled' : ''}`} />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
+      
+      <MobilePipelineRow order={activeOrder} />
+
+      {showAllPipelines && (
+        <MobileMultiplePipelinesModal 
+          orders={unfinishedOrders} 
+          onClose={() => setShowAllPipelines(false)} 
+        />
+      )}
     </div>
   );
 };
@@ -309,14 +356,8 @@ const MobileDashboard = () => {
         const url = `${DASH_URL}/events?token=${encodeURIComponent(token)}`;
         es = new EventSource(url);
         es.addEventListener('connected', () => { retryCount = 0; });
-        es.addEventListener('new-order', () => {
-          fetchStatsRef.current?.();
-          fetchOrdersRef.current?.();
-        });
-        es.addEventListener('order-stage-updated', () => {
-          fetchStatsRef.current?.();
-          fetchOrdersRef.current?.();
-        });
+        const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };
+        ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt => es.addEventListener(evt, refresh));
         es.onerror = () => {
           if (es) { es.close(); es = null; }
           if (!stopped && retryCount < 3) {

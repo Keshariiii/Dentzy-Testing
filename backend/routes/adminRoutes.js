@@ -22,6 +22,7 @@ import {
   getOrders,
   createOrder,
   updateOrderStage,
+  deleteOrder,
 } from '../controllers/adminController.js';
 
 // Re-export SSE helpers so other modules can import from routes (backward compat)
@@ -50,5 +51,6 @@ router.delete('/users/:id',          verifyAdmin, deleteUser);
 router.get('/orders',                verifyAdmin, getOrders);
 router.post('/orders',               verifyAdmin, validate(createOrderSchema), createOrder);
 router.patch('/orders/:id/stage',    verifyAdmin, validate(updateOrderStageSchema), updateOrderStage);
+router.delete('/orders/:id',         verifyAdmin, deleteOrder);
 
 export default router;
