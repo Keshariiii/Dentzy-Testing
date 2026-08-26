@@ -68,8 +68,6 @@ const AdminDashboard = () => {
   useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
 
   const fetchStats = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!token) return;
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/stats`);
       if (res.ok) {

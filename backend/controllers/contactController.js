@@ -8,24 +8,13 @@ export const submitContact = async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
 
-    // Create a new contact submission
-    const newContact = new Contact({
-      name,
-      email,
-      phone,
-      subject,
-      message
-    });
-
-    // Save to database
-    const savedContact = await newContact.save();
+    const savedContact = await Contact.create({ name, email, phone, subject, message });
 
     logger.info('Contact form submitted', { contactId: savedContact._id });
 
     res.status(201).json({
       success: true,
-      message: 'Contact form submitted successfully',
-      data: savedContact
+      message: 'Contact form submitted successfully'
     });
 
   } catch (error) {

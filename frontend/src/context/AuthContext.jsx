@@ -14,17 +14,7 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
 
     const hydrate = async () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
       const savedUser = typeof window !== 'undefined' ? localStorage.getItem('dentzy_user') : null;
-
-      if (!token) {
-        if (typeof window !== 'undefined') localStorage.removeItem('dentzy_user');
-        if (isMounted) {
-          setUser(null);
-          setLoading(false);
-        }
-        return;
-      }
 
       // Optimistically restore from localStorage
       if (savedUser) {
@@ -33,21 +23,7 @@ export const AuthProvider = ({ children }) => {
         } catch { /* ignore */ }
       }
 
-      // If an admin session is active, skip the /api/auth/me call.
-      // The user token belongs to a previous session — it will 401.
-      // Clear it and treat this as an unauthenticated user context.
-      const adminToken = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-      if (adminToken) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('dentzy_user');
-          localStorage.removeItem('dentzy_token');
-        }
-        if (isMounted) {
-          setUser(null);
-          setLoading(false);
-        }
-        return;
-      }
+
 
       // Verify against server (with timeout for Render cold starts)
       const controller = new AbortController();
@@ -59,8 +35,8 @@ export const AuthProvider = ({ children }) => {
           signal: controller.signal,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
+          credentials: 'include',
         });
 
         clearTimeout(timeoutId);
@@ -84,7 +60,6 @@ export const AuthProvider = ({ children }) => {
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_user');
-            localStorage.removeItem('dentzy_token');
           }
           if (isMounted) setUser(null);
         }
@@ -102,10 +77,6 @@ export const AuthProvider = ({ children }) => {
 
   // Authenticated fetch for /api/dashboard/* routes
   const authFetch = useCallback(async (url, options = {}) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!token) {
-      return { ok: false, status: 401, json: async () => ({ message: 'Unauthorized' }) };
-    }
 
     const targetUrl = normalizeApiUrl(url);
     try {
@@ -114,7 +85,6 @@ export const AuthProvider = ({ children }) => {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
           ...(options.headers || {}),
         },
       });
@@ -122,7 +92,6 @@ export const AuthProvider = ({ children }) => {
       if (res.status === 401 || res.status === 403) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('dentzy_user');
-          localStorage.removeItem('dentzy_token');
         }
         // Don't call setUser here — it causes an infinite re-render loop.
         // Let the dashboard page's own useEffect handle the redirect.
@@ -144,9 +113,6 @@ export const AuthProvider = ({ children }) => {
     if (data.pending) {
       return { pending: true, message: data.message, user: data.user };
     }
-    if (data.token) {
-      localStorage.setItem('dentzy_token', data.token);
-    }
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
@@ -161,11 +127,10 @@ export const AuthProvider = ({ children }) => {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    if (data.token) {
-      localStorage.setItem('dentzy_token', data.token);
+    if (data.user) {
+      localStorage.setItem('dentzy_user', JSON.stringify(data.user));
+      setUser(data.user);
     }
-    localStorage.setItem('dentzy_user', JSON.stringify(data.user));
-    setUser(data.user);
     return data.user;
   }, []);
 
@@ -175,10 +140,7 @@ export const AuthProvider = ({ children }) => {
       const authUrl = getAuthUrl();
       await apiFetch(`${authUrl}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
-    if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_user');
-      localStorage.removeItem('dentzy_token');
-    }
     setUser(null);
   }, []);
 

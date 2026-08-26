@@ -67,13 +67,8 @@ export async function apiFetch(url, options = {}) {
   };
 
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('dentzy_token');
-    const adminToken = localStorage.getItem('dentzy_admin_token');
-    if (token && !headers['Authorization'] && !headers['authorization']) {
-      headers['Authorization'] = `Bearer ${token}`;
-    } else if (adminToken && !headers['Authorization'] && !headers['authorization']) {
-      headers['Authorization'] = `Bearer ${adminToken}`;
-    }
+    // Only attaching credentials for cookies. We removed raw localStorage JWT reading here
+    // to prevent XSS vulnerability (Issue 3).
   }
 
   let res;

@@ -3,14 +3,9 @@ import crypto from 'crypto';
 // Character set — excludes ambiguous chars: 0, O, I, 1, l
 const CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
-/** Generate a random N-character code */
-export const generateCode = (length = 6) => {
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
-  }
-  return code;
-};
+export const generateCode = (length = 6) =>
+  Array.from({ length }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('');
+
 
 /** Generate a distorted SVG CAPTCHA in Dentzy brand colors */
 export const generateCaptchaSVG = (text) => {

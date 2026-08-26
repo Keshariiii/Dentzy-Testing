@@ -6,7 +6,7 @@ import { userClients } from './adminController.js';
 /**
  * Escape regex special characters to prevent ReDoS and syntax crashes.
  */
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const ORDER_SORT_FIELDS = ['createdAt', 'dueDate', 'patientName', 'caseId', 'status', 'priority', 'serviceType'];
 const PAYMENT_SORT_FIELDS = ['invoiceDate', 'dueDate', 'patientName', 'caseId', 'invoiceNumber', 'amount', 'status', 'createdAt'];
@@ -145,8 +145,8 @@ export const updateOrder = async (req, res) => {
   try {
     const order = await LabOrder.findOneAndUpdate(
       { _id: req.params.id, owner: req.user._id },
-      req.body,
-      { new: true }
+      { $set: req.body },
+      { new: true, runValidators: true }
     );
     if (!order) return res.status(404).json({ message: 'Order not found.' });
 

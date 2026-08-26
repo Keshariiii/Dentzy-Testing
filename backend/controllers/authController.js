@@ -4,12 +4,7 @@ import LabOrder from '../models/LabOrder.js';
 import Payment from '../models/Payment.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { broadcastToAdmin } from './adminController.js';
-import { verifyCaptchaToken } from '../utils/captcha.js';
-
-// ─── Helper: generate JWT ────────────────────────────────────────────────────
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-};
+import { verifyCaptchaToken, generateCode, generateCaptchaSVG, createCaptchaToken } from '../utils/captcha.js';
 
 // ─── Helper: cookie options ──────────────────────────────────────────────────
 const isProd = process.env.NODE_ENV === 'production';
@@ -36,8 +31,6 @@ const safeUserObj = (user) => ({
 });
 
 // ─── GET /api/auth/captcha ────────────────────────────────────────────────────
-import { generateCode, generateCaptchaSVG, createCaptchaToken } from '../utils/captcha.js';
-
 export const getCaptcha = (req, res) => {
   try {
     const code         = generateCode(6);
@@ -138,7 +131,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Incorrect password. Please try again.' });
     }
 
-    const token = generateToken(user._id);
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     auditLog('USER_LOGIN', { userId: user._id });
 
@@ -147,7 +140,6 @@ export const login = async (req, res) => {
 
     return res.json({
       user: safeUserObj(user),
-      token,
     });
   } catch (error) {
     logger.error('Login error', { error: error.message });

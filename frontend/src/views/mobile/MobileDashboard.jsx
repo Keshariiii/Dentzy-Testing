@@ -248,8 +248,6 @@ const MobileDashboard = () => {
   }, [user]);
 
   const fetchStats = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!token) return;
     setError(null);
     try {
       const res = await authFetch(`${DASH_URL}/stats`);
@@ -259,11 +257,6 @@ const MobileDashboard = () => {
   }, [authFetch, DASH_URL]);
 
   const fetchOrders = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setError(null);
     try {

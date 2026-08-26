@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/Dentist.js';
 import LabOrder, { STAGES } from '../models/LabOrder.js';
 import Payment from '../models/Payment.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { cookieOptions } from './authController.js';
+import { escapeRegex } from './dashboardController.js';
 
 const USER_SORT_FIELDS = ['createdAt', 'name', 'email', 'status', 'clinicName'];
 
@@ -105,10 +107,26 @@ export const sseEvents = (req, res) => {
 
 // ─── POST /api/admin/login ────────────────────────────────────────────────────
 // Body is pre-validated by Zod (adminLoginSchema)
+
+const safeCompare = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  // Pad to same length so we always call timingSafeEqual — avoids length side-channel
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.alloc(aBuf.length);
+  Buffer.from(b).copy(bBuf);
+  return crypto.timingSafeEqual(aBuf, bBuf) && a.length === b.length;
+};
+
 export const adminLogin = (req, res) => {
   const { username, password } = req.body;
 
-  if (username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
+  const expectedUsername = process.env.ADMIN_USERNAME || '';
+  const expectedPassword = process.env.ADMIN_PASSWORD || '';
+
+  const isUserValid = safeCompare(username, expectedUsername);
+  const isPassValid = safeCompare(password, expectedPassword);
+
+  if (!isUserValid || !isPassValid) {
     return res.status(401).json({ message: 'Invalid admin credentials.' });
   }
 
@@ -123,7 +141,7 @@ export const adminLogin = (req, res) => {
   // Set admin JWT as HttpOnly cookie
   res.cookie('dentzy_admin_jwt', token, cookieOptions(8 * 60 * 60 * 1000));
 
-  return res.json({ admin: { username, role: 'admin' }, token });
+  return res.json({ admin: { username, role: 'admin' } });
 };
 
 // ─── POST /api/admin/logout ─────────────────────────────────────────────────
@@ -271,9 +289,10 @@ export const getOrders = async (req, res) => {
     if (status && status !== 'all') filter.status = status;
     if (stage && stage !== 'all') filter.stage = stage;
     if (search) {
+      const safeSearch = escapeRegex(search.trim());
       filter.$or = [
-        { patientName: { $regex: search, $options: 'i' } },
-        { caseId:      { $regex: search, $options: 'i' } },
+        { patientName: { $regex: safeSearch, $options: 'i' } },
+        { caseId:      { $regex: safeSearch, $options: 'i' } },
       ];
     }
     const orders = await LabOrder.find(filter)

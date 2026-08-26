@@ -80,8 +80,6 @@ const MobileAdminDashboard = () => {
   useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
 
   const fetchStats = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!token) return;
     setError(null);
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/stats`);
@@ -95,8 +93,6 @@ const MobileAdminDashboard = () => {
   }, [ADMIN_API]);
 
   const fetchUsers = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!token) { setLoadingUsers(false); return; }
     setLoadingUsers(true);
     setError(null);
     try {

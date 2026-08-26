@@ -53,18 +53,10 @@ const rawOrigins = (process.env.ALLOWED_ORIGINS || '')
   .map((o) => o.trim())
   .filter(Boolean);
 
-// Separate exact origins from wildcard patterns (e.g. https://*.pages.dev)
-const exactOrigins = [];
-const wildcardPatterns = [];
-for (const o of rawOrigins) {
-  if (o.includes('*')) {
-    // Convert wildcard pattern to regex: escape dots, replace * with .*
-    const pattern = new RegExp('^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
-    wildcardPatterns.push(pattern);
-  } else {
-    exactOrigins.push(o);
-  }
-}
+const exactOrigins    = rawOrigins.filter((o) => !o.includes('*'));
+const wildcardPatterns = rawOrigins
+  .filter((o) => o.includes('*'))
+  .map((o) => new RegExp('^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'));
 
 app.use(cors({
   origin: (origin, callback) => {
