@@ -116,17 +116,23 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// ── Strict auth rate limiter — 20 req/15 min in production, relaxed in dev ──
+// ── Shared rate limiter defaults ──────────────────────────────────────────────
+const limiterDefaults = { windowMs: 15 * 60 * 1000, standardHeaders: true, legacyHeaders: false };
+
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  ...limiterDefaults,
   max: process.env.NODE_ENV === 'production' ? 20 : 500,
-  standardHeaders: true,
-  legacyHeaders: false,
   message: { message: 'Too many authentication attempts. Please try again later.' },
 });
 
-// Body parser
-app.use(express.json());
+const contactLimiter = rateLimit({
+  ...limiterDefaults,
+  max: process.env.NODE_ENV === 'production' ? 10 : 50,
+  message: { message: 'Too many contact form submissions. Please try again later.' },
+});
+
+// Body parser — limit payload size to 100kb to prevent DoS (Issue #14)
+app.use(express.json({ limit: '100kb' }));
 
 // Cookie parser — reads HttpOnly cookies for JWT auth
 app.use(cookieParser());
@@ -151,9 +157,9 @@ const requireDB = (req, res, next) => {
 };
 
 // Routes
-app.use('/api/contact',   contactRoutes);
+app.use('/api/contact',   contactLimiter, contactRoutes);
 app.use('/api/auth',      authLimiter, requireDB, authRoutes);
-app.use('/api/admin',     adminRoutes);
+app.use('/api/admin',     requireDB, adminRoutes);
 app.use('/api/dashboard', requireDB, dashboardRoutes);
 
 // Test Route
@@ -166,12 +172,6 @@ app.get('/', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`Server is running on http://localhost:${PORT} and network http://0.0.0.0:${PORT}`);
-});
-
-
 // Database Connection with retry logic
 const connectDB = async () => {
   try {
@@ -183,6 +183,14 @@ const connectDB = async () => {
     logger.error(`MongoDB connection failed: ${error.message}. Retrying in 5 seconds...`);
     setTimeout(connectDB, 5000);
   }
+};
+
+// Start Server after connecting to DB
+const startServer = async () => {
+  await connectDB();
+  app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`Server is running on http://localhost:${PORT} and network http://0.0.0.0:${PORT}`);
+  });
 };
 
 mongoose.connection.on('disconnected', () => {
@@ -200,4 +208,4 @@ mongoose.connection.on('error', (err) => {
   logger.error(`MongoDB connection error: ${err.message}`);
 });
 
-connectDB();
+startServer();

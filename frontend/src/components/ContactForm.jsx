@@ -105,13 +105,13 @@ const ContactForm = () => {
                         value={formData.subject}
                         onChange={handleChange}
                     />
-                    <input
-                        type="text"
+                    <textarea
                         name="message"
                         placeholder="Message"
                         className="form-input message-input"
                         value={formData.message}
                         onChange={handleChange}
+                        rows={1}
                     />
                 </div>
 

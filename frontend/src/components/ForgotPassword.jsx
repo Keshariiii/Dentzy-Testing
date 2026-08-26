@@ -133,7 +133,7 @@ const ForgotPassword = () => {
               Redirecting you to Login in a moment…
             </p>
             <Link
-              to="/login"
+              href="/login"
               id="fp-go-to-login"
               className="auth-btn"
               style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', marginTop: '20px' }}

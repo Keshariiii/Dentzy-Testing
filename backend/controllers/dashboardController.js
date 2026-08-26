@@ -3,6 +3,14 @@ import Payment from '../models/Payment.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { userClients } from './adminController.js';
 
+/**
+ * Escape regex special characters to prevent ReDoS and syntax crashes.
+ */
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const ORDER_SORT_FIELDS = ['createdAt', 'dueDate', 'patientName', 'caseId', 'status', 'priority', 'serviceType'];
+const PAYMENT_SORT_FIELDS = ['invoiceDate', 'dueDate', 'patientName', 'caseId', 'invoiceNumber', 'amount', 'status', 'createdAt'];
+
 // ─── GET /api/dashboard/events ────────────────────────────────────────────────
 export const sseEvents = (req, res) => {
   const userId = req.user._id.toString();
@@ -86,14 +94,22 @@ export const getStats = async (req, res) => {
 // ─── GET /api/dashboard/orders ────────────────────────────────────────────────
 export const getOrders = async (req, res) => {
   try {
-    const { status, search, sort = 'createdAt', order = 'desc', limit = 20 } = req.query;
+    const { status, search, limit = 20 } = req.query;
+    
+    // Whitelist sort fields and order
+    const sort = ORDER_SORT_FIELDS.includes(req.query.sort) ? req.query.sort : 'createdAt';
+    const order = req.query.order === 'asc' ? 'asc' : 'desc';
+
     const filter = { owner: req.user._id };
     if (status && status !== 'all') filter.status = status;
     if (search) {
-      filter.$or = [
-        { patientName: { $regex: search, $options: 'i' } },
-        { caseId: { $regex: search, $options: 'i' } },
-      ];
+      const safeSearch = escapeRegex(search.trim());
+      if (safeSearch) {
+        filter.$or = [
+          { patientName: { $regex: safeSearch, $options: 'i' } },
+          { caseId: { $regex: safeSearch, $options: 'i' } },
+        ];
+      }
     }
     const orders = await LabOrder.find(filter)
       .sort({ [sort]: order === 'asc' ? 1 : -1 })
@@ -161,15 +177,23 @@ export const deleteOrder = async (req, res) => {
 // ─── GET /api/dashboard/payments ─────────────────────────────────────────────
 export const getPayments = async (req, res) => {
   try {
-    const { status, search, sort = 'invoiceDate', order = 'desc', limit = 20 } = req.query;
+    const { status, search, limit = 20 } = req.query;
+
+    // Whitelist sort fields and order
+    const sort = PAYMENT_SORT_FIELDS.includes(req.query.sort) ? req.query.sort : 'invoiceDate';
+    const order = req.query.order === 'asc' ? 'asc' : 'desc';
+
     const filter = { owner: req.user._id };
     if (status && status !== 'all') filter.status = status;
     if (search) {
-      filter.$or = [
-        { patientName: { $regex: search, $options: 'i' } },
-        { caseId:       { $regex: search, $options: 'i' } },
-        { invoiceNumber:{ $regex: search, $options: 'i' } },
-      ];
+      const safeSearch = escapeRegex(search.trim());
+      if (safeSearch) {
+        filter.$or = [
+          { patientName: { $regex: safeSearch, $options: 'i' } },
+          { caseId:       { $regex: safeSearch, $options: 'i' } },
+          { invoiceNumber:{ $regex: safeSearch, $options: 'i' } },
+        ];
+      }
     }
     const payments = await Payment.find(filter)
       .sort({ [sort]: order === 'asc' ? 1 : -1 })

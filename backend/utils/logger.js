@@ -1,9 +1,15 @@
 import winston from 'winston';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logsDir = path.join(__dirname, '..', 'logs');
+
+// Ensure logs directory exists before configuring file transports
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Winston Logger Configuration

@@ -55,6 +55,12 @@
     flex: 1.5;
 }
 
+textarea.form-input {
+    resize: vertical;
+    font-family: inherit;
+    min-height: 42px;
+}
+
 .contact-info-row {
     display: flex;
     justify-content: space-between;

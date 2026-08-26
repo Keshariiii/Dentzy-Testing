@@ -1,8 +1,11 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/Dentist.js';
 import LabOrder, { STAGES } from '../models/LabOrder.js';
+import Payment from '../models/Payment.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { cookieOptions } from './authController.js';
+
+const USER_SORT_FIELDS = ['createdAt', 'name', 'email', 'status', 'clinicName'];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SSE — Server-Sent Events broadcaster (Admin)
@@ -170,7 +173,12 @@ export const getStats = async (req, res) => {
 // ─── GET /api/admin/users ─────────────────────────────────────────────────────
 export const getUsers = async (req, res) => {
   try {
-    const { status, sort = 'createdAt', order = 'desc' } = req.query;
+    const { status } = req.query;
+
+    // Whitelist sort fields and order
+    const sort = USER_SORT_FIELDS.includes(req.query.sort) ? req.query.sort : 'createdAt';
+    const order = req.query.order === 'asc' ? 'asc' : 'desc';
+
     const filter = status && status !== 'all' ? { status } : {};
     const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
     const users = await User.find(filter).select('-password').sort(sortObj);
@@ -239,6 +247,12 @@ export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    // Cascade delete associated lab orders and payments
+    await Promise.all([
+      LabOrder.deleteMany({ owner: req.params.id }),
+      Payment.deleteMany({ owner: req.params.id }),
+    ]);
 
     auditLog('USER_DELETED_BY_ADMIN', { userId: req.params.id, adminUsername: req.admin.username });
     broadcastToAdmin('user-updated', { id: req.params.id, status: 'deleted' });
