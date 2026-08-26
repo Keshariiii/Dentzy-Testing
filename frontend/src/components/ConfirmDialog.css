@@ -1,0 +1,110 @@
+.cd-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(26, 48, 40, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: cdFadeIn 0.2s ease;
+}
+
+@keyframes cdFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cd-panel {
+  background: #ffffff;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  animation: cdSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cdSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.cd-icon-container {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.cd-icon-primary { background: #eef6f2; color: #1e5038; }
+.cd-icon-warning { background: #fff8e6; color: #d97706; }
+.cd-icon-danger  { background: #fee2e2; color: #dc2626; }
+
+.cd-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3a34;
+  margin-bottom: 12px;
+}
+
+.cd-message {
+  font-size: 14px;
+  color: #708c80;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.cd-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.cd-actions button {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cd-cancel-btn {
+  background: #f4f6f5;
+  color: #4a5c54;
+  border: 1px solid #e4ebe7;
+}
+
+.cd-cancel-btn:hover:not(:disabled) { background: #e4ebe7; }
+.cd-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.cd-confirm-btn { border: none; color: #ffffff; }
+.cd-btn-primary { background: #1e5038; }
+.cd-btn-primary:hover:not(:disabled) { background: #1a422e; }
+.cd-btn-warning { background: #f59e0b; }
+.cd-btn-warning:hover:not(:disabled) { background: #d97706; }
+.cd-btn-danger { background: #ef4444; }
+.cd-btn-danger:hover:not(:disabled) { background: #dc2626; }
+
+.cd-confirm-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.cd-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: cdSpin 0.8s linear infinite;
+}
+
+@keyframes cdSpin { to { transform: rotate(360deg); } }

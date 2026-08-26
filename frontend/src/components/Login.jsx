@@ -62,9 +62,17 @@ const Login = ({ defaultRole }) => {
   const initialRole = defaultRole || searchParams?.get('role') || 'dentist';
   const [activeRole, setActiveRole] = useState(initialRole === 'admin' ? 'admin' : 'dentist');
 
-  // Dentist form state
-  const [dentistForm, setDentistForm] = useState({ email: '', password: '' });
-  const [remember, setRemember]       = useState(false);
+  // Dentist form state — pre-fill from remembered email
+  const [dentistForm, setDentistForm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dentzy_remember_email');
+      return { email: saved || '', password: '' };
+    }
+    return { email: '', password: '' };
+  });
+  const [remember, setRemember] = useState(() =>
+    typeof window !== 'undefined' && !!localStorage.getItem('dentzy_remember_email')
+  );
 
   // Admin form state
   const [adminForm, setAdminForm] = useState({ username: '', password: '' });
@@ -108,6 +116,11 @@ const Login = ({ defaultRole }) => {
       setLoading(true);
       try {
         await login(dentistForm.email.trim(), dentistForm.password);
+        if (remember) {
+          localStorage.setItem('dentzy_remember_email', dentistForm.email.trim());
+        } else {
+          localStorage.removeItem('dentzy_remember_email');
+        }
         router.push('/dashboard');
       } catch (err) {
         setError(err.message);

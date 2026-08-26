@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import './DentistDetailModal.css';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 
@@ -56,6 +57,7 @@ const DentistDetailModal = ({ userId, onClose }) => {
   const [showForm, setShowForm]       = useState(false);
   const [submitting, setSubmitting]   = useState(false);
   const [toast, setToast]             = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState(null);
   const toastTimer                    = useRef(null);
 
   const [form, setForm] = useState({
@@ -147,17 +149,27 @@ const DentistDetailModal = ({ userId, onClose }) => {
   };
   /* ── Delete order ─────────────────────────────────────────────────────── */
   const handleDeleteOrder = async (orderId, caseId) => {
-    if (!window.confirm(`Are you sure you want to delete order ${caseId}? This cannot be undone.`)) return;
-    try {
-      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (res.ok) {
-        setOrders(prev => prev.filter(o => o._id !== orderId));
-        showToast('Order deleted successfully.');
-      } else {
-        showToast(data.message || 'Failed to delete order', 'error');
-      }
-    } catch { showToast('Network error', 'error'); }
+    setConfirmConfig({
+      title: 'Delete Order',
+      message: `Are you sure you want to delete order ${caseId}? This cannot be undone.`,
+      type: 'danger',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (res.ok) {
+            setOrders(prev => prev.filter(o => o._id !== orderId));
+            showToast('Order deleted successfully.');
+          } else {
+            showToast(data.message || 'Failed to delete order', 'error');
+          }
+        } catch { showToast('Network error', 'error'); }
+        setConfirmConfig(null);
+      },
+      onCancel: () => setConfirmConfig(null)
+    });
   };
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
@@ -334,6 +346,11 @@ const DentistDetailModal = ({ userId, onClose }) => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmConfig}
+        {...confirmConfig}
+      />
     </div>
   );
 };

@@ -195,4 +195,9 @@ mongoose.connection.on('reconnected', () => {
   logger.info('MongoDB reconnected');
 });
 
+mongoose.connection.on('error', (err) => {
+  dbConnected = false;
+  logger.error(`MongoDB connection error: ${err.message}`);
+});
+
 connectDB();

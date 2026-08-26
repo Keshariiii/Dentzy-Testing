@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import DentistDetailModal from './DentistDetailModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import './AdminDashboard.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
@@ -38,6 +39,7 @@ const AdminDashboard = () => {
   const [visiblePw, setVisiblePw]         = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [openMenuId, setOpenMenuId]         = useState(null);
+  const [confirmConfig, setConfirmConfig]   = useState(null);
   const sseRef        = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -194,42 +196,72 @@ const AdminDashboard = () => {
   };
 
   const handleApprove = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to approve "${userName || 'this dentist'}"?`)) return;
-    setActionLoading(userId + '_approve');
-    try {
-      const res = await authFetch(`${ADMIN_API}/users/${userId}/approve`, { method: 'PATCH' });
-      const data = await res.json();
-      if (res.ok) { showToast('User approved successfully.'); fetchUsers(); fetchStats(); }
-      else showToast(data.message || 'Failed to approve', 'error');
-    } catch { showToast('Network error', 'error'); }
-    setActionLoading(null);
+    setConfirmConfig({
+      title: 'Approve Dentist',
+      message: `Are you sure you want to approve "${userName || 'this dentist'}"?`,
+      type: 'primary',
+      confirmText: 'Approve',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        setActionLoading(userId + '_approve');
+        try {
+          const res = await authFetch(`${ADMIN_API}/users/${userId}/approve`, { method: 'PATCH' });
+          const data = await res.json();
+          if (res.ok) { showToast('User approved successfully.'); fetchUsers(); fetchStats(); }
+          else showToast(data.message || 'Failed to approve', 'error');
+        } catch { showToast('Network error', 'error'); }
+        setActionLoading(null);
+        setConfirmConfig(null);
+      },
+      onCancel: () => setConfirmConfig(null)
+    });
   };
 
   const handleReject = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to reject "${userName || 'this dentist'}"?`)) return;
-    setActionLoading(userId + '_reject');
-    try {
-      const res = await authFetch(`${ADMIN_API}/users/${userId}/reject`, {
-        method: 'PATCH',
-        body: JSON.stringify({ note: 'Rejected by admin' }),
-      });
-      const data = await res.json();
-      if (res.ok) { showToast('User rejected.'); fetchUsers(); fetchStats(); }
-      else showToast(data.message || 'Failed to reject', 'error');
-    } catch { showToast('Network error', 'error'); }
-    setActionLoading(null);
+    setConfirmConfig({
+      title: 'Reject Dentist',
+      message: `Are you sure you want to reject "${userName || 'this dentist'}"?`,
+      type: 'warning',
+      confirmText: 'Reject',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        setActionLoading(userId + '_reject');
+        try {
+          const res = await authFetch(`${ADMIN_API}/users/${userId}/reject`, {
+            method: 'PATCH',
+            body: JSON.stringify({ note: 'Rejected by admin' }),
+          });
+          const data = await res.json();
+          if (res.ok) { showToast('User rejected.'); fetchUsers(); fetchStats(); }
+          else showToast(data.message || 'Failed to reject', 'error');
+        } catch { showToast('Network error', 'error'); }
+        setActionLoading(null);
+        setConfirmConfig(null);
+      },
+      onCancel: () => setConfirmConfig(null)
+    });
   };
 
   const handleDelete = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to delete "${userName || 'this dentist'}"? This action cannot be undone.`)) return;
-    setActionLoading(userId + '_delete');
-    try {
-      const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (res.ok) { showToast('User deleted.'); fetchUsers(); fetchStats(); }
-      else showToast(data.message || 'Failed to delete', 'error');
-    } catch { showToast('Network error', 'error'); }
-    setActionLoading(null);
+    setConfirmConfig({
+      title: 'Delete Dentist',
+      message: `Are you sure you want to delete "${userName || 'this dentist'}"? This action cannot be undone.`,
+      type: 'danger',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        setActionLoading(userId + '_delete');
+        try {
+          const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (res.ok) { showToast('User deleted.'); fetchUsers(); fetchStats(); }
+          else showToast(data.message || 'Failed to delete', 'error');
+        } catch { showToast('Network error', 'error'); }
+        setActionLoading(null);
+        setConfirmConfig(null);
+      },
+      onCancel: () => setConfirmConfig(null)
+    });
   };
 
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
@@ -552,6 +584,12 @@ const AdminDashboard = () => {
           onClose={() => setSelectedUserId(null)}
         />
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmConfig}
+        {...confirmConfig}
+      />
     </div>
   );
 };

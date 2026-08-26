@@ -18,20 +18,11 @@ const nextConfig = {
     ];
   },
 
-  // Allow images from any source (for generated assets)
   images: {
     unoptimized: true,
   },
 
-  // Ignore lint errors during CI/CD build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
-  reactStrictMode: false,
+  reactStrictMode: true,
 };
 
 export default nextConfig;

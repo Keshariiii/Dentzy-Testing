@@ -4,7 +4,7 @@ import { useEffect } from 'react';
  * useGlobalHaptics — Global Event Delegation Hook for Mobile Haptic Feedback.
  *
  * Automatically triggers a subtle haptic vibration when tapping interactive
- * elements (button, a, svg, input[type="button"|"submit"], [role="button"])
+ * elements (button, a, input[type="button"|"submit"], [role="button"])
  * on touch-capable devices.
  *
  * Features:
@@ -25,20 +25,10 @@ export function useGlobalHaptics(options = {}) {
 
     if (!isTouchDevice) return;
 
-    // Lazy-load web-haptics to keep the main bundle lean
-    let triggerHaptic = null;
-    import('web-haptics')
-      .then((mod) => {
-        triggerHaptic = mod.triggerHaptic || mod.default?.triggerHaptic || null;
-      })
-      .catch(() => {
-        // web-haptics unavailable — navigator.vibrate fallback is still active
-      });
-
     let lastTriggerTime = 0;
 
     const INTERACTIVE_SELECTOR =
-      'button, a, svg, input[type="button"], input[type="submit"], [role="button"]';
+      'button, a, input[type="button"], input[type="submit"], [role="button"]';
 
     const handleInteraction = (event) => {
       // 2. Respect user preference (default to enabled)
@@ -57,13 +47,9 @@ export function useGlobalHaptics(options = {}) {
 
       lastTriggerTime = now;
 
-      // 5. Fire haptic feedback with cascading fallback
+      // 5. Fire native haptic feedback
       try {
-        if (typeof triggerHaptic === 'function') {
-          triggerHaptic('selection');
-        } else if (navigator.vibrate) {
-          navigator.vibrate(duration);
-        }
+        if (navigator.vibrate) navigator.vibrate(duration);
       } catch (_) {
         // Silently swallow browser security / permission errors
       }

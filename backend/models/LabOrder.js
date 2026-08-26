@@ -10,7 +10,7 @@ const labOrderSchema = new mongoose.Schema(
       required: true,
     },
     patientName: { type: String, required: true, trim: true },
-    caseId:      { type: String, required: true, trim: true },
+    caseId:      { type: String, required: true, trim: true, unique: true, index: true },
     serviceType: {
       type: String,
       enum: ['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other'],

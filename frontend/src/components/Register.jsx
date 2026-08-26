@@ -20,8 +20,16 @@ const Register = () => {
   const router = useRouter();
   const { register } = useAuth();
 
-  const [form, setForm]               = useState({ name: '', email: '', password: '' });
-  const [remember, setRemember]       = useState(false);
+  const [form, setForm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dentzy_remember_email');
+      return { name: '', email: saved || '', password: '' };
+    }
+    return { name: '', email: '', password: '' };
+  });
+  const [remember, setRemember] = useState(() =>
+    typeof window !== 'undefined' && !!localStorage.getItem('dentzy_remember_email')
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError]             = useState('');
   const [errorAction, setErrorAction] = useState(null);
@@ -52,18 +60,8 @@ const Register = () => {
 
   // Load CAPTCHA on first render
   useEffect(() => {
-    let active = true;
-    fetch(`${API_URL}/captcha`)
-      .then(res => res.json())
-      .then(data => {
-        if (active && data.captchaToken) {
-          setCaptchaToken(data.captchaToken);
-          setCaptchaSvg(data.captchaSvg);
-        }
-      })
-      .catch(() => {});
-    return () => { active = false; };
-  }, [API_URL]);
+    fetchCaptcha();
+  }, [fetchCaptcha]);
 
   // Compute which rules pass in real time
   const ruleResults = useMemo(
@@ -114,6 +112,11 @@ const Register = () => {
     setLoading(true);
     try {
       const result = await register(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      if (remember) {
+        localStorage.setItem('dentzy_remember_email', form.email.trim());
+      } else {
+        localStorage.removeItem('dentzy_remember_email');
+      }
       if (result?.pending) {
         setPending({ name: form.name.trim(), email: form.email.trim() });
       } else {
