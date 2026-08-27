@@ -337,7 +337,7 @@ export async function sendContactUserConfirmation({ env, contact }) {
     
     <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
       <strong>Need immediate lab assistance?</strong><br>
-      Feel free to reach our team directly at +91 90283 06405 or visit our portal.
+      Feel free to reach our team directly at +91 95036 68112 or visit our portal.
     </div>
 
     <p style="color: #64748b; font-size: 13px;">Best regards,<br><strong>Dentzy Dental Solutions Team</strong></p>
