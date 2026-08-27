@@ -47,7 +47,7 @@ const PipelineBar = ({ stage }) => {
 };
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
-const DentistDetailModal = ({ userId, onClose }) => {
+const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const { authFetch, ADMIN_API, admin } = useAdminAuth();
 
   const [user, setUser]               = useState(null);
@@ -336,6 +336,36 @@ const DentistDetailModal = ({ userId, onClose }) => {
                     })}
                   </div>
                 )}
+              </div>
+
+              {/* ── Delete Dentist Account ────────────────────────────── */}
+              <div className="ddm-danger-zone">
+                <button className="ddm-delete-user-btn" onClick={() => {
+                  setConfirmConfig({
+                    title: 'Delete Dentist Account',
+                    message: `Are you sure you want to permanently delete Dr. ${user?.name || 'this dentist'}? All associated lab orders and records will be deleted. This cannot be undone.`,
+                    type: 'danger',
+                    confirmText: 'Delete Account',
+                    onConfirm: async () => {
+                      setConfirmConfig(prev => ({ ...prev, loading: true }));
+                      try {
+                        const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (res.ok) {
+                          showToast('Dentist account deleted.');
+                          onDeleteUser?.();
+                          onClose();
+                        } else {
+                          showToast(data.message || 'Failed to delete', 'error');
+                        }
+                      } catch { showToast('Network error', 'error'); }
+                      setConfirmConfig(null);
+                    },
+                    onCancel: () => setConfirmConfig(null)
+                  });
+                }}>
+                  {Ico.trash(14)} Delete Dentist Account
+                </button>
               </div>
             </>
           )}

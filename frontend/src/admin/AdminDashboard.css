@@ -968,3 +968,51 @@
 
   .ad-dash-top { flex-direction: column; gap: 10px; }
 }
+
+/* ---------------------------------------------------------------------------
+   INLINE CARD ACTION BUTTONS (replaces 3-dots dropdown)
+--------------------------------------------------------------------------- */
+.ad-card-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ad-card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.ad-action-approve {
+  background: #ecfdf5;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+.ad-action-approve:hover { background: #16a34a; color: #fff; }
+
+.ad-action-reject {
+  background: #fefce8;
+  color: #ca8a04;
+  border-color: #fde68a;
+}
+.ad-action-reject:hover { background: #ca8a04; color: #fff; }
+
+.ad-action-delete {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+  padding: 5px 7px;
+}
+.ad-action-delete:hover { background: #ef4444; color: #fff; }

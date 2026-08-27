@@ -582,3 +582,35 @@
 .ma-error-banner { margin: 0 16px 16px; padding: 12px; background: #fee2e2; color: #991b1b; border-radius: 12px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
 .ma-error-banner span { flex: 1; }
 .ma-error-banner button { background: none; border: none; color: #991b1b; font-weight: bold; cursor: pointer; padding: 4px 8px; }
+
+/* ── Inline card action buttons ────────────────── */
+.ma-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.ma-card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ma-action-approve { background: #ecfdf5; color: #16a34a; border-color: #bbf7d0; }
+.ma-action-approve:active { background: #16a34a; color: #fff; }
+
+.ma-action-reject { background: #fefce8; color: #ca8a04; border-color: #fde68a; }
+.ma-action-reject:active { background: #ca8a04; color: #fff; }
+
+.ma-action-delete { background: #fef2f2; color: #ef4444; border-color: #fecaca; padding: 7px 10px; }
+.ma-action-delete:active { background: #ef4444; color: #fff; }

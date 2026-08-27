@@ -604,3 +604,30 @@
 
   .ddm-pipeline-label { font-size: 0.52rem; }
 }
+
+/* ── Danger Zone — Delete Dentist Account ─────────────────────────── */
+.ddm-danger-zone {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed #fecaca;
+}
+
+.ddm-delete-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1.5px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ddm-delete-user-btn:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}

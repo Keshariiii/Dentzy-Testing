@@ -560,18 +560,11 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <div className="ad-user-list">
-                  {/* Outside-click backdrop to close any open menu */}
-                  {openMenuId !== null && (
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setOpenMenuId(null)} />
-                  )}
                   {filteredUsers.map(user => {
                     const uId = user._id || user.id;
                     return (
                     <div key={uId} className={`ad-user-card ${user.status}`}
-                      onClick={() => {
-                        if (openMenuId === uId) setOpenMenuId(null);
-                        else setSelectedUserId(uId);
-                      }}
+                      onClick={() => setSelectedUserId(uId)}
                       style={{ cursor: 'pointer' }}
                     >
 
@@ -603,35 +596,22 @@ const AdminDashboard = () => {
                         )}
                       </div>
 
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <button className="ad-action-menu-btn" onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === uId ? null : uId); }} style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
-                          {Ico.moreVertical(20)}
-                        </button>
-                        {openMenuId === uId && (
-                          <div className="ad-dropdown-menu" style={{ position: 'absolute', right: 0, top: '35px', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '160px', overflow: 'hidden' }}>
-                            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#334155' }}
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setSelectedUserId(uId); }}>
-                              {Ico.eye(14)} View Details
+                      {/* Inline action buttons based on status */}
+                      {(user.status === 'pending' || user.status === 'rejected') && (
+                        <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
+                          <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
+                            {Ico.check(14)} Accept
+                          </button>
+                          {user.status === 'pending' && (
+                            <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
+                              {Ico.x(14)} Reject
                             </button>
-                            {user.status !== 'approved' && (
-                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#16a34a' }}
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleApprove(uId, user.name); }}>
-                                {Ico.check(14)} Approve
-                              </button>
-                            )}
-                            {user.status !== 'rejected' && (
-                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#eab308' }}
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleReject(uId, user.name); }}>
-                                {Ico.x(14)} Reject
-                              </button>
-                            )}
-                            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#ef4444' }}
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleDelete(uId, user.name); }}>
-                              {Ico.trash(14)} Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                          <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete">
+                            {Ico.trash(14)}
+                          </button>
+                        </div>
+                      )}
                     </div>
                     );
                   })}
@@ -660,6 +640,7 @@ const AdminDashboard = () => {
         <DentistDetailModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+          onDeleteUser={() => { fetchUsers(); fetchStats(); }}
         />
       )}
 
