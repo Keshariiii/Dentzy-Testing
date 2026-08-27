@@ -561,8 +561,8 @@ const DentistDashboard = () => {
             style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', background: 'var(--color-primary, #1e5038)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
             onClick={() => { setShowNewOrder(v => !v); setNewOrderError(''); }}
           >
-            {showNewOrder ? Icons.x(14) : Icons.plus ? Icons.plus(14) : '+'}
-            {showNewOrder ? 'Cancel' : '+ New Lab Case'}
+            {showNewOrder ? Icons.x(14) : (Icons.plus ? Icons.plus(14) : '+')}
+            {showNewOrder ? 'Cancel' : 'New Lab Case'}
           </button>
         </div>
       </div>
