@@ -14,12 +14,12 @@ export function getApiBase() {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     if (host.endsWith('pages.dev') || host.includes('dentzy') || host !== 'localhost' && host !== '127.0.0.1') {
-      return 'https://dentzy-testing-backend.onrender.com';
+      return 'https://dentzy-testing-backend-urco.onrender.com';
     }
     return `http://${host}:5000`;
   }
   // 3. Server-side / static build default
-  return 'https://dentzy-testing-backend.onrender.com';
+  return 'https://dentzy-testing-backend-urco.onrender.com';
 }
 
 export const getAdminUrl   = () => `${getApiBase()}/api/admin`;
@@ -66,9 +66,12 @@ export async function apiFetch(url, options = {}) {
     ...(options.headers || {}),
   };
 
+  // Attach Bearer token as fallback for mobile browsers that block cross-site cookies
   if (typeof window !== 'undefined') {
-    // Only attaching credentials for cookies. We removed raw localStorage JWT reading here
-    // to prevent XSS vulnerability (Issue 3).
+    const token = localStorage.getItem('dentzy_token') || localStorage.getItem('dentzy_admin_token');
+    if (token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   let res;

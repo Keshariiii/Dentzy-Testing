@@ -285,7 +285,8 @@ const DentistDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const url = `${DASH_URL}/events`;
+        const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
+        const url = token ? `${DASH_URL}/events?token=${encodeURIComponent(token)}` : `${DASH_URL}/events`;
         es = new EventSource(url, { withCredentials: true });
         es.addEventListener('connected', () => { retryCount = 0; });
         const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };

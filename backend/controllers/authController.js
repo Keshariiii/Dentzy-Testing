@@ -140,6 +140,7 @@ export const login = async (req, res) => {
 
     return res.json({
       user: safeUserObj(user),
+      token,
     });
   } catch (error) {
     logger.error('Login error', { error: error.message });

@@ -141,7 +141,7 @@ export const adminLogin = (req, res) => {
   // Set admin JWT as HttpOnly cookie
   res.cookie('dentzy_admin_jwt', token, cookieOptions(8 * 60 * 60 * 1000));
 
-  return res.json({ admin: { username, role: 'admin' } });
+  return res.json({ admin: { username, role: 'admin' }, token });
 };
 
 // ─── POST /api/admin/logout ─────────────────────────────────────────────────

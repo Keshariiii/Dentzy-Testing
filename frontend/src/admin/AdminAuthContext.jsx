@@ -30,11 +30,14 @@ export const AdminAuthProvider = ({ children }) => {
 
       try {
         const adminUrl = getAdminUrl();
+        const headers = { 'Content-Type': 'application/json' };
+        // Attach Bearer token as fallback for cross-origin mobile browsers
+        const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch(`${adminUrl}/me`, {
           signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           credentials: 'include',
         });
 
@@ -72,6 +75,9 @@ export const AdminAuthProvider = ({ children }) => {
       body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
+    if (data.token) {
+      localStorage.setItem('dentzy_admin_token', data.token);
+    }
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_token');
     localStorage.removeItem('dentzy_user');
@@ -87,6 +93,7 @@ export const AdminAuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_admin_info');
+      localStorage.removeItem('dentzy_admin_token');
     }
     setAdmin(null);
   }, []);
@@ -96,13 +103,20 @@ export const AdminAuthProvider = ({ children }) => {
 
     const targetUrl = normalizeApiUrl(url);
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      };
+      // Attach Bearer token as fallback for cross-origin cookie blocking
+      const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(targetUrl, {
         ...options,
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {}),
-        },
+        headers,
       });
 
       // Auto-logout on 401 / 403 — expired or revoked token
