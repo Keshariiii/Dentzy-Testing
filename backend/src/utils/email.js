@@ -124,71 +124,17 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
 }
 
 /**
- * Universal email dispatcher: Uses direct Gmail SMTP if configured,
- * otherwise falls back to Brevo REST API.
+ * Send an email via Gmail SMTP.
  */
 export async function sendEmail({ env, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
-  const gmailUser = env.GMAIL_USER || 'dentzyemail@gmail.com';
-  const gmailPass = env.GMAIL_APP_PASSWORD;
-
-  if (gmailPass) {
-    const smtpRes = await sendGmailSMTP({
-      user: gmailUser,
-      pass: gmailPass,
-      to,
-      subject,
-      htmlContent,
-      senderName,
-    });
-    if (smtpRes.success) return smtpRes;
-    logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: smtpRes.error });
-  }
-
-  // Fallback: Brevo REST API
-  if (env.BREVO_API_KEY) {
-    return sendBrevoEmail({
-      apiKey: env.BREVO_API_KEY,
-      senderEmail: env.BREVO_SENDER_EMAIL || gmailUser,
-      senderName,
-      to,
-      subject,
-      htmlContent,
-    });
-  }
-
-  return { success: false, error: 'No email delivery service configured' };
-}
-
-/**
- * Sends a transactional email using Brevo REST API v3 (Fallback).
- */
-export async function sendBrevoEmail({ apiKey, senderEmail, senderName = 'Dentzy Dental Solutions', to, subject, htmlContent }) {
-  if (!apiKey) return { success: false, error: 'Brevo API key missing' };
-
-  try {
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: { name: senderName, email: senderEmail || 'dentzyemail@gmail.com' },
-        to: Array.isArray(to) ? to : [{ email: typeof to === 'string' ? to : to.email }],
-        subject,
-        htmlContent,
-      }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return { success: false, status: res.status, error: data.message || 'Email delivery failed' };
-    }
-    return { success: true, messageId: data.messageId };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  return sendGmailSMTP({
+    user: env.GMAIL_USER || 'dentzyemail@gmail.com',
+    pass: env.GMAIL_APP_PASSWORD,
+    to,
+    subject,
+    htmlContent,
+    senderName,
+  });
 }
 
 /**
