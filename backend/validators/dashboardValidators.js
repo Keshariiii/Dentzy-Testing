@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createOrderSchema = z.object({
   patientName: z.string().trim().min(1, 'Patient name is required.').max(100, 'Patient name must be 100 characters or less.'),
-  caseId: z.string().trim().min(1, 'Case ID is required.').max(50, 'Case ID must be 50 characters or less.'),
+  caseId: z.string().trim().max(50).optional(), // auto-generated if omitted
   serviceType: z.enum(['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other']).optional().default('Other'),
   status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']).optional().default('Pending'),
   dueDate: z.union([z.string(), z.null()]).optional(),

@@ -269,11 +269,6 @@ const MobileDashboard = () => {
   }, [authFetch, DASH_URL, search]);
 
   const fetchPayments = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -308,8 +303,7 @@ const MobileDashboard = () => {
 
   // Real-time SSE synchronization with Admin updates
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!user || !token) return;
+    if (!user) return;
 
     let es = null;
     let retryTimeout;
@@ -319,8 +313,8 @@ const MobileDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const url = `${DASH_URL}/events?token=${encodeURIComponent(token)}`;
-        es = new EventSource(url);
+        const url = `${DASH_URL}/events`;
+        es = new EventSource(url, { withCredentials: true });
         es.addEventListener('connected', () => { retryCount = 0; });
         const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };
         ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt => es.addEventListener(evt, refresh));

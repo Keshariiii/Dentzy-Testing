@@ -27,10 +27,13 @@ const AdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   const [activeTab, setActiveTab]         = useState('all');
+  const [adminView, setAdminView]         = useState('users'); // 'users' | 'orders'
   const [sidebarOpen, setSidebarOpen]     = useState(false);
   const [users, setUsers]                 = useState([]);
+  const [allOrders, setAllOrders]         = useState([]);
   const [stats, setStats]                 = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [loadingUsers, setLoadingUsers]   = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [sortOrder, setSortOrder]         = useState('desc');
   const [search, setSearch]               = useState('');
@@ -67,6 +70,15 @@ const AdminDashboard = () => {
   const authFetchRef = useRef(authFetch);
   useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
 
+  const fetchAllOrders = useCallback(async () => {
+    setLoadingOrders(true);
+    try {
+      const res = await authFetchRef.current(`${ADMIN_API}/orders?limit=200&sort=createdAt&order=desc`);
+      if (res.ok) { const d = await res.json(); setAllOrders(d.orders || []); }
+    } catch {}
+    setLoadingOrders(false);
+  }, [ADMIN_API]);
+
   const fetchStats = useCallback(async () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/stats`);
@@ -78,11 +90,6 @@ const AdminDashboard = () => {
   }, [ADMIN_API]);
 
   const fetchUsers = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!token) {
-      setLoadingUsers(false);
-      return;
-    }
     setLoadingUsers(true);
     try {
       const statusParam = activeTab === 'all' ? '' : `status=${activeTab}&`;
@@ -100,6 +107,7 @@ const AdminDashboard = () => {
     if (!admin?.username) return;
     fetchStats();
     fetchUsers();
+    fetchAllOrders();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.username]);
 
@@ -115,13 +123,14 @@ const AdminDashboard = () => {
   fetchUsersRef.current = fetchUsers;
   const fetchStatsRef = useRef(fetchStats);
   fetchStatsRef.current = fetchStats;
+  const fetchAllOrdersRef = useRef(fetchAllOrders);
+  fetchAllOrdersRef.current = fetchAllOrders;
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
   /* ── SSE connection ────────────────────────────────────────────────────── */
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!admin?.username || !token) return;
+    if (!admin?.username) return;
 
     let retryTimeout;
     let retryCount = 0;
@@ -131,8 +140,8 @@ const AdminDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const url = `${ADMIN_API}/events?token=${encodeURIComponent(token)}`;
-        es = new EventSource(url);
+        const url = `${ADMIN_API}/events`;
+        es = new EventSource(url, { withCredentials: true });
         sseRef.current = es;
 
         es.addEventListener('connected', () => {
@@ -154,7 +163,11 @@ const AdminDashboard = () => {
         es.addEventListener('user-updated', () => {
           fetchUsersRef.current?.();
           fetchStatsRef.current?.();
+          fetchAllOrdersRef.current?.();
         });
+        es.addEventListener('order-created', () => { fetchAllOrdersRef.current?.(); });
+        es.addEventListener('order-stage-updated', () => { fetchAllOrdersRef.current?.(); });
+        es.addEventListener('order-deleted', () => { fetchAllOrdersRef.current?.(); });
 
         es.onerror = () => {
           if (es) {
@@ -326,13 +339,13 @@ const AdminDashboard = () => {
 
             {/* Nav — mirrors ud-nav */}
             <nav className="ad-nav">
-              <button className="ad-nav-item active" aria-label="Dashboard">
+              <button className={`ad-nav-item ${adminView === 'users' ? 'active' : ''}`} onClick={() => setAdminView('users')} aria-label="Dashboard">
                 <span className="ad-nav-icon">{Ico.grid(16)}</span>
-                Dashboard
+                Users
               </button>
-              <button className="ad-nav-item" aria-label="Analytics" disabled>
-                <span className="ad-nav-icon">{Ico.chart(16)}</span>
-                Analytics
+              <button className={`ad-nav-item ${adminView === 'orders' ? 'active' : ''}`} onClick={() => { setAdminView('orders'); fetchAllOrders(); }} aria-label="Lab Orders">
+                <span className="ad-nav-icon">{Ico.package ? Ico.package(16) : Ico.chart(16)}</span>
+                Lab Orders
               </button>
               <button className="ad-nav-item" aria-label="Settings" disabled>
                 <span className="ad-nav-icon">{Ico.settings(16)}</span>
@@ -445,10 +458,63 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* Section heading — mirrors ud-section-title */}
-            <div className="ad-section-header">
-              <p className="ad-section-title">User Management</p>
-            </div>
+            {adminView === 'orders' ? (
+              /* ── Lab Orders View ─────────────────────────────────────── */
+              <div>
+                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p className="ad-section-title">All Lab Orders</p>
+                  <button onClick={fetchAllOrders} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
+                </div>
+                <div className="ad-content">
+                  {loadingOrders ? (
+                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
+                  ) : allOrders.length === 0 ? (
+                    <div className="ad-empty">{Ico.chart(48)}<p>No lab orders found.</p></div>
+                  ) : (
+                    <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
+                      <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Patient</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Case ID</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Dentist</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Service</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Status</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Priority</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Created</th>
+                        </tr></thead>
+                        <tbody>
+                          {allOrders.map((o, i) => (
+                            <tr key={o._id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)' }}>
+                              <td style={{ padding: '10px 12px' }}><strong>{o.patientName}</strong></td>
+                              <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
+                              <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{o.owner?.name || o.dentistName || '—'}</td>
+                              <td style={{ padding: '10px 12px' }}>{o.serviceType}</td>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: o.status === 'Completed' ? '#dcfce7' : o.status === 'In Progress' ? '#dbeafe' : o.status === 'Cancelled' ? '#fee2e2' : '#fef9c3',
+                                  color: o.status === 'Completed' ? '#16a34a' : o.status === 'In Progress' ? '#1d4ed8' : o.status === 'Cancelled' ? '#dc2626' : '#92400e',
+                                }}>{o.status}</span>
+                              </td>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: o.priority === 'Urgent' ? '#fee2e2' : o.priority === 'High' ? '#ffedd5' : '#f0fdf4',
+                                  color: o.priority === 'Urgent' ? '#dc2626' : o.priority === 'High' ? '#ea580c' : '#16a34a',
+                                }}>{o.priority || 'Normal'}</span>
+                              </td>
+                              <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
+                                {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* ── User Management View ────────────────────────────────── */
+              <div>
 
             {/* Tabs + sort — mirrors ud-tab-header / ud-controls */}
             <div className="ad-controls">
@@ -561,6 +627,9 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            </div>
+          )}
 
           </div>{/* /ad-content-inner */}
         </main>

@@ -132,8 +132,7 @@ const MobileAdminDashboard = () => {
 
   /* -- SSE connection ---------------------------------------------------- */
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-    if (!admin?.username || !token) return;
+    if (!admin?.username) return;
 
     let retryTimeout;
     let retryCount = 0;
@@ -143,8 +142,8 @@ const MobileAdminDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const url = `${ADMIN_API}/events?token=${encodeURIComponent(token)}`;
-        es = new EventSource(url);
+        const url = `${ADMIN_API}/events`;
+        es = new EventSource(url, { withCredentials: true });
         sseRef.current = es;
 
         es.addEventListener('connected', () => {

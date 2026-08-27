@@ -7,12 +7,10 @@ const require = createRequire(import.meta.url);
 const disposableDomains = require('disposable-email-domains');
 const disposableSet = new Set(disposableDomains);
 
-// Fake local-part patterns
+// Fake local-part patterns — only block clearly non-human addresses
+// ponytail: relaxed list; add back patterns only when spam is measurably spiking
 const fakePatterns = [
-  /^test\d*$/i, /^fake\d*$/i, /^abc\d*$/i, /^asdf/i, /^qwer/i, /^zxcv/i,
-  /^dummy/i, /^noreply/i, /^no-?reply/i, /^example/i, /^email\d*$/i,
-  /^trash/i, /^spam\d*$/i, /^junk\d*$/i, /^delete\d*$/i, /^temp\d*$/i,
-  /^nobody\d*$/i, /^notreal/i,
+  /^noreply/i, /^no-?reply/i, /^nobody\d*$/i,
 ];
 
 // ─── Reusable field schemas ──────────────────────────────────────────────────

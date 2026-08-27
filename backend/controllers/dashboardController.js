@@ -125,15 +125,23 @@ export const getOrders = async (req, res) => {
 // Body is pre-validated by Zod (createOrderSchema)
 export const createOrder = async (req, res) => {
   try {
-    const { patientName, caseId, serviceType, status, dueDate, notes, priority } = req.body;
+    const { patientName, caseId: suppliedCaseId, serviceType, status, dueDate, notes, priority } = req.body;
+    // Auto-generate caseId if dentist didn't supply one (same format as admin creates)
+    const now = new Date(); const datePart = `${String(now.getDate()).padStart(2,'0')}${String(now.getMonth()+1).padStart(2,'0')}${now.getFullYear()}`;
+    const caseId = suppliedCaseId || `DZ-${datePart}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
     const order = await LabOrder.create({
       owner: req.user._id, patientName, caseId, serviceType, status, dueDate, notes, priority,
+      stage: 'received', createdBy: 'dentist',
     });
 
     auditLog('ORDER_CREATED_BY_DENTIST', { orderId: order._id, caseId, dentistId: req.user._id });
 
     return res.status(201).json({ message: 'Order created.', order });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Case ID already exists. Please use a unique Case ID.' });
+    }
     logger.error('Dashboard create order error', { error: error.message });
     return res.status(500).json({ message: 'Failed to create order.' });
   }

@@ -210,6 +210,12 @@ const DentistDashboard = () => {
   const [isEditingProfile, setIsEditingProfile]     = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
+  // New lab order form state
+  const [showNewOrder, setShowNewOrder]     = useState(false);
+  const [newOrderForm, setNewOrderForm]     = useState({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
+  const [newOrderLoading, setNewOrderLoading] = useState(false);
+  const [newOrderError, setNewOrderError]   = useState('');
+
   // Sync profile form when user changes
   useEffect(() => {
     if (user) {
@@ -241,11 +247,6 @@ const DentistDashboard = () => {
   }, [authFetch, DASH_URL, search]);
 
   const fetchPayments = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     try {
       const statusMap = { 'revenue-pending': 'Pending', 'revenue-paid': 'Paid' };
@@ -274,8 +275,7 @@ const DentistDashboard = () => {
 
   // Real-time SSE synchronization with Admin updates
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-    if (!user || !token) return;
+    if (!user) return;
 
     let es = null;
     let retryTimeout;
@@ -285,8 +285,8 @@ const DentistDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const url = `${DASH_URL}/events?token=${encodeURIComponent(token)}`;
-        es = new EventSource(url);
+        const url = `${DASH_URL}/events`;
+        es = new EventSource(url, { withCredentials: true });
         es.addEventListener('connected', () => { retryCount = 0; });
         const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };
         ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt => es.addEventListener(evt, refresh));
@@ -523,17 +523,111 @@ const DentistDashboard = () => {
   /* ============================================================
      RENDER: Lab Orders
   ============================================================ */
+  const handleNewOrder = async (e) => {
+    e.preventDefault();
+    setNewOrderError('');
+    setNewOrderLoading(true);
+    try {
+      const res = await authFetch(`${DASH_URL}/orders`, {
+        method: 'POST',
+        body: JSON.stringify(newOrderForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOrders(prev => [data.order, ...prev]);
+        setNewOrderForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
+        setShowNewOrder(false);
+      } else {
+        setNewOrderError(data.message || 'Failed to create order.');
+      }
+    } catch { setNewOrderError('Network error. Please try again.'); }
+    setNewOrderLoading(false);
+  };
+
   const renderOrders = () => (
     <div className="ud-content-inner">
       <div className="ud-tab-header">
         <h2 className="ud-tab-title">Lab Orders</h2>
-        <input
-          type="text" placeholder="Search patient or case ID..." value={search}
-          onChange={e => setSearch(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && fetchOrders()}
-          className="ud-search-inline"
-        />
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <input
+            type="text" placeholder="Search patient or case ID..." value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && fetchOrders()}
+            className="ud-search-inline"
+          />
+          <button
+            className="ud-btn-primary"
+            style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', background: 'var(--color-primary, #1e5038)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+            onClick={() => { setShowNewOrder(v => !v); setNewOrderError(''); }}
+          >
+            {showNewOrder ? Icons.x(14) : Icons.plus ? Icons.plus(14) : '+'}
+            {showNewOrder ? 'Cancel' : '+ New Lab Case'}
+          </button>
+        </div>
       </div>
+
+      {/* New order inline form */}
+      {showNewOrder && (
+        <form onSubmit={handleNewOrder} style={{ background: 'var(--surface, #f8faf9)', border: '1px solid var(--border, #e2ece6)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text, #1a2e26)' }}>New Lab Case</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Patient Name *</label>
+              <input className="auth-input" placeholder="Patient name" required
+                value={newOrderForm.patientName}
+                onChange={e => setNewOrderForm(f => ({ ...f, patientName: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Service Type</label>
+              <select className="auth-input"
+                value={newOrderForm.serviceType}
+                onChange={e => setNewOrderForm(f => ({ ...f, serviceType: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
+              >
+                {['Crown','Bridge','Denture','Implant','Veneer','Retainer','Other'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Priority</label>
+              <select className="auth-input"
+                value={newOrderForm.priority}
+                onChange={e => setNewOrderForm(f => ({ ...f, priority: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
+              >
+                {['Low','Normal','High','Urgent'].map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Due Date</label>
+              <input type="date" className="auth-input"
+                value={newOrderForm.dueDate}
+                onChange={e => setNewOrderForm(f => ({ ...f, dueDate: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
+              />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Notes (optional)</label>
+            <textarea className="auth-input" rows={2} placeholder="Clinical notes…"
+              value={newOrderForm.notes}
+              onChange={e => setNewOrderForm(f => ({ ...f, notes: e.target.value }))}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem', resize: 'vertical' }}
+            />
+          </div>
+          {newOrderError && <p style={{ color: '#ef4444', fontSize: '0.82rem', margin: 0 }}>{newOrderError}</p>}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <button type="button" onClick={() => setShowNewOrder(false)}
+              style={{ padding: '8px 16px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem' }}
+            >Cancel</button>
+            <button type="submit" disabled={newOrderLoading}
+              style={{ padding: '8px 18px', borderRadius: '7px', background: 'var(--color-primary, #1e5038)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, opacity: newOrderLoading ? 0.7 : 1 }}
+            >{newOrderLoading ? 'Submitting…' : 'Submit Case'}</button>
+          </div>
+        </form>
+      )}
+
       {loading ? (
         <div className="ud-loading"><div className="ud-spinner" /><span>Loading orders...</span></div>
       ) : orders.length === 0 ? (
