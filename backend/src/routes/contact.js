@@ -21,20 +21,16 @@ contact.post('/', validate(submitContactSchema), async (c) => {
 
     logger.info('Contact form submitted', { contactId: id });
 
-    // Send email notifications via Brevo in background
-    if (c.env.BREVO_API_KEY) {
+    // Send email notifications in background (Gmail SMTP / Brevo)
+    if (c.env.GMAIL_APP_PASSWORD || c.env.BREVO_API_KEY) {
       const contactData = { name, email, phone, subject, message };
-      // Use executionCtx.waitUntil or Promise.allSettled
       const emailPromises = [
         sendContactAdminNotification({
-          apiKey: c.env.BREVO_API_KEY,
-          senderEmail: c.env.BREVO_SENDER_EMAIL,
-          adminNotificationEmail: c.env.ADMIN_NOTIFICATION_EMAIL,
+          env: c.env,
           contact: contactData,
         }),
         sendContactUserConfirmation({
-          apiKey: c.env.BREVO_API_KEY,
-          senderEmail: c.env.BREVO_SENDER_EMAIL,
+          env: c.env,
           contact: contactData,
         }),
       ];

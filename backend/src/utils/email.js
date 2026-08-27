@@ -1,28 +1,169 @@
+import { connect } from 'cloudflare:sockets';
 import logger from './logger.js';
 
 /**
- * Sends a transactional email using Brevo REST API v3.
- * Compatible with Cloudflare Workers (uses native global fetch).
+ * Sends an email directly via Google's official Gmail SMTP (Port 465 TLS).
+ * Zero third-party branding — 100% signed by gmail.com.
+ * Compatible with Cloudflare Workers via cloudflare:sockets.
  */
-export async function sendBrevoEmail({ apiKey, senderEmail, senderName = 'Dentzy Dental Solutions', to, subject, htmlContent, textContent }) {
-  if (!apiKey) {
-    logger.error('Brevo API key is missing');
-    return { success: false, error: 'Brevo API key missing' };
+export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
+  const cleanUser = (user || '').trim();
+  const cleanPass = (pass || '').replace(/\s+/g, '');
+  const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
+  const toName = (typeof to === 'object' && to?.name) ? to.name : '';
+
+  try {
+    const socket = connect({ hostname: 'smtp.gmail.com', port: 465 }, { secureTransport: 'on' });
+    const reader = socket.readable.getReader();
+    const writer = socket.writable.getWriter();
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+
+    let buffer = '';
+
+    const readLine = async () => {
+      while (!buffer.includes('\n')) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += dec.decode(value, { stream: true });
+      }
+      const idx = buffer.indexOf('\n');
+      if (idx === -1) return '';
+      const line = buffer.slice(0, idx + 1);
+      buffer = buffer.slice(idx + 1);
+      return line.trim();
+    };
+
+    const sendCommand = async (cmd) => {
+      await writer.write(enc.encode(cmd + '\r\n'));
+    };
+
+    // 1. Initial Greeting
+    const greeting = await readLine();
+    if (!greeting.startsWith('220')) {
+      throw new Error(`SMTP Greeting failed: ${greeting}`);
+    }
+
+    // 2. EHLO
+    await sendCommand('EHLO localhost');
+    while (true) {
+      const line = await readLine();
+      if (line.startsWith('250 ') || !line.startsWith('250-')) break;
+    }
+
+    // 3. AUTH LOGIN
+    await sendCommand('AUTH LOGIN');
+    await readLine(); // 334 Username:
+
+    // 4. Send Base64 Username
+    await sendCommand(btoa(cleanUser));
+    await readLine(); // 334 Password:
+
+    // 5. Send Base64 Password
+    await sendCommand(btoa(cleanPass));
+    const authRes = await readLine();
+    if (!authRes.startsWith('235')) {
+      throw new Error(`SMTP Auth failed: ${authRes}`);
+    }
+
+    // 6. MAIL FROM
+    await sendCommand(`MAIL FROM:<${cleanUser}>`);
+    const mailFromRes = await readLine();
+    if (!mailFromRes.startsWith('250')) {
+      throw new Error(`SMTP MAIL FROM failed: ${mailFromRes}`);
+    }
+
+    // 7. RCPT TO
+    await sendCommand(`RCPT TO:<${toAddress}>`);
+    const rcptRes = await readLine();
+    if (!rcptRes.startsWith('250')) {
+      throw new Error(`SMTP RCPT TO failed: ${rcptRes}`);
+    }
+
+    // 8. DATA
+    await sendCommand('DATA');
+    const dataRes = await readLine();
+    if (!dataRes.startsWith('354')) {
+      throw new Error(`SMTP DATA failed: ${dataRes}`);
+    }
+
+    // 9. Send Email Message Content
+    const msg = [
+      `From: "${senderName}" <${cleanUser}>`,
+      `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
+      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
+      `MIME-Version: 1.0`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      btoa(unescape(encodeURIComponent(htmlContent))),
+      `.`,
+      ``
+    ].join('\r\n');
+
+    await writer.write(enc.encode(msg));
+    const finalRes = await readLine();
+    if (!finalRes.startsWith('250')) {
+      throw new Error(`SMTP Message Send failed: ${finalRes}`);
+    }
+
+    // 10. QUIT
+    await sendCommand('QUIT');
+    try {
+      writer.releaseLock();
+      reader.releaseLock();
+      await socket.close();
+    } catch {}
+
+    logger.info('Gmail SMTP email delivered successfully', { to: toAddress });
+    return { success: true };
+  } catch (err) {
+    logger.error('Gmail SMTP error', { error: err.message });
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Universal email dispatcher: Uses direct Gmail SMTP if configured,
+ * otherwise falls back to Brevo REST API.
+ */
+export async function sendEmail({ env, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
+  const gmailUser = env.GMAIL_USER || 'dentzyemail@gmail.com';
+  const gmailPass = env.GMAIL_APP_PASSWORD;
+
+  if (gmailPass) {
+    const smtpRes = await sendGmailSMTP({
+      user: gmailUser,
+      pass: gmailPass,
+      to,
+      subject,
+      htmlContent,
+      senderName,
+    });
+    if (smtpRes.success) return smtpRes;
+    logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: smtpRes.error });
   }
 
-  const payload = {
-    sender: {
-      name: senderName,
-      email: senderEmail || 'dentzyemail@gmail.com',
-    },
-    to: Array.isArray(to) ? to : [{ email: to }],
-    subject,
-    htmlContent,
-  };
-
-  if (textContent) {
-    payload.textContent = textContent;
+  // Fallback: Brevo REST API
+  if (env.BREVO_API_KEY) {
+    return sendBrevoEmail({
+      apiKey: env.BREVO_API_KEY,
+      senderEmail: env.BREVO_SENDER_EMAIL || gmailUser,
+      senderName,
+      to,
+      subject,
+      htmlContent,
+    });
   }
+
+  return { success: false, error: 'No email delivery service configured' };
+}
+
+/**
+ * Sends a transactional email using Brevo REST API v3 (Fallback).
+ */
+export async function sendBrevoEmail({ apiKey, senderEmail, senderName = 'Dentzy Dental Solutions', to, subject, htmlContent }) {
+  if (!apiKey) return { success: false, error: 'Brevo API key missing' };
 
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -32,20 +173,20 @@ export async function sendBrevoEmail({ apiKey, senderEmail, senderName = 'Dentzy
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail || 'dentzyemail@gmail.com' },
+        to: Array.isArray(to) ? to : [{ email: typeof to === 'string' ? to : to.email }],
+        subject,
+        htmlContent,
+      }),
     });
 
     const data = await res.json().catch(() => ({}));
-
     if (!res.ok) {
-      logger.error('Brevo email sending failed', { status: res.status, data });
       return { success: false, status: res.status, error: data.message || 'Email delivery failed' };
     }
-
-    logger.info('Brevo email sent successfully', { messageId: data.messageId, to });
     return { success: true, messageId: data.messageId };
   } catch (err) {
-    logger.error('Error connecting to Brevo API', { error: err.message });
     return { success: false, error: err.message };
   }
 }
@@ -53,14 +194,13 @@ export async function sendBrevoEmail({ apiKey, senderEmail, senderName = 'Dentzy
 /**
  * Sends Password Reset 6-Digit OTP Email.
  */
-export async function sendOtpEmail({ apiKey, senderEmail, to, name = 'Dentist', otp }) {
+export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
   const subject = `Dentzy — ${otp} is your verification code`;
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Password Reset OTP</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f7f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e2824;">
@@ -113,10 +253,9 @@ export async function sendOtpEmail({ apiKey, senderEmail, to, name = 'Dentist', 
 </html>
 `;
 
-  return sendBrevoEmail({
-    apiKey,
-    senderEmail,
-    to: [{ email: to, name }],
+  return sendEmail({
+    env,
+    to,
     subject,
     htmlContent,
   });
@@ -125,8 +264,8 @@ export async function sendOtpEmail({ apiKey, senderEmail, to, name = 'Dentist', 
 /**
  * Sends Admin Alert when someone submits Contact Us form.
  */
-export async function sendContactAdminNotification({ apiKey, senderEmail, adminNotificationEmail, contact }) {
-  const targetEmail = adminNotificationEmail || 'dentzyemail@gmail.com';
+export async function sendContactAdminNotification({ env, contact }) {
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
   const subject = `🔔 New Contact Inquiry: ${contact.name} (${contact.subject || 'General'})`;
 
   const htmlContent = `
@@ -172,10 +311,9 @@ export async function sendContactAdminNotification({ apiKey, senderEmail, adminN
 </html>
 `;
 
-  return sendBrevoEmail({
-    apiKey,
-    senderEmail,
-    to: [{ email: targetEmail }],
+  return sendEmail({
+    env,
+    to: targetEmail,
     subject,
     htmlContent,
   });
@@ -184,7 +322,7 @@ export async function sendContactAdminNotification({ apiKey, senderEmail, adminN
 /**
  * Sends User Acknowledgment Confirmation for Contact Us.
  */
-export async function sendContactUserConfirmation({ apiKey, senderEmail, contact }) {
+export async function sendContactUserConfirmation({ env, contact }) {
   const subject = `Thank you for contacting Dentzy Dental Solutions`;
   const htmlContent = `
 <!DOCTYPE html>
@@ -208,10 +346,9 @@ export async function sendContactUserConfirmation({ apiKey, senderEmail, contact
 </html>
 `;
 
-  return sendBrevoEmail({
-    apiKey,
-    senderEmail,
-    to: [{ email: contact.email, name: contact.name }],
+  return sendEmail({
+    env,
+    to: contact.email,
     subject,
     htmlContent,
   });

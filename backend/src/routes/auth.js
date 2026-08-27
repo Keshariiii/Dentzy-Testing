@@ -136,10 +136,9 @@ auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpToken = await createOtpToken(user.email, otp, c.env.JWT_SECRET);
 
-    // Send email via Brevo
+    // Send email (Gmail SMTP primary, Brevo fallback)
     const emailRes = await sendOtpEmail({
-      apiKey: c.env.BREVO_API_KEY,
-      senderEmail: c.env.BREVO_SENDER_EMAIL,
+      env: c.env,
       to: user.email,
       name: user.name || 'Dentist',
       otp,
