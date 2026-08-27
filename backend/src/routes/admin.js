@@ -93,7 +93,7 @@ admin.get('/users', verifyAdmin(), async (c) => {
     sql += ` ORDER BY ${sort} ${order}`;
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    return c.json({ users: results });
+    return c.json({ users: results.map(u => ({ ...u, _id: u.id })) });
   } catch (error) {
     logger.error('Admin users list error', { error: error.message });
     return c.json({ message: 'Failed to load users.' }, 500);
@@ -127,7 +127,10 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
       'SELECT * FROM lab_orders WHERE ownerId = ? ORDER BY createdAt DESC'
     ).bind(id).all();
 
-    return c.json({ user, orders });
+    return c.json({
+      user: { ...user, _id: user.id },
+      orders: orders.map(o => ({ ...o, _id: o.id })),
+    });
   } catch (error) {
     logger.error('Admin getUserById error', { error: error.message });
     return c.json({ message: 'Failed to load user details.' }, 500);
@@ -149,7 +152,7 @@ admin.patch('/users/:id/approve', verifyAdmin(), async (c) => {
     ).bind(id).first();
 
     auditLog('USER_APPROVED', { userId: id, adminUsername: c.get('admin').username });
-    return c.json({ message: 'User approved successfully.', user });
+    return c.json({ message: 'User approved successfully.', user: { ...user, _id: user.id } });
   } catch (error) {
     logger.error('Approve user error', { error: error.message });
     return c.json({ message: 'Failed to approve user.' }, 500);
@@ -172,7 +175,7 @@ admin.patch('/users/:id/reject', verifyAdmin(), validate(rejectUserSchema), asyn
     ).bind(id).first();
 
     auditLog('USER_REJECTED', { userId: id, adminUsername: c.get('admin').username });
-    return c.json({ message: 'User rejected.', user });
+    return c.json({ message: 'User rejected.', user: { ...user, _id: user.id } });
   } catch (error) {
     logger.error('Reject user error', { error: error.message });
     return c.json({ message: 'Failed to reject user.' }, 500);

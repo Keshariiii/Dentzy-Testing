@@ -561,11 +561,17 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <div className="ad-user-list">
-                  {filteredUsers.map(user => (
-                    <div key={user._id} className={`ad-user-card ${user.status}`}
+                  {/* Outside-click backdrop to close any open menu */}
+                  {openMenuId !== null && (
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setOpenMenuId(null)} />
+                  )}
+                  {filteredUsers.map(user => {
+                    const uId = user._id || user.id;
+                    return (
+                    <div key={uId} className={`ad-user-card ${user.status}`}
                       onClick={() => {
-                        if (openMenuId === user._id) setOpenMenuId(null);
-                        else setSelectedUserId(user._id);
+                        if (openMenuId === uId) setOpenMenuId(null);
+                        else setSelectedUserId(uId);
                       }}
                       style={{ cursor: 'pointer' }}
                     >
@@ -586,45 +592,50 @@ const AdminDashboard = () => {
                           <div className="ad-user-pw">
                             {Ico.lock(12)}
                             <span className="ad-pw-value">
-                              {visiblePw === user._id ? user.plainPassword : '••••••••'}
+                              {visiblePw === uId ? user.plainPassword : '••••••••'}
                             </span>
                             <button className="ad-pw-toggle"
-                              onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === user._id ? null : user._id); }}
-                              title={visiblePw === user._id ? 'Hide password' : 'Show password'}
+                              onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
+                              title={visiblePw === uId ? 'Hide password' : 'Show password'}
                             >
-                              {visiblePw === user._id ? Ico.eyeOff(13) : Ico.eye(13)}
+                              {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
                             </button>
                           </div>
                         )}
                       </div>
 
                       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <button className="ad-action-menu-btn" onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === user._id ? null : user._id); }} style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                        <button className="ad-action-menu-btn" onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === uId ? null : uId); }} style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
                           {Ico.moreVertical(20)}
                         </button>
-                        {openMenuId === user._id && (
-                          <div className="ad-dropdown-menu" style={{ position: 'absolute', right: 0, top: '35px', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '130px', overflow: 'hidden' }}>
+                        {openMenuId === uId && (
+                          <div className="ad-dropdown-menu" style={{ position: 'absolute', right: 0, top: '35px', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '160px', overflow: 'hidden' }}>
+                            <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#334155' }}
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setSelectedUserId(uId); }}>
+                              {Ico.eye(14)} View Details
+                            </button>
                             {user.status !== 'approved' && (
-                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#16a34a' }}
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleApprove(user._id, user.name); }}>
+                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#16a34a' }}
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleApprove(uId, user.name); }}>
                                 {Ico.check(14)} Approve
                               </button>
                             )}
                             {user.status !== 'rejected' && (
-                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: user.status !== 'approved' ? '1px solid var(--border)' : 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#eab308' }}
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleReject(user._id, user.name); }}>
+                              <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#eab308' }}
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleReject(uId, user.name); }}>
                                 {Ico.x(14)} Reject
                               </button>
                             )}
                             <button style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 14px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', color: '#ef4444' }}
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleDelete(user._id, user.name); }}>
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); handleDelete(uId, user.name); }}>
                               {Ico.trash(14)} Delete
                             </button>
                           </div>
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

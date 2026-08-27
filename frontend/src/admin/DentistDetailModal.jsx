@@ -112,7 +112,7 @@ const DentistDetailModal = ({ userId, onClose }) => {
       const data = await res.json();
       if (res.ok) {
         setOrders(prev =>
-          prev.map(o => o._id === orderId
+          prev.map(o => (o._id || o.id) === orderId
             ? { ...o, stage: newStage, status: data.order?.status || o.status }
             : o
           )
@@ -160,7 +160,7 @@ const DentistDetailModal = ({ userId, onClose }) => {
           const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
           const data = await res.json();
           if (res.ok) {
-            setOrders(prev => prev.filter(o => o._id !== orderId));
+            setOrders(prev => prev.filter(o => (o._id || o.id) !== orderId));
             showToast('Order deleted successfully.');
           } else {
             showToast(data.message || 'Failed to delete order', 'error');
@@ -288,8 +288,10 @@ const DentistDetailModal = ({ userId, onClose }) => {
                   </div>
                 ) : (
                   <div className="ddm-orders-list">
-                    {orders.map(order => (
-                      <div key={order._id} className="ddm-order-card">
+                    {orders.map(order => {
+                      const oId = order._id || order.id;
+                      return (
+                      <div key={oId} className="ddm-order-card">
                         <div className="ddm-order-top">
                           <div className="ddm-order-id-row">
                             <span className="ddm-order-caseid">{order.caseId}</span>
@@ -298,7 +300,7 @@ const DentistDetailModal = ({ userId, onClose }) => {
                               <button 
                                 className="ddm-close" 
                                 style={{ position: 'relative', top: 'auto', right: 'auto', padding: '2px', background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer' }}
-                                onClick={() => handleDeleteOrder(order._id, order.caseId)}
+                                onClick={() => handleDeleteOrder(oId, order.caseId)}
                                 title="Delete Order"
                               >
                                 {Ico.trash(14)}
@@ -321,16 +323,17 @@ const DentistDetailModal = ({ userId, onClose }) => {
                           <select
                             className="ddm-stage-select"
                             value={order.stage}
-                            disabled={stageLoading === order._id}
-                            onChange={e => handleStageChange(order._id, e.target.value)}>
+                            disabled={stageLoading === oId}
+                            onChange={e => handleStageChange(oId, e.target.value)}>
                             {STAGES.map(s => (
                               <option key={s} value={s}>{STAGE_LABELS[s]}</option>
                             ))}
                           </select>
-                          {stageLoading === order._id && <span className="ddm-btn-spinner ddm-spinner-sm" />}
+                          {stageLoading === oId && <span className="ddm-btn-spinner ddm-spinner-sm" />}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
