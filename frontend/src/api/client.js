@@ -6,19 +6,20 @@
  */
 
 export function getApiBase() {
-  // 1. Env var set at build time (Cloudflare/Vercel/etc.)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '');
+  const env = process.env.NEXT_PUBLIC_API_URL;
+  // If env var is set and NOT the old render URL, use it
+  if (env && !env.includes('onrender.com')) {
+    return env.replace(/\/+$/, '');
   }
-  // 2. In browser, detect Cloudflare Pages or custom domains
+  // In browser, detect Cloudflare Pages or custom domains
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host.endsWith('pages.dev') || host.includes('dentzy') || host !== 'localhost' && host !== '127.0.0.1') {
+    if (host.endsWith('pages.dev') || host.includes('dentzy') || (host !== 'localhost' && host !== '127.0.0.1')) {
       return 'https://dentzy-backend.kesharinaman76.workers.dev';
     }
     return `http://${host}:5000`;
   }
-  // 3. Server-side / static build default
+  // Server-side / static build default
   return 'https://dentzy-backend.kesharinaman76.workers.dev';
 }
 
@@ -40,6 +41,10 @@ export function normalizeApiUrl(url) {
   const base = getApiBase();
   if (url.startsWith('/')) {
     return `${base}${url}`;
+  }
+  // If URL has old render domain, rewrite it to current base
+  if (url.includes('onrender.com')) {
+    return url.replace(/https?:\/\/[a-z0-9-]+\.onrender\.com/, base);
   }
   if (typeof window !== 'undefined') {
     const isRemote = window.location.hostname.endsWith('pages.dev') || !['localhost', '127.0.0.1'].includes(window.location.hostname);
