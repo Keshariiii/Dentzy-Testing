@@ -71,14 +71,6 @@ export async function apiFetch(url, options = {}) {
     ...(options.headers || {}),
   };
 
-  // Attach Bearer token as fallback for mobile browsers that block cross-site cookies
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('dentzy_token') || localStorage.getItem('dentzy_admin_token');
-    if (token && !headers['Authorization']) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
   let res;
   try {
     res = await fetch(targetUrl, {

@@ -142,8 +142,7 @@ const MobileAdminDashboard = () => {
     const connect = () => {
       if (stopped || retryCount >= 3) return;
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_token') : null;
-        const url = token ? `${ADMIN_API}/events?token=${encodeURIComponent(token)}` : `${ADMIN_API}/events`;
+        const url = `${ADMIN_API}/events`;
         es = new EventSource(url, { withCredentials: true });
         sseRef.current = es;
 

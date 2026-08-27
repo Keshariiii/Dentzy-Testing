@@ -31,14 +31,10 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const authUrl = getAuthUrl();
-        const headers = { 'Content-Type': 'application/json' };
-        // Attach Bearer token as fallback for cross-origin mobile browsers
-        const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-        if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(`${authUrl}/me`, {
           signal: controller.signal,
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         });
 
@@ -83,20 +79,13 @@ export const AuthProvider = ({ children }) => {
 
     const targetUrl = normalizeApiUrl(url);
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      };
-      // Attach Bearer token as fallback for cross-origin cookie blocking
-      const token = typeof window !== 'undefined' ? localStorage.getItem('dentzy_token') : null;
-      if (token && !headers['Authorization']) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       const res = await fetch(targetUrl, {
         ...options,
         credentials: 'include',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
       });
 
       if (res.status === 401 || res.status === 403) {
@@ -137,9 +126,7 @@ export const AuthProvider = ({ children }) => {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    if (data.token) {
-      localStorage.setItem('dentzy_token', data.token);
-    }
+    // Token is stored server-side in HttpOnly cookie — no localStorage needed
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
@@ -155,7 +142,6 @@ export const AuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_user');
-      localStorage.removeItem('dentzy_token');
     }
     setUser(null);
   }, []);

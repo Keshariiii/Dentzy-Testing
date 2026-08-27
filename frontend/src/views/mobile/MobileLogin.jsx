@@ -65,7 +65,6 @@ const MobileLogin = () => {
       try {
         await adminLogin(adminForm.username, adminForm.password);
         // Clear any stale regular user session
-        localStorage.removeItem('dentzy_token');
         localStorage.removeItem('dentzy_user');
         router.push('/admin/dashboard');
       } catch (err) {
