@@ -146,8 +146,8 @@ auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
     });
 
     if (!emailRes.success) {
-      logger.error('Failed to dispatch OTP email', { error: emailRes.error, email: user.email });
-      return c.json({ message: 'Failed to send verification code email. Please check configuration.' }, 500);
+      logger.error('Failed to dispatch OTP email', { error: emailRes.error, status: emailRes.status, email: user.email });
+      return c.json({ message: 'Failed to send verification code. Please try again later.' }, 500);
     }
 
     auditLog('OTP_SENT', { userId: user.id, email: user.email });
