@@ -14,12 +14,12 @@ export function getApiBase() {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     if (host.endsWith('pages.dev') || host.includes('dentzy') || host !== 'localhost' && host !== '127.0.0.1') {
-      return 'https://dentzy-testing-backend-urco.onrender.com';
+      return 'https://dentzy-backend.kesharinaman76.workers.dev';
     }
     return `http://${host}:5000`;
   }
   // 3. Server-side / static build default
-  return 'https://dentzy-testing-backend-urco.onrender.com';
+  return 'https://dentzy-backend.kesharinaman76.workers.dev';
 }
 
 export const getAdminUrl   = () => `${getApiBase()}/api/admin`;
