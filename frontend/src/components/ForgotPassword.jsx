@@ -1,14 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { getAuthUrl } from '../api/client';
 import './Register.css';
 
-const API = () => getAuthUrl().replace(/\/auth$/, ''); // base /api path for /api/auth/forgot-password
+const API = () => getAuthUrl();
 
-// Same password rules as registration
 const PASSWORD_RULES = [
   { id: 'length',  label: 'At least 8 characters',               test: (p) => p.length >= 8 },
   { id: 'upper',   label: 'At least 1 uppercase letter (A–Z)',    test: (p) => /[A-Z]/.test(p) },
@@ -20,10 +19,13 @@ const PASSWORD_RULES = [
 const ForgotPassword = () => {
   const router = useRouter();
 
-  // ── Step state ────────────────────────────────────────────────────────────
-  // step 1 = enter email, step 2 = enter new password + confirm
-  const [step, setStep]   = useState(1);
-  const [email, setEmail] = useState('');
+  // ── Flow State: 1 = Email, 2 = OTP, 3 = New Password, 4 = Success ─────────
+  const [step, setStep]           = useState(1);
+  const [email, setEmail]         = useState('');
+  const [otp, setOtp]             = useState(['', '', '', '', '', '']);
+  const [otpToken, setOtpToken]   = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [form, setForm]                 = useState({ password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +34,18 @@ const ForgotPassword = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
-  const [success, setSuccess] = useState(false);
+  const [infoMsg, setInfoMsg] = useState('');
+
+  const otpInputsRef = useRef([]);
+
+  // ── Resend cooldown timer ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // ── Password strength ─────────────────────────────────────────────────────
   const ruleResults = useMemo(
@@ -50,19 +63,114 @@ const ForgotPassword = () => {
     return                        { label: 'Strong', color: '#27ae60', width: '100%' };
   }, [passedCount]);
 
-  // ── Step 1: Validate email and advance ────────────────────────────────────
-  const handleEmailNext = (e) => {
-    e.preventDefault();
+  // ── Step 1: Send OTP to Email ─────────────────────────────────────────────
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
     setError('');
-    if (!email.trim() || !email.includes('@')) {
+    setInfoMsg('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
       setError('Please enter a valid email address.');
       return;
     }
-    setStep(2);
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API()}/forgot-password/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Failed to send verification code. Please try again.');
+      } else {
+        if (data.otpToken) setOtpToken(data.otpToken);
+        setStep(2);
+        setResendCooldown(60);
+        setInfoMsg(`Verification code sent to ${cleanEmail}`);
+        setOtp(['', '', '', '', '', '']);
+        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
+      }
+    } catch {
+      setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ── Step 2: Submit new password ───────────────────────────────────────────
-  const handleSubmit = async (e) => {
+  // ── OTP input change & paste handlers ──────────────────────────────────────
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return; // numbers only
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    setError('');
+
+    if (value && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pasteData)) {
+      const digits = pasteData.split('');
+      setOtp(digits);
+      otpInputsRef.current[5]?.focus();
+    }
+  };
+
+  // ── Step 2: Verify OTP ────────────────────────────────────────────────────
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    const fullOtp = otp.join('');
+
+    if (fullOtp.length !== 6) {
+      setError('Please enter the full 6-digit verification code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API()}/forgot-password/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          otp: fullOtp,
+          otpToken,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Invalid or expired verification code.');
+      } else {
+        setResetToken(data.resetToken);
+        setStep(3);
+        setError('');
+        setInfoMsg('');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 3: Reset Password ────────────────────────────────────────────────
+  const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -82,27 +190,31 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const res  = await fetch(`${API()}/auth/forgot-password`, {
-        method:  'POST',
+      const res = await fetch(`${API()}/forgot-password/reset`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email: email.trim(), password: form.password }),
+        body: JSON.stringify({
+          resetToken,
+          password: form.password,
+        }),
       });
       const data = await res.json();
+
       if (!res.ok) {
-        setError(data.message || 'Something went wrong. Please try again.');
+        setError(data.message || 'Failed to update password. Please start over.');
       } else {
-        setSuccess(true);
-        setTimeout(() => router.push('/login'), 3000);
+        setStep(4);
+        setTimeout(() => router.push('/login'), 3500);
       }
     } catch {
-      setError('Network error. Please check your connection and try again.');
+      setError('Network error. Please check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Success screen ────────────────────────────────────────────────────────
-  if (success) {
+  // ── Step 4: Success Screen ─────────────────────────────────────────────────
+  if (step === 4) {
     return (
       <div className="auth-page">
         <div className="auth-left">
@@ -146,7 +258,7 @@ const ForgotPassword = () => {
     );
   }
 
-  // ── Step 1: Email ─────────────────────────────────────────────────────────
+  // ── Step 1: Request OTP Email ──────────────────────────────────────────────
   if (step === 1) {
     return (
       <div className="auth-page">
@@ -168,10 +280,10 @@ const ForgotPassword = () => {
           <div className="auth-card">
             <h2 className="auth-card-title">Reset Password</h2>
             <p className="auth-card-subtitle">
-              Enter the email address linked to your Dentzy account.
+              Enter your registered email. We will send you a 6-digit verification code.
             </p>
 
-            <form className="auth-form" onSubmit={handleEmailNext} noValidate>
+            <form className="auth-form" onSubmit={handleSendOtp} noValidate>
               <div className="auth-input-group">
                 <span className="auth-input-icon">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -193,8 +305,8 @@ const ForgotPassword = () => {
 
               {error && <div className="auth-error">{error}</div>}
 
-              <button id="fp-next" type="submit" className="auth-btn">
-                Continue →
+              <button id="fp-next" type="submit" className="auth-btn" disabled={loading}>
+                {loading ? <span className="auth-spinner" /> : 'Send Verification Code →'}
               </button>
             </form>
 
@@ -208,7 +320,106 @@ const ForgotPassword = () => {
     );
   }
 
-  // ── Step 2: New password + confirm ────────────────────────────────────────
+  // ── Step 2: Enter 6-Digit OTP ──────────────────────────────────────────────
+  if (step === 2) {
+    return (
+      <div className="auth-page">
+        <div className="auth-left">
+          <div className="auth-left-overlay" />
+          <div className="auth-left-content">
+            <h1 className="auth-welcome">
+              <span>VERIFY</span>
+              <span className="auth-welcome-back">Email Code</span>
+            </h1>
+          </div>
+        </div>
+
+        <div className="auth-right">
+          <div className="auth-header-logo">
+            <img src={dentzyLogo} alt="Dentzy Logo" />
+          </div>
+
+          <div className="auth-card">
+            <h2 className="auth-card-title">Enter Verification Code</h2>
+            <p className="auth-card-subtitle">
+              We sent a 6-digit code to <strong>{email}</strong>
+            </p>
+
+            {infoMsg && (
+              <div style={{ background: '#f0fdf4', color: '#166534', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px', border: '1px solid #bbf7d0' }}>
+                {infoMsg}
+              </div>
+            )}
+
+            <form className="auth-form" onSubmit={handleVerifyOtp}>
+              {/* 6-box OTP Input */}
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
+                {otp.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => (otpInputsRef.current[idx] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    style={{
+                      width: '45px',
+                      height: '52px',
+                      fontSize: '1.4rem',
+                      fontWeight: '700',
+                      textAlign: 'center',
+                      borderRadius: '10px',
+                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#1e2824',
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  />
+                ))}
+              </div>
+
+              {error && <div className="auth-error">{error}</div>}
+
+              <button id="fp-verify-otp-btn" type="submit" className="auth-btn" disabled={loading || otp.join('').length !== 6}>
+                {loading ? <span className="auth-spinner" /> : 'Verify Code →'}
+              </button>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setError(''); }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                >
+                  ← Change Email
+                </button>
+
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || loading}
+                  onClick={handleSendOtp}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
+                    fontWeight: '600',
+                    cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 3: Enter New Password ────────────────────────────────────────────
   return (
     <div className="auth-page">
       <div className="auth-left">
@@ -229,10 +440,10 @@ const ForgotPassword = () => {
         <div className="auth-card">
           <h2 className="auth-card-title">Set New Password</h2>
           <p className="auth-card-subtitle">
-            Setting new password for <strong>{email}</strong>
+            Create a strong new password for <strong>{email}</strong>
           </p>
 
-          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <form className="auth-form" onSubmit={handleResetPassword} noValidate>
             {/* New Password */}
             <div className="auth-input-group">
               <span className="auth-input-icon">
@@ -336,42 +547,10 @@ const ForgotPassword = () => {
 
             {error && <div className="auth-error">{error}</div>}
 
-            {/* Actions row */}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-              <button
-                type="button"
-                id="fp-back"
-                className="auth-btn"
-                onClick={() => { setStep(1); setError(''); setForm({ password: '', confirm: '' }); }}
-                style={{ background: '#e0e6e3', color: '#2a3d35', margin: 0, width: 'auto', flex: 1 }}
-              >
-                ← Back
-              </button>
-              <button 
-                id="fp-submit" 
-                type="submit" 
-                className="auth-btn" 
-                disabled={loading} 
-                style={{ margin: 0, width: 'auto', flex: 1 }}
-              >
-                {loading ? (
-                  <span className="auth-spinner" />
-                ) : (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    Submit
-                  </>
-                )}
-              </button>
-            </div>
+            <button id="fp-submit" type="submit" className="auth-btn" disabled={loading}>
+              {loading ? <span className="auth-spinner" /> : 'Update Password & Log In'}
+            </button>
           </form>
-
-          <p className="auth-switch">
-            Remember your password?{' '}
-            <Link href="/login" id="fp-login-link">Login</Link>
-          </p>
         </div>
       </div>
     </div>

@@ -37,12 +37,23 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Please enter your email and password.'),
 });
 
-export const forgotPasswordSchema = z.object({
+export const sendOtpSchema = z.object({
   email: z.string().trim().toLowerCase()
     .min(1, 'Please provide a valid email address.')
-    .refine(e => e.includes('@'), { message: 'Please provide a valid email address.' }),
+    .refine(e => e.includes('@') && e.includes('.'), { message: 'Please provide a valid email address.' }),
+});
+
+export const verifyOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().min(1, 'Email is required.'),
+  otp: z.string().trim().length(6, 'Verification code must be 6 digits.'),
+  otpToken: z.string().min(1, 'OTP session token is required.'),
+});
+
+export const resetPasswordWithOtpSchema = z.object({
+  resetToken: z.string().min(1, 'Reset session token is required.'),
   password: strongPasswordSchema,
 });
+
 
 export const updateProfileSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters.').max(60, 'Name must be 60 characters or less.').optional(),

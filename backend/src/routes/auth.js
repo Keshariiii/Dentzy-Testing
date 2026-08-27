@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
-import { registerSchema, loginSchema, forgotPasswordSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema } from '../validators/auth.js';
-import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken } from '../utils/crypto.js';
+import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema } from '../validators/auth.js';
+import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken } from '../utils/crypto.js';
 import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
+import { sendOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 
@@ -108,24 +109,110 @@ auth.post('/logout', (c) => {
   return c.json({ message: 'Logged out successfully.' });
 });
 
-// POST /api/auth/forgot-password
-auth.post('/forgot-password', validate(forgotPasswordSchema), async (c) => {
-  const { email, password } = c.get('body');
+// POST /api/auth/forgot-password/send-otp
+auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
+  const { email } = c.get('body');
 
   try {
-    const user = await c.env.DB.prepare('SELECT id, status FROM users WHERE email = ?').bind(email).first();
-    if (!user) return c.json({ message: 'No account found with this email address.' }, 404);
-    if (user.status === 'pending') return c.json({ message: 'Your account is still awaiting admin approval.' }, 403);
-    if (user.status === 'rejected') return c.json({ message: 'Your account was not approved. Please contact support.' }, 403);
+    const user = await c.env.DB.prepare('SELECT id, name, email, status FROM users WHERE email = ?').bind(email).first();
+    
+    // If no user exists, return generic success to prevent email enumeration
+    if (!user) {
+      return c.json({
+        success: true,
+        message: 'If an account exists with this email, a 6-digit verification code has been sent.',
+        expiresIn: 300,
+      });
+    }
+
+    if (user.status === 'pending') {
+      return c.json({ message: 'Your account is still awaiting admin approval.' }, 403);
+    }
+    if (user.status === 'rejected') {
+      return c.json({ message: 'Your account was not approved. Please contact support.' }, 403);
+    }
+
+    // Generate random 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpToken = await createOtpToken(user.email, otp, c.env.JWT_SECRET);
+
+    // Send email via Brevo
+    const emailRes = await sendOtpEmail({
+      apiKey: c.env.BREVO_API_KEY,
+      senderEmail: c.env.BREVO_SENDER_EMAIL,
+      to: user.email,
+      name: user.name || 'Dentist',
+      otp,
+    });
+
+    if (!emailRes.success) {
+      logger.error('Failed to dispatch OTP email', { error: emailRes.error, email: user.email });
+      return c.json({ message: 'Failed to send verification code email. Please check configuration.' }, 500);
+    }
+
+    auditLog('OTP_SENT', { userId: user.id, email: user.email });
+
+    return c.json({
+      success: true,
+      message: 'Verification code sent to your email.',
+      otpToken,
+      expiresIn: 300,
+    });
+  } catch (error) {
+    logger.error('Send OTP error', { error: error.message });
+    return c.json({ message: 'Failed to send verification code. Please try again.' }, 500);
+  }
+});
+
+// POST /api/auth/forgot-password/verify-otp
+auth.post('/forgot-password/verify-otp', validate(verifyOtpSchema), async (c) => {
+  const { email, otp, otpToken } = c.get('body');
+
+  try {
+    const check = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
+    if (!check.valid) {
+      return c.json({ message: check.message }, 400);
+    }
+
+    const resetToken = await createResetToken(email, c.env.JWT_SECRET);
+    auditLog('OTP_VERIFIED', { email });
+
+    return c.json({
+      success: true,
+      resetToken,
+      message: 'Verification code confirmed. You can now set a new password.',
+    });
+  } catch (error) {
+    logger.error('Verify OTP error', { error: error.message });
+    return c.json({ message: 'Verification failed. Please try again.' }, 500);
+  }
+});
+
+// POST /api/auth/forgot-password/reset
+auth.post('/forgot-password/reset', validate(resetPasswordWithOtpSchema), async (c) => {
+  const { resetToken, password } = c.get('body');
+
+  try {
+    const check = await verifyResetToken(resetToken, c.env.JWT_SECRET);
+    if (!check.valid) {
+      return c.json({ message: check.message }, 400);
+    }
+
+    const user = await c.env.DB.prepare('SELECT id, status FROM users WHERE email = ?').bind(check.email).first();
+    if (!user) return c.json({ message: 'User not found.' }, 404);
 
     const hashed = await hashPassword(password);
     await c.env.DB.prepare('UPDATE users SET password = ?, updatedAt = ? WHERE id = ?').bind(hashed, now(), user.id).run();
 
-    auditLog('PASSWORD_RESET', { userId: user.id });
-    return c.json({ message: 'Password changed successfully. You can now log in with your new password.' });
+    auditLog('PASSWORD_RESET_VIA_OTP', { userId: user.id, email: check.email });
+
+    return c.json({
+      success: true,
+      message: 'Password reset successfully. You can now log in with your new password.',
+    });
   } catch (error) {
-    logger.error('Forgot-password error', { error: error.message });
-    return c.json({ message: 'Server error. Please try again later.' }, 500);
+    logger.error('Reset password error', { error: error.message });
+    return c.json({ message: 'Failed to reset password. Please try again.' }, 500);
   }
 });
 

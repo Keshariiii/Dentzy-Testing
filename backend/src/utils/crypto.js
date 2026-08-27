@@ -58,3 +58,54 @@ export const verifyCaptchaToken = async (token, userInput, secret) => {
 
   return { valid: true };
 };
+
+// ── Email OTP Token (HMAC-SHA256, 5 min expiry) ─────────────────────────────
+export const createOtpToken = async (email, otp, secret) => {
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const payload = `${email.toLowerCase().trim()}:${otp}:${expiresAt}`;
+  const hmac = await hmacSHA256(secret, payload);
+  return `${payload}:${hmac}`;
+};
+
+export const verifyOtpToken = async (token, userEmail, userOtp, secret) => {
+  if (!token || !userEmail || !userOtp)
+    return { valid: false, message: 'Email and 6-digit OTP code are required.' };
+
+  const parts = token.split(':');
+  if (parts.length !== 4)
+    return { valid: false, message: 'Invalid or malformed OTP token. Please request a new code.' };
+
+  const [storedEmail, expectedOtp, expiresAtStr, hmac] = parts;
+
+  if (storedEmail !== userEmail.toLowerCase().trim())
+    return { valid: false, message: 'Email does not match OTP request. Please request a new code.' };
+
+  if (Date.now() > parseInt(expiresAtStr, 10))
+    return { valid: false, message: 'Verification code has expired. Please request a new one.' };
+
+  const expectedHmac = await hmacSHA256(secret, `${storedEmail}:${expectedOtp}:${expiresAtStr}`);
+  if (hmac !== expectedHmac)
+    return { valid: false, message: 'Security check failed. Please request a new code.' };
+
+  if (userOtp.trim() !== expectedOtp)
+    return { valid: false, message: 'Invalid verification code. Please check your email and try again.' };
+
+  return { valid: true };
+};
+
+// ── Password Reset JWT Token (15 min expiry) ────────────────────────────────
+export const createResetToken = (email, secret) =>
+  signJWT({ email: email.toLowerCase().trim(), purpose: 'password-reset' }, secret, '15m');
+
+export const verifyResetToken = async (token, secret) => {
+  try {
+    const payload = await verifyJWT(token, secret);
+    if (payload.purpose !== 'password-reset' || !payload.email) {
+      return { valid: false, message: 'Invalid reset session.' };
+    }
+    return { valid: true, email: payload.email };
+  } catch {
+    return { valid: false, message: 'Reset session expired. Please start over.' };
+  }
+};
+
