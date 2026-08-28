@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dentzy-testing.pages.dev/sitemap.xml
