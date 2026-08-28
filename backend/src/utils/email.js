@@ -2,11 +2,36 @@ import { connect } from 'cloudflare:sockets';
 import logger from './logger.js';
 
 /**
- * Sends an email directly via Google's official Gmail SMTP (Port 465 TLS).
- * Zero third-party branding — 100% signed by gmail.com.
- * Compatible with Cloudflare Workers via cloudflare:sockets.
+ * Convert HTML to clean plain text for multipart/alternative email delivery.
+ * Ensures strict spam filter compliance (prevents MIME_HTML_ONLY penalty).
  */
-export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
+export function htmlToPlainText(html) {
+  if (!html) return '';
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, '  ')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&copy;/g, '©')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n\s+\n/g, '\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * Sends an email directly via Google's official Gmail SMTP (Port 465 TLS).
+ * Uses multipart/alternative (plain text + HTML) for maximum inbox deliverability.
+ */
+export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions' }) {
   const cleanUser = (user || '').trim();
   const cleanPass = (pass || '').replace(/\s+/g, '');
   const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
@@ -44,8 +69,8 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
       throw new Error(`SMTP Greeting failed: ${greeting}`);
     }
 
-    // 2. EHLO
-    await sendCommand('EHLO localhost');
+    // 2. EHLO with valid host
+    await sendCommand('EHLO smtp.gmail.com');
     while (true) {
       const line = await readLine();
       if (line.startsWith('250 ') || !line.startsWith('250-')) break;
@@ -87,21 +112,43 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
       throw new Error(`SMTP DATA failed: ${dataRes}`);
     }
 
-    // 9. Send Email Message Content (RFC 2045: base64 lines max 76 chars)
-    const rawB64 = btoa(unescape(encodeURIComponent(htmlContent)));
-    const wrappedB64 = rawB64.match(/.{1,76}/g).join('\r\n');
-    const msgId = `<${Date.now()}.${Math.random().toString(36).slice(2)}@dentzy.app>`;
+    // 9. Send Multipart/Alternative Message Content (RFC 2045 / RFC 5321)
+    const boundary = `_NextPart_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    const plain = textContent || htmlToPlainText(htmlContent);
+
+    const rawPlainB64 = btoa(unescape(encodeURIComponent(plain)));
+    const wrappedPlainB64 = rawPlainB64.match(/.{1,76}/g)?.join('\r\n') || rawPlainB64;
+
+    const rawHtmlB64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    const wrappedHtmlB64 = rawHtmlB64.match(/.{1,76}/g)?.join('\r\n') || rawHtmlB64;
+
     const msg = [
       `From: "${senderName}" <${cleanUser}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
+      `Reply-To: "${senderName}" <${cleanUser}>`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       `Date: ${new Date().toUTCString()}`,
-      `Message-ID: ${msgId}`,
       `MIME-Version: 1.0`,
+      `Auto-Submitted: auto-generated`,
+      `X-Auto-Response-Suppress: All`,
+      `X-Priority: 1 (Highest)`,
+      `Importance: High`,
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      wrappedPlainB64,
+      ``,
+      `--${boundary}`,
       `Content-Type: text/html; charset=UTF-8`,
       `Content-Transfer-Encoding: base64`,
       ``,
-      wrappedB64,
+      wrappedHtmlB64,
+      ``,
+      `--${boundary}--`,
+      ``,
       `.`,
       ``
     ].join('\r\n');
@@ -131,9 +178,11 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
 /**
  * Brevo (Sendinblue) REST API fallback — used when Gmail SMTP fails.
  */
-async function sendBrevoEmail({ apiKey, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions', senderEmail = 'dentzyemail@gmail.com' }) {
+async function sendBrevoEmail({ apiKey, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', senderEmail = 'dentzyemail@gmail.com' }) {
   const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
   const toName = (typeof to === 'object' && to?.name) ? to.name : '';
+  const plain = textContent || htmlToPlainText(htmlContent);
+
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -141,8 +190,10 @@ async function sendBrevoEmail({ apiKey, to, subject, htmlContent, senderName = '
       body: JSON.stringify({
         sender: { name: senderName, email: senderEmail },
         to: [{ email: toAddress, ...(toName ? { name: toName } : {}) }],
+        replyTo: { name: senderName, email: senderEmail },
         subject,
         htmlContent,
+        textContent: plain,
       }),
     });
     if (!res.ok) {
@@ -160,13 +211,13 @@ async function sendBrevoEmail({ apiKey, to, subject, htmlContent, senderName = '
 /**
  * Send an email via Gmail SMTP, falling back to Brevo REST API on failure.
  */
-export async function sendEmail({ env, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
+export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions' }) {
   // Try Gmail SMTP first
   if (env.GMAIL_APP_PASSWORD) {
     const result = await sendGmailSMTP({
       user: env.GMAIL_USER || 'dentzyemail@gmail.com',
       pass: env.GMAIL_APP_PASSWORD,
-      to, subject, htmlContent, senderName,
+      to, subject, htmlContent, textContent, senderName,
     });
     if (result.success) return result;
     logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: result.error });
@@ -175,7 +226,7 @@ export async function sendEmail({ env, to, subject, htmlContent, senderName = 'D
   if (env.BREVO_API_KEY) {
     return sendBrevoEmail({
       apiKey: env.BREVO_API_KEY,
-      to, subject, htmlContent, senderName,
+      to, subject, htmlContent, textContent, senderName,
       senderEmail: env.BREVO_SENDER_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com',
     });
   }
@@ -186,7 +237,21 @@ export async function sendEmail({ env, to, subject, htmlContent, senderName = 'D
  * Sends Registration Email Verification 6-Digit OTP.
  */
 export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy — ${otp} is your email verification code`;
+  const subject = `Dentzy: ${otp} is your verification code`;
+  const textContent = `DENTZY - Email Verification
+
+Hello ${name},
+
+Thank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:
+
+Verification Code: ${otp}
+(Valid for 5 minutes)
+
+If you did not create an account on Dentzy, you can safely ignore this email.
+
+Dentzy Dental Solutions Team
+https://dentzy-testing.pages.dev`;
+
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -249,6 +314,7 @@ export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp 
     to,
     subject,
     htmlContent,
+    textContent,
   });
 }
 
@@ -256,7 +322,21 @@ export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp 
  * Sends Password Reset 6-Digit OTP Email.
  */
 export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy — ${otp} is your verification code`;
+  const subject = `Dentzy: ${otp} is your password reset code`;
+  const textContent = `DENTZY - Password Reset
+
+Hello ${name},
+
+We received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:
+
+Verification Code: ${otp}
+(Valid for 5 minutes)
+
+If you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.
+
+Dentzy Dental Solutions Team
+https://dentzy-testing.pages.dev`;
+
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -319,6 +399,7 @@ export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
     to,
     subject,
     htmlContent,
+    textContent,
   });
 }
 
