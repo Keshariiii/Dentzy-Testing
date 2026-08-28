@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
-import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema } from '../validators/auth.js';
+import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
 import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken } from '../utils/crypto.js';
 import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
@@ -77,6 +77,35 @@ auth.post('/register/send-otp', validate(registerSchema), async (c) => {
     });
   } catch (error) {
     logger.error('Register send-otp error', { error: error.message });
+    return c.json({ message: 'Server error. Please try again.' }, 500);
+  }
+});
+
+// POST /api/auth/register/resend-otp — Resend OTP (no captcha, rate-limited by frontend cooldown)
+auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) => {
+  const { email } = c.get('body');
+
+  try {
+    const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+    if (existing)
+      return c.json({ message: 'This email is already registered.', action: 'LOGIN' }, 409);
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpToken = await createOtpToken(email, otp, c.env.JWT_SECRET);
+
+    const emailRes = await sendRegistrationOtpEmail({
+      env: c.env, to: email, name: 'Dentist', otp,
+    });
+
+    if (!emailRes.success) {
+      logger.error('Failed to resend registration OTP', { error: emailRes.error, email });
+      return c.json({ message: 'Failed to send verification code. Please try again.' }, 500);
+    }
+
+    auditLog('REGISTER_OTP_RESENT', { email });
+    return c.json({ success: true, otpToken, expiresIn: 300 });
+  } catch (error) {
+    logger.error('Register resend-otp error', { error: error.message });
     return c.json({ message: 'Server error. Please try again.' }, 500);
   }
 });

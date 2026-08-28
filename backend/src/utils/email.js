@@ -87,16 +87,21 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
       throw new Error(`SMTP DATA failed: ${dataRes}`);
     }
 
-    // 9. Send Email Message Content
+    // 9. Send Email Message Content (RFC 2045: base64 lines max 76 chars)
+    const rawB64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    const wrappedB64 = rawB64.match(/.{1,76}/g).join('\r\n');
+    const msgId = `<${Date.now()}.${Math.random().toString(36).slice(2)}@dentzy.app>`;
     const msg = [
       `From: "${senderName}" <${cleanUser}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
+      `Date: ${new Date().toUTCString()}`,
+      `Message-ID: ${msgId}`,
       `MIME-Version: 1.0`,
       `Content-Type: text/html; charset=UTF-8`,
       `Content-Transfer-Encoding: base64`,
       ``,
-      btoa(unescape(encodeURIComponent(htmlContent))),
+      wrappedB64,
       `.`,
       ``
     ].join('\r\n');
@@ -124,17 +129,57 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, send
 }
 
 /**
- * Send an email via Gmail SMTP.
+ * Brevo (Sendinblue) REST API fallback — used when Gmail SMTP fails.
+ */
+async function sendBrevoEmail({ apiKey, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions', senderEmail = 'dentzyemail@gmail.com' }) {
+  const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
+  const toName = (typeof to === 'object' && to?.name) ? to.name : '';
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: toAddress, ...(toName ? { name: toName } : {}) }],
+        subject,
+        htmlContent,
+      }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`Brevo ${res.status}: ${errBody}`);
+    }
+    logger.info('Brevo email delivered successfully', { to: toAddress });
+    return { success: true };
+  } catch (err) {
+    logger.error('Brevo email error', { error: err.message });
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Send an email via Gmail SMTP, falling back to Brevo REST API on failure.
  */
 export async function sendEmail({ env, to, subject, htmlContent, senderName = 'Dentzy Dental Solutions' }) {
-  return sendGmailSMTP({
-    user: env.GMAIL_USER || 'dentzyemail@gmail.com',
-    pass: env.GMAIL_APP_PASSWORD,
-    to,
-    subject,
-    htmlContent,
-    senderName,
-  });
+  // Try Gmail SMTP first
+  if (env.GMAIL_APP_PASSWORD) {
+    const result = await sendGmailSMTP({
+      user: env.GMAIL_USER || 'dentzyemail@gmail.com',
+      pass: env.GMAIL_APP_PASSWORD,
+      to, subject, htmlContent, senderName,
+    });
+    if (result.success) return result;
+    logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: result.error });
+  }
+  // Brevo fallback
+  if (env.BREVO_API_KEY) {
+    return sendBrevoEmail({
+      apiKey: env.BREVO_API_KEY,
+      to, subject, htmlContent, senderName,
+      senderEmail: env.BREVO_SENDER_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com',
+    });
+  }
+  return { success: false, error: 'No email provider configured' };
 }
 
 /**

@@ -112,6 +112,16 @@ export const AuthProvider = ({ children }) => {
     return data; // { success, otpToken, expiresIn }
   }, []);
 
+  // Resend registration OTP (no captcha needed)
+  const resendRegisterOtp = useCallback(async (email, otpToken) => {
+    const authUrl = getAuthUrl();
+    const data = await apiFetch(`${authUrl}/register/resend-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ email, otpToken }),
+    });
+    return data; // { success, otpToken, expiresIn }
+  }, []);
+
   // Register Step 2: Verify OTP and create account
   const register = useCallback(async (name, email, password, otp, otpToken) => {
     const authUrl = getAuthUrl();
@@ -172,13 +182,14 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     sendRegisterOtp,
+    resendRegisterOtp,
     register,
     logout,
     authFetch,
     updateUserState,
     API_URL,
     DASH_URL,
-  }), [user, loading, login, sendRegisterOtp, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
+  }), [user, loading, login, sendRegisterOtp, resendRegisterOtp, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -39,6 +39,12 @@ export const verifyRegisterOtpSchema = z.object({
   otpToken: z.string().min(1, 'OTP session token is required.'),
 });
 
+// Resend registration OTP (no captcha required, rate-limited by cooldown)
+export const resendRegisterOtpSchema = z.object({
+  email: strictEmailSchema,
+  otpToken: z.string().min(1, 'OTP session token is required.'),
+});
+
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase()
     .min(1, 'Please enter your email and password.')

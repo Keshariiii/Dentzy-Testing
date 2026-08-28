@@ -18,7 +18,7 @@ const PASSWORD_RULES = [
 
 const Register = () => {
   const router = useRouter();
-  const { sendRegisterOtp, register } = useAuth();
+  const { sendRegisterOtp, resendRegisterOtp, register } = useAuth();
 
   // step: 1 = form, 2 = OTP, 3 = pending
   const [step, setStep] = useState(1);
@@ -45,9 +45,9 @@ const Register = () => {
   const [captchaSvg, setCaptchaSvg]       = useState('');
   const [captchaLoading, setCaptchaLoading] = useState(false);
 
-  // OTP state
   const [otp, setOtp]                         = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]               = useState('');
+  const [resendCooldown, setResendCooldown]   = useState(0);
   const otpInputsRef                          = useRef([]);
 
   const [pending, setPending] = useState(null);
@@ -72,6 +72,15 @@ const Register = () => {
   useEffect(() => {
     fetchCaptcha();
   }, [fetchCaptcha]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
 
   // Compute which rules pass in real time
@@ -320,14 +329,31 @@ const Register = () => {
 
                 <button
                   type="button"
-                  onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                  disabled={resendCooldown > 0 || loading}
+                  onClick={async () => {
+                    setError('');
+                    setLoading(true);
+                    try {
+                      const result = await resendRegisterOtp(form.email.trim(), otpToken);
+                      if (result?.otpToken) {
+                        setOtpToken(result.otpToken);
+                        setResendCooldown(60);
+                        setOtp(['', '', '', '', '', '']);
+                        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
+                      }
+                    } catch (err) {
+                      setError(err.message || 'Failed to resend. Please go back and try again.');
+                    } finally { setLoading(false); }
+                  }}
                   style={{
                     background: 'none', border: 'none',
-                    color: '#1e5038', fontWeight: '600',
-                    cursor: 'pointer', padding: 0,
+                    color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
+                    fontWeight: '600',
+                    cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                    padding: 0,
                   }}
                 >
-                  Resend Code
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
                 </button>
               </div>
             </form>
