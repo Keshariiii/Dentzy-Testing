@@ -102,12 +102,22 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Register function
-  const register = useCallback(async (name, email, password, captchaInput, captchaToken) => {
+  // Register Step 1: Send email verification OTP
+  const sendRegisterOtp = useCallback(async (name, email, password, captchaInput, captchaToken) => {
     const authUrl = getAuthUrl();
-    const data = await apiFetch(`${authUrl}/register`, {
+    const data = await apiFetch(`${authUrl}/register/send-otp`, {
       method: 'POST',
       body: JSON.stringify({ name, email, password, captchaInput, captchaToken }),
+    });
+    return data; // { success, otpToken, expiresIn }
+  }, []);
+
+  // Register Step 2: Verify OTP and create account
+  const register = useCallback(async (name, email, password, otp, otpToken) => {
+    const authUrl = getAuthUrl();
+    const data = await apiFetch(`${authUrl}/register/verify-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password, otp, otpToken }),
     });
     if (data.pending) {
       return { pending: true, message: data.message, user: data.user };
@@ -161,13 +171,14 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    sendRegisterOtp,
     register,
     logout,
     authFetch,
     updateUserState,
     API_URL,
     DASH_URL,
-  }), [user, loading, login, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
+  }), [user, loading, login, sendRegisterOtp, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
 
   return (
     <AuthContext.Provider value={value}>

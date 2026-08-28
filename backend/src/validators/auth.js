@@ -30,6 +30,15 @@ export const registerSchema = z.object({
   captchaToken: z.string().trim().min(1, 'CAPTCHA token is required.'),
 });
 
+// 2-step registration: Step 2 — verify OTP and create account
+export const verifyRegisterOtpSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters.').max(60, 'Name must be 60 characters or less.'),
+  email: strictEmailSchema,
+  password: strongPasswordSchema,
+  otp: z.string().trim().length(6, 'Verification code must be 6 digits.'),
+  otpToken: z.string().min(1, 'OTP session token is required.'),
+});
+
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase()
     .min(1, 'Please enter your email and password.')

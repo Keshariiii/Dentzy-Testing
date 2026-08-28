@@ -1,12 +1,10 @@
 'use client';
 /**
- * MobileRegister — Fullscreen mobile-native registration experience.
- *
- * Includes password strength indicator, CAPTCHA, and touch-optimized form.
+ * MobileRegister — Fullscreen mobile-native registration with 2-step email OTP verification.
  */
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAuthUrl } from '../../api/client';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -22,7 +20,10 @@ const PASSWORD_RULES = [
 
 const MobileRegister = () => {
   const router = useRouter();
-  const { register } = useAuth();
+  const { sendRegisterOtp, register } = useAuth();
+
+  // step: 1 = form, 2 = OTP, 3 = pending
+  const [step, setStep] = useState(1);
 
   const [form, setForm]               = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +37,11 @@ const MobileRegister = () => {
   const [captchaToken, setCaptchaToken]     = useState('');
   const [captchaSvg, setCaptchaSvg]         = useState('');
   const [captchaLoading, setCaptchaLoading] = useState(false);
+
+  // OTP
+  const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
+  const [otpToken, setOtpToken]             = useState('');
+  const otpInputsRef                        = useRef([]);
 
   const API_URL = getAuthUrl();
 
@@ -64,6 +70,8 @@ const MobileRegister = () => {
     return () => { active = false; };
   }, [API_URL]);
 
+
+
   const ruleResults = useMemo(
     () => PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(form.password) })),
     [form.password]
@@ -85,8 +93,9 @@ const MobileRegister = () => {
     setErrorAction(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ── Step 1: Send OTP ────────────────────────────────────────────────
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
     setError('');
     setErrorAction(null);
 
@@ -105,8 +114,14 @@ const MobileRegister = () => {
 
     setLoading(true);
     try {
-      await register(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
-      router.push('/login');
+      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      if (result?.otpToken) {
+        setOtpToken(result.otpToken);
+        setStep(2);
+        setOtp(['', '', '', '', '', '']);
+        setError('');
+        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
+      }
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
@@ -114,6 +129,167 @@ const MobileRegister = () => {
     } finally { setLoading(false); }
   };
 
+  // ── OTP handlers ────────────────────────────────────────────────────
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    setError('');
+    if (value && index < 5) otpInputsRef.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pasteData)) {
+      setOtp(pasteData.split(''));
+      otpInputsRef.current[5]?.focus();
+    }
+  };
+
+  // ── Step 2: Verify OTP → Create Account ─────────────────────────────
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    const fullOtp = otp.join('');
+
+    if (fullOtp.length !== 6) {
+      setError('Please enter the full 6-digit code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await register(form.name.trim(), form.email.trim(), form.password, fullOtp, otpToken);
+      if (result?.pending) {
+        setStep(3);
+      } else {
+        router.push('/');
+      }
+    } catch (err) {
+      setError(err.message);
+      setErrorAction(err.action || null);
+    } finally { setLoading(false); }
+  };
+
+
+
+  // ── Step 3: Pending ─────────────────────────────────────────────────
+  if (step === 3) {
+    return (
+      <div className="m-auth-page">
+        <div className="m-auth-logo">
+          <img src={dentzyLogo} alt="Dentzy" />
+        </div>
+        <div className="m-auth-card" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>⏳</div>
+          <h1 className="m-auth-title">Awaiting Approval</h1>
+          <p className="m-auth-subtitle">
+            Hi <strong>{form.name}</strong>, your registration is submitted!
+          </p>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '12px 0 20px' }}>
+            Our admin will review your account and approve it shortly. You'll be notified by email.
+          </p>
+          <div style={{ background: '#f0f7f3', borderRadius: '10px', padding: '10px', fontSize: '0.85rem', color: '#1e5038', fontWeight: 600, marginBottom: '20px' }}>
+            {form.email}
+          </div>
+          <Link href="/login" className="m-auth-submit" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 2: OTP Verification ────────────────────────────────────────
+  if (step === 2) {
+    return (
+      <div className="m-auth-page">
+        <button className="m-auth-back-btn" onClick={() => { setStep(1); setError(''); fetchCaptcha(); }} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
+
+        <div className="m-auth-logo">
+          <img src={dentzyLogo} alt="Dentzy" />
+        </div>
+
+        <div className="m-auth-card">
+          <h1 className="m-auth-title">Verify Email</h1>
+          <p className="m-auth-subtitle">
+            We sent a 6-digit code to <strong>{form.email}</strong>
+          </p>
+
+          {error && <div className="m-auth-error">{error}</div>}
+
+          <form onSubmit={handleVerifyOtp}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
+              {otp.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => (otpInputsRef.current[idx] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  style={{
+                    width: '42px',
+                    height: '50px',
+                    fontSize: '1.3rem',
+                    fontWeight: '700',
+                    textAlign: 'center',
+                    borderRadius: '10px',
+                    border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#1e2824',
+                    outline: 'none',
+                  }}
+                />
+              ))}
+            </div>
+
+            <button type="submit" className="m-auth-submit" disabled={loading || otp.join('').length !== 6}>
+              {loading ? 'Verifying…' : 'Verify & Create Account'}
+            </button>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.82rem' }}>
+              <button
+                type="button"
+                onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+              >
+                ← Change Email
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                style={{
+                  background: 'none', border: 'none',
+                  color: '#1e5038', fontWeight: '600',
+                  cursor: 'pointer', padding: 0,
+                }}
+              >
+                Resend Code
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: Registration Form ───────────────────────────────────────
   return (
     <div className="m-auth-page">
       {/* Back Arrow Button */}
@@ -145,7 +321,7 @@ const MobileRegister = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSendOtp} noValidate>
           <div className="m-auth-input-group">
             <label>Full Name</label>
             <input type="text" name="name" value={form.name} onChange={handleChange}
@@ -241,7 +417,7 @@ const MobileRegister = () => {
           </div>
 
           <button type="submit" className="m-auth-submit" disabled={loading}>
-            {loading ? 'Creating Account…' : 'Create Account'}
+            {loading ? 'Sending Code…' : 'Verify Email & Sign Up'}
           </button>
         </form>
 

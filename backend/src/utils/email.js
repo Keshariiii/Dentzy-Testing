@@ -138,6 +138,76 @@ export async function sendEmail({ env, to, subject, htmlContent, senderName = 'D
 }
 
 /**
+ * Sends Registration Email Verification 6-Digit OTP.
+ */
+export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp }) {
+  const subject = `Dentzy — ${otp} is your email verification code`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Email Verification</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e2824;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f7f5; padding: 30px 15px;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="500" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2ece6;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 30px 30px 20px 30px; background: linear-gradient(180deg, #f0f7f3 0%, #ffffff 100%);">
+              <h2 style="margin: 0; color: #1e5038; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">DENTZY</h2>
+              <p style="margin: 4px 0 0 0; color: #6b8a7a; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">by Namrata Dental Solutions</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 20px 35px 30px 35px;">
+              <h3 style="margin: 0 0 12px 0; color: #1e2824; font-size: 18px; font-weight: 700;">Verify Your Email Address</h3>
+              <p style="margin: 0 0 20px 0; color: #4a5d54; font-size: 14px; line-height: 1.6;">
+                Hello <strong>${name}</strong>,<br>
+                Thank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:
+              </p>
+              
+              <!-- OTP Box -->
+              <div style="background-color: #f0f7f3; border: 2px dashed #9bc4b0; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
+                <div style="font-family: monospace, Courier; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1e5038;">
+                  ${otp}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #6b8a7a; font-weight: 600;">
+                  ⏱ Valid for 5 minutes
+                </div>
+              </div>
+
+              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                If you did not create an account on Dentzy, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #fafcfb; border-top: 1px solid #eef4f1; color: #94a3b8; font-size: 12px;">
+              &copy; ${new Date().getFullYear()} Dentzy Dental Solutions. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  return sendEmail({
+    env,
+    to,
+    subject,
+    htmlContent,
+  });
+}
+
+/**
  * Sends Password Reset 6-Digit OTP Email.
  */
 export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
@@ -299,3 +369,158 @@ export async function sendContactUserConfirmation({ env, contact }) {
     htmlContent,
   });
 }
+
+/**
+ * Admin Alert — New User Registration.
+ */
+export async function sendNewUserAdminAlert({ env, user }) {
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
+  const subject = `🆕 New Dentist Registration: ${user.name} (${user.email})`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h2 style="color: #1e5038; margin-top: 0;">🆕 New Dentist Registration</h2>
+    <p style="color: #64748b; font-size: 14px;">A new dentist has registered on the Dentzy portal and is awaiting your approval:</p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 100px; color: #4a5d54;">Name:</td>
+        <td style="padding: 8px 0;">${user.name}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Email:</td>
+        <td style="padding: 8px 0;"><a href="mailto:${user.email}" style="color: #1e5038;">${user.email}</a></td>
+      </tr>
+    </table>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/admin/dashboard" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;">Review in Admin Panel →</a>
+    </div>
+
+    <div style="font-size: 12px; color: #94a3b8; margin-top: 20px; text-align: center;">
+      Registered at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: targetEmail, subject, htmlContent });
+}
+
+/**
+ * User Confirmation — Registration Pending.
+ */
+export async function sendRegistrationPendingEmail({ env, user }) {
+  const subject = `Welcome to Dentzy — Registration Received`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h2 style="color: #1e5038; margin-top: 0;">Welcome to Dentzy!</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      Hello <strong>${user.name}</strong>,<br><br>
+      Thank you for registering on the Dentzy Clinical Lab Portal. Your account is currently <strong>under review</strong> by our admin team.
+    </p>
+
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #92400e;">
+      <strong>⏳ What happens next?</strong><br>
+      Our team will review your registration and approve your account. You will receive an email notification once your account is activated.
+    </div>
+
+    <p style="color: #64748b; font-size: 13px;">
+      If you have any questions, feel free to reach us at +91 95036 68112.<br><br>
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong>
+    </p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: user.email, subject, htmlContent });
+}
+
+/**
+ * User Notification — Account Approved.
+ */
+export async function sendUserApprovedEmail({ env, user }) {
+  const subject = `🎉 Your Dentzy Account Has Been Approved!`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="display: inline-block; background: #dcfce7; border-radius: 50%; width: 60px; height: 60px; line-height: 60px; font-size: 28px;">✅</div>
+    </div>
+    <h2 style="color: #1e5038; margin-top: 0; text-align: center;">Account Approved!</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      Hello <strong>${user.name}</strong>,<br><br>
+      Great news! Your Dentzy account has been approved. You can now log in to the portal and start managing your dental lab orders.
+    </p>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/login" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 15px;">Log In to Portal →</a>
+    </div>
+
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>What you can do now:</strong><br>
+      • View and track your lab orders<br>
+      • Monitor order progress in real time<br>
+      • Manage your profile and clinic details
+    </div>
+
+    <p style="color: #64748b; font-size: 13px;">Best regards,<br><strong>Dentzy Dental Solutions Team</strong></p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: user.email, subject, htmlContent });
+}
+
+/**
+ * User Notification — Account Rejected.
+ */
+export async function sendUserRejectedEmail({ env, user, note }) {
+  const reasonBlock = note
+    ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #991b1b;">
+        <strong>Reason provided:</strong><br>${String(note).replace(/\n/g, '<br>')}
+      </div>`
+    : '';
+
+  const subject = `Dentzy — Account Registration Update`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h2 style="color: #1e2824; margin-top: 0;">Account Registration Update</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      Hello <strong>${user.name}</strong>,<br><br>
+      We appreciate your interest in Dentzy. After reviewing your registration, we are unable to approve your account at this time.
+    </p>
+
+    ${reasonBlock}
+
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      If you believe this was a mistake or would like more information, please don't hesitate to contact our team.
+    </p>
+
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>Need help?</strong><br>
+      Reach us at +91 95036 68112 or reply to this email.
+    </div>
+
+    <p style="color: #64748b; font-size: 13px;">Best regards,<br><strong>Dentzy Dental Solutions Team</strong></p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: user.email, subject, htmlContent });
+}
+

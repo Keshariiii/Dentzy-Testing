@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthUrl } from '../api/client';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -18,7 +18,10 @@ const PASSWORD_RULES = [
 
 const Register = () => {
   const router = useRouter();
-  const { register } = useAuth();
+  const { sendRegisterOtp, register } = useAuth();
+
+  // step: 1 = form, 2 = OTP, 3 = pending
+  const [step, setStep] = useState(1);
 
   const [form, setForm] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -42,6 +45,13 @@ const Register = () => {
   const [captchaSvg, setCaptchaSvg]       = useState('');
   const [captchaLoading, setCaptchaLoading] = useState(false);
 
+  // OTP state
+  const [otp, setOtp]                         = useState(['', '', '', '', '', '']);
+  const [otpToken, setOtpToken]               = useState('');
+  const otpInputsRef                          = useRef([]);
+
+  const [pending, setPending] = useState(null);
+
   const API_URL = getAuthUrl();
 
   const fetchCaptcha = useCallback(async () => {
@@ -63,6 +73,7 @@ const Register = () => {
     fetchCaptcha();
   }, [fetchCaptcha]);
 
+
   // Compute which rules pass in real time
   const ruleResults = useMemo(
     () => PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(form.password) })),
@@ -80,16 +91,15 @@ const Register = () => {
     return                        { label: 'Strong', color: '#27ae60', width: '100%' };
   }, [passedCount]);
 
-  const [pending, setPending]       = useState(null); // { name, email }
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
     setErrorAction(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ── Step 1: Submit form → Send OTP ──────────────────────────────────
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
     setError('');
     setErrorAction(null);
 
@@ -111,7 +121,65 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const result = await register(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      if (result?.otpToken) {
+        setOtpToken(result.otpToken);
+        setStep(2);
+        setResendCooldown(60);
+        setOtp(['', '', '', '', '', '']);
+        setError('');
+        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
+      }
+    } catch (err) {
+      setError(err.message);
+      setErrorAction(err.action || null);
+      if (err.invalidCaptcha) fetchCaptcha();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── OTP input handlers (same pattern as ForgotPassword) ─────────────
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    setError('');
+    if (value && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pasteData)) {
+      setOtp(pasteData.split(''));
+      otpInputsRef.current[5]?.focus();
+    }
+  };
+
+  // ── Step 2: Verify OTP → Create Account ─────────────────────────────
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    const fullOtp = otp.join('');
+
+    if (fullOtp.length !== 6) {
+      setError('Please enter the full 6-digit verification code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await register(form.name.trim(), form.email.trim(), form.password, fullOtp, otpToken);
       if (remember) {
         localStorage.setItem('dentzy_remember_email', form.email.trim());
       } else {
@@ -119,21 +187,21 @@ const Register = () => {
       }
       if (result?.pending) {
         setPending({ name: form.name.trim(), email: form.email.trim() });
+        setStep(3);
       } else {
         router.push('/');
       }
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
-      // Refresh CAPTCHA automatically on any captcha-related failure
-      if (err.invalidCaptcha) fetchCaptcha();
     } finally {
       setLoading(false);
     }
   };
 
+
   // ── Pending approval screen ──────────────────────────────────────
-  if (pending) {
+  if (step === 3 || pending) {
     return (
       <div className="auth-page">
         <div className="auth-left">
@@ -158,12 +226,12 @@ const Register = () => {
             </div>
             <h2 className="auth-card-title">Awaiting Approval</h2>
             <p className="pending-msg">
-              Hi <strong>{pending.name}</strong>, your registration request has been submitted successfully!
+              Hi <strong>{pending?.name || form.name}</strong>, your registration request has been submitted successfully!
             </p>
             <p className="pending-sub">
               Our admin will review your account and approve it shortly. You'll be able to log in once approved.
             </p>
-            <div className="pending-email-tag">{pending.email}</div>
+            <div className="pending-email-tag">{pending?.email || form.email}</div>
             <Link href="/login" id="go-to-login-pending" className="auth-btn" style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
               Go to Login
             </Link>
@@ -173,6 +241,103 @@ const Register = () => {
     );
   }
 
+  // ── Step 2: OTP Verification Screen ─────────────────────────────────
+  if (step === 2) {
+    return (
+      <div className="auth-page">
+        <div className="auth-left">
+          <div className="auth-left-overlay" />
+          <div className="auth-left-content">
+            <h1 className="auth-welcome">
+              <span>VERIFY</span>
+              <span className="auth-welcome-back">Your Email</span>
+            </h1>
+          </div>
+        </div>
+
+        <div className="auth-right">
+          <div className="auth-header-logo">
+            <img src={dentzyLogo} alt="Dentzy Logo" />
+          </div>
+
+          <div className="auth-card">
+            <h2 className="auth-card-title">Enter Verification Code</h2>
+            <p className="auth-card-subtitle" style={{ color: '#4a5d54', fontSize: '0.9rem', marginBottom: '8px' }}>
+              We sent a 6-digit code to <strong>{form.email}</strong>
+            </p>
+
+            <form className="auth-form" onSubmit={handleVerifyOtp}>
+              {/* 6-box OTP Input */}
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
+                {otp.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => (otpInputsRef.current[idx] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    style={{
+                      width: '45px',
+                      height: '52px',
+                      fontSize: '1.4rem',
+                      fontWeight: '700',
+                      textAlign: 'center',
+                      borderRadius: '10px',
+                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#1e2824',
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  />
+                ))}
+              </div>
+
+              {error && (
+                <div className="auth-error">
+                  {error}
+                  {errorAction === 'LOGIN' && (
+                    <span> <Link href="/login" className="auth-error-link">Login here →</Link></span>
+                  )}
+                </div>
+              )}
+
+              <button id="register-verify-otp-btn" type="submit" className="auth-btn" disabled={loading || otp.join('').length !== 6}>
+                {loading ? <span className="auth-spinner" /> : 'Verify & Create Account →'}
+              </button>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                >
+                  ← Change Email
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                  style={{
+                    background: 'none', border: 'none',
+                    color: '#1e5038', fontWeight: '600',
+                    cursor: 'pointer', padding: 0,
+                  }}
+                >
+                  Resend Code
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: Registration Form ───────────────────────────────────────
   return (
     <div className="auth-page">
       {/* Left Panel */}
@@ -196,7 +361,7 @@ const Register = () => {
         <div className="auth-card">
           <h2 className="auth-card-title">Sign up</h2>
 
-          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <form className="auth-form" onSubmit={handleSendOtp} noValidate>
             {/* Name */}
             <div className="auth-input-group">
               <span className="auth-input-icon">
@@ -413,11 +578,10 @@ const Register = () => {
               ) : (
                 <>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
                   </svg>
-                  Sign Up
+                  Verify Email & Sign Up
                 </>
               )}
             </button>
@@ -434,3 +598,4 @@ const Register = () => {
 };
 
 export default Register;
+

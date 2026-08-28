@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
-import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema } from '../validators/auth.js';
+import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema } from '../validators/auth.js';
 import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken } from '../utils/crypto.js';
 import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
-import { sendOtpEmail } from '../utils/email.js';
+import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 
@@ -37,13 +37,58 @@ auth.get('/captcha', async (c) => {
   }
 });
 
-// POST /api/auth/register
-auth.post('/register', validate(registerSchema), async (c) => {
-  const { name, email, password, captchaInput, captchaToken } = c.get('body');
+// POST /api/auth/register/send-otp — Step 1: Validate form + send email verification OTP
+auth.post('/register/send-otp', validate(registerSchema), async (c) => {
+  const { name, email, captchaInput, captchaToken } = c.get('body');
 
   const captchaResult = await verifyCaptchaToken(captchaToken, captchaInput, c.env.JWT_SECRET);
   if (!captchaResult.valid)
     return c.json({ message: captchaResult.message, invalidCaptcha: true }, 400);
+
+  try {
+    const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+    if (existing)
+      return c.json({ message: 'This email is already registered. Please log in instead.', action: 'LOGIN' }, 409);
+
+    // Generate 6-digit OTP and HMAC token (5 min expiry)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpToken = await createOtpToken(email, otp, c.env.JWT_SECRET);
+
+    // Send verification email
+    const emailRes = await sendRegistrationOtpEmail({
+      env: c.env,
+      to: email,
+      name: name || 'Dentist',
+      otp,
+    });
+
+    if (!emailRes.success) {
+      logger.error('Failed to send registration OTP email', { error: emailRes.error, email });
+      return c.json({ message: 'Failed to send verification code. Please try again later.' }, 500);
+    }
+
+    auditLog('REGISTER_OTP_SENT', { email });
+
+    return c.json({
+      success: true,
+      message: 'Verification code sent to your email.',
+      otpToken,
+      expiresIn: 300,
+    });
+  } catch (error) {
+    logger.error('Register send-otp error', { error: error.message });
+    return c.json({ message: 'Server error. Please try again.' }, 500);
+  }
+});
+
+// POST /api/auth/register/verify-otp — Step 2: Verify OTP + create account
+auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) => {
+  const { name, email, password, otp, otpToken } = c.get('body');
+
+  // Verify the OTP
+  const otpResult = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
+  if (!otpResult.valid)
+    return c.json({ message: otpResult.message }, 400);
 
   try {
     const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
@@ -59,16 +104,28 @@ auth.post('/register', validate(registerSchema), async (c) => {
 
     auditLog('USER_REGISTERED', { userId: id, status: 'pending' });
 
+    // ponytail: fire-and-forget emails via waitUntil, same pattern as contact.js
+    if (c.env.GMAIL_APP_PASSWORD) {
+      const userData = { name, email };
+      const emailWork = Promise.allSettled([
+        sendNewUserAdminAlert({ env: c.env, user: userData }),
+        sendRegistrationPendingEmail({ env: c.env, user: userData }),
+      ]);
+      if (c.executionCtx?.waitUntil) c.executionCtx.waitUntil(emailWork);
+      else await emailWork;
+    }
+
     return c.json({
       pending: true,
       message: 'Your registration request has been submitted! Please wait for admin approval before logging in.',
       user: { id, name, email },
     }, 201);
   } catch (error) {
-    logger.error('Register error', { error: error.message });
+    logger.error('Register verify-otp error', { error: error.message });
     return c.json({ message: 'Server error during registration. Please try again.' }, 500);
   }
 });
+
 
 // POST /api/auth/login
 auth.post('/login', validate(loginSchema), async (c) => {

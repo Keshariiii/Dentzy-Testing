@@ -5,6 +5,7 @@ import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStage
 import { signJWT } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
+import { sendUserApprovedEmail, sendUserRejectedEmail } from '../utils/email.js';
 
 const admin = new Hono();
 
@@ -152,6 +153,14 @@ admin.patch('/users/:id/approve', verifyAdmin(), async (c) => {
     ).bind(id).first();
 
     auditLog('USER_APPROVED', { userId: id, adminUsername: c.get('admin').username });
+
+    // ponytail: fire-and-forget approval email
+    if (c.env.GMAIL_APP_PASSWORD) {
+      const work = sendUserApprovedEmail({ env: c.env, user });
+      if (c.executionCtx?.waitUntil) c.executionCtx.waitUntil(work);
+      else await work;
+    }
+
     return c.json({ message: 'User approved successfully.', user: { ...user, _id: user.id } });
   } catch (error) {
     logger.error('Approve user error', { error: error.message });
@@ -175,6 +184,14 @@ admin.patch('/users/:id/reject', verifyAdmin(), validate(rejectUserSchema), asyn
     ).bind(id).first();
 
     auditLog('USER_REJECTED', { userId: id, adminUsername: c.get('admin').username });
+
+    // ponytail: fire-and-forget rejection email
+    if (c.env.GMAIL_APP_PASSWORD) {
+      const work = sendUserRejectedEmail({ env: c.env, user, note: note || '' });
+      if (c.executionCtx?.waitUntil) c.executionCtx.waitUntil(work);
+      else await work;
+    }
+
     return c.json({ message: 'User rejected.', user: { ...user, _id: user.id } });
   } catch (error) {
     logger.error('Reject user error', { error: error.message });
