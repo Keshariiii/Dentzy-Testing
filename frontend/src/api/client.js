@@ -3,21 +3,26 @@
  *
  * Every request includes `credentials: 'include'` so that HttpOnly
  * cookies (dentzy_jwt, dentzy_admin_jwt) are automatically sent.
+ * Also attaches Bearer token from localStorage as fallback for mobile
+ * browsers that block cross-site cookies (Safari ITP, in-app webviews).
  */
+
+const LIVE_BACKEND = 'https://dentzy-backend.kesharinaman76.workers.dev';
 
 export function getApiBase() {
   const env = process.env.NEXT_PUBLIC_API_URL;
-  if (env) return env.replace(/\/+$/, '');
+  // ponytail: reject dead Render URLs baked into old builds
+  if (env && !env.includes('onrender.com') && !env.includes('render.com')) {
+    return env.replace(/\/+$/, '');
+  }
   // In browser, detect Cloudflare Pages or custom domains
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host.endsWith('pages.dev') || host.includes('dentzy') || (host !== 'localhost' && host !== '127.0.0.1')) {
-      return 'https://dentzy-backend.kesharinaman76.workers.dev';
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return `http://${host}:5000`;
     }
-    return `http://${host}:5000`;
   }
-  // Server-side / static build default
-  return 'https://dentzy-backend.kesharinaman76.workers.dev';
+  return LIVE_BACKEND;
 }
 
 export const getAdminUrl   = () => `${getApiBase()}/api/admin`;
@@ -33,19 +38,23 @@ export function normalizeApiUrl(url) {
   return url;
 }
 
+/** Attach Bearer token from localStorage if available (cookie fallback for mobile). */
+function getAuthHeaders() {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('dentzy_admin_token') || localStorage.getItem('dentzy_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 /**
- * Wrapper around `fetch` that always includes cookies and JSON headers.
+ * Wrapper around `fetch` that always includes cookies, Bearer token, and JSON headers.
  * Throws a structured error on non-2xx responses or network failures.
- *
- * @param {string} url — Full URL or relative path to fetch
- * @param {RequestInit} options — Standard fetch options (method, body, etc.)
- * @returns {Promise<any>} — Parsed JSON response
  */
 export async function apiFetch(url, options = {}) {
   const targetUrl = normalizeApiUrl(url);
 
   const headers = {
     'Content-Type': 'application/json',
+    ...getAuthHeaders(),
     ...(options.headers || {}),
   };
 

@@ -11,5 +11,5 @@ database_id = "6aa981b0-449b-415f-a5af-4389b051ba52"
 # Secrets set via: npx wrangler secret put JWT_SECRET / ADMIN_JWT_SECRET / ADMIN_PASSWORD
 [vars]
 NODE_ENV = "production"
-ALLOWED_ORIGINS = "https://dentzy-testing.pages.dev,http://localhost:3000,http://localhost:5173"
+ALLOWED_ORIGINS = "https://dentzy-testing.pages.dev,https://*.pages.dev,http://localhost:3000,http://localhost:5173,http://localhost:5000"
 ADMIN_USERNAME = "admin"

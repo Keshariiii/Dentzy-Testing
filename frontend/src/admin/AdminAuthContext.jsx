@@ -31,9 +31,13 @@ export const AdminAuthProvider = ({ children }) => {
       try {
         const adminUrl = getAdminUrl();
 
+        const savedToken = localStorage.getItem('dentzy_admin_token');
         const res = await fetch(`${adminUrl}/me`, {
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(savedToken ? { Authorization: `Bearer ${savedToken}` } : {}),
+          },
           credentials: 'include',
         });
 
@@ -71,9 +75,11 @@ export const AdminAuthProvider = ({ children }) => {
       body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
-    // Token is stored server-side in HttpOnly cookie — no localStorage needed
+    // ponytail: persist token for Bearer fallback (mobile cookie-blocking)
+    if (data.token) localStorage.setItem('dentzy_admin_token', data.token);
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_user');
+    localStorage.removeItem('dentzy_token');
     setAdmin(data.admin);
     return data.admin;
   }, []);
@@ -86,6 +92,7 @@ export const AdminAuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_admin_info');
+      localStorage.removeItem('dentzy_admin_token');
     }
     setAdmin(null);
   }, []);

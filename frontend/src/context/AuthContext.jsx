@@ -32,9 +32,13 @@ export const AuthProvider = ({ children }) => {
       try {
         const authUrl = getAuthUrl();
 
+        const savedToken = localStorage.getItem('dentzy_token');
         const res = await fetch(`${authUrl}/me`, {
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(savedToken ? { Authorization: `Bearer ${savedToken}` } : {}),
+          },
           credentials: 'include',
         });
 
@@ -146,7 +150,8 @@ export const AuthProvider = ({ children }) => {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    // Token is stored server-side in HttpOnly cookie — no localStorage needed
+    // ponytail: persist token for Bearer fallback (mobile cookie-blocking)
+    if (data.token) localStorage.setItem('dentzy_token', data.token);
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
@@ -162,6 +167,7 @@ export const AuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_user');
+      localStorage.removeItem('dentzy_token');
     }
     setUser(null);
   }, []);
