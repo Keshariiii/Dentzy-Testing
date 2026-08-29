@@ -42,3 +42,7 @@ backend/.env
 # Local-only deployment notes (contains secrets — never commit)
 DEPLOYMENT.md
 ISSUES.md
+
+# Agent configurations & customizations
+.agents/
+

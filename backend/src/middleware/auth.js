@@ -18,9 +18,6 @@ const extractToken = (c, cookieName) => {
   // 2. Bearer header
   const auth = c.req.header('Authorization');
   if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  // 3. Query param
-  const q = c.req.query('token');
-  if (q) return q;
   return null;
 };
 

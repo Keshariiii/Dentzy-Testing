@@ -31,20 +31,8 @@ export function useIsMobile(breakpoint = MOBILE_BREAKPOINT) {
     // Sync with current state on mount
     setIsMobile(mediaQuery.matches);
 
-    // Modern API with legacy fallback
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      mediaQuery.addListener(handleChange);
-    }
-
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleChange);
-      } else {
-        mediaQuery.removeListener(handleChange);
-      }
-    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [breakpoint]);
 
   return isMobile;

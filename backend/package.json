@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "node --loader ./test/loader.js --test \"test/**/*.test.js\""
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

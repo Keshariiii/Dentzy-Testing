@@ -7,10 +7,7 @@
 
 export function getApiBase() {
   const env = process.env.NEXT_PUBLIC_API_URL;
-  // If env var is set and NOT the old render URL, use it
-  if (env && !env.includes('onrender.com')) {
-    return env.replace(/\/+$/, '');
-  }
+  if (env) return env.replace(/\/+$/, '');
   // In browser, detect Cloudflare Pages or custom domains
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
@@ -28,30 +25,11 @@ export const getAuthUrl    = () => `${getApiBase()}/api/auth`;
 export const getDashUrl    = () => `${getApiBase()}/api/dashboard`;
 export const getContactUrl = () => `${getApiBase()}/api/contact`;
 
-export const API_BASE    = getApiBase();
-export const AUTH_URL    = `${API_BASE}/api/auth`;
-export const ADMIN_URL   = `${API_BASE}/api/admin`;
-export const DASH_URL    = `${API_BASE}/api/dashboard`;
-export const CONTACT_URL = `${API_BASE}/api/contact`;
-
 /**
  * Normalizes any API URL to point to the correct live/local base URL at runtime.
  */
 export function normalizeApiUrl(url) {
-  const base = getApiBase();
-  if (url.startsWith('/')) {
-    return `${base}${url}`;
-  }
-  // If URL has old render domain, rewrite it to current base
-  if (url.includes('onrender.com')) {
-    return url.replace(/https?:\/\/[a-z0-9-]+\.onrender\.com/, base);
-  }
-  if (typeof window !== 'undefined') {
-    const isRemote = window.location.hostname.endsWith('pages.dev') || !['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (isRemote && (url.includes('localhost:5000') || url.includes('127.0.0.1:5000'))) {
-      return url.replace(/https?:\/\/(localhost|127\.0\.0\.1):5000/, base);
-    }
-  }
+  if (url.startsWith('/')) return `${getApiBase()}${url}`;
   return url;
 }
 
