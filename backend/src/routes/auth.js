@@ -203,11 +203,11 @@ auth.post('/login', validate(loginSchema), async (c) => {
     if (!isMatch)
       return c.json({ message: 'Incorrect password. Please try again.' }, 401);
 
-    const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '7d');
+    const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
 
     auditLog('USER_LOGIN', { userId: user.id });
 
-    c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 7 * 24 * 60 * 60 * 1000));
+    c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
     return c.json({ user: safeUserObj(user) });
   } catch (error) {
     logger.error('Login error', { error: error.message });
@@ -216,7 +216,15 @@ auth.post('/login', validate(loginSchema), async (c) => {
 });
 
 // GET /api/auth/me
-auth.get('/me', verifyUser(), (c) => c.json({ user: c.get('user') }));
+auth.get('/me', verifyUser(), async (c) => {
+  const user = c.get('user');
+  
+  // Sliding Session: Issue a fresh 30-day token on every /me fetch
+  const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
+  c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
+  
+  return c.json({ user });
+});
 
 // POST /api/auth/logout
 auth.post('/logout', (c) => {
