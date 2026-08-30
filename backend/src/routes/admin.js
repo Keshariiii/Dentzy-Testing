@@ -6,6 +6,7 @@ import { signJWT } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail } from '../utils/email.js';
+import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 const admin = new Hono();
 
@@ -37,6 +38,14 @@ const stageToStatus = (stage) => {
 admin.post('/login', validate(adminLoginSchema), async (c) => {
   const { username, password } = c.get('body');
 
+  // Rate limit: 5 admin login attempts per 15 min per IP
+  const ip = getClientIP(c);
+  const rl = await checkRateLimit(c.env.DB, `admin-login:${ip}`, { windowMs: 15 * 60 * 1000, max: 5 });
+  if (!rl.allowed) {
+    c.header('Retry-After', String(rl.retryAfterSecs));
+    return c.json({ message: `Too many login attempts. Please try again in ${Math.ceil(rl.retryAfterSecs / 60)} minute(s).`, retryAfter: rl.retryAfterSecs }, 429);
+  }
+
   const isUserValid = safeCompare(username, c.env.ADMIN_USERNAME || '');
   const isPassValid = safeCompare(password, c.env.ADMIN_PASSWORD || '');
 
@@ -47,7 +56,7 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
 
   auditLog('ADMIN_LOGIN', { username });
   c.header('Set-Cookie', cookieHeader('dentzy_admin_jwt', token, 8 * 60 * 60 * 1000));
-  return c.json({ admin: { username, role: 'admin' }, token });
+  return c.json({ admin: { username, role: 'admin' } });
 });
 
 // POST /api/admin/logout

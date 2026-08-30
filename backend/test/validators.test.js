@@ -104,13 +104,18 @@ describe('Auth Validators', () => {
 
 describe('Contact Validators', () => {
   describe('submitContactSchema', () => {
-    it('accepts valid contact', () => valid(submitContactSchema, { name: 'John', email: 'j@d.com', message: 'Hello' }));
+    const base = { name: 'John', email: 'j@d.com', message: 'Hello', captchaInput: 'ABC123', captchaToken: 'tok' };
+
+    it('accepts valid contact', () => valid(submitContactSchema, base));
     it('accepts with optional fields', () => valid(submitContactSchema, {
-      name: 'John', email: 'j@d.com', phone: '1234567890', subject: 'Help', message: 'Hello',
+      ...base, phone: '1234567890', subject: 'Help',
     }));
-    it('rejects missing name', () => invalid(submitContactSchema, { name: '', email: 'j@d.com', message: 'Hello' }));
-    it('rejects missing message', () => invalid(submitContactSchema, { name: 'John', email: 'j@d.com', message: '' }));
-    it('rejects invalid email', () => invalid(submitContactSchema, { name: 'John', email: 'not-email', message: 'Hello' }));
+    it('accepts with honeypot empty', () => valid(submitContactSchema, { ...base, hp_website: '' }));
+    it('rejects missing name', () => invalid(submitContactSchema, { ...base, name: '' }));
+    it('rejects missing message', () => invalid(submitContactSchema, { ...base, message: '' }));
+    it('rejects invalid email', () => invalid(submitContactSchema, { ...base, email: 'not-email' }));
+    it('rejects missing captchaInput', () => invalid(submitContactSchema, { ...base, captchaInput: '' }));
+    it('rejects missing captchaToken', () => invalid(submitContactSchema, { ...base, captchaToken: '' }));
   });
 });
 

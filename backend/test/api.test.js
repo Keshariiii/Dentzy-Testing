@@ -19,13 +19,14 @@ const json = async (path, opts) => {
 const env = {
   DB: {
     prepare: () => ({
-      bind: () => ({
+      bind: (..._args) => ({
         first: async () => null,
         all: async () => ({ results: [] }),
         run: async () => ({ meta: { changes: 0 } }),
       }),
     }),
-    batch: async () => [],
+    // ponytail: batch returns array matching input length. Rate limiter expects [deleteResult, countResult].
+    batch: async (stmts) => stmts.map(() => ({ results: [{ cnt: 0 }], meta: { changes: 0 } })),
   },
   JWT_SECRET: 'test-jwt-secret',
   ADMIN_JWT_SECRET: 'test-admin-secret',
@@ -141,6 +142,13 @@ describe('Protected Routes', () => {
 // ── Contact Route ───────────────────────────────────────────────────────────
 
 describe('Contact Routes', () => {
+  it('GET /api/contact/captcha returns captchaToken and captchaSvg', async () => {
+    const { res, body } = await envJson('/api/contact/captcha');
+    assert.equal(res.status, 200);
+    assert.ok(body.captchaToken);
+    assert.ok(body.captchaSvg);
+  });
+
   it('POST /api/contact rejects empty body', async () => {
     const { res } = await envJson('/api/contact', {
       method: 'POST',
@@ -149,12 +157,46 @@ describe('Contact Routes', () => {
     assert.ok(res.status >= 400);
   });
 
-  it('POST /api/contact rejects missing message', async () => {
+  it('POST /api/contact rejects missing CAPTCHA fields', async () => {
     const { res } = await envJson('/api/contact', {
       method: 'POST',
-      body: JSON.stringify({ name: 'John', email: 'j@d.com' }),
+      body: JSON.stringify({ name: 'John', email: 'j@d.com', message: 'Hello' }),
     });
     assert.ok(res.status >= 400);
+  });
+
+  it('POST /api/contact with honeypot filled returns fake 201 success', async () => {
+    // Get a real captcha first
+    const captchaRes = await envJson('/api/contact/captcha');
+    const { captchaToken } = captchaRes.body;
+
+    const { res, body } = await envJson('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'Bot', email: 'bot@spam.com', message: 'Buy stuff',
+        captchaInput: 'ABCDEF', captchaToken,
+        hp_website: 'http://spam.com',
+      }),
+    });
+    // Honeypot submissions get a fake 201 to fool bots
+    assert.equal(res.status, 201);
+    assert.equal(body.success, true);
+  });
+
+  it('POST /api/contact rejects wrong CAPTCHA', async () => {
+    const captchaRes = await envJson('/api/contact/captcha');
+    const { captchaToken } = captchaRes.body;
+
+    const { res, body } = await envJson('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'Jane', email: 'j@d.com', message: 'Hello',
+        captchaInput: 'WRONG1', captchaToken,
+        hp_website: '',
+      }),
+    });
+    assert.equal(res.status, 400);
+    assert.equal(body.invalidCaptcha, true);
   });
 });
 

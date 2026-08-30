@@ -7,6 +7,7 @@ import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
+import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 const auth = new Hono();
 
@@ -46,6 +47,13 @@ auth.post('/register/send-otp', validate(registerSchema), async (c) => {
     return c.json({ message: captchaResult.message, invalidCaptcha: true }, 400);
 
   try {
+    // Rate limit: 3 OTP sends per 10 min per email
+    const rl = await checkRateLimit(c.env.DB, `reg-otp:${email}`, { windowMs: 10 * 60 * 1000, max: 3 });
+    if (!rl.allowed) {
+      c.header('Retry-After', String(rl.retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    }
+
     const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
     if (existing)
       return c.json({ message: 'This email is already registered. Please log in instead.', action: 'LOGIN' }, 409);
@@ -86,6 +94,13 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
   const { email } = c.get('body');
 
   try {
+    // Rate limit: shares the same bucket as register/send-otp
+    const rl = await checkRateLimit(c.env.DB, `reg-otp:${email}`, { windowMs: 10 * 60 * 1000, max: 3 });
+    if (!rl.allowed) {
+      c.header('Retry-After', String(rl.retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    }
+
     const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
     if (existing)
       return c.json({ message: 'This email is already registered.', action: 'LOGIN' }, 409);
@@ -113,6 +128,13 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
 // POST /api/auth/register/verify-otp — Step 2: Verify OTP + create account
 auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) => {
   const { name, email, password, otp, otpToken } = c.get('body');
+
+  // Rate limit: 5 OTP verification attempts per 10 min per email
+  const rl = await checkRateLimit(c.env.DB, `verify-otp:${email}`, { windowMs: 10 * 60 * 1000, max: 5 });
+  if (!rl.allowed) {
+    c.header('Retry-After', String(rl.retryAfterSecs));
+    return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: rl.retryAfterSecs }, 429);
+  }
 
   // Verify the OTP
   const otpResult = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
@@ -161,6 +183,13 @@ auth.post('/login', validate(loginSchema), async (c) => {
   const { email, password } = c.get('body');
 
   try {
+    // Rate limit: 5 failed logins per 15 min per email
+    const rl = await checkRateLimit(c.env.DB, `login:${email}`, { windowMs: 15 * 60 * 1000, max: 5 });
+    if (!rl.allowed) {
+      c.header('Retry-After', String(rl.retryAfterSecs));
+      return c.json({ message: `Too many login attempts. Please try again in ${Math.ceil(rl.retryAfterSecs / 60)} minute(s).`, retryAfter: rl.retryAfterSecs }, 429);
+    }
+
     const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
     if (!user)
       return c.json({ message: 'No account found with this email. Please register first.', action: 'REGISTER' }, 401);
@@ -179,7 +208,7 @@ auth.post('/login', validate(loginSchema), async (c) => {
     auditLog('USER_LOGIN', { userId: user.id });
 
     c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 7 * 24 * 60 * 60 * 1000));
-    return c.json({ user: safeUserObj(user), token });
+    return c.json({ user: safeUserObj(user) });
   } catch (error) {
     logger.error('Login error', { error: error.message });
     return c.json({ message: 'Server error during login. Please try again.' }, 500);
@@ -200,6 +229,13 @@ auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
   const { email } = c.get('body');
 
   try {
+    // Rate limit: 3 OTP sends per 10 min per email
+    const rl = await checkRateLimit(c.env.DB, `forgot-otp:${email}`, { windowMs: 10 * 60 * 1000, max: 3 });
+    if (!rl.allowed) {
+      c.header('Retry-After', String(rl.retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    }
+
     const user = await c.env.DB.prepare('SELECT id, name, email, status FROM users WHERE email = ?').bind(email).first();
     
     // If no user exists, return generic success to prevent email enumeration
@@ -254,6 +290,13 @@ auth.post('/forgot-password/verify-otp', validate(verifyOtpSchema), async (c) =>
   const { email, otp, otpToken } = c.get('body');
 
   try {
+    // Rate limit: 5 OTP verification attempts per 10 min per email
+    const rl = await checkRateLimit(c.env.DB, `verify-otp:${email}`, { windowMs: 10 * 60 * 1000, max: 5 });
+    if (!rl.allowed) {
+      c.header('Retry-After', String(rl.retryAfterSecs));
+      return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: rl.retryAfterSecs }, 429);
+    }
+
     const check = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
     if (!check.valid) {
       return c.json({ message: check.message }, 400);

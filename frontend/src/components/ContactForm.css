@@ -138,3 +138,128 @@ textarea.form-input {
         margin-bottom: 20px;
     }
 }
+
+/* ═══════════════════════════════════════════════
+   CONTACT CAPTCHA STYLES
+   ═══════════════════════════════════════════════ */
+
+.contact-captcha-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    max-width: 420px;
+}
+
+.contact-captcha-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-captcha-svg-wrap {
+    min-width: 190px;
+    min-height: 54px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef6f2;
+}
+
+.contact-captcha-svg-wrap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.contact-captcha-placeholder {
+    width: 190px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef6f2;
+    border-radius: 8px;
+}
+
+.contact-captcha-refresh-btn {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    border: 1.5px solid #c5ddd3;
+    background: #eef6f2;
+    color: #1e5038;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.contact-captcha-refresh-btn:hover {
+    background: #1e5038;
+    color: #fff;
+    border-color: #1e5038;
+    transform: rotate(180deg) scale(1.05);
+}
+
+.contact-captcha-refresh-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.contact-captcha-spin {
+    animation: contact-captcha-spin-anim 0.55s linear infinite;
+}
+
+@keyframes contact-captcha-spin-anim {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.contact-captcha-input {
+    flex: 1;
+    max-width: 160px;
+    padding: 10px 14px;
+    border: 1.5px solid #c5ddd3;
+    border-radius: 10px;
+    background: #f4f8f5;
+    color: var(--color-dark);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-captcha-input:focus {
+    border-color: #708c80;
+    box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.15);
+}
+
+.contact-captcha-input::placeholder {
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    font-family: inherit;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .contact-captcha-container {
+        flex-direction: column;
+        align-items: center;
+        max-width: 100%;
+    }
+
+    .contact-captcha-input {
+        max-width: 100%;
+        width: 100%;
+    }
+}

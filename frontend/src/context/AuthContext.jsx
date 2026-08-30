@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { apiFetch, getAuthUrl, getDashUrl, normalizeApiUrl } from '../api/client';
+import { apiFetch, getAuthUrl, getDashUrl } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -9,36 +9,28 @@ export const AuthProvider = ({ children }) => {
   const API_URL               = useMemo(() => getAuthUrl(), []);
   const DASH_URL              = useMemo(() => getDashUrl(), []);
 
-  // Restore session on mount — hydrate from Bearer-authenticated /me
+  // Restore session on mount — hydrate from cookie-authenticated /me
   useEffect(() => {
     let isMounted = true;
 
     const hydrate = async () => {
       const savedUser = typeof window !== 'undefined' ? localStorage.getItem('dentzy_user') : null;
 
-      // Optimistically restore from localStorage
+      // Optimistically restore from localStorage (display data only, not a token)
       if (savedUser) {
         try {
           if (isMounted) setUser(JSON.parse(savedUser));
         } catch { /* ignore */ }
       }
 
-
-
-      // Verify against server (with timeout for Render cold starts)
+      // Verify against server
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       try {
-        const authUrl = getAuthUrl();
-
-        const savedToken = localStorage.getItem('dentzy_token');
-        const res = await fetch(`${authUrl}/me`, {
+        const res = await fetch(`${getAuthUrl()}/me`, {
           signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(savedToken ? { Authorization: `Bearer ${savedToken}` } : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         });
 
@@ -80,10 +72,8 @@ export const AuthProvider = ({ children }) => {
 
   // Authenticated fetch for /api/dashboard/* routes
   const authFetch = useCallback(async (url, options = {}) => {
-
-    const targetUrl = normalizeApiUrl(url);
     try {
-      const res = await fetch(targetUrl, {
+      const res = await fetch(url, {
         ...options,
         credentials: 'include',
         headers: {
@@ -108,8 +98,7 @@ export const AuthProvider = ({ children }) => {
 
   // Register Step 1: Send email verification OTP
   const sendRegisterOtp = useCallback(async (name, email, password, captchaInput, captchaToken) => {
-    const authUrl = getAuthUrl();
-    const data = await apiFetch(`${authUrl}/register/send-otp`, {
+    const data = await apiFetch(`${getAuthUrl()}/register/send-otp`, {
       method: 'POST',
       body: JSON.stringify({ name, email, password, captchaInput, captchaToken }),
     });
@@ -118,8 +107,7 @@ export const AuthProvider = ({ children }) => {
 
   // Resend registration OTP (no captcha needed)
   const resendRegisterOtp = useCallback(async (email, otpToken) => {
-    const authUrl = getAuthUrl();
-    const data = await apiFetch(`${authUrl}/register/resend-otp`, {
+    const data = await apiFetch(`${getAuthUrl()}/register/resend-otp`, {
       method: 'POST',
       body: JSON.stringify({ email, otpToken }),
     });
@@ -128,8 +116,7 @@ export const AuthProvider = ({ children }) => {
 
   // Register Step 2: Verify OTP and create account
   const register = useCallback(async (name, email, password, otp, otpToken) => {
-    const authUrl = getAuthUrl();
-    const data = await apiFetch(`${authUrl}/register/verify-otp`, {
+    const data = await apiFetch(`${getAuthUrl()}/register/verify-otp`, {
       method: 'POST',
       body: JSON.stringify({ name, email, password, otp, otpToken }),
     });
@@ -145,13 +132,10 @@ export const AuthProvider = ({ children }) => {
 
   // Login function
   const login = useCallback(async (email, password) => {
-    const authUrl = getAuthUrl();
-    const data = await apiFetch(`${authUrl}/login`, {
+    const data = await apiFetch(`${getAuthUrl()}/login`, {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    // ponytail: persist token for Bearer fallback (mobile cookie-blocking)
-    if (data.token) localStorage.setItem('dentzy_token', data.token);
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
@@ -162,12 +146,10 @@ export const AuthProvider = ({ children }) => {
   // Logout
   const logout = useCallback(async () => {
     try {
-      const authUrl = getAuthUrl();
-      await apiFetch(`${authUrl}/logout`, { method: 'POST' });
+      await apiFetch(`${getAuthUrl()}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_user');
-      localStorage.removeItem('dentzy_token');
     }
     setUser(null);
   }, []);
@@ -209,4 +191,3 @@ export const useAuth = () => {
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 };
-

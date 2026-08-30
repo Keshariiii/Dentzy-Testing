@@ -6,4 +6,7 @@ export const submitContactSchema = z.object({
   phone: z.string().trim().max(20).optional().default(''),
   subject: z.string().trim().max(200).optional().default(''),
   message: z.string().trim().min(1, 'Please provide name, email, and message.').max(5000),
+  captchaInput: z.string().trim().min(1, 'CAPTCHA code is required.'),
+  captchaToken: z.string().trim().min(1, 'CAPTCHA token is required.'),
+  hp_website: z.string().optional().default(''),
 });

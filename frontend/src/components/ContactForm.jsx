@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { getContactUrl } from '../api/client';
 import './ContactForm.css';
+
+const CONTACT_API = () => getContactUrl();
 
 const ContactForm = () => {
 
@@ -13,6 +15,34 @@ const ContactForm = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+
+    // CAPTCHA state
+    const [captchaInput, setCaptchaInput] = useState('');
+    const [captchaToken, setCaptchaToken] = useState('');
+    const [captchaSvg, setCaptchaSvg] = useState('');
+    const [captchaLoading, setCaptchaLoading] = useState(false);
+
+    // Honeypot state
+    const [hpWebsite, setHpWebsite] = useState('');
+
+    const fetchCaptcha = useCallback(async () => {
+        setCaptchaLoading(true);
+        setCaptchaInput('');
+        try {
+            const res = await fetch(`${CONTACT_API()}/captcha`);
+            const data = await res.json();
+            if (res.ok) {
+                setCaptchaToken(data.captchaToken);
+                setCaptchaSvg(data.captchaSvg);
+            }
+        } catch { /* silently ignore */ }
+        setCaptchaLoading(false);
+    }, []);
+
+    // Load CAPTCHA on first render
+    useEffect(() => {
+        fetchCaptcha();
+    }, [fetchCaptcha]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,11 +57,16 @@ const ContactForm = () => {
             return;
         }
 
+        if (!captchaInput.trim()) {
+            setStatusMessage({ type: 'error', text: "Please enter the CAPTCHA code shown in the image." });
+            return;
+        }
+
         setIsSubmitting(true);
         setStatusMessage({ type: '', text: '' });
 
         try {
-            const response = await fetch(getContactUrl(), {
+            const response = await fetch(CONTACT_API(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,7 +76,10 @@ const ContactForm = () => {
                     email: formData.user_email,
                     phone: formData.contact_number,
                     subject: formData.subject,
-                    message: formData.message
+                    message: formData.message,
+                    captchaInput,
+                    captchaToken,
+                    hp_website: hpWebsite,
                 })
             });
 
@@ -56,8 +94,11 @@ const ContactForm = () => {
                     subject: '',
                     message: ''
                 });
+                fetchCaptcha();
             } else {
-                setStatusMessage({ type: 'error', text: `Failed to send message: ${data.error || 'Server error'}` });
+                setStatusMessage({ type: 'error', text: data.error || data.message || 'Server error' });
+                // Refresh CAPTCHA on invalid captcha or any error
+                if (data.invalidCaptcha || response.status === 400) fetchCaptcha();
             }
         } catch (error) {
             console.error('FAILED...', error);
@@ -112,6 +153,73 @@ const ContactForm = () => {
                         value={formData.message}
                         onChange={handleChange}
                         rows={1}
+                    />
+                </div>
+
+                {/* Honeypot — hidden from real users, bots fill it */}
+                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+                    <input
+                        type="text"
+                        name="hp_website"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={hpWebsite}
+                        onChange={(e) => setHpWebsite(e.target.value)}
+                    />
+                </div>
+
+                {/* CAPTCHA */}
+                <div className="contact-captcha-container">
+                    <div className="contact-captcha-box">
+                        <div className="contact-captcha-svg-wrap">
+                            {captchaSvg
+                                ? <div dangerouslySetInnerHTML={{ __html: captchaSvg }} style={{ width: '100%' }} />
+                                : (
+                                    <div className="contact-captcha-placeholder">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="contact-captcha-spin">
+                                            <line x1="12" y1="2" x2="12" y2="6"/>
+                                            <line x1="12" y1="18" x2="12" y2="22"/>
+                                            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+                                            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+                                            <line x1="2" y1="12" x2="6" y2="12"/>
+                                            <line x1="18" y1="12" x2="22" y2="12"/>
+                                            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
+                                            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+                                        </svg>
+                                    </div>
+                                )
+                            }
+                        </div>
+                        <button
+                            type="button"
+                            className="contact-captcha-refresh-btn"
+                            onClick={fetchCaptcha}
+                            disabled={captchaLoading}
+                            title="Get a new CAPTCHA"
+                            aria-label="Refresh CAPTCHA"
+                        >
+                            <svg
+                                width="17" height="17"
+                                viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor"
+                                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                                className={captchaLoading ? 'contact-captcha-spin' : ''}
+                            >
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <input
+                        id="contact-captcha"
+                        type="text"
+                        className="contact-captcha-input"
+                        placeholder="Enter CAPTCHA code"
+                        value={captchaInput}
+                        onChange={e => { setCaptchaInput(e.target.value); setStatusMessage({ type: '', text: '' }); }}
+                        autoComplete="off"
+                        maxLength={6}
+                        spellCheck={false}
                     />
                 </div>
 

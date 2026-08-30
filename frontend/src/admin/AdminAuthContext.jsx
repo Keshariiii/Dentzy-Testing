@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { apiFetch, getAdminUrl, normalizeApiUrl } from '../api/client';
+import { apiFetch, getAdminUrl } from '../api/client';
 
 const AdminAuthContext = createContext(null);
 
@@ -15,7 +15,7 @@ export const AdminAuthProvider = ({ children }) => {
     const hydrate = async () => {
       const savedAdmin = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_info') : null;
 
-      // Optimistically restore from localStorage
+      // Optimistically restore from localStorage (display data only, not a token)
       if (savedAdmin) {
         try {
           if (isMounted) setAdmin(JSON.parse(savedAdmin));
@@ -24,20 +24,14 @@ export const AdminAuthProvider = ({ children }) => {
         }
       }
 
-      // Verify the session against the server (with timeout for Render cold starts)
+      // Verify the session against the server
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       try {
-        const adminUrl = getAdminUrl();
-
-        const savedToken = localStorage.getItem('dentzy_admin_token');
-        const res = await fetch(`${adminUrl}/me`, {
+        const res = await fetch(`${getAdminUrl()}/me`, {
           signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(savedToken ? { Authorization: `Bearer ${savedToken}` } : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         });
 
@@ -69,17 +63,13 @@ export const AdminAuthProvider = ({ children }) => {
 
   // ── Admin login ───────────────────────────────────────────────────────────
   const adminLogin = useCallback(async (username, password) => {
-    const adminUrl = getAdminUrl();
-    const data = await apiFetch(`${adminUrl}/login`, {
+    const data = await apiFetch(`${getAdminUrl()}/login`, {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
-    // ponytail: persist token for Bearer fallback (mobile cookie-blocking)
-    if (data.token) localStorage.setItem('dentzy_admin_token', data.token);
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_user');
-    localStorage.removeItem('dentzy_token');
     setAdmin(data.admin);
     return data.admin;
   }, []);
@@ -87,22 +77,18 @@ export const AdminAuthProvider = ({ children }) => {
   // ── Admin logout ──────────────────────────────────────────────────────────
   const adminLogout = useCallback(async () => {
     try {
-      const adminUrl = getAdminUrl();
-      await apiFetch(`${adminUrl}/logout`, { method: 'POST' });
+      await apiFetch(`${getAdminUrl()}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_admin_info');
-      localStorage.removeItem('dentzy_admin_token');
     }
     setAdmin(null);
   }, []);
 
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {
-
-    const targetUrl = normalizeApiUrl(url);
     try {
-      const res = await fetch(targetUrl, {
+      const res = await fetch(url, {
         ...options,
         credentials: 'include',
         headers: {
