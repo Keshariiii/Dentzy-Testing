@@ -8,7 +8,8 @@ export const validate = (schema) => async (c, next) => {
     await next();
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors = error.errors.map(e => ({ field: e.path.join('.'), message: e.message }));
+      const issues = error.issues || error.errors || [];
+      const errors = issues.map(e => ({ field: e.path.join('.'), message: e.message }));
       return c.json({ message: errors[0]?.message || 'Validation failed.', errors }, 422);
     }
     // Bad JSON body
