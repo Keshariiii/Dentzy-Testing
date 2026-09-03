@@ -1,4 +1,4 @@
-# Dentzy
+### Dentzy
 
 This is the repository for the Dentzy application. It is a full-stack web application built with a modern technology stack.
 
