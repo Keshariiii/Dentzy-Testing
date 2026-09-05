@@ -2,7 +2,7 @@
  * MobileDashboard — Full-featured native app-style mobile dashboard.
  * 100% feature parity with UserDashboard.jsx (PC version).
  * No emojis. All features: ticker, pipeline, action hub, resources,
- * support bar, orders with search, payments, reports, full settings,
+ * support bar, orders with search, payments, full settings,
  * delete account modal.
  */
 'use client';
@@ -186,7 +186,6 @@ const TABS = [
   { key: 'dashboard', label: 'Overview',  icon: Icons.dashboard },
   { key: 'orders',    label: 'Orders',    icon: Icons.labOrder },
   { key: 'payments',  label: 'Payments',  icon: Icons.payments },
-  { key: 'reports',   label: 'Reports',   icon: Icons.reports },
   { key: 'settings',  label: 'Settings',  icon: Icons.settings },
 ];
 
@@ -405,7 +404,6 @@ const MobileDashboard = () => {
       { key: 'lab-orders',  icon: Icons.labOrder(20),  title: 'Lab Orders',          desc: 'View and track all active and completed dental lab cases.', cta: 'View Orders',   color: 'green',  onClick: () => setActiveTab('orders') },
       { key: 'payments',    icon: Icons.payments(20),  title: 'Payments & Invoices',  desc: 'Review outstanding balances and full payment history.',        cta: 'View Payments', color: 'teal',   onClick: () => setActiveTab('payments') },
       { key: 'pending',     icon: Icons.clock(20),     title: 'Pending Invoices',     desc: 'Cases awaiting payment — clear dues to avoid delays.',        cta: 'View Pending',  color: 'amber',  onClick: () => setActiveTab('payments') },
-      { key: 'reports',     icon: Icons.reports(20),   title: 'Reports & Analytics',  desc: 'Practice insights, turnaround times, and order trends.',      cta: 'View Reports',  color: 'green',  onClick: () => setActiveTab('reports') },
       { key: 'support',     icon: Icons.chat(20),      title: 'Lab Support',          desc: 'Reach our clinical team for urgent case queries.',            cta: 'Contact',       color: 'teal',   onClick: () => { const el = document.getElementById('m-support-bar'); el?.scrollIntoView({ behavior: 'smooth' }); } },
       { key: 'settings',    icon: Icons.settings(20),  title: 'Account Settings',     desc: 'Manage profile, change password, and account preferences.',  cta: 'Go to Settings',color: 'teal',   onClick: () => setActiveTab('settings') },
     ];
@@ -639,8 +637,8 @@ const MobileDashboard = () => {
     return (
       <div className="m-tab-content">
         <h2 className="m-tab-title">Payments</h2>
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#92400e' }}>
-          <strong>Payment Method: Cheque</strong> -- Invoices are cleared upon physical cheque receipt at the lab.
+        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', lineHeight: 1.4 }}>
+          <strong>Payment Modes:</strong> Direct UPI (mobile / UPI ID), Cash, or Cheque. Status is updated once verified by lab administration.
         </div>
         {error && (
           <div className="m-error-banner">
@@ -668,7 +666,10 @@ const MobileDashboard = () => {
                     padding: '3px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600,
                     background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
                     color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                  }}>{p.paymentStatus || 'Pending'}</span>
+                  }}>
+                    {p.paymentStatus || 'Pending'}
+                    {(p.paymentStatus === 'Paid' && p.paymentMethod) ? ` (${p.paymentMethod})` : ''}
+                  </span>
                 </div>
                 <div className="m-order-card__body">
                   <div className="m-order-row">
@@ -697,20 +698,7 @@ const MobileDashboard = () => {
     );
   };
 
-  /* ============================================================
-     REPORTS TAB
-  ============================================================ */
-  const renderReports = () => (
-    <div className="m-tab-content">
-      <h2 className="m-tab-title">Reports</h2>
-      <div className="m-coming-soon">
-        <div className="m-coming-soon-icon">{Icons.barChart(40)}</div>
-        <h3>Analytics Coming Soon</h3>
-        <p>Your practice insights and monthly order trends will appear here.</p>
-      </div>
-      <div className="m-bottom-spacer" />
-    </div>
-  );
+
 
   /* ============================================================
      SETTINGS TAB
@@ -916,7 +904,6 @@ const MobileDashboard = () => {
       case 'dashboard': return renderOverview();
       case 'orders':    return renderOrders();
       case 'payments':  return renderPayments();
-      case 'reports':   return renderReports();
       case 'settings':  return renderSettings();
       default:          return renderOverview();
     }

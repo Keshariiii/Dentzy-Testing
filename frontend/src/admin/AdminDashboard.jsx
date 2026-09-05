@@ -277,17 +277,23 @@ const AdminDashboard = () => {
 
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
-  const handleTogglePayment = async (orderId, currentStatus) => {
+  const handleTogglePayment = async (orderId, currentStatus, paymentMethod = '') => {
     const newStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
     setActionLoading(orderId + '_payment');
     try {
+      const body = { status: newStatus };
+      if (newStatus === 'Paid' && paymentMethod) body.paymentMethod = paymentMethod;
       const res = await authFetch(`${ADMIN_API}/orders/${orderId}/payment`, {
-        method: 'PATCH', body: JSON.stringify({ status: newStatus }),
+        method: 'PATCH', body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Payment marked as ${newStatus}.`);
-        setAllOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentStatus: newStatus } : o));
+        showToast(data.message || `Payment marked as ${newStatus}.`);
+        setAllOrders(prev => prev.map(o => o._id === orderId ? {
+          ...o,
+          paymentStatus: newStatus,
+          paymentMethod: newStatus === 'Paid' ? (paymentMethod || o.paymentMethod || '') : '',
+        } : o));
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
     setActionLoading(null);
@@ -527,17 +533,40 @@ const AdminDashboard = () => {
                                 <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                                   background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
                                   color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
-                                }}>{o.paymentStatus || 'Pending'}</span>
+                                }}>
+                                  {o.paymentStatus || 'Pending'}
+                                  {(o.paymentStatus === 'Paid' && o.paymentMethod) ? ` (${o.paymentMethod})` : ''}
+                                </span>
                               </td>
                               <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
                                 {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                               </td>
                               <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
-                                <button
-                                  onClick={() => handleTogglePayment(o._id, o.paymentStatus || 'Pending')}
-                                  disabled={actionLoading === o._id + '_payment'}
-                                  style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: (o.paymentStatus || 'Pending') === 'Paid' ? '#92400e' : '#16a34a' }}
-                                >{actionLoading === o._id + '_payment' ? '...' : (o.paymentStatus || 'Pending') === 'Paid' ? 'Mark Pending' : 'Mark Paid'}</button>
+                                {(o.paymentStatus || 'Pending') === 'Paid' ? (
+                                  <button
+                                    onClick={() => handleTogglePayment(o._id, 'Paid')}
+                                    disabled={actionLoading === o._id + '_payment'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}
+                                  >{actionLoading === o._id + '_payment' ? '...' : 'Mark Pending'}</button>
+                                ) : (
+                                  <select
+                                    defaultValue=""
+                                    onChange={(e) => {
+                                      if (e.target.value) {
+                                        handleTogglePayment(o._id, 'Pending', e.target.value);
+                                        e.target.value = '';
+                                      }
+                                    }}
+                                    disabled={actionLoading === o._id + '_payment'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}
+                                  >
+                                    <option value="" disabled>Mark Paid ▾</option>
+                                    <option value="UPI">Paid via UPI</option>
+                                    <option value="Cash">Paid via Cash</option>
+                                    <option value="Cheque">Paid via Cheque</option>
+                                    <option value="Other">Paid (Other)</option>
+                                  </select>
+                                )}
                                 {(o.paymentStatus || 'Pending') !== 'Paid' && (
                                   <button
                                     onClick={() => handleSendReminder(o._id)}

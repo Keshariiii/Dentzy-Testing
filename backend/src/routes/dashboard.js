@@ -137,7 +137,9 @@ dashboard.get('/payments', async (c) => {
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '50', 10) || 50, 1), 100);
 
     let sql = `SELECT o.id, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
-       COALESCE(p.status, 'Pending') as paymentStatus, COALESCE(p.amount, 0) as amount, p.invoiceNumber
+       COALESCE(p.status, 'Pending') as paymentStatus,
+       COALESCE(p.description, '') as paymentMethod,
+       COALESCE(p.amount, 0) as amount, p.invoiceNumber
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ?`;
     const params = [userId];
@@ -151,7 +153,7 @@ dashboard.get('/payments', async (c) => {
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    return c.json({ payments: results.map(r => ({ ...r, _id: r.id })) });
+    return c.json({ payments: results.map(r => ({ ...r, _id: r.id, paymentMethod: r.paymentMethod })) });
   } catch (error) {
     logger.error('Dashboard payments error', { error: error.message });
     return c.json({ message: 'Failed to load payments.' }, 500);

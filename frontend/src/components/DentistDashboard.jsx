@@ -18,7 +18,6 @@ import { Icon, Icons } from './common/DashboardIcons';
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard',  icon: Icons.dashboard },
   { key: 'orders',    label: 'Lab Orders',  icon: Icons.labOrder },
-  { key: 'reports',   label: 'Reports',     icon: Icons.reports },
   { key: 'payments',  label: 'Payments',    icon: Icons.payments },
   { key: 'settings',  label: 'Settings',    icon: Icons.settings },
 ];
@@ -31,7 +30,7 @@ const TICKER_MESSAGES = [
   'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
   'New: Zirconia monolithic crowns with multi-shade gradients now available',
   'Submit STL files for faster digital impression processing',
-  'Invoices are generated upon case dispatch — check the Payments tab',
+  'Payments accepted via UPI, Cash, or Cheque — check the Payments tab',
   'All cases backed by the Dentzy 1-Year Quality Guarantee',
   'Lab support: Mon-Sat, 9 AM to 6 PM IST',
 ];
@@ -202,24 +201,6 @@ const DentistDashboard = () => {
   const [isEditingProfile, setIsEditingProfile]     = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
-  // New lab order form state (draft-backed via localStorage)
-  const DRAFT_KEY = 'dentzy_case_draft';
-  const [showNewOrder, setShowNewOrder]     = useState(false);
-  const [newOrderForm, setNewOrderForm]     = useState(() => {
-    try { const d = localStorage.getItem(DRAFT_KEY); if (d) return JSON.parse(d); } catch {}
-    return { patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' };
-  });
-  const [newOrderLoading, setNewOrderLoading] = useState(false);
-  const [newOrderError, setNewOrderError]   = useState('');
-
-  // ponytail: auto-save draft to localStorage on every keystroke; no debounce -- setState already batches
-  useEffect(() => {
-    try {
-      if (newOrderForm.patientName || newOrderForm.notes) localStorage.setItem(DRAFT_KEY, JSON.stringify(newOrderForm));
-      else localStorage.removeItem(DRAFT_KEY);
-    } catch {}
-  }, [newOrderForm]);
-
   // Sync profile form when user changes
   useEffect(() => {
     if (user) {
@@ -348,15 +329,6 @@ const DentistDashboard = () => {
         cta: 'View Pending',
         variant: 'amber',
         onClick: () => setActiveTab('payments'),
-      },
-      {
-        id: 'action-reports',
-        icon: Icons.reports(22),
-        title: 'Reports & Analytics',
-        desc: 'Practice insights, turnaround times, and monthly order trends.',
-        cta: 'View Reports',
-        variant: 'green',
-        onClick: () => setActiveTab('reports'),
       },
       {
         id: 'action-support',
@@ -525,28 +497,9 @@ const DentistDashboard = () => {
   /* ============================================================
      RENDER: Lab Orders
   ============================================================ */
-  const handleNewOrder = async (e) => {
-    e.preventDefault();
-    setNewOrderError('');
-    setNewOrderLoading(true);
-    try {
-      const res = await authFetch(`${DASH_URL}/orders`, {
-        method: 'POST',
-        body: JSON.stringify(newOrderForm),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setOrders(prev => [data.order, ...prev]);
-        setNewOrderForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
-        try { localStorage.removeItem(DRAFT_KEY); } catch {}
-        setShowNewOrder(false);
-      } else {
-        setNewOrderError(data.message || 'Failed to create order.');
-      }
-    } catch { setNewOrderError('Network error. Please try again.'); }
-    setNewOrderLoading(false);
-  };
-
+  /* ============================================================
+     RENDER: Lab Orders
+  ============================================================ */
   const renderOrders = () => (
     <div className="ud-content-inner">
       <div className="ud-tab-header">
@@ -558,78 +511,8 @@ const DentistDashboard = () => {
             onKeyDown={e => e.key === 'Enter' && fetchOrders()}
             className="ud-search-inline"
           />
-          <button
-            className="ud-btn-primary"
-            style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', background: 'var(--color-primary, #1e5038)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
-            onClick={() => { setShowNewOrder(v => !v); setNewOrderError(''); }}
-          >
-            {showNewOrder ? Icons.x(14) : (Icons.plus ? Icons.plus(14) : '+')}
-            {showNewOrder ? 'Cancel' : 'New Lab Case'}
-          </button>
         </div>
       </div>
-
-      {/* New order inline form */}
-      {showNewOrder && (
-        <form onSubmit={handleNewOrder} style={{ background: 'var(--surface, #f8faf9)', border: '1px solid var(--border, #e2ece6)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text, #1a2e26)' }}>New Lab Case</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Patient Name *</label>
-              <input className="auth-input" placeholder="Patient name" required
-                value={newOrderForm.patientName}
-                onChange={e => setNewOrderForm(f => ({ ...f, patientName: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Service Type</label>
-              <select className="auth-input"
-                value={newOrderForm.serviceType}
-                onChange={e => setNewOrderForm(f => ({ ...f, serviceType: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
-              >
-                {['Crown','Bridge','Denture','Implant','Veneer','Retainer','Other'].map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Priority</label>
-              <select className="auth-input"
-                value={newOrderForm.priority}
-                onChange={e => setNewOrderForm(f => ({ ...f, priority: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
-              >
-                {['Low','Normal','High','Urgent'].map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Due Date</label>
-              <input type="date" className="auth-input"
-                value={newOrderForm.dueDate}
-                onChange={e => setNewOrderForm(f => ({ ...f, dueDate: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem' }}
-              />
-            </div>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#6b8a7a', marginBottom: '4px' }}>Notes (optional)</label>
-            <textarea className="auth-input" rows={2} placeholder="Clinical notes…"
-              value={newOrderForm.notes}
-              onChange={e => setNewOrderForm(f => ({ ...f, notes: e.target.value }))}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', fontSize: '0.875rem', resize: 'vertical' }}
-            />
-          </div>
-          {newOrderError && <p style={{ color: '#ef4444', fontSize: '0.82rem', margin: 0 }}>{newOrderError}</p>}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button type="button" onClick={() => setShowNewOrder(false)}
-              style={{ padding: '8px 16px', borderRadius: '7px', border: '1.5px solid var(--border, #e2ece6)', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem' }}
-            >Cancel</button>
-            <button type="submit" disabled={newOrderLoading}
-              style={{ padding: '8px 18px', borderRadius: '7px', background: 'var(--color-primary, #1e5038)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, opacity: newOrderLoading ? 0.7 : 1 }}
-            >{newOrderLoading ? 'Submitting…' : 'Submit Case'}</button>
-          </div>
-        </form>
-      )}
 
       {loading ? (
         <div className="ud-loading"><div className="ud-spinner" /><span>Loading orders...</span></div>
@@ -658,20 +541,6 @@ const DentistDashboard = () => {
           </table>
         </div>
       )}
-    </div>
-  );
-
-  /* ============================================================
-     RENDER: Reports
-  ============================================================ */
-  const renderReports = () => (
-    <div className="ud-content-inner">
-      <h2 className="ud-tab-title">Reports</h2>
-      <div className="ud-coming-soon">
-        <div className="ud-cs-icon">{Icons.barChart(40)}</div>
-        <h3>Analytics Coming Soon</h3>
-        <p>Your practice insights and monthly order trends will appear here.</p>
-      </div>
     </div>
   );
 
@@ -1080,7 +949,6 @@ const DentistDashboard = () => {
   const renderContent = () => {
     if (activeTab === 'dashboard') return renderDashboard();
     if (activeTab === 'orders')   return renderOrders();
-    if (activeTab === 'reports')  return renderReports();
     if (activeTab === 'settings') return renderSettings();
     if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" />;
     return null;
@@ -1156,8 +1024,8 @@ const DentistDashboard = () => {
 const PaymentsTab = ({ payments, loading, title }) => (
   <div className="ud-content-inner">
     <h2 className="ud-tab-title">{title}</h2>
-    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#92400e' }}>
-      <strong>Payment Method: Cheque</strong> -- Invoices are cleared upon physical cheque receipt at the lab.
+    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#166534', lineHeight: 1.5 }}>
+      <strong>Accepted Payment Modes:</strong> Direct UPI (to lab mobile number / UPI ID), Cash, or Cheque. No payment gateway required. Once your payment is received, lab administration will verify and mark the order as Paid.
     </div>
     {loading ? (
       <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
@@ -1179,14 +1047,17 @@ const PaymentsTab = ({ payments, loading, title }) => (
               <td><strong>{p.patientName}</strong></td>
               <td><code className="ud-code">{p.caseId}</code></td>
               <td>{p.serviceType || '—'}</td>
-              <td className="ud-amount">{p.amount > 0 ? `\u20B9${p.amount.toLocaleString('en-IN')}` : '—'}</td>
+              <td className="ud-amount">{p.amount > 0 ? `₹${p.amount.toLocaleString('en-IN')}` : '—'}</td>
               <td>{formatDate(p.dueDate)}</td>
               <td>
                 <span style={{
                   padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                   background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
                   color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                }}>{p.paymentStatus || 'Pending'}</span>
+                }}>
+                  {p.paymentStatus || 'Pending'}
+                  {(p.paymentStatus === 'Paid' && p.paymentMethod) ? ` (${p.paymentMethod})` : ''}
+                </span>
               </td>
             </tr>
           ))}</tbody>

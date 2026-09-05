@@ -697,9 +697,16 @@ export async function sendPaymentReminderEmail({ env, dentist, order, payment })
       </tr>
     </table>
 
-    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #92400e;">
-      <strong>Payment Method: Cheque</strong><br>
-      Please submit a cheque in favour of <strong>Dentzy Dental Solutions</strong> at our lab or contact us for pickup arrangements.
+    <div style="background: #f8faf9; border: 1px solid #d1fae5; border-radius: 8px; padding: 16px; margin: 20px 0; font-size: 13px; color: #1e2824;">
+      <strong style="color: #1e5038; font-size: 14px;">Accepted Payment Methods:</strong>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.6; color: #4a5d54;">
+        <li><strong>Direct UPI:</strong> Transfer to lab bank account via UPI ID or mobile number. Contact lab administration for UPI/QR details.</li>
+        <li><strong>Cash:</strong> Cash payments accepted directly at the lab.</li>
+        <li><strong>Cheque:</strong> Cheque in favour of <strong>Dentzy Dental Solutions</strong>.</li>
+      </ul>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #64748b;">
+        Once payment is made, please share the transaction reference / receipt with lab administration to update your account.
+      </p>
     </div>
 
     <p style="color: #64748b; font-size: 13px;">

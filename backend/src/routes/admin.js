@@ -238,7 +238,8 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
     let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
-               COALESCE(p.status, 'Pending') as paymentStatus
+               COALESCE(p.status, 'Pending') as paymentStatus,
+               COALESCE(p.description, '') as paymentMethod
                FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
                LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
     const params = [];
@@ -258,6 +259,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
       ...r,
       _id: r.id,
       paymentStatus: r.paymentStatus,
+      paymentMethod: r.paymentMethod,
       owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
     }));
     return c.json({ orders });
@@ -356,19 +358,20 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
 admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSchema), async (c) => {
   try {
     const orderId = c.req.param('id');
-    const { status, amount, notes } = c.get('body');
+    const { status, paymentMethod, amount, notes } = c.get('body');
     const ts = now();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
 
+    const methodDesc = status === 'Pending' ? '' : (paymentMethod || notes || '');
+
     // Upsert payment record
     const existing = await c.env.DB.prepare('SELECT id FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
     if (existing) {
-      const updates = ['status = ?', 'updatedAt = ?'];
-      const binds = [status, ts];
+      const updates = ['status = ?', 'description = ?', 'updatedAt = ?'];
+      const binds = [status, methodDesc, ts];
       if (amount !== undefined) { updates.push('amount = ?'); binds.push(amount); }
-      if (notes) { updates.push('description = ?'); binds.push(notes); }
       binds.push(existing.id);
       await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
     } else {
@@ -376,11 +379,11 @@ admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSc
       await c.env.DB.prepare(
         `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
          VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?)`
-      ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount || 0, status, ts, order.dueDate || null, notes || '', ts, ts).run();
+      ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount || 0, status, ts, order.dueDate || null, methodDesc, ts, ts).run();
     }
 
-    auditLog('PAYMENT_STATUS_UPDATED', { orderId, caseId: order.caseId, newStatus: status, adminUsername: c.get('admin').username });
-    return c.json({ message: `Payment marked as ${status}.` });
+    auditLog('PAYMENT_STATUS_UPDATED', { orderId, caseId: order.caseId, newStatus: status, paymentMethod: methodDesc, adminUsername: c.get('admin').username });
+    return c.json({ message: `Payment marked as ${status}${methodDesc ? ` (${methodDesc})` : ''}.`, paymentStatus: status, paymentMethod: methodDesc });
   } catch (error) {
     logger.error('Admin payment update error', { error: error.message });
     return c.json({ message: 'Failed to update payment.' }, 500);

@@ -16,6 +16,7 @@ import {
   adminLoginSchema, rejectUserSchema,
   createOrderSchema as adminCreateOrderSchema,
   updateOrderStageSchema,
+  updatePaymentStatusSchema,
 } from '../src/validators/admin.js';
 
 // Dashboard validators
@@ -147,6 +148,18 @@ describe('Admin Validators', () => {
       }
     });
     it('rejects invalid stage', () => invalid(updateOrderStageSchema, { stage: 'unknown' }));
+  });
+
+  describe('updatePaymentStatusSchema', () => {
+    it('accepts valid status Paid', () => valid(updatePaymentStatusSchema, { status: 'Paid' }));
+    it('accepts valid status Pending', () => valid(updatePaymentStatusSchema, { status: 'Pending' }));
+    it('accepts valid payment methods', () => {
+      for (const paymentMethod of ['UPI', 'Cash', 'Cheque', 'Other']) {
+        valid(updatePaymentStatusSchema, { status: 'Paid', paymentMethod });
+      }
+    });
+    it('rejects invalid status', () => invalid(updatePaymentStatusSchema, { status: 'Refunded' }));
+    it('rejects negative amount', () => invalid(updatePaymentStatusSchema, { status: 'Paid', amount: -100 }));
   });
 });
 

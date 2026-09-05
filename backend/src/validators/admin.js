@@ -27,6 +27,7 @@ export const updateOrderStageSchema = z.object({
 
 export const updatePaymentStatusSchema = z.object({
   status: z.enum(['Paid', 'Pending'], { errorMap: () => ({ message: 'Status must be Paid or Pending.' }) }),
+  paymentMethod: z.enum(['UPI', 'Cash', 'Cheque', 'Other', '']).optional().default(''),
   amount: z.number().min(0, 'Amount cannot be negative.').optional(),
   notes: z.string().max(500).optional().default(''),
 });
