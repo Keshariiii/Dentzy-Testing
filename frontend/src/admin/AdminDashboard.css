@@ -1016,3 +1016,303 @@
   padding: 5px 7px;
 }
 .ad-action-delete:hover { background: #ef4444; color: #fff; }
+
+/* =============================================================================
+   PAYMENTS VIEW — Metrics, Filters, Mode Tags, Record Payment Modal
+============================================================================= */
+
+/* Metrics row */
+.ad-pay-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ad-pay-metric {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid #e4ebe7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ad-pay-metric-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #708c80;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ad-pay-metric-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a3028;
+}
+.ad-pay-metric--billed { border-left: 3px solid #3b82f6; }
+.ad-pay-metric--collected { border-left: 3px solid #16a34a; }
+.ad-pay-metric--collected .ad-pay-metric-value { color: #16a34a; }
+.ad-pay-metric--pending { border-left: 3px solid #f59e0b; }
+.ad-pay-metric--pending .ad-pay-metric-value { color: #92400e; }
+.ad-pay-metric--mode { border-left: 3px solid #708c80; }
+
+.ad-pay-mode-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+/* Mode tags */
+.ad-pay-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ad-pay-mode--cash { background: #dcfce7; color: #166534; }
+.ad-pay-mode--cheque { background: #dbeafe; color: #1d4ed8; }
+.ad-pay-mode--upi { background: #fae8ff; color: #7e22ce; }
+
+/* Filters */
+.ad-pay-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ad-pay-filter-group {
+  display: flex;
+  gap: 4px;
+}
+.ad-pay-filter-btn, .ad-pay-filter-pill {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid #e4ebe7;
+  background: #fff;
+  color: #708c80;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ad-pay-filter-btn:hover, .ad-pay-filter-pill:hover {
+  border-color: #1e5038;
+  color: #1e5038;
+}
+.ad-pay-filter-btn.active {
+  background: #1e5038;
+  color: #fff;
+  border-color: #1e5038;
+}
+.ad-pay-filter-pill.active {
+  background: #eef6f2;
+  color: #1e5038;
+  border-color: #1e5038;
+}
+.ad-pay-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e4ebe7;
+  border-radius: 8px;
+  padding: 0 10px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+.ad-pay-search input {
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 0.82rem;
+  padding: 7px 0;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* Record Payment Modal */
+.ad-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: adFadeIn 0.15s;
+}
+@keyframes adFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.ad-pay-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: adSlideUp 0.2s;
+}
+@keyframes adSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.ad-pay-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 12px;
+  border-bottom: 1px solid #eef6f2;
+}
+.ad-pay-modal-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a3028;
+  margin: 0;
+}
+.ad-pay-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #708c80;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.ad-pay-modal-close:hover { background: #f0f7f3; }
+
+.ad-pay-modal-meta {
+  padding: 10px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.8rem;
+  color: #4a7060;
+  background: #f8faf9;
+  border-bottom: 1px solid #eef6f2;
+}
+
+/* Mode toggle */
+.ad-pay-mode-toggle {
+  display: flex;
+  gap: 0;
+  margin: 16px 22px 0;
+  border: 1px solid #e4ebe7;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ad-pay-mode-btn {
+  flex: 1;
+  padding: 9px 0;
+  border: none;
+  background: #fff;
+  color: #708c80;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ad-pay-mode-btn:not(:last-child) { border-right: 1px solid #e4ebe7; }
+.ad-pay-mode-btn:hover { background: #f0f7f3; }
+.ad-pay-mode-btn.active {
+  background: #1e5038;
+  color: #fff;
+}
+
+/* Form */
+.ad-pay-form-group {
+  padding: 0 22px;
+  margin-top: 14px;
+}
+.ad-pay-form-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4a7060;
+  margin-bottom: 5px;
+}
+.ad-pay-form-group input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #e4ebe7;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  background: #fff;
+}
+.ad-pay-form-group input:focus {
+  outline: none;
+  border-color: #1e5038;
+  box-shadow: 0 0 0 2px rgba(30,80,56,0.08);
+}
+.ad-pay-form-error {
+  margin: 10px 22px 0;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.78rem;
+}
+
+.ad-pay-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 22px;
+  border-top: 1px solid #eef6f2;
+  margin-top: 16px;
+}
+.ad-pay-btn-cancel {
+  padding: 8px 16px;
+  border: 1px solid #e4ebe7;
+  background: #fff;
+  border-radius: 8px;
+  color: #708c80;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ad-pay-btn-cancel:hover { background: #f4f6f5; }
+.ad-pay-btn-confirm {
+  padding: 8px 20px;
+  border: none;
+  background: #1e5038;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ad-pay-btn-confirm:hover { background: #174230; }
+.ad-pay-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ad-pay-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ad-pay-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ad-pay-search {
+    max-width: none;
+  }
+  .ad-pay-modal {
+    max-width: none;
+    margin: 12px;
+    border-radius: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .ad-pay-metrics {
+    grid-template-columns: 1fr;
+  }
+}

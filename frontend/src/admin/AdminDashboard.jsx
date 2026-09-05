@@ -27,7 +27,7 @@ const AdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   const [activeTab, setActiveTab]         = useState('all');
-  const [adminView, setAdminView]         = useState('users'); // 'users' | 'orders'
+  const [adminView, setAdminView]         = useState('users'); // 'users' | 'orders' | 'payments'
   const [sidebarOpen, setSidebarOpen]     = useState(false);
   const [users, setUsers]                 = useState([]);
   const [allOrders, setAllOrders]         = useState([]);
@@ -43,6 +43,17 @@ const AdminDashboard = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [openMenuId, setOpenMenuId]         = useState(null);
   const [confirmConfig, setConfirmConfig]   = useState(null);
+  // Payments view state
+  const [paymentData, setPaymentData]       = useState({ summary: null, payments: [] });
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [payFilterStatus, setPayFilterStatus] = useState('all');
+  const [payFilterMode, setPayFilterMode]     = useState('all');
+  const [paySearch, setPaySearch]             = useState('');
+  // Record Payment modal state
+  const [payModal, setPayModal] = useState(null); // { orderId, caseId, patientName, amount, ... }
+  const [payForm, setPayForm]   = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
+  const [payFormError, setPayFormError] = useState('');
+  const [payFormSaving, setPayFormSaving] = useState(false);
   const sseRef        = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -79,6 +90,19 @@ const AdminDashboard = () => {
     setLoadingOrders(false);
   }, [ADMIN_API]);
 
+  const fetchPayments = useCallback(async () => {
+    setLoadingPayments(true);
+    try {
+      const params = new URLSearchParams({ limit: '200' });
+      if (payFilterStatus !== 'all') params.set('status', payFilterStatus);
+      if (payFilterMode !== 'all') params.set('mode', payFilterMode);
+      if (paySearch) params.set('search', paySearch);
+      const res = await authFetchRef.current(`${ADMIN_API}/payments?${params}`);
+      if (res.ok) { const d = await res.json(); setPaymentData(d); }
+    } catch {}
+    setLoadingPayments(false);
+  }, [ADMIN_API, payFilterStatus, payFilterMode, paySearch]);
+
   const fetchStats = useCallback(async () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/stats`);
@@ -108,6 +132,7 @@ const AdminDashboard = () => {
     fetchStats();
     fetchUsers();
     fetchAllOrders();
+    fetchPayments();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.username]);
 
@@ -118,6 +143,13 @@ const AdminDashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, sortOrder]);
 
+  // Re-fetch payments when filters change
+  useEffect(() => {
+    if (!admin?.username || adminView !== 'payments') return;
+    fetchPayments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payFilterStatus, payFilterMode]);
+
   // Refs for SSE callbacks
   const fetchUsersRef = useRef(fetchUsers);
   fetchUsersRef.current = fetchUsers;
@@ -125,6 +157,8 @@ const AdminDashboard = () => {
   fetchStatsRef.current = fetchStats;
   const fetchAllOrdersRef = useRef(fetchAllOrders);
   fetchAllOrdersRef.current = fetchAllOrders;
+  const fetchPaymentsRef = useRef(fetchPayments);
+  fetchPaymentsRef.current = fetchPayments;
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
@@ -277,23 +311,59 @@ const AdminDashboard = () => {
 
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
-  const handleTogglePayment = async (orderId, currentStatus, paymentMethod = '') => {
-    const newStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
-    setActionLoading(orderId + '_payment');
+  const openRecordPayment = (order) => {
+    setPayModal(order);
+    setPayForm({ mode: 'Cash', referenceNumber: '', amount: order.paymentAmount || order.amount || '', notes: '' });
+    setPayFormError('');
+    setPayFormSaving(false);
+  };
+
+  const handleRecordPayment = async () => {
+    setPayFormError('');
+    if (payForm.mode === 'Cheque' && (!payForm.referenceNumber || payForm.referenceNumber.trim().length < 3)) {
+      setPayFormError('Cheque number is required (min 3 characters).');
+      return;
+    }
+    if (payForm.mode === 'UPI' && (!payForm.referenceNumber || payForm.referenceNumber.trim().length < 4)) {
+      setPayFormError('UPI transaction / UTR number is required (min 4 characters).');
+      return;
+    }
+    setPayFormSaving(true);
     try {
-      const body = { status: newStatus };
-      if (newStatus === 'Paid' && paymentMethod) body.paymentMethod = paymentMethod;
-      const res = await authFetch(`${ADMIN_API}/orders/${orderId}/payment`, {
+      const body = {
+        status: 'Paid',
+        paymentMode: payForm.mode,
+        referenceNumber: payForm.referenceNumber || '',
+        notes: payForm.notes || '',
+      };
+      if (payForm.amount !== '' && !isNaN(Number(payForm.amount))) body.amount = Number(payForm.amount);
+      const res = await authFetch(`${ADMIN_API}/orders/${payModal._id}/payment`, {
         method: 'PATCH', body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(data.message || `Payment marked as ${newStatus}.`);
-        setAllOrders(prev => prev.map(o => o._id === orderId ? {
-          ...o,
-          paymentStatus: newStatus,
-          paymentMethod: newStatus === 'Paid' ? (paymentMethod || o.paymentMethod || '') : '',
-        } : o));
+        showToast(data.message || 'Payment recorded.');
+        setPayModal(null);
+        fetchAllOrders();
+        fetchPaymentsRef.current?.();
+      } else {
+        setPayFormError(data.message || 'Failed to record payment.');
+      }
+    } catch { setPayFormError('Network error.'); }
+    setPayFormSaving(false);
+  };
+
+  const handleRevertPayment = async (orderId) => {
+    setActionLoading(orderId + '_payment');
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}/payment`, {
+        method: 'PATCH', body: JSON.stringify({ status: 'Pending' }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Payment reverted to Pending.');
+        fetchAllOrders();
+        fetchPaymentsRef.current?.();
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
     setActionLoading(null);
@@ -309,6 +379,9 @@ const AdminDashboard = () => {
     } catch { showToast('Network error', 'error'); }
     setActionLoading(null);
   };
+
+  const formatINR = (n) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
   const filteredUsers = (users || []).filter(u =>
     (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
@@ -374,11 +447,15 @@ const AdminDashboard = () => {
             <nav className="ad-nav">
               <button className={`ad-nav-item ${adminView === 'users' ? 'active' : ''}`} onClick={() => setAdminView('users')} aria-label="Dashboard">
                 <span className="ad-nav-icon">{Ico.grid(16)}</span>
-                Users
+                Dentists
               </button>
               <button className={`ad-nav-item ${adminView === 'orders' ? 'active' : ''}`} onClick={() => { setAdminView('orders'); fetchAllOrders(); }} aria-label="Lab Orders">
                 <span className="ad-nav-icon">{Ico.package ? Ico.package(16) : Ico.chart(16)}</span>
                 Lab Orders
+              </button>
+              <button className={`ad-nav-item ${adminView === 'payments' ? 'active' : ''}`} onClick={() => { setAdminView('payments'); fetchPaymentsRef.current?.(); }} aria-label="Payments">
+                <span className="ad-nav-icon">{Ico.payments ? Ico.payments(16) : Ico.wallet(16)}</span>
+                Payments
               </button>
               <button className="ad-nav-item" aria-label="Settings" disabled>
                 <span className="ad-nav-icon">{Ico.settings(16)}</span>
@@ -491,7 +568,127 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {adminView === 'orders' ? (
+            {adminView === 'payments' ? (
+              /* ── Payments View ────────────────────────────────────── */
+              <div>
+                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p className="ad-section-title">Payments & Billing</p>
+                  <button onClick={() => fetchPaymentsRef.current?.()} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
+                </div>
+
+                {/* Metrics Row */}
+                {paymentData.summary && (
+                  <div className="ad-pay-metrics">
+                    <div className="ad-pay-metric ad-pay-metric--billed">
+                      <span className="ad-pay-metric-label">Total Billed</span>
+                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalBilled)}</span>
+                    </div>
+                    <div className="ad-pay-metric ad-pay-metric--collected">
+                      <span className="ad-pay-metric-label">Collected</span>
+                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalCollected)}</span>
+                    </div>
+                    <div className="ad-pay-metric ad-pay-metric--pending">
+                      <span className="ad-pay-metric-label">Pending</span>
+                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalPending)}</span>
+                    </div>
+                    <div className="ad-pay-metric ad-pay-metric--mode">
+                      <span className="ad-pay-metric-label">By Mode</span>
+                      <div className="ad-pay-mode-split">
+                        <span className="ad-pay-mode-tag ad-pay-mode--cash">Cash {formatINR(paymentData.summary.byMode?.Cash || 0)}</span>
+                        <span className="ad-pay-mode-tag ad-pay-mode--cheque">Cheque {formatINR(paymentData.summary.byMode?.Cheque || 0)}</span>
+                        <span className="ad-pay-mode-tag ad-pay-mode--upi">UPI {formatINR(paymentData.summary.byMode?.UPI || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Filters */}
+                <div className="ad-pay-filters">
+                  <div className="ad-pay-filter-group">
+                    {['all', 'Paid', 'Pending'].map(s => (
+                      <button key={s} className={`ad-pay-filter-btn ${payFilterStatus === s ? 'active' : ''}`} onClick={() => setPayFilterStatus(s)}>
+                        {s === 'all' ? 'All' : s}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="ad-pay-filter-group">
+                    {['all', 'Cash', 'Cheque', 'UPI'].map(m => (
+                      <button key={m} className={`ad-pay-filter-pill ${payFilterMode === m ? 'active' : ''}`} onClick={() => setPayFilterMode(m)}>
+                        {m === 'all' ? 'All Modes' : m}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="ad-pay-search">
+                    <span className="ad-search-icon">{Ico.search(14)}</span>
+                    <input type="text" placeholder="Search patient, case ID, dentist…" value={paySearch}
+                      onChange={e => setPaySearch(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && fetchPaymentsRef.current?.()}
+                    />
+                  </div>
+                </div>
+
+                {/* Payments Table */}
+                <div className="ad-content">
+                  {loadingPayments ? (
+                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
+                  ) : (paymentData.payments || []).length === 0 ? (
+                    <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                  ) : (
+                    <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
+                      <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
+                          {['Case ID', 'Patient', 'Dentist / Clinic', 'Amount', 'Status', 'Mode & Ref', 'Actions'].map(h => (
+                            <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                          ))}
+                        </tr></thead>
+                        <tbody>
+                          {paymentData.payments.map((p, i) => (
+                            <tr key={p._id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)' }}>
+                              <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
+                              <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
+                              <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{p.owner?.name || '—'}{p.owner?.clinicName ? ` · ${p.owner.clinicName}` : ''}</td>
+                              <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.amount > 0 ? formatINR(p.amount) : '—'}</td>
+                              <td style={{ padding: '10px 12px' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
+                                  color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
+                                }}>{p.paymentStatus || 'Pending'}</span>
+                              </td>
+                              <td style={{ padding: '10px 12px' }}>
+                                {p.paymentStatus === 'Paid' && p.paymentMode ? (
+                                  <span style={{ fontSize: '0.78rem' }}>
+                                    <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
+                                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                                  </span>
+                                ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                              </td>
+                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                                {p.paymentStatus === 'Paid' ? (
+                                  <button onClick={() => handleRevertPayment(p._id)} disabled={actionLoading === p._id + '_payment'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
+                                    {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => openRecordPayment(p)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
+                                    Record Payment
+                                  </button>
+                                )}
+                                {p.paymentStatus !== 'Paid' && (
+                                  <button onClick={() => handleSendReminder(p._id)} disabled={actionLoading === p._id + '_remind'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
+                                    {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : adminView === 'orders' ? (
               /* ── Lab Orders View ─────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -507,14 +704,9 @@ const AdminDashboard = () => {
                     <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
                       <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                         <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Patient</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Case ID</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Dentist</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Service</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Status</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Payment</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Created</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Actions</th>
+                          {['Patient', 'Case ID', 'Dentist', 'Service', 'Status', 'Payment', 'Created', 'Actions'].map(h => (
+                            <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                          ))}
                         </tr></thead>
                         <tbody>
                           {allOrders.map((o, i) => (
@@ -535,44 +727,31 @@ const AdminDashboard = () => {
                                   color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
                                 }}>
                                   {o.paymentStatus || 'Pending'}
-                                  {(o.paymentStatus === 'Paid' && o.paymentMethod) ? ` (${o.paymentMethod})` : ''}
+                                  {(o.paymentStatus === 'Paid' && o.paymentMode) ? ` · ${o.paymentMode}` : ''}
                                 </span>
+                                {(o.paymentStatus === 'Paid' && o.referenceNumber) && (
+                                  <div style={{ fontSize: '0.7rem', color: '#708c80', marginTop: '2px' }}>Ref: {o.referenceNumber}</div>
+                                )}
                               </td>
                               <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
                                 {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                               </td>
                               <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
                                 {(o.paymentStatus || 'Pending') === 'Paid' ? (
-                                  <button
-                                    onClick={() => handleTogglePayment(o._id, 'Paid')}
-                                    disabled={actionLoading === o._id + '_payment'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}
-                                  >{actionLoading === o._id + '_payment' ? '...' : 'Mark Pending'}</button>
+                                  <button onClick={() => handleRevertPayment(o._id)} disabled={actionLoading === o._id + '_payment'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
+                                    {actionLoading === o._id + '_payment' ? '...' : 'Mark Pending'}
+                                  </button>
                                 ) : (
-                                  <select
-                                    defaultValue=""
-                                    onChange={(e) => {
-                                      if (e.target.value) {
-                                        handleTogglePayment(o._id, 'Pending', e.target.value);
-                                        e.target.value = '';
-                                      }
-                                    }}
-                                    disabled={actionLoading === o._id + '_payment'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}
-                                  >
-                                    <option value="" disabled>Mark Paid ▾</option>
-                                    <option value="UPI">Paid via UPI</option>
-                                    <option value="Cash">Paid via Cash</option>
-                                    <option value="Cheque">Paid via Cheque</option>
-                                    <option value="Other">Paid (Other)</option>
-                                  </select>
+                                  <button onClick={() => openRecordPayment(o)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
+                                    Record Payment
+                                  </button>
                                 )}
                                 {(o.paymentStatus || 'Pending') !== 'Paid' && (
-                                  <button
-                                    onClick={() => handleSendReminder(o._id)}
-                                    disabled={actionLoading === o._id + '_remind'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}
-                                  >{actionLoading === o._id + '_remind' ? '...' : 'Send Reminder'}</button>
+                                  <button onClick={() => handleSendReminder(o._id)} disabled={actionLoading === o._id + '_remind'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
+                                    {actionLoading === o._id + '_remind' ? '...' : 'Send Reminder'}
+                                  </button>
                                 )}
                               </td>
                             </tr>
@@ -720,6 +899,72 @@ const AdminDashboard = () => {
         isOpen={!!confirmConfig}
         {...confirmConfig}
       />
+
+      {/* ── Record Payment Modal ──────────────────────────────────────── */}
+      {payModal && (
+        <div className="ad-modal-overlay" onClick={() => setPayModal(null)}>
+          <div className="ad-pay-modal" onClick={e => e.stopPropagation()}>
+            <div className="ad-pay-modal-header">
+              <h3>Record Payment</h3>
+              <button className="ad-pay-modal-close" onClick={() => setPayModal(null)}>{Ico.x(16)}</button>
+            </div>
+            <div className="ad-pay-modal-meta">
+              <span><strong>Case:</strong> {payModal.caseId}</span>
+              <span><strong>Patient:</strong> {payModal.patientName}</span>
+              {payModal.owner?.name && <span><strong>Dentist:</strong> {payModal.owner.name}</span>}
+            </div>
+
+            {/* Mode toggle */}
+            <div className="ad-pay-mode-toggle">
+              {['Cash', 'Cheque', 'UPI'].map(m => (
+                <button key={m} className={`ad-pay-mode-btn ${payForm.mode === m ? 'active' : ''}`}
+                  onClick={() => { setPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setPayFormError(''); }}>
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            {/* Amount */}
+            <div className="ad-pay-form-group">
+              <label>Amount (₹)</label>
+              <input type="number" min="0" placeholder="e.g. 5000" value={payForm.amount}
+                onChange={e => setPayForm(f => ({ ...f, amount: e.target.value }))} />
+            </div>
+
+            {/* Conditional reference field */}
+            {payForm.mode === 'Cheque' && (
+              <div className="ad-pay-form-group">
+                <label>Cheque Number *</label>
+                <input type="text" placeholder="e.g. CHQ-650124" value={payForm.referenceNumber}
+                  onChange={e => setPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
+              </div>
+            )}
+            {payForm.mode === 'UPI' && (
+              <div className="ad-pay-form-group">
+                <label>UPI Transaction ID / UTR *</label>
+                <input type="text" placeholder="e.g. 428190382910" value={payForm.referenceNumber}
+                  onChange={e => setPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
+              </div>
+            )}
+            {payForm.mode === 'Cash' && (
+              <div className="ad-pay-form-group">
+                <label>Notes (optional)</label>
+                <input type="text" placeholder="e.g. Received by reception" value={payForm.notes}
+                  onChange={e => setPayForm(f => ({ ...f, notes: e.target.value }))} />
+              </div>
+            )}
+
+            {payFormError && <div className="ad-pay-form-error">{payFormError}</div>}
+
+            <div className="ad-pay-modal-actions">
+              <button className="ad-pay-btn-cancel" onClick={() => setPayModal(null)}>Cancel</button>
+              <button className="ad-pay-btn-confirm" onClick={handleRecordPayment} disabled={payFormSaving}>
+                {payFormSaving ? 'Saving…' : 'Confirm Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

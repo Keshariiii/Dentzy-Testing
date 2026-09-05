@@ -239,7 +239,10 @@ admin.get('/orders', verifyAdmin(), async (c) => {
 
     let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
                COALESCE(p.status, 'Pending') as paymentStatus,
-               COALESCE(p.description, '') as paymentMethod
+               COALESCE(p.paymentMode, '') as paymentMode,
+               COALESCE(p.referenceNumber, '') as referenceNumber,
+               COALESCE(p.amount, 0) as paymentAmount,
+               p.paidAt
                FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
                LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
     const params = [];
@@ -254,12 +257,14 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    // Map to match frontend expectations (owner object)
     const orders = results.map(r => ({
       ...r,
       _id: r.id,
       paymentStatus: r.paymentStatus,
-      paymentMethod: r.paymentMethod,
+      paymentMode: r.paymentMode,
+      referenceNumber: r.referenceNumber,
+      paymentAmount: r.paymentAmount,
+      paidAt: r.paidAt,
       owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
     }));
     return c.json({ orders });
@@ -354,36 +359,113 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
   }
 });
 
-// PATCH /api/admin/orders/:id/payment — toggle payment status
+// GET /api/admin/payments — dedicated admin payments view with summary metrics
+admin.get('/payments', verifyAdmin(), async (c) => {
+  try {
+    const status = c.req.query('status');
+    const mode = c.req.query('mode');
+    const search = c.req.query('search');
+    const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 500);
+
+    // Summary metrics — always computed across all records (unfiltered)
+    const summaryRow = await c.env.DB.prepare(`
+      SELECT
+        COALESCE(SUM(amount), 0) as totalBilled,
+        COALESCE(SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END), 0) as totalCollected,
+        COALESCE(SUM(CASE WHEN status != 'Paid' THEN amount ELSE 0 END), 0) as totalPending,
+        COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'Cash' THEN amount ELSE 0 END), 0) as cashTotal,
+        COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'Cheque' THEN amount ELSE 0 END), 0) as chequeTotal,
+        COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'UPI' THEN amount ELSE 0 END), 0) as upiTotal
+      FROM payments
+    `).first();
+
+    // Filtered list query
+    let sql = `SELECT o.id, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
+       u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
+       COALESCE(p.status, 'Pending') as paymentStatus,
+       COALESCE(p.paymentMode, '') as paymentMode,
+       COALESCE(p.referenceNumber, '') as referenceNumber,
+       COALESCE(p.amount, 0) as amount,
+       p.invoiceNumber, p.paidAt
+       FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
+       LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
+    const params = [];
+
+    if (status && status !== 'all') {
+      sql += " AND COALESCE(p.status, 'Pending') = ?";
+      params.push(status);
+    }
+    if (mode && mode !== 'all') {
+      sql += " AND COALESCE(p.paymentMode, '') = ?";
+      params.push(mode);
+    }
+    if (search) {
+      sql += ' AND (o.patientName LIKE ? OR o.caseId LIKE ? OR u.name LIKE ? OR u.clinicName LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    sql += ' ORDER BY o.createdAt DESC LIMIT ?';
+    params.push(limit);
+
+    const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+
+    return c.json({
+      summary: {
+        totalBilled: summaryRow.totalBilled,
+        totalCollected: summaryRow.totalCollected,
+        totalPending: summaryRow.totalPending,
+        byMode: { Cash: summaryRow.cashTotal, Cheque: summaryRow.chequeTotal, UPI: summaryRow.upiTotal },
+      },
+      payments: results.map(r => ({
+        ...r,
+        _id: r.id,
+        owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+      })),
+    });
+  } catch (error) {
+    logger.error('Admin payments list error', { error: error.message });
+    return c.json({ message: 'Failed to load payments.' }, 500);
+  }
+});
+
+// PATCH /api/admin/orders/:id/payment — record or revert payment with mode-specific details
 admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSchema), async (c) => {
   try {
     const orderId = c.req.param('id');
-    const { status, paymentMethod, amount, notes } = c.get('body');
+    const { status, paymentMode, referenceNumber, amount, notes } = c.get('body');
     const ts = now();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
 
-    const methodDesc = status === 'Pending' ? '' : (paymentMethod || notes || '');
+    const modeVal = status === 'Pending' ? '' : (paymentMode || '');
+    const refVal = status === 'Pending' ? '' : (referenceNumber || '');
+    const paidAtVal = status === 'Paid' ? ts : null;
+    const descVal = status === 'Pending' ? '' : (notes || '');
 
     // Upsert payment record
     const existing = await c.env.DB.prepare('SELECT id FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
     if (existing) {
-      const updates = ['status = ?', 'description = ?', 'updatedAt = ?'];
-      const binds = [status, methodDesc, ts];
+      const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'updatedAt = ?'];
+      const binds = [status, modeVal, refVal, paidAtVal, descVal, ts];
       if (amount !== undefined) { updates.push('amount = ?'); binds.push(amount); }
       binds.push(existing.id);
       await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
     } else {
       const pid = newId();
       await c.env.DB.prepare(
-        `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?)`
-      ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount || 0, status, ts, order.dueDate || null, methodDesc, ts, ts).run();
+        `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, ts, ts).run();
     }
 
-    auditLog('PAYMENT_STATUS_UPDATED', { orderId, caseId: order.caseId, newStatus: status, paymentMethod: methodDesc, adminUsername: c.get('admin').username });
-    return c.json({ message: `Payment marked as ${status}${methodDesc ? ` (${methodDesc})` : ''}.`, paymentStatus: status, paymentMethod: methodDesc });
+    auditLog('PAYMENT_STATUS_UPDATED', { orderId, caseId: order.caseId, newStatus: status, paymentMode: modeVal, referenceNumber: refVal, adminUsername: c.get('admin').username });
+
+    const modeLabel = modeVal ? ` via ${modeVal}` : '';
+    const refLabel = refVal ? ` (Ref: ${refVal})` : '';
+    return c.json({
+      message: `Payment marked as ${status}${modeLabel}${refLabel}.`,
+      paymentStatus: status, paymentMode: modeVal, referenceNumber: refVal,
+    });
   } catch (error) {
     logger.error('Admin payment update error', { error: error.message });
     return c.json({ message: 'Failed to update payment.' }, 500);

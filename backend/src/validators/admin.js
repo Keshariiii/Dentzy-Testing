@@ -27,7 +27,17 @@ export const updateOrderStageSchema = z.object({
 
 export const updatePaymentStatusSchema = z.object({
   status: z.enum(['Paid', 'Pending'], { errorMap: () => ({ message: 'Status must be Paid or Pending.' }) }),
-  paymentMethod: z.enum(['UPI', 'Cash', 'Cheque', 'Other', '']).optional().default(''),
+  paymentMode: z.enum(['Cash', 'Cheque', 'UPI', 'Other', '']).optional().default(''),
+  referenceNumber: z.string().max(100).optional().default(''),
   amount: z.number().min(0, 'Amount cannot be negative.').optional(),
   notes: z.string().max(500).optional().default(''),
+}).superRefine((data, ctx) => {
+  if (data.status === 'Paid') {
+    if (data.paymentMode === 'Cheque' && (!data.referenceNumber || data.referenceNumber.trim().length < 3)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Cheque number is required (min 3 characters).', path: ['referenceNumber'] });
+    }
+    if (data.paymentMode === 'UPI' && (!data.referenceNumber || data.referenceNumber.trim().length < 4)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'UPI transaction / UTR number is required (min 4 characters).', path: ['referenceNumber'] });
+    }
+  }
 });

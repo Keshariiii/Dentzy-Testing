@@ -138,13 +138,14 @@ dashboard.get('/payments', async (c) => {
 
     let sql = `SELECT o.id, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
        COALESCE(p.status, 'Pending') as paymentStatus,
-       COALESCE(p.description, '') as paymentMethod,
-       COALESCE(p.amount, 0) as amount, p.invoiceNumber
+       COALESCE(p.paymentMode, '') as paymentMode,
+       COALESCE(p.referenceNumber, '') as referenceNumber,
+       COALESCE(p.amount, 0) as amount, p.invoiceNumber, p.paidAt
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ?`;
     const params = [userId];
 
-    if (status && status !== 'all') { sql += ' AND COALESCE(p.status, \'Pending\') = ?'; params.push(status); }
+    if (status && status !== 'all') { sql += " AND COALESCE(p.status, 'Pending') = ?"; params.push(status); }
     if (search) {
       sql += ' AND (o.patientName LIKE ? OR o.caseId LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
@@ -153,7 +154,7 @@ dashboard.get('/payments', async (c) => {
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    return c.json({ payments: results.map(r => ({ ...r, _id: r.id, paymentMethod: r.paymentMethod })) });
+    return c.json({ payments: results.map(r => ({ ...r, _id: r.id })) });
   } catch (error) {
     logger.error('Dashboard payments error', { error: error.message });
     return c.json({ message: 'Failed to load payments.' }, 500);

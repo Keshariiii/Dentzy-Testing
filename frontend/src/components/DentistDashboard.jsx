@@ -1040,7 +1040,7 @@ const PaymentsTab = ({ payments, loading, title }) => (
         <table className="ud-table">
           <thead><tr>
             <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Amount</th>
-            <th>Due Date</th><th>Payment Status</th>
+            <th>Due Date</th><th>Payment Status</th><th>Mode & Ref</th>
           </tr></thead>
           <tbody>{payments.map(p => (
             <tr key={p._id}>
@@ -1056,8 +1056,19 @@ const PaymentsTab = ({ payments, loading, title }) => (
                   color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
                 }}>
                   {p.paymentStatus || 'Pending'}
-                  {(p.paymentStatus === 'Paid' && p.paymentMethod) ? ` (${p.paymentMethod})` : ''}
                 </span>
+              </td>
+              <td>
+                {p.paymentStatus === 'Paid' && p.paymentMode ? (
+                  <span style={{ fontSize: '0.78rem' }}>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
+                      background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
+                      color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
+                    }}>{p.paymentMode}</span>
+                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                  </span>
+                ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
               </td>
             </tr>
           ))}</tbody>

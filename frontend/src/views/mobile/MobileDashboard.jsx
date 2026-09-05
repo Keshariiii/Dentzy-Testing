@@ -634,6 +634,13 @@ const MobileDashboard = () => {
 
   const renderPayments = () => {
     const data = payments;
+
+    const modeBadge = (mode) => {
+      const colors = { Cash: { bg: '#dcfce7', fg: '#166534' }, Cheque: { bg: '#dbeafe', fg: '#1d4ed8' }, UPI: { bg: '#fae8ff', fg: '#7e22ce' } };
+      const c = colors[mode] || { bg: '#f0f0f0', fg: '#666' };
+      return <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: c.bg, color: c.fg }}>{mode}</span>;
+    };
+
     return (
       <div className="m-tab-content">
         <h2 className="m-tab-title">Payments</h2>
@@ -668,7 +675,6 @@ const MobileDashboard = () => {
                     color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
                   }}>
                     {p.paymentStatus || 'Pending'}
-                    {(p.paymentStatus === 'Paid' && p.paymentMethod) ? ` (${p.paymentMethod})` : ''}
                   </span>
                 </div>
                 <div className="m-order-card__body">
@@ -684,6 +690,18 @@ const MobileDashboard = () => {
                     <span className="m-order-field">Amount</span>
                     <span className="m-order-value m-order-amount">{p.amount > 0 ? formatINR(p.amount) : '—'}</span>
                   </div>
+                  {p.paymentStatus === 'Paid' && p.paymentMode && (
+                    <div className="m-order-row">
+                      <span className="m-order-field">Mode</span>
+                      <span className="m-order-value">{modeBadge(p.paymentMode)}</span>
+                    </div>
+                  )}
+                  {p.paymentStatus === 'Paid' && p.referenceNumber && (
+                    <div className="m-order-row">
+                      <span className="m-order-field">Ref #</span>
+                      <span className="m-order-value" style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{p.referenceNumber}</span>
+                    </div>
+                  )}
                   <div className="m-order-row">
                     <span className="m-order-field">Due Date</span>
                     <span className="m-order-value">{formatDate(p.dueDate)}</span>
