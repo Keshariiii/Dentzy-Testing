@@ -134,10 +134,20 @@ table {
   }
 }
 
-/* ── Focus Visible ─────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--dz-color-border-focus, #708c80);
   outline-offset: 2px;
+}
+
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+button:focus,
+button:focus-visible {
+  outline: none !important;
 }
 
 :focus:not(:focus-visible) {

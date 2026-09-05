@@ -722,29 +722,6 @@ const MobileAdminDashboard = () => {
                         day: '2-digit', month: 'short', year: 'numeric'
                       }) : '—'}
                     </div>
-
-                    {/* Actions */}
-                    <div className="ma-card-actions">
-                      {o.paymentStatus === 'Paid' ? (
-                        <button className="ma-card-action-btn ma-action-revert"
-                          onClick={() => handleRevertPayment(o._id)}
-                          disabled={actionLoading === o._id + '_payment'}>
-                          {actionLoading === o._id + '_payment' ? '...' : 'Mark Pending'}
-                        </button>
-                      ) : (
-                        <button className="ma-card-action-btn ma-action-pay"
-                          onClick={() => openRecordPayment(o)}>
-                          {Ico.check(13)} Record Payment
-                        </button>
-                      )}
-                      {o.paymentStatus !== 'Paid' && (
-                        <button className="ma-card-action-btn ma-action-remind"
-                          onClick={() => handleSendReminder(o._id)}
-                          disabled={actionLoading === o._id + '_remind'}>
-                          {actionLoading === o._id + '_remind' ? '...' : 'Remind'}
-                        </button>
-                      )}
-                    </div>
                   </div>
                 ))}
               </div>

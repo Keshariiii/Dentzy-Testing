@@ -111,13 +111,15 @@
   font-family: inherit;
   color: #333;
   background: #f9fbfa;
-  outline: none;
+  outline: none !important;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
-.ad-search:focus {
+.ad-search:focus,
+.ad-search:focus-visible {
   border-color: #7aa08d;
   background: #fff;
+  outline: none !important;
   box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
 }
 
@@ -1122,9 +1124,12 @@
   min-width: 200px;
   max-width: 320px;
 }
-.ad-pay-search input {
-  border: none;
-  outline: none;
+.ad-pay-search input,
+.ad-pay-search input:focus,
+.ad-pay-search input:focus-visible {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   background: none;
   font-size: 0.82rem;
   padding: 7px 0;

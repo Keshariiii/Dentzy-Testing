@@ -704,7 +704,7 @@ const AdminDashboard = () => {
                     <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
                       <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                         <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
-                          {['Patient', 'Case ID', 'Dentist', 'Service', 'Status', 'Payment', 'Created', 'Actions'].map(h => (
+                          {['Patient', 'Case ID', 'Dentist', 'Service', 'Status', 'Payment', 'Created'].map(h => (
                             <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
                           ))}
                         </tr></thead>
@@ -735,24 +735,6 @@ const AdminDashboard = () => {
                               </td>
                               <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
                                 {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                              </td>
-                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
-                                {(o.paymentStatus || 'Pending') === 'Paid' ? (
-                                  <button onClick={() => handleRevertPayment(o._id)} disabled={actionLoading === o._id + '_payment'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
-                                    {actionLoading === o._id + '_payment' ? '...' : 'Mark Pending'}
-                                  </button>
-                                ) : (
-                                  <button onClick={() => openRecordPayment(o)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
-                                    Record Payment
-                                  </button>
-                                )}
-                                {(o.paymentStatus || 'Pending') !== 'Paid' && (
-                                  <button onClick={() => handleSendReminder(o._id)} disabled={actionLoading === o._id + '_remind'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
-                                    {actionLoading === o._id + '_remind' ? '...' : 'Send Reminder'}
-                                  </button>
-                                )}
                               </td>
                             </tr>
                           ))}
