@@ -210,11 +210,23 @@ const DentistDashboard = () => {
   const [isEditingProfile, setIsEditingProfile]     = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
-  // New lab order form state
+  // New lab order form state (draft-backed via localStorage)
+  const DRAFT_KEY = 'dentzy_case_draft';
   const [showNewOrder, setShowNewOrder]     = useState(false);
-  const [newOrderForm, setNewOrderForm]     = useState({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
+  const [newOrderForm, setNewOrderForm]     = useState(() => {
+    try { const d = localStorage.getItem(DRAFT_KEY); if (d) return JSON.parse(d); } catch {}
+    return { patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' };
+  });
   const [newOrderLoading, setNewOrderLoading] = useState(false);
   const [newOrderError, setNewOrderError]   = useState('');
+
+  // ponytail: auto-save draft to localStorage on every keystroke; no debounce -- setState already batches
+  useEffect(() => {
+    try {
+      if (newOrderForm.patientName || newOrderForm.notes) localStorage.setItem(DRAFT_KEY, JSON.stringify(newOrderForm));
+      else localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+  }, [newOrderForm]);
 
   // Sync profile form when user changes
   useEffect(() => {
@@ -536,6 +548,7 @@ const DentistDashboard = () => {
       if (res.ok) {
         setOrders(prev => [data.order, ...prev]);
         setNewOrderForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
+        try { localStorage.removeItem(DRAFT_KEY); } catch {}
         setShowNewOrder(false);
       } else {
         setNewOrderError(data.message || 'Failed to create order.');

@@ -235,7 +235,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     const status = c.req.query('status');
     const stage = c.req.query('stage');
     const search = c.req.query('search');
-    const limit = parseInt(c.req.query('limit') || '100', 10);
+    const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
     let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
                FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE 1=1`;
@@ -274,7 +274,7 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
 
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const random = Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase();
     const caseId = `DZ-${datePart}-${random}`;
     const id = newId();
     const ts = now();

@@ -6,6 +6,7 @@ import {
   createCaptchaToken, verifyCaptchaToken,
   createOtpToken, verifyOtpToken,
   createResetToken, verifyResetToken,
+  generateSecureOtp,
 } from '../src/utils/crypto.js';
 
 const SECRET = 'test-secret-key-for-dentzy-testing';
@@ -127,5 +128,27 @@ describe('createResetToken / verifyResetToken', () => {
     const token = await createResetToken('user@dentzy.com', SECRET);
     const result = await verifyResetToken(token, 'wrong-key');
     assert.ok(!result.valid);
+  });
+});
+
+// ── Secure OTP Generator ────────────────────────────────────────────────────
+
+describe('generateSecureOtp', () => {
+  it('returns a 6-digit numeric string', () => {
+    const otp = generateSecureOtp();
+    assert.equal(otp.length, 6);
+    assert.match(otp, /^\d{6}$/);
+  });
+
+  it('is within valid range', () => {
+    for (let i = 0; i < 20; i++) {
+      const n = parseInt(generateSecureOtp(), 10);
+      assert.ok(n >= 100000 && n <= 999999, `OTP ${n} out of range`);
+    }
+  });
+
+  it('produces diverse values', () => {
+    const set = new Set(Array.from({ length: 10 }, () => generateSecureOtp()));
+    assert.ok(set.size > 1, 'all OTPs identical');
   });
 });

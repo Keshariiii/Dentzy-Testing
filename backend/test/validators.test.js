@@ -156,7 +156,6 @@ describe('Dashboard Validators', () => {
   describe('createOrderSchema', () => {
     it('accepts valid order', () => valid(createOrderSchema, { patientName: 'Patient' }));
     it('rejects empty patient name', () => invalid(createOrderSchema, { patientName: '' }));
-    it('rejects invalid status', () => invalid(createOrderSchema, { patientName: 'P', status: 'BadStatus' }));
     it('rejects invalid priority', () => invalid(createOrderSchema, { patientName: 'P', priority: 'Super' }));
   });
 
@@ -164,6 +163,8 @@ describe('Dashboard Validators', () => {
     it('accepts partial update', () => valid(updateOrderSchema, { patientName: 'New' }));
     it('rejects unknown fields (strict)', () => invalid(updateOrderSchema, { unknownField: 'value' }));
     it('rejects invalid service type', () => invalid(updateOrderSchema, { serviceType: 'Invalid' }));
+    it('rejects status (admin-only)', () => invalid(updateOrderSchema, { status: 'Completed' }));
+    it('rejects stage (admin-only)', () => invalid(updateOrderSchema, { stage: 'qc' }));
   });
 
   describe('createPaymentSchema', () => {

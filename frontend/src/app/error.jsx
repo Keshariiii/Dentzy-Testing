@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-
 /**
- * 404 - Not Found screen.
- * Branded, helpful screen for missing pages and invalid lab cases.
+ * error.jsx -- App Router error boundary.
+ * Catches unhandled React errors within the layout shell.
  * Responsive for mobile (<768px) and desktop screens.
  */
-export default function NotFound() {
+export default function Error({ error, reset }) {
+  const refId = 'DZ-ERR-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -36,17 +35,16 @@ export default function NotFound() {
           height: '56px',
           margin: '0 auto 1.25rem',
           borderRadius: '50%',
-          background: '#f0f5f2',
-          color: '#1e5038',
+          background: '#fef2f2',
+          color: '#b91c1c',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
         </div>
 
@@ -58,30 +56,26 @@ export default function NotFound() {
           letterSpacing: '0.05em',
           display: 'inline-block',
         }}>
-          Page Not Found (404)
+          Something went wrong
         </span>
-
         <h1 style={{
           fontSize: 'clamp(1.25rem, 4vw, 1.45rem)',
           fontWeight: 700,
           margin: '0.5rem 0 0.75rem',
           color: '#1a2e26',
         }}>
-          We cannot find this page
+          We hit a technical issue
         </h1>
-
-        <p style={{
-          fontSize: '0.9rem',
-          color: '#527063',
-          lineHeight: 1.5,
-          margin: '0 0 1.75rem',
-        }}>
-          The page or dental case order you are looking for does not exist, may have been moved, or has been archived.
+        <p style={{ fontSize: '0.9rem', color: '#527063', lineHeight: 1.5, margin: '0 0 0.5rem' }}>
+          An unexpected error occurred while loading this view. Your data has not been affected.
+        </p>
+        <p style={{ fontSize: '0.78rem', color: '#9ca3af', margin: '0 0 1.75rem' }}>
+          Reference: {refId}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => reset()}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -93,15 +87,16 @@ export default function NotFound() {
               color: '#ffffff',
               fontWeight: 600,
               fontSize: '0.92rem',
-              textDecoration: 'none',
+              border: 'none',
+              cursor: 'pointer',
               boxSizing: 'border-box',
+              width: '100%',
             }}
           >
-            Return to Dashboard
-          </Link>
-
+            Try Again
+          </button>
           <a
-            href="tel:+919170000195"
+            href="/dashboard"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -115,6 +110,24 @@ export default function NotFound() {
               fontSize: '0.92rem',
               textDecoration: 'none',
               border: '1px solid #dbe7e0',
+              boxSizing: 'border-box',
+              width: '100%',
+            }}
+          >
+            Return to Dashboard
+          </a>
+          <a
+            href="tel:+919170000195"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '44px',
+              padding: '0.6rem 1rem',
+              color: '#6b8a7a',
+              fontWeight: 500,
+              fontSize: '0.85rem',
+              textDecoration: 'none',
               boxSizing: 'border-box',
             }}
           >

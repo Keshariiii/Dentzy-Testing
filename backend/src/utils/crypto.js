@@ -2,6 +2,21 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 
+// ── Secure random OTP ───────────────────────────────────────────────────────
+// ponytail: rejection sampling, no modulo bias for 6-digit range
+export function generateSecureOtp(length = 6) {
+  const min = 10 ** (length - 1);
+  const max = 10 ** length - 1;
+  const range = max - min + 1;
+  const arr = new Uint32Array(1);
+  let val;
+  do {
+    crypto.getRandomValues(arr);
+    val = arr[0] >>> 0;
+  } while (val >= Math.floor(0x100000000 / range) * range);
+  return String(min + (val % range));
+}
+
 // ── Password hashing ────────────────────────────────────────────────────────
 export const hashPassword = (plain) => bcrypt.hash(plain, 10);
 export const comparePassword = (plain, hash) => bcrypt.compare(plain, hash);

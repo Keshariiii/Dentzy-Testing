@@ -1,8 +1,12 @@
 // SVG CAPTCHA generator — identical visual output to the original, zero deps.
 const CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
-export const generateCode = (length = 6) =>
-  Array.from({ length }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('');
+export const generateCode = (length = 6) => {
+  // ponytail: 256 % 32 === 0, no modulo bias. Visual noise stays Math.random (cosmetic only).
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => CHARS[b % CHARS.length]).join('');
+};
 
 export const generateCaptchaSVG = (text) => {
   const width = 190, height = 54;

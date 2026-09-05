@@ -1,6 +1,15 @@
 import { connect } from 'cloudflare:sockets';
 import logger from './logger.js';
 
+/** Escape user input for safe HTML interpolation. */
+export const escapeHtml = (s) => {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+};
+
+/** Escape then convert newlines to <br> for multiline user content. */
+export const escapeMultiline = (s) => s ? escapeHtml(s).replace(/\n/g, '<br>') : '';
+
 /**
  * Convert HTML to clean plain text for multipart/alternative email delivery.
  * Ensures strict spam filter compliance (prevents MIME_HTML_ONLY penalty).
@@ -276,7 +285,7 @@ https://dentzy-testing.pages.dev`;
             <td style="padding: 20px 35px 30px 35px;">
               <h3 style="margin: 0 0 12px 0; color: #1e2824; font-size: 18px; font-weight: 700;">Verify Your Email Address</h3>
               <p style="margin: 0 0 20px 0; color: #4a5d54; font-size: 14px; line-height: 1.6;">
-                Hello <strong>${name}</strong>,<br>
+                Hello <strong>${escapeHtml(name)}</strong>,<br>
                 Thank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:
               </p>
               
@@ -361,7 +370,7 @@ https://dentzy-testing.pages.dev`;
             <td style="padding: 20px 35px 30px 35px;">
               <h3 style="margin: 0 0 12px 0; color: #1e2824; font-size: 18px; font-weight: 700;">Password Reset Request</h3>
               <p style="margin: 0 0 20px 0; color: #4a5d54; font-size: 14px; line-height: 1.6;">
-                Hello <strong>${name}</strong>,<br>
+                Hello <strong>${escapeHtml(name)}</strong>,<br>
                 We received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:
               </p>
               
@@ -408,7 +417,7 @@ https://dentzy-testing.pages.dev`;
  */
 export async function sendContactAdminNotification({ env, contact }) {
   const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
-  const subject = `🔔 New Contact Inquiry: ${contact.name} (${contact.subject || 'General'})`;
+  const subject = `New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -421,26 +430,26 @@ export async function sendContactAdminNotification({ env, contact }) {
     <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Name:</td>
-        <td style="padding: 8px 0;">${contact.name}</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.name)}</td>
       </tr>
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Email:</td>
-        <td style="padding: 8px 0;"><a href="mailto:${contact.email}" style="color: #1e5038;">${contact.email}</a></td>
+        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(contact.email)}" style="color: #1e5038;">${escapeHtml(contact.email)}</a></td>
       </tr>
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Phone:</td>
-        <td style="padding: 8px 0;">${contact.phone || 'Not provided'}</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.phone) || 'Not provided'}</td>
       </tr>
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Subject:</td>
-        <td style="padding: 8px 0;">${contact.subject || 'General Inquiry'}</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.subject) || 'General Inquiry'}</td>
       </tr>
       <tr>
         <td style="padding: 12px 0 4px 0; font-weight: bold; color: #4a5d54;" colspan="2">Message:</td>
       </tr>
       <tr>
         <td colspan="2" style="background: #f8faf9; border-radius: 8px; padding: 15px; border: 1px solid #e2ece6; line-height: 1.6;">
-          ${contact.message ? String(contact.message).replace(/\n/g, '<br>') : '—'}
+          ${contact.message ? escapeMultiline(contact.message) : '\u2014'}
         </td>
       </tr>
     </table>
@@ -473,8 +482,8 @@ export async function sendContactUserConfirmation({ env, contact }) {
   <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
     <h2 style="color: #1e5038; margin-top: 0;">Thank You for Reaching Out</h2>
     <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${contact.name}</strong>,<br><br>
-      We have received your message regarding <strong>"${contact.subject || 'your inquiry'}"</strong>. Our team is reviewing your request and will get back to you shortly.
+      Hello <strong>${escapeHtml(contact.name)}</strong>,<br><br>
+      We have received your message regarding <strong>"${escapeHtml(contact.subject) || 'your inquiry'}"</strong>. Our team is reviewing your request and will get back to you shortly.
     </p>
     
     <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
@@ -501,23 +510,23 @@ export async function sendContactUserConfirmation({ env, contact }) {
  */
 export async function sendNewUserAdminAlert({ env, user }) {
   const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
-  const subject = `🆕 New Dentist Registration: ${user.name} (${user.email})`;
+  const subject = `New Dentist Registration: ${user.name} (${user.email})`.replace(/[\r\n]/g, ' ');
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
   <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-    <h2 style="color: #1e5038; margin-top: 0;">🆕 New Dentist Registration</h2>
+    <h2 style="color: #1e5038; margin-top: 0;">New Dentist Registration</h2>
     <p style="color: #64748b; font-size: 14px;">A new dentist has registered on the Dentzy portal and is awaiting your approval:</p>
 
     <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; width: 100px; color: #4a5d54;">Name:</td>
-        <td style="padding: 8px 0;">${user.name}</td>
+        <td style="padding: 8px 0;">${escapeHtml(user.name)}</td>
       </tr>
       <tr style="border-bottom: 1px solid #eef4f1;">
         <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Email:</td>
-        <td style="padding: 8px 0;"><a href="mailto:${user.email}" style="color: #1e5038;">${user.email}</a></td>
+        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038;">${escapeHtml(user.email)}</a></td>
       </tr>
     </table>
 
@@ -548,7 +557,7 @@ export async function sendRegistrationPendingEmail({ env, user }) {
   <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
     <h2 style="color: #1e5038; margin-top: 0;">Welcome to Dentzy!</h2>
     <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${user.name}</strong>,<br><br>
+      Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
       Thank you for registering on the Dentzy Clinical Lab Portal. Your account is currently <strong>under review</strong> by our admin team.
     </p>
 
@@ -573,18 +582,18 @@ export async function sendRegistrationPendingEmail({ env, user }) {
  * User Notification — Account Approved.
  */
 export async function sendUserApprovedEmail({ env, user }) {
-  const subject = `🎉 Your Dentzy Account Has Been Approved!`;
+  const subject = `Your Dentzy Account Has Been Approved!`;
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
   <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
     <div style="text-align: center; margin-bottom: 20px;">
-      <div style="display: inline-block; background: #dcfce7; border-radius: 50%; width: 60px; height: 60px; line-height: 60px; font-size: 28px;">✅</div>
+      <div style="display: inline-block; background: #dcfce7; border-radius: 50%; width: 60px; height: 60px; line-height: 60px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="20 6 9 17 4 12"/></svg></div>
     </div>
     <h2 style="color: #1e5038; margin-top: 0; text-align: center;">Account Approved!</h2>
     <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${user.name}</strong>,<br><br>
+      Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
       Great news! Your Dentzy account has been approved. You can now log in to the portal and start managing your dental lab orders.
     </p>
 
@@ -614,7 +623,7 @@ export async function sendUserApprovedEmail({ env, user }) {
 export async function sendUserRejectedEmail({ env, user, note }) {
   const reasonBlock = note
     ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #991b1b;">
-        <strong>Reason provided:</strong><br>${String(note).replace(/\n/g, '<br>')}
+        <strong>Reason provided:</strong><br>${escapeMultiline(note)}
       </div>`
     : '';
 
@@ -626,7 +635,7 @@ export async function sendUserRejectedEmail({ env, user, note }) {
   <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
     <h2 style="color: #1e2824; margin-top: 0;">Account Registration Update</h2>
     <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${user.name}</strong>,<br><br>
+      Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
       We appreciate your interest in Dentzy. After reviewing your registration, we are unable to approve your account at this time.
     </p>
 

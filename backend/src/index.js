@@ -23,12 +23,14 @@ app.use('*', async (c, next) => {
           if (re.test(origin)) return origin;
         }
       }
-      // Local network
-      try {
-        const host = new URL(origin).hostname;
-        if (host === 'localhost' || host === '127.0.0.1' || /^192\.168\./.test(host) || /^10\./.test(host))
-          return origin;
-      } catch {}
+      // Local network — dev only
+      if (c.env.NODE_ENV !== 'production') {
+        try {
+          const host = new URL(origin).hostname;
+          if (host === 'localhost' || host === '127.0.0.1' || /^192\.168\./.test(host) || /^10\./.test(host))
+            return origin;
+        } catch {}
+      }
       return null;
     },
     credentials: true,

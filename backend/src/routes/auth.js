@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
 import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
-import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken } from '../utils/crypto.js';
+import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, generateSecureOtp } from '../utils/crypto.js';
 import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
@@ -59,7 +59,7 @@ auth.post('/register/send-otp', validate(registerSchema), async (c) => {
       return c.json({ message: 'This email is already registered. Please log in instead.', action: 'LOGIN' }, 409);
 
     // Generate 6-digit OTP and HMAC token (5 min expiry)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = generateSecureOtp();
     const otpToken = await createOtpToken(email, otp, c.env.JWT_SECRET);
 
     // Send verification email
@@ -105,7 +105,7 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
     if (existing)
       return c.json({ message: 'This email is already registered.', action: 'LOGIN' }, 409);
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = generateSecureOtp();
     const otpToken = await createOtpToken(email, otp, c.env.JWT_SECRET);
 
     const emailRes = await sendRegistrationOtpEmail({
@@ -263,7 +263,7 @@ auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
     }
 
     // Generate random 6-digit numeric OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = generateSecureOtp();
     const otpToken = await createOtpToken(user.email, otp, c.env.JWT_SECRET);
 
     // Send email (Gmail SMTP primary, Brevo fallback)

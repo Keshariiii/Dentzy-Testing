@@ -56,7 +56,7 @@ dashboard.get('/orders', async (c) => {
   try {
     const status = c.req.query('status');
     const search = c.req.query('search');
-    const limit = parseInt(c.req.query('limit') || '20', 10);
+    const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '20', 10) || 20, 1), 100);
     const sort = ORDER_SORT_FIELDS.includes(c.req.query('sort')) ? c.req.query('sort') : 'createdAt';
     const order = c.req.query('order') === 'asc' ? 'ASC' : 'DESC';
 
@@ -87,14 +87,14 @@ dashboard.post('/orders', validate(createOrderSchema), async (c) => {
   try {
     const d = new Date();
     const datePart = `${String(d.getDate()).padStart(2, '0')}${String(d.getMonth() + 1).padStart(2, '0')}${d.getFullYear()}`;
-    const caseId = body.caseId || `DZ-${datePart}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const caseId = body.caseId || `DZ-${datePart}-${Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase()}`;
     const id = newId();
     const ts = now();
 
     await c.env.DB.prepare(
       `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, 'received', ?, ?, ?, 'dentist', ?, ?)`
-    ).bind(id, userId, body.patientName, caseId, body.serviceType, body.status || 'Pending', body.dueDate || null, body.notes || '', body.priority || 'Normal', ts, ts).run();
+       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, 'dentist', ?, ?)`
+    ).bind(id, userId, body.patientName, caseId, body.serviceType, body.dueDate || null, body.notes || '', body.priority || 'Normal', ts, ts).run();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
 
@@ -117,7 +117,7 @@ dashboard.patch('/orders/:id', validate(updateOrderSchema), async (c) => {
 
   const sets = [];
   const vals = [];
-  const allowed = ['patientName', 'caseId', 'serviceType', 'status', 'stage', 'dueDate', 'notes', 'priority'];
+  const allowed = ['patientName', 'caseId', 'serviceType', 'dueDate', 'notes', 'priority'];
   for (const key of allowed) {
     if (body[key] !== undefined) { sets.push(`${key} = ?`); vals.push(body[key]); }
   }
@@ -166,7 +166,7 @@ dashboard.get('/payments', async (c) => {
   try {
     const status = c.req.query('status');
     const search = c.req.query('search');
-    const limit = parseInt(c.req.query('limit') || '20', 10);
+    const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '20', 10) || 20, 1), 100);
     const sort = PAYMENT_SORT_FIELDS.includes(c.req.query('sort')) ? c.req.query('sort') : 'invoiceDate';
     const order = c.req.query('order') === 'asc' ? 'ASC' : 'DESC';
 
