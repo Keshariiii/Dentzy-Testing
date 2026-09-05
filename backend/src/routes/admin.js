@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyAdmin } from '../middleware/auth.js';
-import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema } from '../validators/admin.js';
+import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema } from '../validators/admin.js';
 import { signJWT } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
-import { sendUserApprovedEmail, sendUserRejectedEmail } from '../utils/email.js';
+import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail } from '../utils/email.js';
 import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 const admin = new Hono();
@@ -237,8 +237,10 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     const search = c.req.query('search');
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
-    let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
-               FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE 1=1`;
+    let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
+               COALESCE(p.status, 'Pending') as paymentStatus
+               FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
+               LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
     const params = [];
 
     if (status && status !== 'all') { sql += ' AND o.status = ?'; params.push(status); }
@@ -255,6 +257,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     const orders = results.map(r => ({
       ...r,
       _id: r.id,
+      paymentStatus: r.paymentStatus,
       owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
     }));
     return c.json({ orders });
@@ -285,6 +288,13 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     ).bind(id, dentistId, patientName, caseId, serviceType || 'Other', dueDate || null, notes || '', priority || 'Normal', ts, ts).run();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
+
+    // Auto-create payment entry for this order
+    const paymentId = newId();
+    await c.env.DB.prepare(
+      `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, 'INR', 'Pending', ?, ?, '', ?, ?)`
+    ).bind(paymentId, dentistId, patientName, caseId, `INV-${caseId}`, 0, ts, dueDate || null, ts, ts).run();
 
     auditLog('ORDER_CREATED', { orderId: id, caseId, dentistId, adminUsername: c.get('admin').username });
 
@@ -339,6 +349,68 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
   } catch (error) {
     logger.error('Admin delete order error', { error: error.message });
     return c.json({ message: 'Failed to delete order.' }, 500);
+  }
+});
+
+// PATCH /api/admin/orders/:id/payment — toggle payment status
+admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSchema), async (c) => {
+  try {
+    const orderId = c.req.param('id');
+    const { status, amount, notes } = c.get('body');
+    const ts = now();
+
+    const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(orderId).first();
+    if (!order) return c.json({ message: 'Order not found.' }, 404);
+
+    // Upsert payment record
+    const existing = await c.env.DB.prepare('SELECT id FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
+    if (existing) {
+      const updates = ['status = ?', 'updatedAt = ?'];
+      const binds = [status, ts];
+      if (amount !== undefined) { updates.push('amount = ?'); binds.push(amount); }
+      if (notes) { updates.push('description = ?'); binds.push(notes); }
+      binds.push(existing.id);
+      await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
+    } else {
+      const pid = newId();
+      await c.env.DB.prepare(
+        `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?)`
+      ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount || 0, status, ts, order.dueDate || null, notes || '', ts, ts).run();
+    }
+
+    auditLog('PAYMENT_STATUS_UPDATED', { orderId, caseId: order.caseId, newStatus: status, adminUsername: c.get('admin').username });
+    return c.json({ message: `Payment marked as ${status}.` });
+  } catch (error) {
+    logger.error('Admin payment update error', { error: error.message });
+    return c.json({ message: 'Failed to update payment.' }, 500);
+  }
+});
+
+// POST /api/admin/orders/:id/remind-payment — send payment reminder email
+admin.post('/orders/:id/remind-payment', verifyAdmin(), async (c) => {
+  try {
+    const orderId = c.req.param('id');
+    const order = await c.env.DB.prepare(
+      'SELECT o.*, u.name as ownerName, u.email as ownerEmail FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
+    ).bind(orderId).first();
+    if (!order) return c.json({ message: 'Order not found.' }, 404);
+    if (!order.ownerEmail) return c.json({ message: 'Dentist email not found.' }, 400);
+
+    const payment = await c.env.DB.prepare('SELECT * FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
+
+    await sendPaymentReminderEmail({
+      env: c.env,
+      dentist: { name: order.ownerName, email: order.ownerEmail },
+      order,
+      payment,
+    });
+
+    auditLog('PAYMENT_REMINDER_SENT', { orderId, caseId: order.caseId, dentistEmail: order.ownerEmail, adminUsername: c.get('admin').username });
+    return c.json({ message: `Payment reminder sent to ${order.ownerEmail}.` });
+  } catch (error) {
+    logger.error('Admin payment reminder error', { error: error.message });
+    return c.json({ message: 'Failed to send reminder.' }, 500);
   }
 });
 

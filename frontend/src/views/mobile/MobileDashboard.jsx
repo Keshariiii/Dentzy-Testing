@@ -2,7 +2,7 @@
  * MobileDashboard — Full-featured native app-style mobile dashboard.
  * 100% feature parity with UserDashboard.jsx (PC version).
  * No emojis. All features: ticker, pipeline, action hub, resources,
- * support bar, orders with search, revenue tabs, reports, full settings,
+ * support bar, orders with search, payments, reports, full settings,
  * delete account modal.
  */
 'use client';
@@ -190,14 +190,6 @@ const TABS = [
   { key: 'settings',  label: 'Settings',  icon: Icons.settings },
 ];
 
-const REVENUE_TABS = [
-  { key: 'payments',        label: 'All' },
-  { key: 'revenue-month',   label: 'This Month' },
-  { key: 'revenue-pending', label: 'Pending' },
-  { key: 'revenue-paid',    label: 'Paid' },
-  { key: 'revenue-report',  label: 'Report' },
-];
-
 /* ============================================================
    MAIN COMPONENT
 ============================================================ */
@@ -207,7 +199,6 @@ const MobileDashboard = () => {
   const { showToast } = useToast();
 
   const [activeTab,   setActiveTab]   = useState('dashboard');
-  const [revenueTab,  setRevenueTab]  = useState('payments');
   const [search,      setSearch]      = useState('');
   const [stats,       setStats]       = useState(null);
   const [orders,      setOrders]      = useState([]);
@@ -272,14 +263,12 @@ const MobileDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const statusMap = { 'revenue-pending': 'Pending', 'revenue-paid': 'Paid' };
-      const statusParam = statusMap[revenueTab] ? `&status=${statusMap[revenueTab]}` : '';
-      const res = await authFetch(`${DASH_URL}/payments?limit=50${statusParam}`);
+      const res = await authFetch(`${DASH_URL}/payments?limit=50`);
       if (res.ok) { const d = await res.json(); setPayments(d.payments || []); }
       else setError('Failed to load payments');
     } catch { setError('Network error while loading payments'); }
     setLoading(false);
-  }, [authFetch, DASH_URL, revenueTab]);
+  }, [authFetch, DASH_URL]);
 
   useEffect(() => {
     if (user) fetchStats();
@@ -291,10 +280,6 @@ const MobileDashboard = () => {
       if (activeTab === 'payments') fetchPayments();
     }
   }, [user, activeTab, fetchOrders, fetchPayments]);
-
-  useEffect(() => {
-    if (user && activeTab === 'payments') fetchPayments();
-  }, [user, revenueTab, fetchPayments, activeTab]);
 
   const fetchOrdersRef = useRef(fetchOrders);
   fetchOrdersRef.current = fetchOrders;
@@ -419,7 +404,7 @@ const MobileDashboard = () => {
     const ACTION_ITEMS = [
       { key: 'lab-orders',  icon: Icons.labOrder(20),  title: 'Lab Orders',          desc: 'View and track all active and completed dental lab cases.', cta: 'View Orders',   color: 'green',  onClick: () => setActiveTab('orders') },
       { key: 'payments',    icon: Icons.payments(20),  title: 'Payments & Invoices',  desc: 'Review outstanding balances and full payment history.',        cta: 'View Payments', color: 'teal',   onClick: () => setActiveTab('payments') },
-      { key: 'pending',     icon: Icons.clock(20),     title: 'Pending Invoices',     desc: 'Cases awaiting payment — clear dues to avoid delays.',        cta: 'View Pending',  color: 'amber',  onClick: () => { setActiveTab('payments'); setRevenueTab('revenue-pending'); } },
+      { key: 'pending',     icon: Icons.clock(20),     title: 'Pending Invoices',     desc: 'Cases awaiting payment — clear dues to avoid delays.',        cta: 'View Pending',  color: 'amber',  onClick: () => setActiveTab('payments') },
       { key: 'reports',     icon: Icons.reports(20),   title: 'Reports & Analytics',  desc: 'Practice insights, turnaround times, and order trends.',      cta: 'View Reports',  color: 'green',  onClick: () => setActiveTab('reports') },
       { key: 'support',     icon: Icons.chat(20),      title: 'Lab Support',          desc: 'Reach our clinical team for urgent case queries.',            cta: 'Contact',       color: 'teal',   onClick: () => { const el = document.getElementById('m-support-bar'); el?.scrollIntoView({ behavior: 'smooth' }); } },
       { key: 'settings',    icon: Icons.settings(20),  title: 'Account Settings',     desc: 'Manage profile, change password, and account preferences.',  cta: 'Go to Settings',color: 'teal',   onClick: () => setActiveTab('settings') },
@@ -649,44 +634,13 @@ const MobileDashboard = () => {
     </div>
   );
 
-  /* ============================================================
-     PAYMENTS TAB
-  ============================================================ */
-  const PAYMENT_TITLES = {
-    'payments':        'All Payments',
-    'revenue-month':   "This Month's Payments",
-    'revenue-pending': 'Pending Payments',
-    'revenue-paid':    'Paid Invoices',
-    'revenue-report':  'Invoice Report',
-  };
-
-  const getFilteredPayments = () => {
-    if (revenueTab === 'revenue-month') {
-      const now = new Date();
-      return payments.filter(p => {
-        const d = new Date(p.invoiceDate);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    }
-    return payments;
-  };
-
   const renderPayments = () => {
-    const data = getFilteredPayments();
+    const data = payments;
     return (
       <div className="m-tab-content">
-        <h2 className="m-tab-title">{PAYMENT_TITLES[revenueTab]}</h2>
-        {/* Revenue sub-filter chips */}
-        <div className="m-revenue-chips">
-          {REVENUE_TABS.map((rt) => (
-            <button
-              key={rt.key}
-              className={`m-revenue-chip ${revenueTab === rt.key ? 'm-revenue-chip--active' : ''}`}
-              onClick={() => setRevenueTab(rt.key)}
-            >
-              {rt.label}
-            </button>
-          ))}
+        <h2 className="m-tab-title">Payments</h2>
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#92400e' }}>
+          <strong>Payment Method: Cheque</strong> -- Invoices are cleared upon physical cheque receipt at the lab.
         </div>
         {error && (
           <div className="m-error-banner">
@@ -702,7 +656,7 @@ const MobileDashboard = () => {
           <div className="m-empty">
             {Icons.inbox(40)}
             <p>No payment records found</p>
-            <p className="m-empty-sub">Payment records will appear here once added.</p>
+            <p className="m-empty-sub">Payment records will appear here once orders are created.</p>
           </div>
         ) : (
           <div className="m-cards-list">
@@ -710,7 +664,11 @@ const MobileDashboard = () => {
               <div key={p._id} className="m-order-card">
                 <div className="m-order-card__top">
                   <span className="m-order-id">{p.caseId}</span>
-                  <StatusPill status={p.status} />
+                  <span style={{
+                    padding: '3px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600,
+                    background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
+                    color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
+                  }}>{p.paymentStatus || 'Pending'}</span>
                 </div>
                 <div className="m-order-card__body">
                   <div className="m-order-row">
@@ -718,16 +676,12 @@ const MobileDashboard = () => {
                     <span className="m-order-value">{p.patientName}</span>
                   </div>
                   <div className="m-order-row">
-                    <span className="m-order-field">Invoice #</span>
-                    <span className="m-order-value">{p.invoiceNumber || '—'}</span>
+                    <span className="m-order-field">Service</span>
+                    <span className="m-order-value">{p.serviceType || '—'}</span>
                   </div>
                   <div className="m-order-row">
                     <span className="m-order-field">Amount</span>
-                    <span className="m-order-value m-order-amount">{formatINR(p.amount)}</span>
-                  </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Invoice Date</span>
-                    <span className="m-order-value">{formatDate(p.invoiceDate)}</span>
+                    <span className="m-order-value m-order-amount">{p.amount > 0 ? formatINR(p.amount) : '—'}</span>
                   </div>
                   <div className="m-order-row">
                     <span className="m-order-field">Due Date</span>
@@ -752,7 +706,7 @@ const MobileDashboard = () => {
       <div className="m-coming-soon">
         <div className="m-coming-soon-icon">{Icons.barChart(40)}</div>
         <h3>Analytics Coming Soon</h3>
-        <p>Your practice insights, monthly order trends, and revenue charts will appear here.</p>
+        <p>Your practice insights and monthly order trends will appear here.</p>
       </div>
       <div className="m-bottom-spacer" />
     </div>

@@ -13,7 +13,7 @@ const dentzyLogo = '/dentzy-logo-v2.png';
 import { Icon, Icons } from './common/DashboardIcons';
 
 /* =============================================================================
-   NAV + REVENUE ITEMS
+   NAV ITEMS
 ============================================================================= */
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard',  icon: Icons.dashboard },
@@ -21,13 +21,6 @@ const NAV_ITEMS = [
   { key: 'reports',   label: 'Reports',     icon: Icons.reports },
   { key: 'payments',  label: 'Payments',    icon: Icons.payments },
   { key: 'settings',  label: 'Settings',    icon: Icons.settings },
-];
-
-const REVENUE_ITEMS = [
-  { key: 'revenue-month',   label: 'This Month' },
-  { key: 'revenue-pending', label: 'Pending Payments' },
-  { key: 'revenue-paid',    label: 'Paid Invoices' },
-  { key: 'revenue-report',  label: 'Invoice Report' },
 ];
 
 /* =============================================================================
@@ -184,7 +177,6 @@ const DentistDashboard = () => {
   const { user, logout, authFetch, updateUserState, API_URL, DASH_URL } = useAuth();
 
   const [activeTab, setActiveTab]     = useState('dashboard');
-  const [revenueOpen, setRevenueOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch]           = useState('');
   const [stats, setStats]             = useState(null);
@@ -261,13 +253,11 @@ const DentistDashboard = () => {
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
-      const statusMap = { 'revenue-pending': 'Pending', 'revenue-paid': 'Paid' };
-      const statusParam = statusMap[activeTab] ? `&status=${statusMap[activeTab]}` : '';
-      const res = await authFetch(`${DASH_URL}/payments?limit=50${statusParam}`);
+      const res = await authFetch(`${DASH_URL}/payments?limit=50`);
       if (res.ok) { const d = await res.json(); setPayments(d.payments || []); }
     } catch {}
     setLoading(false);
-  }, [authFetch, DASH_URL, activeTab]);
+  }, [authFetch, DASH_URL]);
 
   useEffect(() => {
     if (user) fetchStats();
@@ -276,7 +266,7 @@ const DentistDashboard = () => {
   useEffect(() => {
     if (user) {
       if (activeTab === 'orders' || activeTab === 'dashboard') fetchOrders();
-      if (['payments', 'revenue-month', 'revenue-pending', 'revenue-paid', 'revenue-report'].includes(activeTab)) fetchPayments();
+      if (activeTab === 'payments') fetchPayments();
     }
   }, [user, activeTab, fetchOrders, fetchPayments]);
 
@@ -357,7 +347,7 @@ const DentistDashboard = () => {
         desc: 'Cases awaiting payment — clear dues to avoid processing delays.',
         cta: 'View Pending',
         variant: 'amber',
-        onClick: () => { setActiveTab('revenue-pending'); setRevenueOpen(true); },
+        onClick: () => setActiveTab('payments'),
       },
       {
         id: 'action-reports',
@@ -680,7 +670,7 @@ const DentistDashboard = () => {
       <div className="ud-coming-soon">
         <div className="ud-cs-icon">{Icons.barChart(40)}</div>
         <h3>Analytics Coming Soon</h3>
-        <p>Your practice insights, monthly order trends, and revenue charts will appear here.</p>
+        <p>Your practice insights and monthly order trends will appear here.</p>
       </div>
     </div>
   );
@@ -1087,34 +1077,12 @@ const DentistDashboard = () => {
     </div>
   );
 
-  /* ============================================================
-     TAB TITLES
-  ============================================================ */
-  const paymentsTitles = {
-    'payments':        'All Payments',
-    'revenue-month':   "This Month's Payments",
-    'revenue-pending': 'Pending Payments',
-    'revenue-paid':    'Paid Invoices',
-    'revenue-report':  'Invoice Report',
-  };
-
   const renderContent = () => {
     if (activeTab === 'dashboard') return renderDashboard();
     if (activeTab === 'orders')   return renderOrders();
     if (activeTab === 'reports')  return renderReports();
     if (activeTab === 'settings') return renderSettings();
-
-    if (paymentsTitles[activeTab]) {
-      let data = payments;
-      if (activeTab === 'revenue-month') {
-        const now = new Date();
-        data = payments.filter(p => {
-          const d = new Date(p.invoiceDate);
-          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        });
-      }
-      return <PaymentsTab payments={data} loading={loading} title={paymentsTitles[activeTab]} />;
-    }
+    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" />;
     return null;
   };
 
@@ -1162,33 +1130,12 @@ const DentistDashboard = () => {
             {NAV_ITEMS.map(item => (
               <button key={item.key} id={`nav-${item.key}`}
                 className={`ud-nav-item ${activeTab === item.key ? 'active' : ''}`}
-                onClick={() => { setActiveTab(item.key); setRevenueOpen(false); setSidebarOpen(false); }}
+                onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
               >
                 <span className="ud-nav-icon">{item.icon(16)}</span>
                 {item.label}
               </button>
             ))}
-
-            {/* Revenue & Billing accordion */}
-            <button id="nav-revenue"
-              className={`ud-nav-item ud-nav-accordion ${REVENUE_ITEMS.some(r => r.key === activeTab) ? 'active' : ''}`}
-              onClick={() => setRevenueOpen(v => !v)}
-            >
-              <span className="ud-nav-icon">{Icons.revenue(16)}</span>
-              Revenue &amp; Billing
-              <span className={`ud-chevron ${revenueOpen ? 'open' : ''}`}>&#8250;</span>
-            </button>
-
-            {revenueOpen && (
-              <div className="ud-sub-nav">
-                {REVENUE_ITEMS.map(item => (
-                  <button key={item.key} id={`nav-${item.key}`}
-                    className={`ud-sub-nav-item ${activeTab === item.key ? 'active' : ''}`}
-                    onClick={() => setActiveTab(item.key)}
-                  >{item.label}</button>
-                ))}
-              </div>
-            )}
           </nav>
 
           <button id="user-logout-btn" className="ud-logout" onClick={handleLogout}>
@@ -1209,30 +1156,38 @@ const DentistDashboard = () => {
 const PaymentsTab = ({ payments, loading, title }) => (
   <div className="ud-content-inner">
     <h2 className="ud-tab-title">{title}</h2>
+    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#92400e' }}>
+      <strong>Payment Method: Cheque</strong> -- Invoices are cleared upon physical cheque receipt at the lab.
+    </div>
     {loading ? (
       <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
     ) : payments.length === 0 ? (
       <div className="ud-empty">
         <div className="ud-empty-icon">{Icons.inbox(40)}</div>
         <p>No payment records found</p>
-        <p className="ud-empty-sub">Payment records will appear here once added.</p>
+        <p className="ud-empty-sub">Payment records will appear here once orders are created.</p>
       </div>
     ) : (
       <div className="ud-table-wrap">
         <table className="ud-table">
           <thead><tr>
-            <th>Patient Name</th><th>Case ID</th><th>Invoice #</th><th>Amount</th>
-            <th>Invoice Date</th><th>Due Date</th><th>Status</th>
+            <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Amount</th>
+            <th>Due Date</th><th>Payment Status</th>
           </tr></thead>
           <tbody>{payments.map(p => (
             <tr key={p._id}>
               <td><strong>{p.patientName}</strong></td>
               <td><code className="ud-code">{p.caseId}</code></td>
-              <td>{p.invoiceNumber || '—'}</td>
-              <td className="ud-amount">&#8377;{p.amount?.toLocaleString('en-IN')}</td>
-              <td>{formatDate(p.invoiceDate)}</td>
+              <td>{p.serviceType || '—'}</td>
+              <td className="ud-amount">{p.amount > 0 ? `\u20B9${p.amount.toLocaleString('en-IN')}` : '—'}</td>
               <td>{formatDate(p.dueDate)}</td>
-              <td><StatusBadge status={p.status} /></td>
+              <td>
+                <span style={{
+                  padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                  background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
+                  color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
+                }}>{p.paymentStatus || 'Pending'}</span>
+              </td>
             </tr>
           ))}</tbody>
         </table>
@@ -1242,3 +1197,4 @@ const PaymentsTab = ({ payments, loading, title }) => (
 );
 
 export default DentistDashboard;
+

@@ -277,6 +277,33 @@ const AdminDashboard = () => {
 
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
+  const handleTogglePayment = async (orderId, currentStatus) => {
+    const newStatus = currentStatus === 'Paid' ? 'Pending' : 'Paid';
+    setActionLoading(orderId + '_payment');
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}/payment`, {
+        method: 'PATCH', body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Payment marked as ${newStatus}.`);
+        setAllOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentStatus: newStatus } : o));
+      } else showToast(data.message || 'Failed', 'error');
+    } catch { showToast('Network error', 'error'); }
+    setActionLoading(null);
+  };
+
+  const handleSendReminder = async (orderId) => {
+    setActionLoading(orderId + '_remind');
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}/remind-payment`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) showToast(data.message || 'Reminder sent.');
+      else showToast(data.message || 'Failed', 'error');
+    } catch { showToast('Network error', 'error'); }
+    setActionLoading(null);
+  };
+
   const filteredUsers = (users || []).filter(u =>
     (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
     (u?.email || '').toLowerCase().includes((search || '').toLowerCase())
@@ -479,8 +506,9 @@ const AdminDashboard = () => {
                           <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Dentist</th>
                           <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Service</th>
                           <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Status</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Priority</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Payment</th>
                           <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Created</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>Actions</th>
                         </tr></thead>
                         <tbody>
                           {allOrders.map((o, i) => (
@@ -497,12 +525,26 @@ const AdminDashboard = () => {
                               </td>
                               <td style={{ padding: '10px 12px' }}>
                                 <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: o.priority === 'Urgent' ? '#fee2e2' : o.priority === 'High' ? '#ffedd5' : '#f0fdf4',
-                                  color: o.priority === 'Urgent' ? '#dc2626' : o.priority === 'High' ? '#ea580c' : '#16a34a',
-                                }}>{o.priority || 'Normal'}</span>
+                                  background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
+                                  color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
+                                }}>{o.paymentStatus || 'Pending'}</span>
                               </td>
                               <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
                                 {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </td>
+                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                                <button
+                                  onClick={() => handleTogglePayment(o._id, o.paymentStatus || 'Pending')}
+                                  disabled={actionLoading === o._id + '_payment'}
+                                  style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: (o.paymentStatus || 'Pending') === 'Paid' ? '#92400e' : '#16a34a' }}
+                                >{actionLoading === o._id + '_payment' ? '...' : (o.paymentStatus || 'Pending') === 'Paid' ? 'Mark Pending' : 'Mark Paid'}</button>
+                                {(o.paymentStatus || 'Pending') !== 'Paid' && (
+                                  <button
+                                    onClick={() => handleSendReminder(o._id)}
+                                    disabled={actionLoading === o._id + '_remind'}
+                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}
+                                  >{actionLoading === o._id + '_remind' ? '...' : 'Send Reminder'}</button>
+                                )}
                               </td>
                             </tr>
                           ))}

@@ -882,41 +882,6 @@
     color: #c2410c;
 }
 
-/* ── Revenue Chips ──────────────────────────── */
-.m-revenue-chips {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin-bottom: 14px;
-    padding-bottom: 2px;
-}
-
-.m-revenue-chips::-webkit-scrollbar {
-    display: none;
-}
-
-.m-revenue-chip {
-    flex: 0 0 auto;
-    padding: 6px 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 20px;
-    background: #fff;
-    color: #64748b;
-    font-size: 0.72rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.m-revenue-chip--active {
-    background: var(--color-primary, #708c80);
-    border-color: var(--color-primary, #708c80);
-    color: #fff;
-}
-
 /* ── Coming Soon ────────────────────────────── */
 .m-coming-soon {
     display: flex;

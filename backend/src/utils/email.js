@@ -659,3 +659,58 @@ export async function sendUserRejectedEmail({ env, user, note }) {
   return sendEmail({ env, to: user.email, subject, htmlContent });
 }
 
+/**
+ * Admin-triggered Payment Reminder Email to Dentist.
+ */
+export async function sendPaymentReminderEmail({ env, dentist, order, payment }) {
+  const amount = payment?.amount || 0;
+  const amountStr = amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : 'Amount to be confirmed';
+  const subject = `Dentzy: Payment Reminder for Case ${escapeHtml(order.caseId)}`.replace(/[\r\n]/g, ' ');
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 520px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h2 style="color: #1e5038; margin-top: 0;">Payment Reminder</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      Hello <strong>${escapeHtml(dentist.name)}</strong>,<br><br>
+      This is a friendly reminder regarding an outstanding payment on the Dentzy portal.
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Case ID:</td>
+        <td style="padding: 8px 0;"><code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${escapeHtml(order.caseId)}</code></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Patient:</td>
+        <td style="padding: 8px 0;">${escapeHtml(order.patientName)}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Service:</td>
+        <td style="padding: 8px 0;">${escapeHtml(order.serviceType || 'Other')}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Amount Due:</td>
+        <td style="padding: 8px 0; font-weight: 700; color: #dc2626;">${amountStr}</td>
+      </tr>
+    </table>
+
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #92400e;">
+      <strong>Payment Method: Cheque</strong><br>
+      Please submit a cheque in favour of <strong>Dentzy Dental Solutions</strong> at our lab or contact us for pickup arrangements.
+    </div>
+
+    <p style="color: #64748b; font-size: 13px;">
+      If you have already submitted payment, please disregard this reminder.<br><br>
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong>
+    </p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: dentist.email, subject, htmlContent });
+}
+

@@ -24,3 +24,9 @@ export const updateOrderStageSchema = z.object({
     { errorMap: () => ({ message: 'Invalid stage.' }) }
   ),
 });
+
+export const updatePaymentStatusSchema = z.object({
+  status: z.enum(['Paid', 'Pending'], { errorMap: () => ({ message: 'Status must be Paid or Pending.' }) }),
+  amount: z.number().min(0, 'Amount cannot be negative.').optional(),
+  notes: z.string().max(500).optional().default(''),
+});

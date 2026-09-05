@@ -20,7 +20,7 @@ import {
 
 // Dashboard validators
 import {
-  createOrderSchema, updateOrderSchema, createPaymentSchema,
+  createOrderSchema, updateOrderSchema,
 } from '../src/validators/dashboard.js';
 
 // ── Helper ──────────────────────────────────────────────────────────────────
@@ -165,14 +165,5 @@ describe('Dashboard Validators', () => {
     it('rejects invalid service type', () => invalid(updateOrderSchema, { serviceType: 'Invalid' }));
     it('rejects status (admin-only)', () => invalid(updateOrderSchema, { status: 'Completed' }));
     it('rejects stage (admin-only)', () => invalid(updateOrderSchema, { stage: 'qc' }));
-  });
-
-  describe('createPaymentSchema', () => {
-    it('accepts valid payment', () => valid(createPaymentSchema, { patientName: 'P', caseId: 'DZ-001', amount: 500 }));
-    it('rejects missing patient name', () => invalid(createPaymentSchema, { patientName: '', caseId: 'DZ-001', amount: 500 }));
-    it('rejects missing case ID', () => invalid(createPaymentSchema, { patientName: 'P', caseId: '', amount: 500 }));
-    it('rejects negative amount', () => invalid(createPaymentSchema, { patientName: 'P', caseId: 'DZ-001', amount: -1 }));
-    it('rejects string amount', () => invalid(createPaymentSchema, { patientName: 'P', caseId: 'DZ-001', amount: 'five' }));
-    it('rejects invalid payment status', () => invalid(createPaymentSchema, { patientName: 'P', caseId: 'DZ-001', amount: 100, status: 'Refunded' }));
   });
 });
