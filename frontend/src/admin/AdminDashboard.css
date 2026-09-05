@@ -1049,12 +1049,8 @@
   font-weight: 700;
   color: #1a3028;
 }
-.ad-pay-metric--billed { border-left: 3px solid #3b82f6; }
-.ad-pay-metric--collected { border-left: 3px solid #16a34a; }
 .ad-pay-metric--collected .ad-pay-metric-value { color: #16a34a; }
-.ad-pay-metric--pending { border-left: 3px solid #f59e0b; }
 .ad-pay-metric--pending .ad-pay-metric-value { color: #92400e; }
-.ad-pay-metric--mode { border-left: 3px solid #708c80; }
 
 .ad-pay-mode-split {
   display: flex;
