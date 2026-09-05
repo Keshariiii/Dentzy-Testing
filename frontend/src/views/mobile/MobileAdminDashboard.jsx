@@ -9,6 +9,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from '../../admin/AdminAuthContext';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import DentistDetailModal from '../../admin/DentistDetailModal';
+import OrderDetailModal from '../../components/OrderDetailModal';
+import PaymentDetailModal from '../../components/PaymentDetailModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import './MobileAdminDashboard.css';
 
@@ -75,6 +77,10 @@ const MobileAdminDashboard = () => {
   const [payForm, setPayForm]           = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
+
+  // Detail modals
+  const [selectedOrder, setSelectedOrder]     = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
@@ -427,6 +433,38 @@ const MobileAdminDashboard = () => {
     setActionLoading(null);
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Order deleted successfully.');
+        fetchAllOrders();
+        fetchPayments();
+      } else {
+        showToast(data.message || 'Failed to delete order.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    try {
+      const res = await authFetch(`${ADMIN_API}/payments/${paymentId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Payment record deleted successfully.');
+        fetchPayments();
+        fetchAllOrders();
+      } else {
+        showToast(data.message || 'Failed to delete payment.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+  };
+
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
   /* -- Filtered lists ---------------------------------------------------- */
@@ -685,7 +723,7 @@ const MobileAdminDashboard = () => {
             ) : (
               <div className="ma-order-list">
                 {filteredOrders.map(o => (
-                  <div key={o._id} className="ma-card">
+                  <div key={o._id} className="ma-card" onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
                     <div className="ma-card-top">
                       <div>
                         <span className="ma-card-title">{o.patientName}</span>
@@ -813,7 +851,7 @@ const MobileAdminDashboard = () => {
             ) : (
               <div className="ma-pay-list">
                 {paymentData.payments.map(p => (
-                  <div key={p._id} className="ma-card">
+                  <div key={p._id} className="ma-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
                     <div className="ma-card-top">
                       <div>
                         <span className="ma-card-title">{p.patientName}</span>
@@ -842,7 +880,7 @@ const MobileAdminDashboard = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="ma-card-actions">
+                    <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
                       {p.paymentStatus === 'Paid' ? (
                         <button className="ma-card-action-btn ma-action-revert"
                           onClick={() => handleRevertPayment(p._id)}
@@ -1014,6 +1052,29 @@ const MobileAdminDashboard = () => {
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
           onDeleteUser={() => { fetchUsers(); fetchStats(); }}
+        />
+      )}
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          isOpen={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          isAdmin={true}
+          onDelete={handleDeleteOrder}
+        />
+      )}
+
+      {/* Payment Detail Modal */}
+      {selectedPayment && (
+        <PaymentDetailModal
+          payment={selectedPayment}
+          isOpen={!!selectedPayment}
+          onClose={() => setSelectedPayment(null)}
+          isAdmin={true}
+          onDelete={handleDeletePayment}
+          onRecordPayment={openRecordPayment}
         />
       )}
 

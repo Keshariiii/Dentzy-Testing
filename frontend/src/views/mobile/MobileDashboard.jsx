@@ -15,6 +15,8 @@ import { useToast } from '../../context/ToastContext';
 import { Skeleton, SkeletonGroup, OrderSkeleton, StatCardSkeleton } from '../../components/Skeleton';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import MobileBottomNav from '../../components/mobile/MobileBottomNav';
+import OrderDetailModal from '../../components/OrderDetailModal';
+import PaymentDetailModal from '../../components/PaymentDetailModal';
 import './MobileDashboard.css';
 
 /* ============================================================
@@ -204,6 +206,8 @@ const MobileDashboard = () => {
   const [payments,    setPayments]    = useState([]);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState(null);
+  const [selectedOrder, setSelectedOrder]     = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
   // Settings state
   const [profileForm, setProfileForm]           = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
   const [profileMsg,  setProfileMsg]            = useState({ type: '', text: '' });
@@ -600,7 +604,7 @@ const MobileDashboard = () => {
           <div className="m-count-label">{orders.length} order{orders.length !== 1 ? 's' : ''}</div>
           <div className="m-cards-list">
             {orders.map((o) => (
-              <div key={o._id} className="m-order-card">
+              <div key={o._id} className="m-order-card" onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
                 <div className="m-order-card__top">
                   <span className="m-order-id">{o.caseId}</span>
                   <StatusPill status={o.status} />
@@ -666,7 +670,7 @@ const MobileDashboard = () => {
         ) : (
           <div className="m-cards-list">
             {data.map((p) => (
-              <div key={p._id} className="m-order-card">
+              <div key={p._id} className="m-order-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
                 <div className="m-order-card__top">
                   <span className="m-order-id">{p.caseId}</span>
                   <span style={{
@@ -977,6 +981,22 @@ const MobileDashboard = () => {
           </button>
         ))}
       </div>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        isOpen={!!selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        isAdmin={false}
+      />
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal
+        payment={selectedPayment}
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        isAdmin={false}
+      />
     </div>
   );
 };

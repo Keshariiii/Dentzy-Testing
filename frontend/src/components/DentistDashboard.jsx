@@ -5,6 +5,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
+import OrderDetailModal from './OrderDetailModal';
+import PaymentDetailModal from './PaymentDetailModal';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* =============================================================================
@@ -182,6 +184,8 @@ const DentistDashboard = () => {
   const [orders, setOrders]           = useState([]);
   const [payments, setPayments]       = useState([]);
   const [loading, setLoading]         = useState(false);
+  const [selectedOrder, setSelectedOrder]     = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   // Settings form state
   const [profileForm, setProfileForm]     = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
@@ -529,7 +533,7 @@ const DentistDashboard = () => {
               <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Priority</th><th>Due Date</th><th>Status</th>
             </tr></thead>
             <tbody>{orders.map(o => (
-              <tr key={o._id}>
+              <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
                 <td><strong>{o.patientName}</strong></td>
                 <td><code className="ud-code">{o.caseId}</code></td>
                 <td>{o.serviceType}</td>
@@ -950,7 +954,7 @@ const DentistDashboard = () => {
     if (activeTab === 'dashboard') return renderDashboard();
     if (activeTab === 'orders')   return renderOrders();
     if (activeTab === 'settings') return renderSettings();
-    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" />;
+    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} />;
     return null;
   };
 
@@ -1014,6 +1018,22 @@ const DentistDashboard = () => {
         {/* Main Content */}
         <main className="ud-main">{renderContent()}</main>
       </div>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        isOpen={!!selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        isAdmin={false}
+      />
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal
+        payment={selectedPayment}
+        isOpen={!!selectedPayment}
+        onClose={() => setSelectedPayment(null)}
+        isAdmin={false}
+      />
     </div>
   );
 };
@@ -1021,7 +1041,7 @@ const DentistDashboard = () => {
 /* =============================================================================
    PAYMENTS TABLE SUB-COMPONENT
 ============================================================================= */
-const PaymentsTab = ({ payments, loading, title }) => (
+const PaymentsTab = ({ payments, loading, title, onSelectPayment }) => (
   <div className="ud-content-inner">
     <h2 className="ud-tab-title">{title}</h2>
     <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#166534', lineHeight: 1.5 }}>
@@ -1043,7 +1063,7 @@ const PaymentsTab = ({ payments, loading, title }) => (
             <th>Due Date</th><th>Payment Status</th><th>Mode & Ref</th>
           </tr></thead>
           <tbody>{payments.map(p => (
-            <tr key={p._id}>
+            <tr key={p._id} onClick={() => onSelectPayment?.(p)} style={{ cursor: 'pointer' }}>
               <td><strong>{p.patientName}</strong></td>
               <td><code className="ud-code">{p.caseId}</code></td>
               <td>{p.serviceType || '—'}</td>

@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import DentistDetailModal from './DentistDetailModal';
+import OrderDetailModal from '../components/OrderDetailModal';
+import PaymentDetailModal from '../components/PaymentDetailModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import './AdminDashboard.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -54,6 +56,9 @@ const AdminDashboard = () => {
   const [payForm, setPayForm]   = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
+  // Order & Payment detail modals
+  const [selectedOrder, setSelectedOrder]     = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
   const sseRef        = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -380,6 +385,38 @@ const AdminDashboard = () => {
     setActionLoading(null);
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Order deleted successfully.');
+        fetchAllOrders();
+        fetchPayments();
+      } else {
+        showToast(data.message || 'Failed to delete order.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    try {
+      const res = await authFetch(`${ADMIN_API}/payments/${paymentId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Payment record deleted successfully.');
+        fetchPayments();
+        fetchAllOrders();
+      } else {
+        showToast(data.message || 'Failed to delete payment.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+  };
+
   const formatINR = (n) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
@@ -643,7 +680,7 @@ const AdminDashboard = () => {
                         </tr></thead>
                         <tbody>
                           {paymentData.payments.map((p, i) => (
-                            <tr key={p._id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)' }}>
+                            <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
                               <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
                               <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
                               <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{p.owner?.name || '—'}{p.owner?.clinicName ? ` · ${p.owner.clinicName}` : ''}</td>
@@ -662,7 +699,7 @@ const AdminDashboard = () => {
                                   </span>
                                 ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
                               </td>
-                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                                 {p.paymentStatus === 'Paid' ? (
                                   <button onClick={() => handleRevertPayment(p._id)} disabled={actionLoading === p._id + '_payment'}
                                     style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
@@ -710,7 +747,7 @@ const AdminDashboard = () => {
                         </tr></thead>
                         <tbody>
                           {allOrders.map((o, i) => (
-                            <tr key={o._id} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)' }}>
+                            <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
                               <td style={{ padding: '10px 12px' }}><strong>{o.patientName}</strong></td>
                               <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
                               <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{o.owner?.name || o.dentistName || '—'}</td>
@@ -873,6 +910,29 @@ const AdminDashboard = () => {
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
           onDeleteUser={() => { fetchUsers(); fetchStats(); }}
+        />
+      )}
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          isOpen={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          isAdmin={true}
+          onDelete={handleDeleteOrder}
+        />
+      )}
+
+      {/* Payment Detail Modal */}
+      {selectedPayment && (
+        <PaymentDetailModal
+          payment={selectedPayment}
+          isOpen={!!selectedPayment}
+          onClose={() => setSelectedPayment(null)}
+          isAdmin={true}
+          onDelete={handleDeletePayment}
+          onRecordPayment={openRecordPayment}
         />
       )}
 

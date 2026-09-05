@@ -348,14 +348,35 @@ admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema)
 admin.delete('/orders/:id', verifyAdmin(), async (c) => {
   try {
     const orderId = c.req.param('id');
-    const { meta } = await c.env.DB.prepare('DELETE FROM lab_orders WHERE id = ?').bind(orderId).run();
-    if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
+    const order = await c.env.DB.prepare('SELECT caseId, ownerId FROM lab_orders WHERE id = ?').bind(orderId).first();
+    if (!order) return c.json({ message: 'Order not found.' }, 404);
 
-    auditLog('ORDER_DELETED_BY_ADMIN', { orderId, adminUsername: c.get('admin').username });
+    await c.env.DB.prepare('DELETE FROM lab_orders WHERE id = ?').bind(orderId).run();
+    await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(order.caseId).run();
+
+    auditLog('ORDER_DELETED_BY_ADMIN', { orderId, caseId: order.caseId, adminUsername: c.get('admin').username });
     return c.json({ message: 'Order deleted successfully.' });
   } catch (error) {
     logger.error('Admin delete order error', { error: error.message });
     return c.json({ message: 'Failed to delete order.' }, 500);
+  }
+});
+
+// DELETE /api/admin/payments/:id
+admin.delete('/payments/:id', verifyAdmin(), async (c) => {
+  try {
+    const paymentId = c.req.param('id');
+    let res = await c.env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(paymentId).run();
+    if (!res.meta.changes) {
+      res = await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(paymentId).run();
+    }
+    if (!res.meta.changes) return c.json({ message: 'Payment record not found.' }, 404);
+
+    auditLog('PAYMENT_DELETED_BY_ADMIN', { paymentId, adminUsername: c.get('admin').username });
+    return c.json({ message: 'Payment record deleted successfully.' });
+  } catch (error) {
+    logger.error('Admin delete payment error', { error: error.message });
+    return c.json({ message: 'Failed to delete payment.' }, 500);
   }
 });
 

@@ -1,0 +1,405 @@
+/* ================================================================
+   OrderDetailModal -- Touch & Desktop Responsive Modal
+   ================================================================ */
+
+.odm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: odmFadeIn 0.2s ease-out;
+}
+
+@keyframes odmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.odm-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px;
+  gap: 16px;
+  position: relative;
+  animation: odmScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes odmScaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ── Header ─────────────────────────────────── */
+.odm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.odm-case-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.odm-case-badge {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.odm-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.odm-status--completed { background: #dcfce7; color: #166534; }
+.odm-status--in-progress { background: #dbeafe; color: #1e40af; }
+.odm-status--pending { background: #fef9c3; color: #854d0e; }
+.odm-status--cancelled { background: #fee2e2; color: #991b1b; }
+
+.odm-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.odm-close-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* ── Title & Dentist ────────────────────────── */
+.odm-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.odm-patient-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-charcoal, #1e2824);
+}
+
+.odm-dentist-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.odm-email {
+  color: #94a3b8;
+}
+
+/* ── Pipeline Progress Bar ──────────────────── */
+.odm-pipeline-card {
+  background: #f8faf9;
+  border: 1px solid #e2ece6;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.odm-pipeline-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #708c80;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.odm-pipeline {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+}
+
+.odm-pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.odm-pipeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.odm-pipeline-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.odm-pipeline-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 4px 15px;
+  min-width: 12px;
+}
+
+.odm-pipeline-step--done .odm-pipeline-dot {
+  background: #16a34a;
+}
+
+.odm-pipeline-step--current .odm-pipeline-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.odm-pipeline-step--done .odm-pipeline-label,
+.odm-pipeline-step--current .odm-pipeline-label {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.odm-pipeline-line--done {
+  background: #16a34a;
+}
+
+/* ── Key Details Grid ───────────────────────── */
+.odm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.odm-grid-item {
+  background: #fff;
+  border: 1px solid #e2ece6;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.odm-grid-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #708c80;
+  text-transform: uppercase;
+}
+
+.odm-grid-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e2824;
+}
+
+.odm-priority-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.odm-priority--rush,
+.odm-priority--urgent { background: #fee2e2; color: #dc2626; }
+.odm-priority--high { background: #ffedd5; color: #ea580c; }
+.odm-priority--normal,
+.odm-priority--low { background: #f1f5f9; color: #475569; }
+
+/* ── Notes Box ──────────────────────────────── */
+.odm-notes-box {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.odm-notes-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.odm-notes-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #78350f;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ── Payment Summary Card ───────────────────── */
+.odm-payment-card {
+  background: #fff;
+  border: 1px solid #e2ece6;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.odm-payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.odm-payment-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4a6a5a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.odm-pay-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.odm-pay--paid { background: #dcfce7; color: #166534; }
+.odm-pay--pending { background: #fef9c3; color: #854d0e; }
+
+.odm-payment-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.odm-pay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #64748b;
+}
+
+.odm-pay-row strong {
+  color: #1e2824;
+  font-size: 0.95rem;
+}
+
+.odm-pay-mode-val {
+  font-weight: 600;
+  color: #166534;
+}
+
+.odm-pay-row code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #334155;
+}
+
+/* ── Footer Actions ─────────────────────────── */
+.odm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.odm-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.odm-delete-btn:hover {
+  background: #fee2e2;
+}
+
+.odm-close-footer-btn {
+  margin-left: auto;
+  background: #1e5038;
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.odm-close-footer-btn:hover {
+  background: #16402c;
+}
+
+/* ── Mobile Layout ──────────────────────────── */
+@media (max-width: 640px) {
+  .odm-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .odm-modal {
+    border-radius: 20px 20px 0 0;
+    max-height: 85vh;
+    padding: 20px;
+    animation: odmSlideUp 0.25s ease-out;
+  }
+  @keyframes odmSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .odm-grid {
+    grid-template-columns: 1fr;
+  }
+}
