@@ -15,6 +15,7 @@ export const createOrderSchema = z.object({
   serviceType: z.enum(['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other']).optional().default('Other'),
   priority: z.enum(['Low', 'Normal', 'High', 'Urgent']).optional().default('Normal'),
   dueDate: z.union([z.string(), z.null()]).optional().default(null),
+  amount: z.number().min(0, 'Amount cannot be negative.').optional().default(0),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less.').optional().default(''),
 });
 

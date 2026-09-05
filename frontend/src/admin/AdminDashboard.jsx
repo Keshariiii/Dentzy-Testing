@@ -417,6 +417,24 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdatePaymentAmount = async (payment, newAmount) => {
+    const id = payment._id || payment.id || payment.caseId;
+    const res = await authFetch(`${ADMIN_API}/payments/${id}/amount`, {
+      method: 'PATCH',
+      body: JSON.stringify({ amount: newAmount }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.message || `Amount updated to ₹${newAmount.toLocaleString('en-IN')}.`);
+      fetchPayments();
+      fetchAllOrders();
+      setSelectedPayment(prev => prev ? { ...prev, amount: newAmount } : null);
+      setSelectedOrder(prev => prev ? { ...prev, amount: newAmount } : null);
+    } else {
+      throw new Error(data.message || 'Failed to update payment amount.');
+    }
+  };
+
   const formatINR = (n) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
@@ -683,8 +701,32 @@ const AdminDashboard = () => {
                             <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
                               <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
                               <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
-                              <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{p.owner?.name || '—'}{p.owner?.clinicName ? ` · ${p.owner.clinicName}` : ''}</td>
-                              <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.amount > 0 ? formatINR(p.amount) : '—'}</td>
+                              <td style={{ padding: '10px 12px', fontWeight: 600 }}>
+                                {p.amount > 0 ? (
+                                  formatINR(p.amount)
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPayment(p);
+                                    }}
+                                    style={{
+                                      fontSize: '0.72rem',
+                                      padding: '2px 8px',
+                                      borderRadius: '6px',
+                                      border: '1px dashed #1e5038',
+                                      background: '#f0fdf4',
+                                      color: '#1e5038',
+                                      cursor: 'pointer',
+                                      fontWeight: 600,
+                                    }}
+                                    title="Click to add payment amount"
+                                  >
+                                    + Add Amount
+                                  </button>
+                                )}
+                              </td>
                               <td style={{ padding: '10px 12px' }}>
                                 <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                                   background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
@@ -921,6 +963,7 @@ const AdminDashboard = () => {
           onClose={() => setSelectedOrder(null)}
           isAdmin={true}
           onDelete={handleDeleteOrder}
+          onUpdateAmount={handleUpdatePaymentAmount}
         />
       )}
 
@@ -933,6 +976,7 @@ const AdminDashboard = () => {
           isAdmin={true}
           onDelete={handleDeletePayment}
           onRecordPayment={openRecordPayment}
+          onUpdateAmount={handleUpdatePaymentAmount}
         />
       )}
 

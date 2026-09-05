@@ -4,10 +4,14 @@ import ConfirmDialog from './ConfirmDialog';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 
-const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
+const STAGES = ['received', 'cad_cam', 'casting', 'finishing', 'qc', 'ready'];
 const STAGE_LABELS = {
-  received: 'Received', design: 'Design', production: 'Production',
-  qc: 'QC', dispatched: 'Dispatched', completed: 'Completed',
+  received: 'Received',
+  cad_cam: 'CAD/CAM',
+  casting: 'Casting',
+  finishing: 'Finishing',
+  qc: 'QC Check',
+  ready: 'Ready for Dispatch',
 };
 
 const formatINR = (n) =>
@@ -29,18 +33,34 @@ export default function OrderDetailModal({
   onClose,
   isAdmin = false,
   onDelete = null,
+  onUpdateAmount = null,
 }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Amount inline edit state
+  const [currentAmount, setCurrentAmount] = useState(order?.amount || 0);
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [amountInput, setAmountInput] = useState('');
+  const [savingAmount, setSavingAmount] = useState(false);
+  const [amountError, setAmountError] = useState('');
+
+  useEffect(() => {
+    if (order) {
+      setCurrentAmount(order.amount || 0);
+      setIsEditingAmount(false);
+      setAmountError('');
+    }
+  }, [order]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
-      if (e.key === 'Escape' && !showConfirmDelete) onClose();
+      if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showConfirmDelete, onClose]);
+  }, [isOpen, showConfirmDelete, isEditingAmount, onClose]);
 
   if (!isOpen || !order) return null;
 
@@ -62,9 +82,30 @@ export default function OrderDetailModal({
     }
   };
 
+  const handleSaveAmount = async () => {
+    const val = Number(amountInput);
+    if (isNaN(val) || val < 0) {
+      setAmountError('Please enter a valid positive amount.');
+      return;
+    }
+    setSavingAmount(true);
+    setAmountError('');
+    try {
+      if (onUpdateAmount) {
+        await onUpdateAmount(order, val);
+      }
+      setCurrentAmount(val);
+      setIsEditingAmount(false);
+    } catch (err) {
+      setAmountError(err.message || 'Failed to update amount.');
+    } finally {
+      setSavingAmount(false);
+    }
+  };
+
   const dentistName = order.owner?.name || order.dentistName || '—';
   const clinicName = order.owner?.clinicName || order.clinicName || '';
-  const dentistEmail = order.owner?.email || '';
+  const dentistEmail = order.owner?.email || order.dentistEmail || '';
 
   return (
     <>
@@ -73,9 +114,9 @@ export default function OrderDetailModal({
           
           {/* Header */}
           <div className="odm-header">
-            <div className="odm-case-wrap">
-              <span className="odm-case-badge">{order.caseId || 'Order'}</span>
-              <span className={`odm-status-badge odm-status--${(order.status || 'pending').toLowerCase().replace(/\s+/g, '-')}`}>
+            <div className="odm-case-badge-wrap">
+              <span className="odm-case-badge">{order.caseId || 'Order Details'}</span>
+              <span className={`odm-status-pill odm-status--${(order.status || 'pending').toLowerCase()}`}>
                 {order.status || 'Pending'}
               </span>
             </div>
@@ -153,10 +194,93 @@ export default function OrderDetailModal({
               </span>
             </div>
             <div className="odm-payment-body">
-              <div className="odm-pay-row">
+              <div className="odm-pay-row" style={{ alignItems: 'center' }}>
                 <span>Billed Amount:</span>
-                <strong>{order.amount > 0 ? formatINR(order.amount) : 'Pending Calculation'}</strong>
+                {isEditingAmount ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: 700, color: '#4a6a5a' }}>₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={amountInput}
+                      onChange={e => { setAmountInput(e.target.value); setAmountError(''); }}
+                      placeholder="e.g. 5000"
+                      style={{
+                        width: '90px',
+                        padding: '4px 6px',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        border: '1px solid #1e5038',
+                        borderRadius: '6px',
+                        outline: 'none',
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveAmount}
+                      disabled={savingAmount || amountInput === ''}
+                      style={{
+                        background: '#1e5038',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {savingAmount ? '…' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditingAmount(false); setAmountError(''); }}
+                      disabled={savingAmount}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#64748b',
+                        border: 'none',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong>{currentAmount > 0 ? formatINR(currentAmount) : 'Pending Calculation'}</strong>
+                    {isAdmin && onUpdateAmount && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAmountInput(currentAmount > 0 ? String(currentAmount) : '');
+                          setIsEditingAmount(true);
+                        }}
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #d1e2d9',
+                          background: '#f8faf9',
+                          color: '#2a5a44',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {currentAmount > 0 ? 'Edit' : '+ Add Amount'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
+              {amountError && (
+                <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '2px' }}>{amountError}</div>
+              )}
               {order.paymentStatus === 'Paid' && (
                 <>
                   <div className="odm-pay-row">
@@ -199,11 +323,11 @@ export default function OrderDetailModal({
         </div>
       </div>
 
-      {/* Confirmation Dialog for Deletion */}
+      {/* Delete Confirmation */}
       <ConfirmDialog
         isOpen={showConfirmDelete}
-        title="Delete Lab Order?"
-        message={`Are you sure you want to delete case "${order.caseId}" for patient "${order.patientName}"? This will permanently delete the order and any associated payment record.`}
+        title="Delete Order?"
+        message={`Are you sure you want to delete order "${order.caseId}" for ${order.patientName || 'this patient'}? This will also remove any linked payment records. This action cannot be undone.`}
         confirmText="Delete Order"
         cancelText="Cancel"
         type="danger"

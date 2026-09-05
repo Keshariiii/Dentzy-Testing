@@ -277,7 +277,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
 // POST /api/admin/orders
 admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
   try {
-    const { dentistId, patientName, serviceType, priority, dueDate, notes } = c.get('body');
+    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount } = c.get('body');
 
     const dentist = await c.env.DB.prepare("SELECT id, name, email, status FROM users WHERE id = ?").bind(dentistId).first();
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
@@ -296,12 +296,12 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
 
-    // Auto-create payment entry for this order
+    // Auto-create payment entry for this order with specified amount
     const paymentId = newId();
     await c.env.DB.prepare(
       `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, 'INR', 'Pending', ?, ?, '', ?, ?)`
-    ).bind(paymentId, dentistId, patientName, caseId, `INV-${caseId}`, 0, ts, dueDate || null, ts, ts).run();
+    ).bind(paymentId, dentistId, patientName, caseId, `INV-${caseId}`, amount || 0, ts, dueDate || null, ts, ts).run();
 
     auditLog('ORDER_CREATED', { orderId: id, caseId, dentistId, adminUsername: c.get('admin').username });
 
@@ -380,6 +380,38 @@ admin.delete('/payments/:id', verifyAdmin(), async (c) => {
   }
 });
 
+// PATCH /api/admin/payments/:id/amount — update payment amount
+admin.patch('/payments/:id/amount', verifyAdmin(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const amount = Number(body.amount);
+    if (isNaN(amount) || amount < 0) {
+      return c.json({ message: 'Amount must be a valid positive number.' }, 400);
+    }
+    const ts = now();
+    let res = await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE id = ?').bind(amount, ts, id).run();
+    if (!res.meta.changes) {
+      res = await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE caseId = ?').bind(amount, ts, id).run();
+    }
+    if (!res.meta.changes) {
+      const order = await c.env.DB.prepare('SELECT caseId FROM lab_orders WHERE id = ?').bind(id).first();
+      if (order) {
+        res = await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE caseId = ?').bind(amount, ts, order.caseId).run();
+      }
+    }
+    if (!res.meta.changes) {
+      return c.json({ message: 'Payment record not found.' }, 404);
+    }
+
+    auditLog('PAYMENT_AMOUNT_UPDATED', { id, amount, adminUsername: c.get('admin').username });
+    return c.json({ message: `Amount updated to ₹${amount.toLocaleString('en-IN')}.`, amount });
+  } catch (error) {
+    logger.error('Admin update payment amount error', { error: error.message });
+    return c.json({ message: 'Failed to update payment amount.' }, 500);
+  }
+});
+
 // GET /api/admin/payments — dedicated admin payments view with summary metrics
 admin.get('/payments', verifyAdmin(), async (c) => {
   try {
@@ -455,7 +487,7 @@ admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSc
     const { status, paymentMode, referenceNumber, amount, notes } = c.get('body');
     const ts = now();
 
-    const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(orderId).first();
+    const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ? OR caseId = ?').bind(orderId, orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
 
     const modeVal = status === 'Pending' ? '' : (paymentMode || '');

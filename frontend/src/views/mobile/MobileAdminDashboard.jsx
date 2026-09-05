@@ -386,7 +386,7 @@ const MobileAdminDashboard = () => {
       if (payForm.amount !== '' && !isNaN(Number(payForm.amount))) {
         body.amount = Number(payForm.amount);
       }
-      const res = await authFetch(`${ADMIN_API}/orders/${payModal._id}/payment`, {
+      const res = await authFetch(`${ADMIN_API}/orders/${payModal._id || payModal.id || payModal.caseId}/payment`, {
         method: 'PATCH',
         body: JSON.stringify(body),
       });
@@ -462,6 +462,24 @@ const MobileAdminDashboard = () => {
       }
     } catch {
       showToast('Network error.', 'error');
+    }
+  };
+
+  const handleUpdatePaymentAmount = async (payment, newAmount) => {
+    const id = payment._id || payment.id || payment.caseId;
+    const res = await authFetch(`${ADMIN_API}/payments/${id}/amount`, {
+      method: 'PATCH',
+      body: JSON.stringify({ amount: newAmount }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.message || `Amount updated to ₹${newAmount.toLocaleString('en-IN')}.`);
+      fetchPayments();
+      fetchAllOrders();
+      setSelectedPayment(prev => prev ? { ...prev, amount: newAmount } : null);
+      setSelectedOrder(prev => prev ? { ...prev, amount: newAmount } : null);
+    } else {
+      throw new Error(data.message || 'Failed to update payment amount.');
     }
   };
 
@@ -861,7 +879,32 @@ const MobileAdminDashboard = () => {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <span className="ma-case-badge">{p.caseId}</span>
-                        <div className="ma-card-amount-lg">{p.amount > 0 ? formatINR(p.amount) : '—'}</div>
+                        <div className="ma-card-amount-lg">
+                          {p.amount > 0 ? (
+                            formatINR(p.amount)
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPayment(p);
+                              }}
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                border: '1px dashed #1e5038',
+                                background: '#f0fdf4',
+                                color: '#1e5038',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                marginTop: '3px',
+                              }}
+                            >
+                              + Add Amount
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1063,6 +1106,7 @@ const MobileAdminDashboard = () => {
           onClose={() => setSelectedOrder(null)}
           isAdmin={true}
           onDelete={handleDeleteOrder}
+          onUpdateAmount={handleUpdatePaymentAmount}
         />
       )}
 
@@ -1075,6 +1119,7 @@ const MobileAdminDashboard = () => {
           isAdmin={true}
           onDelete={handleDeletePayment}
           onRecordPayment={openRecordPayment}
+          onUpdateAmount={handleUpdatePaymentAmount}
         />
       )}
 

@@ -24,22 +24,40 @@ export default function PaymentDetailModal({
   isAdmin = false,
   onDelete = null,
   onRecordPayment = null,
+  onUpdateAmount = null,
 }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Amount inline editor state
+  const [currentAmount, setCurrentAmount] = useState(payment?.amount || 0);
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [amountInput, setAmountInput] = useState('');
+  const [savingAmount, setSavingAmount] = useState(false);
+  const [amountError, setAmountError] = useState('');
+  const [amountSuccess, setAmountSuccess] = useState('');
+
+  useEffect(() => {
+    if (payment) {
+      setCurrentAmount(payment.amount || 0);
+      setIsEditingAmount(false);
+      setAmountError('');
+      setAmountSuccess('');
+    }
+  }, [payment]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
-      if (e.key === 'Escape' && !showConfirmDelete) onClose();
+      if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showConfirmDelete, onClose]);
+  }, [isOpen, showConfirmDelete, isEditingAmount, onClose]);
 
   if (!isOpen || !payment) return null;
 
-  const paymentId = payment._id || payment.id;
+  const paymentId = payment._id || payment.id || payment.caseId;
   const isPaid = (payment.paymentStatus || payment.status) === 'Paid';
   const dentistName = payment.owner?.name || payment.dentistName || '—';
   const clinicName = payment.owner?.clinicName || payment.clinicName || '';
@@ -55,6 +73,29 @@ export default function PaymentDetailModal({
       console.error('Delete payment error:', err);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleSaveAmount = async () => {
+    const val = Number(amountInput);
+    if (isNaN(val) || val < 0) {
+      setAmountError('Please enter a valid positive amount.');
+      return;
+    }
+    setSavingAmount(true);
+    setAmountError('');
+    try {
+      if (onUpdateAmount) {
+        await onUpdateAmount(payment, val);
+      }
+      setCurrentAmount(val);
+      setIsEditingAmount(false);
+      setAmountSuccess(`Amount updated to ${formatINR(val)}`);
+      setTimeout(() => setAmountSuccess(''), 3000);
+    } catch (err) {
+      setAmountError(err.message || 'Failed to update amount.');
+    } finally {
+      setSavingAmount(false);
     }
   };
 
@@ -76,7 +117,7 @@ export default function PaymentDetailModal({
             </button>
           </div>
 
-          {/* Amount Card */}
+          {/* Amount Card & Add/Edit Amount Section */}
           <div className="pdm-amount-card">
             <div className="pdm-amount-top">
               <span className="pdm-amount-lbl">Payment Amount</span>
@@ -84,9 +125,80 @@ export default function PaymentDetailModal({
                 {isPaid ? 'Paid' : 'Pending'}
               </span>
             </div>
-            <div className="pdm-amount-val">
-              {payment.amount > 0 ? formatINR(payment.amount) : '₹0'}
-            </div>
+
+            {isEditingAmount ? (
+              <div className="pdm-amount-edit-wrap">
+                <label className="pdm-amount-input-label">Set Payment Amount</label>
+                <div className="pdm-amount-input-box">
+                  <span className="pdm-currency-prefix">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 4500"
+                    value={amountInput}
+                    onChange={(e) => {
+                      setAmountInput(e.target.value);
+                      setAmountError('');
+                    }}
+                    className="pdm-amount-input"
+                    autoFocus
+                  />
+                </div>
+                {amountError && <div className="pdm-amount-error-msg">{amountError}</div>}
+                <div className="pdm-amount-edit-btns">
+                  <button
+                    type="button"
+                    className="pdm-amount-btn-cancel"
+                    onClick={() => {
+                      setIsEditingAmount(false);
+                      setAmountError('');
+                    }}
+                    disabled={savingAmount}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="pdm-amount-btn-save"
+                    onClick={handleSaveAmount}
+                    disabled={savingAmount || amountInput === ''}
+                  >
+                    {savingAmount ? 'Saving…' : 'Save Amount'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="pdm-amount-display-row">
+                <div className="pdm-amount-val">
+                  {currentAmount > 0 ? formatINR(currentAmount) : '₹0'}
+                </div>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className={`pdm-amount-edit-trigger ${currentAmount > 0 ? 'pdm-amount-trigger--edit' : 'pdm-amount-trigger--add'}`}
+                    onClick={() => {
+                      setAmountInput(currentAmount > 0 ? String(currentAmount) : '');
+                      setIsEditingAmount(true);
+                      setAmountError('');
+                    }}
+                  >
+                    {currentAmount > 0 ? (
+                      <>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        Edit Amount
+                      </>
+                    ) : (
+                      <>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        + Add Amount
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+            {amountSuccess && <div className="pdm-amount-success-msg">{amountSuccess}</div>}
           </div>
 
           {/* Patient & Clinic Details */}
@@ -168,7 +280,7 @@ export default function PaymentDetailModal({
                   className="pdm-record-btn"
                   onClick={() => {
                     onClose();
-                    onRecordPayment(payment);
+                    onRecordPayment({ ...payment, amount: currentAmount });
                   }}
                 >
                   {Ico.check(14)} Record Payment

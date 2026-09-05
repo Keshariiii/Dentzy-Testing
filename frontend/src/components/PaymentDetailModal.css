@@ -134,6 +134,160 @@
   color: #1e2824;
 }
 
+.pdm-amount-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdm-amount-edit-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.pdm-amount-trigger--edit {
+  background: #ffffff;
+  color: #2a5a44;
+  border-color: #d1e2d9;
+}
+
+.pdm-amount-trigger--edit:hover {
+  background: #eef5f1;
+  border-color: #b8d4c5;
+}
+
+.pdm-amount-trigger--add {
+  background: #1e5038;
+  color: #ffffff;
+}
+
+.pdm-amount-trigger--add:hover {
+  background: #16402c;
+}
+
+/* Amount Inline Edit Wrap */
+.pdm-amount-edit-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #e2ece6;
+}
+
+.pdm-amount-input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a7060;
+}
+
+.pdm-amount-input-box {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #c9ded3;
+  border-radius: 10px;
+  padding: 2px 10px;
+  transition: border-color 0.15s ease;
+}
+
+.pdm-amount-input-box:focus-within {
+  border-color: #1e5038;
+  outline: none;
+}
+
+.pdm-currency-prefix {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #708c80;
+  margin-right: 6px;
+  user-select: none;
+}
+
+.pdm-amount-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e2824;
+  padding: 8px 0;
+  outline: none !important;
+}
+
+.pdm-amount-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.pdm-amount-error-msg {
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.pdm-amount-success-msg {
+  font-size: 0.75rem;
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.pdm-amount-edit-btns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pdm-amount-btn-cancel {
+  background: #f1f5f9;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pdm-amount-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.pdm-amount-btn-save {
+  background: #1e5038;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pdm-amount-btn-save:hover {
+  background: #16402c;
+}
+
+.pdm-amount-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Patient Section ────────────────────────── */
 .pdm-section {
   display: flex;
