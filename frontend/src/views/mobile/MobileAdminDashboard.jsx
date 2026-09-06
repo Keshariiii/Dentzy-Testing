@@ -64,6 +64,7 @@ const MobileAdminDashboard = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderFilter, setOrderFilter]     = useState('all');
   const [orderSearch, setOrderSearch]     = useState('');
+  const [drillDentistOrders, setDrillDentistOrders] = useState(null); // { _id, name, clinicName }
 
   // Payments view state
   const [paymentData, setPaymentData]         = useState({ summary: null, payments: [] });
@@ -71,6 +72,7 @@ const MobileAdminDashboard = () => {
   const [payFilterStatus, setPayFilterStatus] = useState('all');
   const [payFilterMode, setPayFilterMode]     = useState('all');
   const [paySearch, setPaySearch]             = useState('');
+  const [drillDentistPayments, setDrillDentistPayments] = useState(null); // { _id, name, clinicName }
 
   // Record Payment modal state
   const [payModal, setPayModal]         = useState(null);
@@ -492,6 +494,7 @@ const MobileAdminDashboard = () => {
   );
 
   const filteredOrders = (allOrders || []).filter(o => {
+    if (drillDentistOrders && (o.owner?._id || o.ownerId) !== drillDentistOrders._id) return false;
     if (orderFilter !== 'all' && o.status !== orderFilter) return false;
     if (orderSearch) {
       const q = orderSearch.toLowerCase();
@@ -502,6 +505,41 @@ const MobileAdminDashboard = () => {
     }
     return true;
   });
+
+  // ponytail: group orders by dentist client-side, no new endpoint
+  const dentistOrderGroups = React.useMemo(() => {
+    const map = {};
+    (allOrders || []).forEach(o => {
+      const id = o.owner?._id || o.ownerId || 'unknown';
+      if (!map[id]) map[id] = { _id: id, name: o.owner?.name || o.dentistName || 'Unknown', clinicName: o.owner?.clinicName || '', orders: [] };
+      map[id].orders.push(o);
+    });
+    return Object.values(map).sort((a, b) => b.orders.length - a.orders.length);
+  }, [allOrders]);
+
+  const dentistPaymentGroups = React.useMemo(() => {
+    const map = {};
+    (paymentData.payments || []).forEach(p => {
+      const id = p.ownerId || p.owner?._id || 'unknown';
+      if (!map[id]) map[id] = { _id: id, name: p.owner?.name || 'Unknown', clinicName: p.owner?.clinicName || '', payments: [], totalBilled: 0, totalCollected: 0, totalPending: 0 };
+      map[id].payments.push(p);
+      map[id].totalBilled += (p.amount || 0);
+      if (p.paymentStatus === 'Paid') map[id].totalCollected += (p.amount || 0);
+      else map[id].totalPending += (p.amount || 0);
+    });
+    return Object.values(map).sort((a, b) => b.totalBilled - a.totalBilled);
+  }, [paymentData.payments]);
+
+  const filteredPaymentsForDrill = React.useMemo(() => {
+    if (!drillDentistPayments) return [];
+    return (paymentData.payments || []).filter(p => {
+      const id = p.ownerId || p.owner?._id;
+      if (id !== drillDentistPayments._id) return false;
+      if (payFilterStatus !== 'all' && p.paymentStatus !== payFilterStatus) return false;
+      if (payFilterMode !== 'all' && p.paymentMode !== payFilterMode) return false;
+      return true;
+    });
+  }, [paymentData.payments, drillDentistPayments, payFilterStatus, payFilterMode]);
 
   /* ============================================================
      RENDER
@@ -523,26 +561,48 @@ const MobileAdminDashboard = () => {
               <p className="ma-date">{todayStr}</p>
             </>
           )}
-          {adminView === 'orders' && (
+          {adminView === 'orders' && !drillDentistOrders && (
             <>
               <h2 className="ma-hello">Lab Orders</h2>
-              <p className="ma-date">{allOrders.length} Total Orders</p>
+              <p className="ma-date">{dentistOrderGroups.length} Dentists · {allOrders.length} Total Orders</p>
             </>
           )}
-          {adminView === 'payments' && (
+          {adminView === 'orders' && drillDentistOrders && (
+            <>
+              <h2 className="ma-hello">{drillDentistOrders.name}</h2>
+              <p className="ma-date">{drillDentistOrders.clinicName || 'Lab Orders'}</p>
+            </>
+          )}
+          {adminView === 'payments' && !drillDentistPayments && (
             <>
               <h2 className="ma-hello">Payments & Billing</h2>
-              <p className="ma-date">{paymentData.payments?.length || 0} Records</p>
+              <p className="ma-date">{dentistPaymentGroups.length} Dentists · {paymentData.payments?.length || 0} Records</p>
+            </>
+          )}
+          {adminView === 'payments' && drillDentistPayments && (
+            <>
+              <h2 className="ma-hello">{drillDentistPayments.name}</h2>
+              <p className="ma-date">{drillDentistPayments.clinicName || 'Payments'}</p>
             </>
           )}
         </div>
         <div className="ma-greeting-right">
-          {adminView === 'orders' && (
+          {adminView === 'orders' && drillDentistOrders && (
+            <button className="ma-refresh-btn" onClick={() => { setDrillDentistOrders(null); setOrderFilter('all'); setOrderSearch(''); }} title="Back to all dentists" style={{ fontSize: '0.78rem', padding: '4px 10px' }}>
+              ← All Dentists
+            </button>
+          )}
+          {adminView === 'orders' && !drillDentistOrders && (
             <button className="ma-refresh-btn" onClick={fetchAllOrders} title="Refresh orders">
               ↻
             </button>
           )}
-          {adminView === 'payments' && (
+          {adminView === 'payments' && drillDentistPayments && (
+            <button className="ma-refresh-btn" onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }} title="Back to all dentists" style={{ fontSize: '0.78rem', padding: '4px 10px' }}>
+              ← All Dentists
+            </button>
+          )}
+          {adminView === 'payments' && !drillDentistPayments && (
             <button className="ma-refresh-btn" onClick={fetchPayments} title="Refresh payments">
               ↻
             </button>
@@ -701,89 +761,131 @@ const MobileAdminDashboard = () => {
           ───────────────────────────────────────────────────────────── */}
       {adminView === 'orders' && (
         <>
-          {/* Search Bar */}
-          <div className="ma-search-wrap">
-            <div className="ma-search-bar">
-              {Ico.search(14)}
-              <input type="text" className="ma-search-input" placeholder="Search patient, case ID, dentist..."
-                value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
-              {orderSearch && (
-                <button className="ma-search-clear" onClick={() => setOrderSearch('')}>
-                  {Ico.x(12)}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filter Status Chips */}
-          <div className="ma-tabs-wrap">
-            <div className="ma-tabs">
-              {ORDER_TABS.map(st => (
-                <button key={st}
-                  className={`ma-tab ${orderFilter === st ? 'ma-tab--active' : ''}`}
-                  onClick={() => setOrderFilter(st)}>
-                  {st === 'all' ? 'All' : st}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <main className="ma-main">
-            {loadingOrders ? (
-              <div className="ma-loading">
-                {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
+          {drillDentistOrders ? (
+            /* ── Drill-down: single dentist's orders ── */
+            <>
+              {/* Search Bar */}
+              <div className="ma-search-wrap">
+                <div className="ma-search-bar">
+                  {Ico.search(14)}
+                  <input type="text" className="ma-search-input" placeholder="Search patient, case ID..."
+                    value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
+                  {orderSearch && (
+                    <button className="ma-search-clear" onClick={() => setOrderSearch('')}>
+                      {Ico.x(12)}
+                    </button>
+                  )}
+                </div>
               </div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="ma-empty">
-                {Ico.orders(48)}
-                <p>No lab orders found.</p>
+
+              {/* Filter Status Chips */}
+              <div className="ma-tabs-wrap">
+                <div className="ma-tabs">
+                  {ORDER_TABS.map(st => (
+                    <button key={st}
+                      className={`ma-tab ${orderFilter === st ? 'ma-tab--active' : ''}`}
+                      onClick={() => setOrderFilter(st)}>
+                      {st === 'all' ? 'All' : st}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <div className="ma-order-list">
-                {filteredOrders.map(o => (
-                  <div key={o._id} className="ma-card" onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
-                    <div className="ma-card-top">
-                      <div>
-                        <span className="ma-card-title">{o.patientName}</span>
-                        <div className="ma-card-sub">
-                          <span>{o.owner?.name || o.dentistName || '—'}</span>
-                          {o.serviceType && <span> · {o.serviceType}</span>}
+
+              <main className="ma-main">
+                {filteredOrders.length === 0 ? (
+                  <div className="ma-empty">
+                    {Ico.orders(48)}
+                    <p>No orders found for this dentist.</p>
+                  </div>
+                ) : (
+                  <div className="ma-order-list">
+                    {filteredOrders.map(o => (
+                      <div key={o._id} className="ma-card" onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
+                        <div className="ma-card-top">
+                          <div>
+                            <span className="ma-card-title">{o.patientName}</span>
+                            <div className="ma-card-sub">
+                              {o.serviceType && <span>{o.serviceType}</span>}
+                            </div>
+                          </div>
+                          <span className="ma-case-badge">{o.caseId}</span>
+                        </div>
+
+                        <div className="ma-card-meta-row">
+                          <span className={`ma-pill ma-pill--status-${(o.status || 'pending').toLowerCase().replace(/\s+/g, '-')}`}>
+                            {o.status}
+                          </span>
+                          <span className={`ma-pill ma-pill--pay-${(o.paymentStatus || 'pending').toLowerCase()}`}>
+                            {o.paymentStatus || 'Pending'}
+                            {o.paymentStatus === 'Paid' && o.paymentMode ? ` · ${o.paymentMode}` : ''}
+                          </span>
+                          {o.amount > 0 && (
+                            <span className="ma-card-amount">{formatINR(o.amount)}</span>
+                          )}
+                        </div>
+
+                        {o.paymentStatus === 'Paid' && o.referenceNumber && (
+                          <div className="ma-ref-line">
+                            Ref: {o.referenceNumber}
+                          </div>
+                        )}
+
+                        <div className="ma-card-date">
+                          {Ico.clock(11)}
+                          {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                          }) : '—'}
                         </div>
                       </div>
-                      <span className="ma-case-badge">{o.caseId}</span>
-                    </div>
-
-                    <div className="ma-card-meta-row">
-                      <span className={`ma-pill ma-pill--status-${(o.status || 'pending').toLowerCase().replace(/\s+/g, '-')}`}>
-                        {o.status}
-                      </span>
-                      <span className={`ma-pill ma-pill--pay-${(o.paymentStatus || 'pending').toLowerCase()}`}>
-                        {o.paymentStatus || 'Pending'}
-                        {o.paymentStatus === 'Paid' && o.paymentMode ? ` · ${o.paymentMode}` : ''}
-                      </span>
-                      {o.amount > 0 && (
-                        <span className="ma-card-amount">{formatINR(o.amount)}</span>
-                      )}
-                    </div>
-
-                    {o.paymentStatus === 'Paid' && o.referenceNumber && (
-                      <div className="ma-ref-line">
-                        Ref: {o.referenceNumber}
-                      </div>
-                    )}
-
-                    <div className="ma-card-date">
-                      {Ico.clock(11)}
-                      {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', {
-                        day: '2-digit', month: 'short', year: 'numeric'
-                      }) : '—'}
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-            <div style={{ height: 24 }} />
-          </main>
+                )}
+                <div style={{ height: 24 }} />
+              </main>
+            </>
+          ) : (
+            /* ── Dentist cards overview ── */
+            <main className="ma-main">
+              {loadingOrders ? (
+                <div className="ma-loading">
+                  {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
+                </div>
+              ) : dentistOrderGroups.length === 0 ? (
+                <div className="ma-empty">
+                  {Ico.orders(48)}
+                  <p>No lab orders found.</p>
+                </div>
+              ) : (
+                <div className="ma-user-list">
+                  {dentistOrderGroups.map(d => {
+                    const inProgress = d.orders.filter(o => o.status === 'In Progress').length;
+                    const pending = d.orders.filter(o => o.status === 'Pending').length;
+                    const completed = d.orders.filter(o => o.status === 'Completed').length;
+                    return (
+                      <div key={d._id} className="ma-card" onClick={() => setDrillDentistOrders(d)} style={{ cursor: 'pointer' }}>
+                        <div className="ma-card-top">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="ma-uc-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                            <div>
+                              <span className="ma-card-title">{d.name}</span>
+                              {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} Orders ›</span>
+                        </div>
+                        <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
+                          {inProgress > 0 && <span className="ma-pill ma-pill--status-in-progress">{inProgress} In Progress</span>}
+                          {pending > 0 && <span className="ma-pill ma-pill--status-pending">{pending} Pending</span>}
+                          {completed > 0 && <span className="ma-pill ma-pill--status-completed">{completed} Completed</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div style={{ height: 24 }} />
+            </main>
+          )}
         </>
       )}
 
@@ -792,141 +894,175 @@ const MobileAdminDashboard = () => {
           ───────────────────────────────────────────────────────────── */}
       {adminView === 'payments' && (
         <>
-          {/* Summary Metrics (NO side colored lines) */}
-          {paymentData.summary && (
-            <div className="ma-pay-metrics-grid">
-              <div className="ma-pay-metric-box">
-                <span className="ma-pay-metric-lbl">Total Billed</span>
-                <span className="ma-pay-metric-val">{formatINR(paymentData.summary.totalBilled)}</span>
-              </div>
-              <div className="ma-pay-metric-box">
-                <span className="ma-pay-metric-lbl">Collected</span>
-                <span className="ma-pay-metric-val ma-val--green">{formatINR(paymentData.summary.totalCollected)}</span>
-              </div>
-              <div className="ma-pay-metric-box">
-                <span className="ma-pay-metric-lbl">Pending</span>
-                <span className="ma-pay-metric-val ma-val--amber">{formatINR(paymentData.summary.totalPending)}</span>
-              </div>
-              <div className="ma-pay-metric-box">
-                <span className="ma-pay-metric-lbl">By Mode</span>
-                <div className="ma-pay-mode-tags">
-                  <span className="ma-pay-mode-tag ma-mode--cash">Cash {formatINR(paymentData.summary.byMode?.Cash || 0)}</span>
-                  <span className="ma-pay-mode-tag ma-mode--cheque">Cheque {formatINR(paymentData.summary.byMode?.Cheque || 0)}</span>
-                  <span className="ma-pay-mode-tag ma-mode--upi">UPI {formatINR(paymentData.summary.byMode?.UPI || 0)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Filter Status Pills */}
-          <div className="ma-tabs-wrap">
-            <div className="ma-tabs">
-              {PAY_STATUS_TABS.map(st => (
-                <button key={st}
-                  className={`ma-tab ${payFilterStatus === st ? 'ma-tab--active' : ''}`}
-                  onClick={() => setPayFilterStatus(st)}>
-                  {st === 'all' ? 'All' : st}
-                </button>
-              ))}
-            </div>
-            <div className="ma-tabs">
-              {PAY_MODE_TABS.map(m => (
-                <button key={m}
-                  className={`ma-tab ${payFilterMode === m ? 'ma-tab--active' : ''}`}
-                  onClick={() => setPayFilterMode(m)}>
-                  {m === 'all' ? 'All Modes' : m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="ma-search-wrap">
-            <div className="ma-search-bar">
-              {Ico.search(14)}
-              <input type="text" className="ma-search-input" placeholder="Search patient, case ID, dentist..."
-                value={paySearch} onChange={e => setPaySearch(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && fetchPayments()} />
-              {paySearch && (
-                <button className="ma-search-clear" onClick={() => { setPaySearch(''); fetchPayments(); }}>
-                  {Ico.x(12)}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Payments List */}
-          <main className="ma-main">
-            {loadingPayments ? (
-              <div className="ma-loading">
-                {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
-              </div>
-            ) : (paymentData.payments || []).length === 0 ? (
-              <div className="ma-empty">
-                {Ico.wallet(48)}
-                <p>No payment records found.</p>
-              </div>
-            ) : (
-              <div className="ma-pay-list">
-                {paymentData.payments.map(p => (
-                  <div key={p._id} className="ma-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
-                    <div className="ma-card-top">
-                      <div>
-                        <span className="ma-card-title">{p.patientName}</span>
-                        <div className="ma-card-sub">
-                          {p.owner?.name || '—'}{p.owner?.clinicName ? ` · ${p.owner.clinicName}` : ''}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span className="ma-case-badge">{p.caseId}</span>
-                        <div className="ma-card-amount-lg">
-                          {formatINR(p.amount || 0)}
-                        </div>
-                      </div>
+          {drillDentistPayments ? (
+            /* ── Drill-down: single dentist's payments ── */
+            <>
+              {/* Dentist financial summary */}
+              {(() => {
+                const g = dentistPaymentGroups.find(d => d._id === drillDentistPayments._id);
+                return g ? (
+                  <div className="ma-pay-metrics-grid">
+                    <div className="ma-pay-metric-box">
+                      <span className="ma-pay-metric-lbl">Total Billed</span>
+                      <span className="ma-pay-metric-val">{formatINR(g.totalBilled)}</span>
                     </div>
-
-                    <div className="ma-card-meta-row">
-                      <span className={`ma-pill ma-pill--pay-${(p.paymentStatus || 'pending').toLowerCase()}`}>
-                        {p.paymentStatus || 'Pending'}
-                      </span>
-                      {p.paymentStatus === 'Paid' && p.paymentMode && (
-                        <span className={`ma-pay-mode-tag ma-mode--${(p.paymentMode || '').toLowerCase()}`}>
-                          {p.paymentMode}
-                        </span>
-                      )}
-                      {p.paymentStatus === 'Paid' && p.referenceNumber && (
-                        <span className="ma-ref-line">Ref: {p.referenceNumber}</span>
-                      )}
+                    <div className="ma-pay-metric-box">
+                      <span className="ma-pay-metric-lbl">Collected</span>
+                      <span className="ma-pay-metric-val ma-val--green">{formatINR(g.totalCollected)}</span>
                     </div>
-
-                    {/* Actions */}
-                    <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
-                      {p.paymentStatus === 'Paid' ? (
-                        <button className="ma-card-action-btn ma-action-revert"
-                          onClick={() => handleRevertPayment(p._id)}
-                          disabled={actionLoading === p._id + '_payment'}>
-                          {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
-                        </button>
-                      ) : (
-                        <button className="ma-card-action-btn ma-action-pay"
-                          onClick={() => openRecordPayment(p)}>
-                          {Ico.check(13)} Record Payment
-                        </button>
-                      )}
-                      {p.paymentStatus !== 'Paid' && (
-                        <button className="ma-card-action-btn ma-action-remind"
-                          onClick={() => handleSendReminder(p._id)}
-                          disabled={actionLoading === p._id + '_remind'}>
-                          {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
-                        </button>
-                      )}
+                    <div className="ma-pay-metric-box">
+                      <span className="ma-pay-metric-lbl">Pending</span>
+                      <span className="ma-pay-metric-val ma-val--amber">{formatINR(g.totalPending)}</span>
                     </div>
                   </div>
-                ))}
+                ) : null;
+              })()}
+
+              {/* Filter Status Pills */}
+              <div className="ma-tabs-wrap">
+                <div className="ma-tabs">
+                  {PAY_STATUS_TABS.map(st => (
+                    <button key={st}
+                      className={`ma-tab ${payFilterStatus === st ? 'ma-tab--active' : ''}`}
+                      onClick={() => setPayFilterStatus(st)}>
+                      {st === 'all' ? 'All' : st}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-            <div style={{ height: 24 }} />
-          </main>
+
+              <main className="ma-main">
+                {filteredPaymentsForDrill.length === 0 ? (
+                  <div className="ma-empty">
+                    {Ico.wallet(48)}
+                    <p>No payment records found.</p>
+                  </div>
+                ) : (
+                  <div className="ma-pay-list">
+                    {filteredPaymentsForDrill.map(p => (
+                      <div key={p._id} className="ma-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
+                        <div className="ma-card-top">
+                          <div>
+                            <span className="ma-card-title">{p.patientName}</span>
+                            <div className="ma-card-sub">{p.serviceType || p.caseId}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span className="ma-case-badge">{p.caseId}</span>
+                            <div className="ma-card-amount-lg">
+                              {formatINR(p.amount || 0)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="ma-card-meta-row">
+                          <span className={`ma-pill ma-pill--pay-${(p.paymentStatus || 'pending').toLowerCase()}`}>
+                            {p.paymentStatus || 'Pending'}
+                          </span>
+                          {p.paymentStatus === 'Paid' && p.paymentMode && (
+                            <span className={`ma-pay-mode-tag ma-mode--${(p.paymentMode || '').toLowerCase()}`}>
+                              {p.paymentMode}
+                            </span>
+                          )}
+                          {p.paymentStatus === 'Paid' && p.referenceNumber && (
+                            <span className="ma-ref-line">Ref: {p.referenceNumber}</span>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
+                          {p.paymentStatus === 'Paid' ? (
+                            <button className="ma-card-action-btn ma-action-revert"
+                              onClick={() => handleRevertPayment(p._id)}
+                              disabled={actionLoading === p._id + '_payment'}>
+                              {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
+                            </button>
+                          ) : (
+                            <button className="ma-card-action-btn ma-action-pay"
+                              onClick={() => openRecordPayment(p)}>
+                              {Ico.check(13)} Record Payment
+                            </button>
+                          )}
+                          {p.paymentStatus !== 'Paid' && (
+                            <button className="ma-card-action-btn ma-action-remind"
+                              onClick={() => handleSendReminder(p._id)}
+                              disabled={actionLoading === p._id + '_remind'}>
+                              {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ height: 24 }} />
+              </main>
+            </>
+          ) : (
+            /* ── Dentist cards overview for payments ── */
+            <>
+              {/* Global Summary Metrics */}
+              {paymentData.summary && (
+                <div className="ma-pay-metrics-grid">
+                  <div className="ma-pay-metric-box">
+                    <span className="ma-pay-metric-lbl">Total Billed</span>
+                    <span className="ma-pay-metric-val">{formatINR(paymentData.summary.totalBilled)}</span>
+                  </div>
+                  <div className="ma-pay-metric-box">
+                    <span className="ma-pay-metric-lbl">Collected</span>
+                    <span className="ma-pay-metric-val ma-val--green">{formatINR(paymentData.summary.totalCollected)}</span>
+                  </div>
+                  <div className="ma-pay-metric-box">
+                    <span className="ma-pay-metric-lbl">Pending</span>
+                    <span className="ma-pay-metric-val ma-val--amber">{formatINR(paymentData.summary.totalPending)}</span>
+                  </div>
+                </div>
+              )}
+
+              <main className="ma-main">
+                {loadingPayments ? (
+                  <div className="ma-loading">
+                    {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
+                  </div>
+                ) : dentistPaymentGroups.length === 0 ? (
+                  <div className="ma-empty">
+                    {Ico.wallet(48)}
+                    <p>No payment records found.</p>
+                  </div>
+                ) : (
+                  <div className="ma-user-list">
+                    {dentistPaymentGroups.map(d => {
+                      const unpaid = d.payments.filter(p => p.paymentStatus !== 'Paid').length;
+                      return (
+                        <div key={d._id} className="ma-card" onClick={() => setDrillDentistPayments(d)} style={{ cursor: 'pointer' }}>
+                          <div className="ma-card-top">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div className="ma-uc-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                              <div>
+                                <span className="ma-card-title">{d.name}</span>
+                                {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} Cases ›</span>
+                          </div>
+                          <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
+                            <span className="ma-pill" style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 600 }}>Billed {formatINR(d.totalBilled)}</span>
+                            <span className="ma-pill" style={{ background: '#dcfce7', color: '#166534', fontWeight: 600 }}>Collected {formatINR(d.totalCollected)}</span>
+                            {d.totalPending > 0 && (
+                              <span className="ma-pill" style={{ background: '#fef9c3', color: '#92400e', fontWeight: 600 }}>Pending {formatINR(d.totalPending)}</span>
+                            )}
+                            {unpaid > 0 && (
+                              <span className="ma-pill" style={{ background: '#fee2e2', color: '#dc2626', fontWeight: 600 }}>{unpaid} Unpaid</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{ height: 24 }} />
+              </main>
+            </>
+          )}
         </>
       )}
 

@@ -60,6 +60,9 @@ const AdminDashboard = () => {
   // Order & Payment detail modals
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  // Drill-down state for dentist-centric views
+  const [drillDentistOrders, setDrillDentistOrders] = useState(null);
+  const [drillDentistPayments, setDrillDentistPayments] = useState(null);
   const sseRef        = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -443,6 +446,46 @@ const AdminDashboard = () => {
     (u?.email || '').toLowerCase().includes((search || '').toLowerCase())
   );
 
+  // ponytail: group orders/payments by dentist client-side
+  const dentistOrderGroups = React.useMemo(() => {
+    const map = {};
+    (allOrders || []).forEach(o => {
+      const id = o.owner?._id || o.ownerId || 'unknown';
+      if (!map[id]) map[id] = { _id: id, name: o.owner?.name || o.dentistName || 'Unknown', clinicName: o.owner?.clinicName || '', orders: [] };
+      map[id].orders.push(o);
+    });
+    return Object.values(map).sort((a, b) => b.orders.length - a.orders.length);
+  }, [allOrders]);
+
+  const dentistPaymentGroups = React.useMemo(() => {
+    const map = {};
+    (paymentData.payments || []).forEach(p => {
+      const id = p.ownerId || p.owner?._id || 'unknown';
+      if (!map[id]) map[id] = { _id: id, name: p.owner?.name || 'Unknown', clinicName: p.owner?.clinicName || '', payments: [], totalBilled: 0, totalCollected: 0, totalPending: 0 };
+      map[id].payments.push(p);
+      map[id].totalBilled += (p.amount || 0);
+      if (p.paymentStatus === 'Paid') map[id].totalCollected += (p.amount || 0);
+      else map[id].totalPending += (p.amount || 0);
+    });
+    return Object.values(map).sort((a, b) => b.totalBilled - a.totalBilled);
+  }, [paymentData.payments]);
+
+  const filteredOrdersForDrill = React.useMemo(() => {
+    if (!drillDentistOrders) return [];
+    return (allOrders || []).filter(o => (o.owner?._id || o.ownerId) === drillDentistOrders._id);
+  }, [allOrders, drillDentistOrders]);
+
+  const filteredPaymentsForDrill = React.useMemo(() => {
+    if (!drillDentistPayments) return [];
+    return (paymentData.payments || []).filter(p => {
+      const id = p.ownerId || p.owner?._id;
+      if (id !== drillDentistPayments._id) return false;
+      if (payFilterStatus !== 'all' && p.paymentStatus !== payFilterStatus) return false;
+      if (payFilterMode !== 'all' && p.paymentMode !== payFilterMode) return false;
+      return true;
+    });
+  }, [paymentData.payments, drillDentistPayments, payFilterStatus, payFilterMode]);
+
   const adminName = admin?.username || 'Admin';
   const initials  = (adminName || 'AD').slice(0, 2).toUpperCase();
 
@@ -624,15 +667,22 @@ const AdminDashboard = () => {
             )}
 
             {adminView === 'payments' ? (
-              /* ── Payments View ────────────────────────────────────── */
+              /* ── Payments View ────────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p className="ad-section-title">Payments & Billing</p>
+                  <p className="ad-section-title">
+                    {drillDentistPayments ? (
+                      <>
+                        <button onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '8px' }}>← All Dentists</button>
+                        {drillDentistPayments.name}{drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}
+                      </>
+                    ) : 'Payments & Billing'}
+                  </p>
                   <button onClick={() => fetchPaymentsRef.current?.()} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
                 </div>
 
-                {/* Metrics Row */}
-                {paymentData.summary && (
+                {/* Global Metrics (shown always) */}
+                {paymentData.summary && !drillDentistPayments && (
                   <div className="ad-pay-metrics">
                     <div className="ad-pay-metric ad-pay-metric--billed">
                       <span className="ad-pay-metric-label">Total Billed</span>
@@ -646,157 +696,224 @@ const AdminDashboard = () => {
                       <span className="ad-pay-metric-label">Pending</span>
                       <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalPending)}</span>
                     </div>
-                    <div className="ad-pay-metric ad-pay-metric--mode">
-                      <span className="ad-pay-metric-label">By Mode</span>
-                      <div className="ad-pay-mode-split">
-                        <span className="ad-pay-mode-tag ad-pay-mode--cash">Cash {formatINR(paymentData.summary.byMode?.Cash || 0)}</span>
-                        <span className="ad-pay-mode-tag ad-pay-mode--cheque">Cheque {formatINR(paymentData.summary.byMode?.Cheque || 0)}</span>
-                        <span className="ad-pay-mode-tag ad-pay-mode--upi">UPI {formatINR(paymentData.summary.byMode?.UPI || 0)}</span>
+                  </div>
+                )}
+
+                {/* Dentist-specific metrics when drilled */}
+                {drillDentistPayments && (() => {
+                  const g = dentistPaymentGroups.find(d => d._id === drillDentistPayments._id);
+                  return g ? (
+                    <div className="ad-pay-metrics">
+                      <div className="ad-pay-metric ad-pay-metric--billed">
+                        <span className="ad-pay-metric-label">Total Billed</span>
+                        <span className="ad-pay-metric-value">{formatINR(g.totalBilled)}</span>
                       </div>
+                      <div className="ad-pay-metric ad-pay-metric--collected">
+                        <span className="ad-pay-metric-label">Collected</span>
+                        <span className="ad-pay-metric-value">{formatINR(g.totalCollected)}</span>
+                      </div>
+                      <div className="ad-pay-metric ad-pay-metric--pending">
+                        <span className="ad-pay-metric-label">Pending</span>
+                        <span className="ad-pay-metric-value">{formatINR(g.totalPending)}</span>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
+                {drillDentistPayments && (
+                  <div className="ad-pay-filters">
+                    <div className="ad-pay-filter-group">
+                      {['all', 'Paid', 'Pending'].map(s => (
+                        <button key={s} className={`ad-pay-filter-btn ${payFilterStatus === s ? 'active' : ''}`} onClick={() => setPayFilterStatus(s)}>
+                          {s === 'all' ? 'All' : s}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* Filters */}
-                <div className="ad-pay-filters">
-                  <div className="ad-pay-filter-group">
-                    {['all', 'Paid', 'Pending'].map(s => (
-                      <button key={s} className={`ad-pay-filter-btn ${payFilterStatus === s ? 'active' : ''}`} onClick={() => setPayFilterStatus(s)}>
-                        {s === 'all' ? 'All' : s}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="ad-pay-filter-group">
-                    {['all', 'Cash', 'Cheque', 'UPI'].map(m => (
-                      <button key={m} className={`ad-pay-filter-pill ${payFilterMode === m ? 'active' : ''}`} onClick={() => setPayFilterMode(m)}>
-                        {m === 'all' ? 'All Modes' : m}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="ad-pay-search">
-                    <span className="ad-search-icon">{Ico.search(14)}</span>
-                    <input type="text" placeholder="Search patient, case ID, dentist…" value={paySearch}
-                      onChange={e => setPaySearch(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && fetchPaymentsRef.current?.()}
-                    />
-                  </div>
-                </div>
-
-                {/* Payments Table */}
                 <div className="ad-content">
                   {loadingPayments ? (
                     <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
-                  ) : (paymentData.payments || []).length === 0 ? (
-                    <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                  ) : drillDentistPayments ? (
+                    /* Drill-down: single dentist's payment table */
+                    filteredPaymentsForDrill.length === 0 ? (
+                      <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                    ) : (
+                      <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
+                        <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
+                            {['Case ID', 'Patient', 'Amount', 'Status', 'Mode & Ref', 'Actions'].map(h => (
+                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                            ))}
+                          </tr></thead>
+                          <tbody>
+                            {filteredPaymentsForDrill.map((p, i) => (
+                              <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
+                                <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
+                                <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
+                                <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(p.amount || 0)}</td>
+                                <td style={{ padding: '10px 12px' }}>
+                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                    background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
+                                    color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
+                                  }}>{p.paymentStatus || 'Pending'}</span>
+                                </td>
+                                <td style={{ padding: '10px 12px' }}>
+                                  {p.paymentStatus === 'Paid' && p.paymentMode ? (
+                                    <span style={{ fontSize: '0.78rem' }}>
+                                      <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
+                                      {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                                    </span>
+                                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                                </td>
+                                <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                                  {p.paymentStatus === 'Paid' ? (
+                                    <button onClick={() => handleRevertPayment(p._id)} disabled={actionLoading === p._id + '_payment'}
+                                      style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
+                                      {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
+                                    </button>
+                                  ) : (
+                                    <button onClick={() => openRecordPayment(p)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
+                                      Record Payment
+                                    </button>
+                                  )}
+                                  {p.paymentStatus !== 'Paid' && (
+                                    <button onClick={() => handleSendReminder(p._id)} disabled={actionLoading === p._id + '_remind'}
+                                      style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
+                                      {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
                   ) : (
-                    <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
-                      <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                        <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
-                          {['Case ID', 'Patient', 'Dentist / Clinic', 'Amount', 'Status', 'Mode & Ref', 'Actions'].map(h => (
-                            <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
-                          ))}
-                        </tr></thead>
-                        <tbody>
-                          {paymentData.payments.map((p, i) => (
-                            <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
-                              <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
-                              <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
-                              <td style={{ padding: '10px 12px', fontWeight: 600 }}>
-                                {formatINR(p.amount || 0)}
-                              </td>
-                              <td style={{ padding: '10px 12px' }}>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
-                                  color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                                }}>{p.paymentStatus || 'Pending'}</span>
-                              </td>
-                              <td style={{ padding: '10px 12px' }}>
-                                {p.paymentStatus === 'Paid' && p.paymentMode ? (
-                                  <span style={{ fontSize: '0.78rem' }}>
-                                    <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
-                                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
-                                  </span>
-                                ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
-                              </td>
-                              <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                                {p.paymentStatus === 'Paid' ? (
-                                  <button onClick={() => handleRevertPayment(p._id)} disabled={actionLoading === p._id + '_payment'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
-                                    {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
-                                  </button>
-                                ) : (
-                                  <button onClick={() => openRecordPayment(p)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
-                                    Record Payment
-                                  </button>
-                                )}
-                                {p.paymentStatus !== 'Paid' && (
-                                  <button onClick={() => handleSendReminder(p._id)} disabled={actionLoading === p._id + '_remind'}
-                                    style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
-                                    {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    /* Dentist cards overview for payments */
+                    dentistPaymentGroups.length === 0 ? (
+                      <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                    ) : (
+                      <div className="ad-user-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                        {dentistPaymentGroups.map(d => {
+                          const unpaid = d.payments.filter(p => p.paymentStatus !== 'Paid').length;
+                          return (
+                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistPayments(d)} style={{ cursor: 'pointer', padding: '16px', borderRadius: '14px', border: '1px solid #e2ece6', background: '#fff' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028' }}>{d.name}</div>
+                                    {d.clinicName && <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>{d.clinicName}</div>}
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} Cases ›</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#f0fdf4', color: '#16a34a' }}>Billed {formatINR(d.totalBilled)}</span>
+                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>Collected {formatINR(d.totalCollected)}</span>
+                                {d.totalPending > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>Pending {formatINR(d.totalPending)}</span>}
+                                {unpaid > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>{unpaid} Unpaid</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
               </div>
             ) : adminView === 'orders' ? (
-              /* ── Lab Orders View ─────────────────────────────────────── */
+              /* ── Lab Orders View ───────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p className="ad-section-title">All Lab Orders</p>
+                  <p className="ad-section-title">
+                    {drillDentistOrders ? (
+                      <>
+                        <button onClick={() => setDrillDentistOrders(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '8px' }}>← All Dentists</button>
+                        {drillDentistOrders.name}{drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}
+                      </>
+                    ) : 'Lab Orders'}
+                  </p>
                   <button onClick={fetchAllOrders} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
                 </div>
                 <div className="ad-content">
                   {loadingOrders ? (
                     <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
-                  ) : allOrders.length === 0 ? (
-                    <div className="ad-empty">{Ico.chart(48)}<p>No lab orders found.</p></div>
+                  ) : drillDentistOrders ? (
+                    /* Drill-down: single dentist's orders table */
+                    filteredOrdersForDrill.length === 0 ? (
+                      <div className="ad-empty">{Ico.chart(48)}<p>No orders for this dentist.</p></div>
+                    ) : (
+                      <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
+                        <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
+                            {['Patient', 'Case ID', 'Service', 'Status', 'Payment', 'Amount', 'Created'].map(h => (
+                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                            ))}
+                          </tr></thead>
+                          <tbody>
+                            {filteredOrdersForDrill.map((o, i) => (
+                              <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
+                                <td style={{ padding: '10px 12px' }}><strong>{o.patientName}</strong></td>
+                                <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
+                                <td style={{ padding: '10px 12px' }}>{o.serviceType}</td>
+                                <td style={{ padding: '10px 12px' }}>
+                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                    background: o.status === 'Completed' ? '#dcfce7' : o.status === 'In Progress' ? '#dbeafe' : o.status === 'Cancelled' ? '#fee2e2' : '#fef9c3',
+                                    color: o.status === 'Completed' ? '#16a34a' : o.status === 'In Progress' ? '#1d4ed8' : o.status === 'Cancelled' ? '#dc2626' : '#92400e',
+                                  }}>{o.status}</span>
+                                </td>
+                                <td style={{ padding: '10px 12px' }}>
+                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                    background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
+                                    color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
+                                  }}>{o.paymentStatus || 'Pending'}</span>
+                                </td>
+                                <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(o.paymentAmount || o.amount || 0)}</td>
+                                <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
+                                  {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
                   ) : (
-                    <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
-                      <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                        <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
-                          {['Patient', 'Case ID', 'Dentist', 'Service', 'Status', 'Payment', 'Created'].map(h => (
-                            <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
-                          ))}
-                        </tr></thead>
-                        <tbody>
-                          {allOrders.map((o, i) => (
-                            <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
-                              <td style={{ padding: '10px 12px' }}><strong>{o.patientName}</strong></td>
-                              <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
-                              <td style={{ padding: '10px 12px', color: '#6b8a7a' }}>{o.owner?.name || o.dentistName || '—'}</td>
-                              <td style={{ padding: '10px 12px' }}>{o.serviceType}</td>
-                              <td style={{ padding: '10px 12px' }}>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: o.status === 'Completed' ? '#dcfce7' : o.status === 'In Progress' ? '#dbeafe' : o.status === 'Cancelled' ? '#fee2e2' : '#fef9c3',
-                                  color: o.status === 'Completed' ? '#16a34a' : o.status === 'In Progress' ? '#1d4ed8' : o.status === 'Cancelled' ? '#dc2626' : '#92400e',
-                                }}>{o.status}</span>
-                              </td>
-                              <td style={{ padding: '10px 12px' }}>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
-                                  color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
-                                }}>
-                                  {o.paymentStatus || 'Pending'}
-                                  {(o.paymentStatus === 'Paid' && o.paymentMode) ? ` · ${o.paymentMode}` : ''}
-                                </span>
-                                {(o.paymentStatus === 'Paid' && o.referenceNumber) && (
-                                  <div style={{ fontSize: '0.7rem', color: '#708c80', marginTop: '2px' }}>Ref: {o.referenceNumber}</div>
-                                )}
-                              </td>
-                              <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
-                                {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    /* Dentist cards overview */
+                    dentistOrderGroups.length === 0 ? (
+                      <div className="ad-empty">{Ico.chart(48)}<p>No lab orders found.</p></div>
+                    ) : (
+                      <div className="ad-user-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                        {dentistOrderGroups.map(d => {
+                          const inProgress = d.orders.filter(o => o.status === 'In Progress').length;
+                          const pending = d.orders.filter(o => o.status === 'Pending').length;
+                          const completed = d.orders.filter(o => o.status === 'Completed').length;
+                          return (
+                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistOrders(d)} style={{ cursor: 'pointer', padding: '16px', borderRadius: '14px', border: '1px solid #e2ece6', background: '#fff' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028' }}>{d.name}</div>
+                                    {d.clinicName && <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>{d.clinicName}</div>}
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} Orders ›</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                {inProgress > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>{inProgress} In Progress</span>}
+                                {pending > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>{pending} Pending</span>}
+                                {completed > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{completed} Completed</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
               </div>

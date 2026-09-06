@@ -134,14 +134,15 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
     if (!user) return c.json({ message: 'User not found.' }, 404);
 
     const { results: orders } = await c.env.DB.prepare(
-      `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus
+      `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus,
+       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber, p.paidAt
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ? ORDER BY o.createdAt DESC`
     ).bind(id).all();
 
     return c.json({
       user: { ...user, _id: user.id },
-      orders: orders.map(o => ({ ...o, _id: o.id, amount: o.paymentAmount, paymentAmount: o.paymentAmount, paymentStatus: o.paymentStatus })),
+      orders: orders.map(o => ({ ...o, _id: o.id, amount: o.paymentAmount, paymentAmount: o.paymentAmount, paymentStatus: o.paymentStatus, paymentMode: o.paymentMode, referenceNumber: o.referenceNumber, paidAt: o.paidAt })),
     });
   } catch (error) {
     logger.error('Admin getUserById error', { error: error.message });
@@ -435,7 +436,7 @@ admin.get('/payments', verifyAdmin(), async (c) => {
     `).first();
 
     // Filtered list query
-    let sql = `SELECT o.id, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
+    let sql = `SELECT o.id, o.ownerId, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
        u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
        COALESCE(p.status, 'Pending') as paymentStatus,
        COALESCE(p.paymentMode, '') as paymentMode,
