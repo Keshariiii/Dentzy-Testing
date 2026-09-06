@@ -1,6 +1,6 @@
-'use client';
 import React, { useState, useEffect } from 'react';
 import ConfirmDialog from './ConfirmDialog';
+import { formatINR, formatDate } from '../utils/format';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 
@@ -14,22 +14,10 @@ const STAGE_LABELS = {
   ready: 'Ready for Dispatch',
 };
 
-const formatINR = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
-const formatDate = (d) => {
-  if (!d) return '—';
-  const parsed = new Date(d);
-  if (isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-};
 
 export default function OrderDetailModal({
   order,
-  isOpen,
   onClose,
   isAdmin = false,
   onDelete = null,
@@ -55,14 +43,13 @@ export default function OrderDetailModal({
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!isOpen) return;
       if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showConfirmDelete, isEditingAmount, onClose]);
+  }, [showConfirmDelete, isEditingAmount, onClose]);
 
-  if (!isOpen || !order) return null;
+  if (!order) return null;
 
   const orderId = order._id || order.id;
   const currentStage = (order.stage || 'received').toLowerCase();
@@ -194,42 +181,25 @@ export default function OrderDetailModal({
               </span>
             </div>
             <div className="odm-payment-body">
-              <div className="odm-pay-row" style={{ alignItems: 'center' }}>
+              <div className="odm-pay-row odm-pay-row--amount">
                 <span>Billed Amount:</span>
                 {isEditingAmount ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontWeight: 700, color: '#4a6a5a' }}>₹</span>
+                  <div className="odm-amount-edit-wrap">
+                    <span className="odm-currency-prefix">₹</span>
                     <input
                       type="number"
                       min="0"
                       value={amountInput}
                       onChange={e => { setAmountInput(e.target.value); setAmountError(''); }}
                       placeholder="e.g. 5000"
-                      style={{
-                        width: '90px',
-                        padding: '4px 6px',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        border: '1px solid #1e5038',
-                        borderRadius: '6px',
-                        outline: 'none',
-                      }}
+                      className="odm-amount-input"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={handleSaveAmount}
                       disabled={savingAmount || amountInput === ''}
-                      style={{
-                        background: '#1e5038',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className="odm-amount-btn-save"
                     >
                       {savingAmount ? '…' : 'Save'}
                     </button>
@@ -237,39 +207,21 @@ export default function OrderDetailModal({
                       type="button"
                       onClick={() => { setIsEditingAmount(false); setAmountError(''); }}
                       disabled={savingAmount}
-                      style={{
-                        background: '#f1f5f9',
-                        color: '#64748b',
-                        border: 'none',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      className="odm-amount-btn-cancel"
                     >
                       Cancel
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="odm-amount-display-row">
                     <strong>{currentAmount > 0 ? formatINR(currentAmount) : 'Pending Calculation'}</strong>
                     {isAdmin && onUpdateAmount && (
                       <button
                         type="button"
+                        className={`odm-amount-edit-trigger ${currentAmount > 0 ? 'odm-amount-trigger--edit' : 'odm-amount-trigger--add'}`}
                         onClick={() => {
                           setAmountInput(currentAmount > 0 ? String(currentAmount) : '');
                           setIsEditingAmount(true);
-                        }}
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                          border: '1px solid #d1e2d9',
-                          background: '#f8faf9',
-                          color: '#2a5a44',
-                          cursor: 'pointer',
-                          fontWeight: 600,
                         }}
                       >
                         {currentAmount > 0 ? 'Edit' : '+ Add Amount'}
@@ -279,7 +231,7 @@ export default function OrderDetailModal({
                 )}
               </div>
               {amountError && (
-                <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '2px' }}>{amountError}</div>
+                <div className="odm-amount-error-msg">{amountError}</div>
               )}
               {order.paymentStatus === 'Paid' && (
                 <>

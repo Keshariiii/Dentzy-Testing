@@ -17,6 +17,7 @@ import MobileHeader from '../../components/mobile/MobileHeader';
 import MobileBottomNav from '../../components/mobile/MobileBottomNav';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
+import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 
 /* ============================================================
@@ -168,11 +169,7 @@ const PriorityBadge = ({ priority }) => {
 /* ============================================================
    HELPERS
 ============================================================ */
-const formatINR = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-const formatDate = (d) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const formatDob = (dob) => {
   if (!dob) return '—';
@@ -985,7 +982,6 @@ const MobileDashboard = () => {
       {/* Order Detail Modal */}
       <OrderDetailModal
         order={selectedOrder}
-        isOpen={!!selectedOrder}
         onClose={() => setSelectedOrder(null)}
         isAdmin={false}
       />
@@ -993,7 +989,6 @@ const MobileDashboard = () => {
       {/* Payment Detail Modal */}
       <PaymentDetailModal
         payment={selectedPayment}
-        isOpen={!!selectedPayment}
         onClose={() => setSelectedPayment(null)}
         isAdmin={false}
       />

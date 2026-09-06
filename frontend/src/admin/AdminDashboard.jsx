@@ -7,6 +7,7 @@ import OrderDetailModal from '../components/OrderDetailModal';
 import PaymentDetailModal from '../components/PaymentDetailModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import './AdminDashboard.css';
+import { formatINR } from '../utils/format';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -435,8 +436,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const formatINR = (n) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+
 
   const filteredUsers = (users || []).filter(u =>
     (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
@@ -959,7 +959,6 @@ const AdminDashboard = () => {
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
-          isOpen={!!selectedOrder}
           onClose={() => setSelectedOrder(null)}
           isAdmin={true}
           onDelete={handleDeleteOrder}
@@ -971,7 +970,6 @@ const AdminDashboard = () => {
       {selectedPayment && (
         <PaymentDetailModal
           payment={selectedPayment}
-          isOpen={!!selectedPayment}
           onClose={() => setSelectedPayment(null)}
           isAdmin={true}
           onDelete={handleDeletePayment}

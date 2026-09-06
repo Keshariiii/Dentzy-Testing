@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
+import { formatINR, formatDate } from '../utils/format';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -164,11 +165,7 @@ const StatusBadge = ({ status }) => {
   return <span className={`ud-badge ${map[status] || 'badge-pending'}`}>{status}</span>;
 };
 
-const formatINR = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-const formatDate = (d) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 /* =============================================================================
    MAIN COMPONENT
@@ -1022,7 +1019,6 @@ const DentistDashboard = () => {
       {/* Order Detail Modal */}
       <OrderDetailModal
         order={selectedOrder}
-        isOpen={!!selectedOrder}
         onClose={() => setSelectedOrder(null)}
         isAdmin={false}
       />
@@ -1030,7 +1026,6 @@ const DentistDashboard = () => {
       {/* Payment Detail Modal */}
       <PaymentDetailModal
         payment={selectedPayment}
-        isOpen={!!selectedPayment}
         onClose={() => setSelectedPayment(null)}
         isAdmin={false}
       />

@@ -336,6 +336,102 @@
   color: #334155;
 }
 
+/* ── Amount Inline Editor ──────────────────── */
+.odm-pay-row--amount {
+  align-items: center;
+}
+
+.odm-amount-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.odm-currency-prefix {
+  font-weight: 700;
+  color: #4a6a5a;
+}
+
+.odm-amount-input {
+  width: 90px;
+  padding: 4px 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid #1e5038;
+  border-radius: 6px;
+  outline: none;
+}
+
+.odm-amount-btn-save {
+  background: #1e5038;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.odm-amount-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.odm-amount-btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.odm-amount-display-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.odm-amount-edit-trigger {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.odm-amount-trigger--edit {
+  border-color: #d1e2d9;
+  background: #f8faf9;
+  color: #2a5a44;
+}
+
+.odm-amount-trigger--edit:hover {
+  background: #eef5f1;
+  border-color: #b8d4c5;
+}
+
+.odm-amount-trigger--add {
+  border-color: #1e5038;
+  background: #f0fdf4;
+  color: #1e5038;
+}
+
+.odm-amount-trigger--add:hover {
+  background: #dcfce7;
+}
+
+.odm-amount-error-msg {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 2px;
+}
+
 /* ── Footer Actions ─────────────────────────── */
 .odm-footer {
   display: flex;

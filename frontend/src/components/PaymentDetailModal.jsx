@@ -1,25 +1,13 @@
-'use client';
 import React, { useState, useEffect } from 'react';
 import ConfirmDialog from './ConfirmDialog';
+import { formatINR, formatDate } from '../utils/format';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 
-const formatINR = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
-const formatDate = (d) => {
-  if (!d) return '—';
-  const parsed = new Date(d);
-  if (isNaN(parsed.getTime())) return '—';
-  return parsed.toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-};
 
 export default function PaymentDetailModal({
   payment,
-  isOpen,
   onClose,
   isAdmin = false,
   onDelete = null,
@@ -35,27 +23,25 @@ export default function PaymentDetailModal({
   const [amountInput, setAmountInput] = useState('');
   const [savingAmount, setSavingAmount] = useState(false);
   const [amountError, setAmountError] = useState('');
-  const [amountSuccess, setAmountSuccess] = useState('');
+
 
   useEffect(() => {
     if (payment) {
       setCurrentAmount(payment.amount || 0);
       setIsEditingAmount(false);
       setAmountError('');
-      setAmountSuccess('');
     }
   }, [payment]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!isOpen) return;
       if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showConfirmDelete, isEditingAmount, onClose]);
+  }, [showConfirmDelete, isEditingAmount, onClose]);
 
-  if (!isOpen || !payment) return null;
+  if (!payment) return null;
 
   const paymentId = payment._id || payment.id || payment.caseId;
   const isPaid = (payment.paymentStatus || payment.status) === 'Paid';
@@ -90,8 +76,6 @@ export default function PaymentDetailModal({
       }
       setCurrentAmount(val);
       setIsEditingAmount(false);
-      setAmountSuccess(`Amount updated to ${formatINR(val)}`);
-      setTimeout(() => setAmountSuccess(''), 3000);
     } catch (err) {
       setAmountError(err.message || 'Failed to update amount.');
     } finally {
@@ -198,7 +182,7 @@ export default function PaymentDetailModal({
                 )}
               </div>
             )}
-            {amountSuccess && <div className="pdm-amount-success-msg">{amountSuccess}</div>}
+
           </div>
 
           {/* Patient & Clinic Details */}

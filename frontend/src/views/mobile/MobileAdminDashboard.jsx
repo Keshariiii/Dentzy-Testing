@@ -1102,7 +1102,6 @@ const MobileAdminDashboard = () => {
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
-          isOpen={!!selectedOrder}
           onClose={() => setSelectedOrder(null)}
           isAdmin={true}
           onDelete={handleDeleteOrder}
@@ -1114,7 +1113,6 @@ const MobileAdminDashboard = () => {
       {selectedPayment && (
         <PaymentDetailModal
           payment={selectedPayment}
-          isOpen={!!selectedPayment}
           onClose={() => setSelectedPayment(null)}
           isAdmin={true}
           onDelete={handleDeletePayment}
