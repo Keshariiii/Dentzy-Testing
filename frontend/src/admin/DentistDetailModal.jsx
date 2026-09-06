@@ -61,7 +61,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const toastTimer                    = useRef(null);
 
   const [form, setForm] = useState({
-    patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '',
+    patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '', amount: '',
   });
 
   /* ── Load dentist profile + orders ──────────────────────────────────────── */
@@ -131,14 +131,15 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
     if (!form.patientName.trim()) { showToast('Patient name is required', 'error'); return; }
     setSubmitting(true);
     try {
+      const payload = { ...form, dentistId: userId, amount: form.amount !== '' ? Number(form.amount) : 0 };
       const res  = await authFetch(`${ADMIN_API}/orders`, {
         method: 'POST',
-        body: JSON.stringify({ ...form, dentistId: userId }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
         setOrders(prev => [data.order, ...prev]);
-        setForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '' });
+        setForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '', amount: '' });
         setShowForm(false);
         showToast('Order created successfully.');
       } else {
@@ -262,6 +263,15 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                         <input type="date" className="ddm-form-input"
                           value={form.dueDate}
                           onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="ddm-form-row">
+                      <div className="ddm-form-field">
+                        <label className="ddm-form-label">Amount (₹)</label>
+                        <input type="number" className="ddm-form-input"
+                          min="0" step="any" placeholder="0"
+                          value={form.amount}
+                          onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
                       </div>
                     </div>
                     <div className="ddm-form-field ddm-form-field--full">

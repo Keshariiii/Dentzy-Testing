@@ -880,30 +880,7 @@ const MobileAdminDashboard = () => {
                       <div style={{ textAlign: 'right' }}>
                         <span className="ma-case-badge">{p.caseId}</span>
                         <div className="ma-card-amount-lg">
-                          {p.amount > 0 ? (
-                            formatINR(p.amount)
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPayment(p);
-                              }}
-                              style={{
-                                fontSize: '0.72rem',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                border: '1px dashed #1e5038',
-                                background: '#f0fdf4',
-                                color: '#1e5038',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                marginTop: '3px',
-                              }}
-                            >
-                              + Add Amount
-                            </button>
-                          )}
+                          {formatINR(p.amount || 0)}
                         </div>
                       </div>
                     </div>

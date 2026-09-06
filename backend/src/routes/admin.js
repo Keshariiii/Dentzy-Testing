@@ -134,12 +134,14 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
     if (!user) return c.json({ message: 'User not found.' }, 404);
 
     const { results: orders } = await c.env.DB.prepare(
-      'SELECT * FROM lab_orders WHERE ownerId = ? ORDER BY createdAt DESC'
+      `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus
+       FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+       WHERE o.ownerId = ? ORDER BY o.createdAt DESC`
     ).bind(id).all();
 
     return c.json({
       user: { ...user, _id: user.id },
-      orders: orders.map(o => ({ ...o, _id: o.id })),
+      orders: orders.map(o => ({ ...o, _id: o.id, amount: o.paymentAmount, paymentAmount: o.paymentAmount, paymentStatus: o.paymentStatus })),
     });
   } catch (error) {
     logger.error('Admin getUserById error', { error: error.message });
@@ -307,7 +309,7 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
 
     return c.json({
       message: 'Order created.',
-      order: { ...order, _id: order.id, owner: { _id: dentist.id, name: dentist.name, email: dentist.email } },
+      order: { ...order, _id: order.id, amount: amount || 0, paymentAmount: amount || 0, paymentStatus: 'Pending', owner: { _id: dentist.id, name: dentist.name, email: dentist.email } },
     }, 201);
   } catch (error) {
     logger.error('Admin create order error', { error: error.message });

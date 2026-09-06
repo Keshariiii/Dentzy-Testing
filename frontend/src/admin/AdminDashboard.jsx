@@ -702,30 +702,7 @@ const AdminDashboard = () => {
                               <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
                               <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
                               <td style={{ padding: '10px 12px', fontWeight: 600 }}>
-                                {p.amount > 0 ? (
-                                  formatINR(p.amount)
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedPayment(p);
-                                    }}
-                                    style={{
-                                      fontSize: '0.72rem',
-                                      padding: '2px 8px',
-                                      borderRadius: '6px',
-                                      border: '1px dashed #1e5038',
-                                      background: '#f0fdf4',
-                                      color: '#1e5038',
-                                      cursor: 'pointer',
-                                      fontWeight: 600,
-                                    }}
-                                    title="Click to add payment amount"
-                                  >
-                                    + Add Amount
-                                  </button>
-                                )}
+                                {formatINR(p.amount || 0)}
                               </td>
                               <td style={{ padding: '10px 12px' }}>
                                 <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
