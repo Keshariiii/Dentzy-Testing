@@ -201,7 +201,7 @@ const MobileHome = () => {
 
         {/* 7. About Dentzy */}
         <section className="m-about-section" id="m-about">
-          <video className="m-about-video" autoPlay loop muted playsInline>
+          <video className="m-about-video" autoPlay loop muted playsInline preload="none">
             <source src="/images/about-bg.mp4" type="video/mp4" />
           </video>
           <div className="m-about-overlay" />
@@ -271,7 +271,7 @@ const MobileHome = () => {
 
         {/* 11. Products Intro */}
         <section className="m-products-intro" id="m-products">
-          <video className="m-products-video" autoPlay loop muted playsInline>
+          <video className="m-products-video" autoPlay loop muted playsInline preload="none">
             <source src="/products-bg.mp4" type="video/mp4" />
           </video>
           <div className="m-products-overlay" />

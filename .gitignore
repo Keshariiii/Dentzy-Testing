@@ -45,9 +45,17 @@ ISSUES.md
 
 # Agent configurations & customizations
 .agents/
+.reticle.json
+frontend/.reticle.json
+.reticle/
+RETICLE.md
+RETICLE-SETUP.md
+AGENTS.md
+CLAUDE.md
 
 # Drafts and future plans
 docs/further_plans.md
 further_plans.md
 further_plans_founder.md
+
 

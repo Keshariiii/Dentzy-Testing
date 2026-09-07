@@ -16,12 +16,17 @@ export const AuthProvider = ({ children }) => {
     const hydrate = async () => {
       const savedUser = typeof window !== 'undefined' ? localStorage.getItem('dentzy_user') : null;
 
-      // Optimistically restore from localStorage (display data only, not a token)
-      if (savedUser) {
-        try {
-          if (isMounted) setUser(JSON.parse(savedUser));
-        } catch { /* ignore */ }
+      // Fast path: fresh visitor with no stored session — skip the network call entirely.
+      // This eliminates a wasted /api/auth/me round-trip that always returns 401 on new devices.
+      if (!savedUser) {
+        if (isMounted) setLoading(false);
+        return;
       }
+
+      // Optimistically restore from localStorage (display data only, not a token)
+      try {
+        if (isMounted) setUser(JSON.parse(savedUser));
+      } catch { /* ignore */ }
 
       // Verify against server
       const controller = new AbortController();

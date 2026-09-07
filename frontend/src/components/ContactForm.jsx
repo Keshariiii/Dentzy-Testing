@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { getContactUrl } from '../api/client';
 import './ContactForm.css';
 
@@ -21,9 +21,12 @@ const ContactForm = () => {
     const [captchaToken, setCaptchaToken] = useState('');
     const [captchaSvg, setCaptchaSvg] = useState('');
     const [captchaLoading, setCaptchaLoading] = useState(false);
+    const [captchaLoaded, setCaptchaLoaded] = useState(false);
 
     // Honeypot state
     const [hpWebsite, setHpWebsite] = useState('');
+
+    const sectionRef = useRef(null);
 
     const fetchCaptcha = useCallback(async () => {
         setCaptchaLoading(true);
@@ -34,14 +37,25 @@ const ContactForm = () => {
             if (res.ok) {
                 setCaptchaToken(data.captchaToken);
                 setCaptchaSvg(data.captchaSvg);
+                setCaptchaLoaded(true);
             }
         } catch { /* silently ignore */ }
         setCaptchaLoading(false);
     }, []);
 
-    // Load CAPTCHA on first render
+    // Defer CAPTCHA fetch until the form scrolls into view
     useEffect(() => {
-        fetchCaptcha();
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    fetchCaptcha();
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '200px' }
+        );
+        if (sectionRef.current) observer.observe(sectionRef.current);
+        return () => observer.disconnect();
     }, [fetchCaptcha]);
 
     const handleChange = (e) => {
@@ -109,7 +123,7 @@ const ContactForm = () => {
     };
 
     return (
-        <section className="contact-form-section" id="contact">
+        <section className="contact-form-section" id="contact" ref={sectionRef}>
             <div className="container">
                 <h2 className="contact-form-title">We Are Here To Help You</h2>
 

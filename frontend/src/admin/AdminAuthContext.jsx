@@ -15,13 +15,18 @@ export const AdminAuthProvider = ({ children }) => {
     const hydrate = async () => {
       const savedAdmin = typeof window !== 'undefined' ? localStorage.getItem('dentzy_admin_info') : null;
 
+      // Fast path: no stored admin session — skip the network call entirely.
+      // Public marketing pages never need an admin check.
+      if (!savedAdmin) {
+        if (isMounted) setLoading(false);
+        return;
+      }
+
       // Optimistically restore from localStorage (display data only, not a token)
-      if (savedAdmin) {
-        try {
-          if (isMounted) setAdmin(JSON.parse(savedAdmin));
-        } catch {
-          if (typeof window !== 'undefined') localStorage.removeItem('dentzy_admin_info');
-        }
+      try {
+        if (isMounted) setAdmin(JSON.parse(savedAdmin));
+      } catch {
+        if (typeof window !== 'undefined') localStorage.removeItem('dentzy_admin_info');
       }
 
       // Verify the session against the server

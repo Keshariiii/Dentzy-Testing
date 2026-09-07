@@ -19,7 +19,7 @@ const PerfectSmile = () => {
                     </p>
                 </div>
                 <div className="perfect-smile-image">
-                    <img src="/images/perfect-smile.jpg" alt="Hands holding dental mold" />
+                    <img src="/images/perfect-smile.jpg" alt="Hands holding dental mold" loading="lazy" decoding="async" />
                 </div>
             </div>
         </section>

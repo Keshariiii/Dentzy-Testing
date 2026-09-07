@@ -1,14 +1,19 @@
+import { Inter } from 'next/font/google';
+import { ReticleDev } from './reticle-dev';
 import '../styles/tokens.css';
 import '../styles/reset.css';
 import '../styles/skeleton.css';
 import '../index.css';
 import '../global-animations.css';
 import '../responsive.css';
-import '../admin/AdminDashboard.css';
-import '../admin/DentistDetailModal.css';
-import '../components/DentistDashboard.css';
-import '../views/mobile/MobileAdminDashboard.css';
 import Providers from './Providers';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata = {
   metadataBase: new URL('https://dentzy-testing.pages.dev'),
@@ -61,7 +66,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
         <script
           type="application/ld+json"
@@ -76,7 +81,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>
+      <body>{process.env.NODE_ENV === 'development' ? <ReticleDev /> : null}
         <Providers>
           {children}
         </Providers>

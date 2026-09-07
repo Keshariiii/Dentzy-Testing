@@ -33,7 +33,7 @@ const Services = () => {
                     {services.map((service, index) => (
                         <div className={`service-card animate-on-scroll delay-${(index + 1) * 100}`} key={index}>
                             <div className="service-image">
-                                <img src={service.image} alt={service.displayTitle} />
+                                <img src={service.image} alt={service.displayTitle} loading="lazy" decoding="async" />
                             </div>
                             <div className="service-info">
                                 <h3>{service.displayTitle}</h3>

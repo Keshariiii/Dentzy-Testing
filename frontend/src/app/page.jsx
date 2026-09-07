@@ -22,8 +22,8 @@ export default function HomePage() {
     }
   }, [user, admin, userLoading, adminLoading, router]);
 
-  if (userLoading || adminLoading) return null;
-  if (user || admin) return null;
+  // While auth is loading, show the landing page (not a blank screen).
+  // The useEffect above will redirect once auth confirms a session.
 
   return <ResponsiveLayout pcView={<PCHome />} mobileView={<MobileHome />} />;
 }

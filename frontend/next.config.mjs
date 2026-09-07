@@ -25,4 +25,12 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-export default nextConfig;
+let exportedConfig = nextConfig;
+if (process.env.NODE_ENV === 'development') {
+  try {
+    const { withReticle } = await import('@reticlehq/next');
+    exportedConfig = withReticle(nextConfig);
+  } catch {}
+}
+
+export default exportedConfig;

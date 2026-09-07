@@ -27,7 +27,7 @@ const Process = () => {
                         <p className="cuz-subtitle">If "Dentzy" were a person, they would be a tech-savvy craftsman.</p>
                     </div>
                     <div className="cuz-image-container">
-                        <img src="/images/dentzy-cuz.jpg" alt="Tech-savvy craftsman" className="cuz-image" />
+                        <img src="/images/dentzy-cuz.jpg" alt="Tech-savvy craftsman" className="cuz-image" loading="lazy" decoding="async" />
                     </div>
                 </div>
             </div>
