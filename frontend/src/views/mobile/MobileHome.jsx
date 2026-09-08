@@ -114,7 +114,9 @@ const MobileHome = () => {
 
         {/* 1. Hero Banner */}
         <section className="m-hero" id="m-home">
-          <img className="m-hero__bg" src="/images/hero-mobile.webp" alt="Hero background" fetchPriority="high" />
+          <video className="m-hero__video" autoPlay loop muted playsInline>
+            <source src="/hero-bg.mp4" type="video/mp4" />
+          </video>
           <div className="m-hero__overlay" />
           <div className="m-hero__text">
             <h1>
@@ -199,7 +201,9 @@ const MobileHome = () => {
 
         {/* 7. About Dentzy */}
         <section className="m-about-section" id="m-about">
-          <img className="m-about-bg" src="/images/about-mobile.webp" alt="About Dentzy background" loading="lazy" />
+          <video className="m-about-video" autoPlay loop muted playsInline preload="none">
+            <source src="/images/about-bg.mp4" type="video/mp4" />
+          </video>
           <div className="m-about-overlay" />
           <div className="m-about-content">
             <h2>About DEN<span className="m-accent">T</span>ZY</h2>
@@ -267,7 +271,9 @@ const MobileHome = () => {
 
         {/* 11. Products Intro */}
         <section className="m-products-intro" id="m-products">
-          <img className="m-products-bg" src="/images/products-mobile.webp" alt="Products background" loading="lazy" />
+          <video className="m-products-video" autoPlay loop muted playsInline preload="none">
+            <source src="/products-bg.mp4" type="video/mp4" />
+          </video>
           <div className="m-products-overlay" />
           <div className="m-products-content">
             <h2>Our PRODUC<span className="m-accent">T</span>S</h2>
