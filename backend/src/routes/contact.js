@@ -3,41 +3,26 @@ import { validate } from '../middleware/validate.js';
 import { submitContactSchema } from '../validators/contact.js';
 import { newId, now } from '../utils/id.js';
 import logger from '../utils/logger.js';
-import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
-import { createCaptchaToken, verifyCaptchaToken } from '../utils/crypto.js';
+
 import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 import { sendContactAdminNotification, sendContactUserConfirmation } from '../utils/email.js';
 
 const contact = new Hono();
 
-// GET /api/contact/captcha — reuses existing CAPTCHA infrastructure from auth
-contact.get('/captcha', async (c) => {
-  try {
-    const code = generateCode(6);
-    const captchaSvg = generateCaptchaSVG(code);
-    const captchaToken = await createCaptchaToken(code, c.env.JWT_SECRET);
-    return c.json({ captchaToken, captchaSvg });
-  } catch (err) {
-    logger.error('Contact CAPTCHA generation error', { error: err.message });
-    return c.json({ message: 'Failed to generate CAPTCHA.' }, 500);
-  }
-});
+
 
 // POST /api/contact
 contact.post('/', validate(submitContactSchema), async (c) => {
   try {
-    const { name, email, phone, subject, message, captchaInput, captchaToken, hp_website } = c.get('body');
+    const { name, email, phone, subject, message, hp_website } = c.get('body');
 
     // Honeypot: if filled, silently fake success (don't tip off bot)
     if (hp_website) {
       return c.json({ success: true, message: 'Contact form submitted successfully' }, 201);
     }
 
-    // CAPTCHA verification
-    const captchaResult = await verifyCaptchaToken(captchaToken, captchaInput, c.env.JWT_SECRET);
-    if (!captchaResult.valid)
-      return c.json({ success: false, error: captchaResult.message, invalidCaptcha: true }, 400);
+
 
     // Rate limit: 5 submissions per 15 min per IP
     const ip = getClientIP(c);
