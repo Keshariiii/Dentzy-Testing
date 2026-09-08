@@ -18,28 +18,28 @@ import './MobileHome.css';
    DATA
 ============================================================ */
 const SERVICES = [
-  { key: 'denture',  title: 'Denture',  image: '/images/denture.jpg',
+  { key: 'denture',  title: 'Denture',  image: '/images/denture.webp',
     desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly." },
-  { key: 'zirconia', title: 'Zirconia', image: '/images/zirconia.jpg',
+  { key: 'zirconia', title: 'Zirconia', image: '/images/zirconia.webp',
     desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material.' },
-  { key: 'pfm',      title: 'PFM',      image: '/images/pfm.jpg',
+  { key: 'pfm',      title: 'PFM',      image: '/images/pfm.webp',
     desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry.' },
-  { key: 'metal',    title: 'Metal',    image: '/images/metal.jpg',
+  { key: 'metal',    title: 'Metal',    image: '/images/metal.webp',
     desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth.' },
 ];
 
 const PRODUCTS = [
-  { key: 'denture',   title: 'Complete Denture (single arch)', image: '/images/denture.jpg',
+  { key: 'denture',   title: 'Complete Denture (single arch)', image: '/images/denture.webp',
     desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly. A complete denture (single arch) is a reliable and time-tested solution for patients who have lost all teeth in either the upper (maxillary) or lower (mandibular) arch." },
-  { key: 'flexible',  title: 'Flexible Denture', image: '/images/flexible-denture.jpg',
+  { key: 'flexible',  title: 'Flexible Denture', image: '/images/flexible-denture.webp',
     desc: 'Flexible dentures are removable dental prostheses made from advanced thermoplastic materials rather than conventional acrylic or metal frameworks. Their flexible nature allows the denture to adapt comfortably to the natural contours of the gums, offering a secure and natural fit.' },
-  { key: 'rpd',       title: 'Removable Partial Denture', image: '/images/rpd.jpg',
+  { key: 'rpd',       title: 'Removable Partial Denture', image: '/images/rpd.webp',
     desc: 'Missing one or more teeth can affect chewing, speech, and overall confidence. A Removable Partial Denture (RPD) is a practical and effective tooth replacement option that restores function and aesthetics while preserving remaining natural teeth.' },
-  { key: 'metal-cb',  title: 'Metal Crowns and Bridges', image: '/images/metal.jpg',
+  { key: 'metal-cb',  title: 'Metal Crowns and Bridges', image: '/images/metal.webp',
     desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth. A metal bridge replaces one or more missing teeth by anchoring artificial teeth to metal crowns placed on adjacent natural teeth.' },
-  { key: 'pfm-prod',  title: 'PFM', image: '/images/pfm.jpg',
+  { key: 'pfm-prod',  title: 'PFM', image: '/images/pfm.webp',
     desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry. Known for combining the strength of metal with the natural appearance of porcelain, PFM crowns offer a reliable and cost-effective solution for restoring damaged or weakened teeth.' },
-  { key: 'zirconia-p', title: 'Zirconia', image: '/images/zirconia.jpg',
+  { key: 'zirconia-p', title: 'Zirconia', image: '/images/zirconia.webp',
     desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material. It can be fabricated as monolithic zirconia (single solid structure) or layered zirconia (zirconia core with ceramic layering for enhanced aesthetics). Zirconia crowns are designed using advanced CAD/CAM technology, ensuring exceptional precision and consistency.' },
 ];
 
@@ -114,9 +114,7 @@ const MobileHome = () => {
 
         {/* 1. Hero Banner */}
         <section className="m-hero" id="m-home">
-          <video className="m-hero__video" autoPlay loop muted playsInline>
-            <source src="/hero-bg.mp4" type="video/mp4" />
-          </video>
+          <img className="m-hero__bg" src="/images/hero-mobile.webp" alt="Hero background" fetchPriority="high" />
           <div className="m-hero__overlay" />
           <div className="m-hero__text">
             <h1>
@@ -186,7 +184,7 @@ const MobileHome = () => {
               <p>If "Dentzy" were a person, they would be a tech-savvy craftsman.</p>
             </div>
             <div className="m-cuz-image">
-              <img src="/images/dentzy-cuz.jpg" alt="Tech-savvy craftsman" loading="lazy" />
+              <img src="/images/dentzy-cuz.webp" alt="Tech-savvy craftsman" loading="lazy" />
             </div>
           </div>
         </section>
@@ -201,9 +199,7 @@ const MobileHome = () => {
 
         {/* 7. About Dentzy */}
         <section className="m-about-section" id="m-about">
-          <video className="m-about-video" autoPlay loop muted playsInline preload="none">
-            <source src="/images/about-bg.mp4" type="video/mp4" />
-          </video>
+          <img className="m-about-bg" src="/images/about-mobile.webp" alt="About Dentzy background" loading="lazy" />
           <div className="m-about-overlay" />
           <div className="m-about-content">
             <h2>About DEN<span className="m-accent">T</span>ZY</h2>
@@ -253,7 +249,7 @@ const MobileHome = () => {
             <p className="m-smile-footer">Crafted With Care, For Patients Welfare.</p>
           </div>
           <div className="m-smile-img">
-            <img src="/images/perfect-smile.jpg" alt="Hands holding dental mold" loading="lazy" />
+            <img src="/images/perfect-smile.webp" alt="Hands holding dental mold" loading="lazy" />
           </div>
         </section>
 
@@ -271,9 +267,7 @@ const MobileHome = () => {
 
         {/* 11. Products Intro */}
         <section className="m-products-intro" id="m-products">
-          <video className="m-products-video" autoPlay loop muted playsInline preload="none">
-            <source src="/products-bg.mp4" type="video/mp4" />
-          </video>
+          <img className="m-products-bg" src="/images/products-mobile.webp" alt="Products background" loading="lazy" />
           <div className="m-products-overlay" />
           <div className="m-products-content">
             <h2>Our PRODUC<span className="m-accent">T</span>S</h2>

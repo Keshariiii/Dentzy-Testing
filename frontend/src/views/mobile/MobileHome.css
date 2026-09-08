@@ -24,7 +24,7 @@
   overflow: hidden;
 }
 
-.m-hero__video {
+.m-hero__bg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -35,7 +35,7 @@
 .m-hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(30, 40, 36, 0.5) 0%, rgba(30, 40, 36, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(30, 40, 36, 0.35) 0%, rgba(30, 40, 36, 0.50) 100%);
 }
 
 .m-hero__text {
@@ -318,7 +318,7 @@
   overflow: hidden;
 }
 
-.m-about-video {
+.m-about-bg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -329,7 +329,7 @@
 .m-about-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(30, 40, 36, 0.7);
+  background: rgba(30, 40, 36, 0.45);
 }
 
 .m-about-content {
@@ -483,7 +483,7 @@
   overflow: hidden;
 }
 
-.m-products-video {
+.m-products-bg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -494,7 +494,7 @@
 .m-products-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(30, 40, 36, 0.7);
+  background: rgba(30, 40, 36, 0.45);
 }
 
 .m-products-content {

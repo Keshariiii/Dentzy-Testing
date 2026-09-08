@@ -4,22 +4,22 @@ import './Services.css';
 const services = [
     {
         displayTitle: 'Denture', // Fixed capitalization
-        image: '/images/denture.jpg',
+        image: '/images/denture.webp',
         description: 'Tooth loss can significantly affect a person\'s appearance, confidence, and ability to chew and speak properly.'
     },
     {
         displayTitle: 'Zirconia',
-        image: '/images/zirconia.jpg',
+        image: '/images/zirconia.webp',
         description: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material.'
     },
     {
         displayTitle: 'PFM',
-        image: '/images/pfm.jpg',
+        image: '/images/pfm.webp',
         description: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry.'
     },
     {
         displayTitle: 'Metal',
-        image: '/images/metal.jpg',
+        image: '/images/metal.webp',
         description: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth.'
     }
 ];

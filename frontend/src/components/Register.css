@@ -13,7 +13,7 @@
 .auth-left {
   position: relative;
   width: 55%;
-  background-image: url('/images/auth-bg.jpg');
+  background-image: url('/images/auth-bg.webp');
   background-size: cover;
   background-position: center;
   background-color: #2d3b34; /* fallback if image missing */

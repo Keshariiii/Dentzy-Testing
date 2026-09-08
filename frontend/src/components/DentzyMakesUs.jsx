@@ -18,7 +18,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/denture.jpg" alt="Complete Denture" loading="lazy" decoding="async" />
+                        <img src="/images/denture.webp" alt="Complete Denture" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
@@ -33,7 +33,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/flexible-denture.jpg" alt="Flexible Denture" loading="lazy" decoding="async" />
+                        <img src="/images/flexible-denture.webp" alt="Flexible Denture" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
@@ -48,7 +48,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/rpd.jpg" alt="Removable Partial Denture" loading="lazy" decoding="async" />
+                        <img src="/images/rpd.webp" alt="Removable Partial Denture" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
@@ -63,7 +63,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/metal.jpg" alt="Metal Crowns and Bridges" loading="lazy" decoding="async" />
+                        <img src="/images/metal.webp" alt="Metal Crowns and Bridges" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
@@ -78,7 +78,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/pfm.jpg" alt="PFM" loading="lazy" decoding="async" />
+                        <img src="/images/pfm.webp" alt="PFM" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
@@ -95,7 +95,7 @@ const DentzyMakesUs = () => {
                         </p>
                     </div>
                     <div className="makes-us-image animate-on-scroll">
-                        <img src="/images/zirconia.jpg" alt="Zirconia" loading="lazy" decoding="async" />
+                        <img src="/images/zirconia.webp" alt="Zirconia" loading="lazy" decoding="async" />
                     </div>
                 </div>
 
