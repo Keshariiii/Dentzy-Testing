@@ -84,6 +84,7 @@ const MobileAdminDashboard = () => {
   // Detail modals
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [expandedMobileSetting, setExpandedMobileSetting] = useState(null); // 'payments' | 'users' | null
 
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
@@ -553,59 +554,7 @@ const MobileAdminDashboard = () => {
         rightElement={<div className="ma-avatar">{initials}</div>}
       />
 
-      {/* Greeting Header */}
-      {adminView !== 'dentists' && adminView !== 'settings' && (
-      <div className="ma-greeting">
-        <div>
-          {adminView === 'orders' && !drillDentistOrders && (
-            <>
-              <h2 className="ma-hello">Lab Orders</h2>
-              <p className="ma-date">{dentistOrderGroups.length} Dentists · {allOrders.length} Total Orders</p>
-            </>
-          )}
-          {adminView === 'orders' && drillDentistOrders && (
-            <>
-              <h2 className="ma-hello">{drillDentistOrders.name}</h2>
-              <p className="ma-date">{drillDentistOrders.clinicName || 'Lab Orders'}</p>
-            </>
-          )}
-          {adminView === 'payments' && !drillDentistPayments && (
-            <>
-              <h2 className="ma-hello">Payments & Billing</h2>
-              <p className="ma-date">{dentistPaymentGroups.length} Dentists · {paymentData.payments?.length || 0} Records</p>
-            </>
-          )}
-          {adminView === 'payments' && drillDentistPayments && (
-            <>
-              <h2 className="ma-hello">{drillDentistPayments.name}</h2>
-              <p className="ma-date">{drillDentistPayments.clinicName || 'Payments'}</p>
-            </>
-          )}
-        </div>
-        <div className="ma-greeting-right">
-          {adminView === 'orders' && drillDentistOrders && (
-            <button className="ma-refresh-btn" onClick={() => { setDrillDentistOrders(null); setOrderFilter('all'); setOrderSearch(''); }} title="Back to all dentists" style={{ padding: '8px' }}>
-              ←
-            </button>
-          )}
-          {adminView === 'orders' && !drillDentistOrders && (
-            <button className="ma-refresh-btn" onClick={fetchAllOrders} title="Refresh orders">
-              ↻
-            </button>
-          )}
-          {adminView === 'payments' && drillDentistPayments && (
-            <button className="ma-refresh-btn" onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }} title="Back to all dentists" style={{ padding: '8px' }}>
-              ←
-            </button>
-          )}
-          {adminView === 'payments' && !drillDentistPayments && (
-            <button className="ma-refresh-btn" onClick={fetchPayments} title="Refresh payments">
-              ↻
-            </button>
-          )}
-        </div>
-      </div>
-      )}
+
 
       {/* Live Notification Banners */}
       {liveNotifs.length > 0 && (
@@ -760,6 +709,28 @@ const MobileAdminDashboard = () => {
           {drillDentistOrders ? (
             /* ── Drill-down: single dentist's orders ── */
             <>
+              {/* Back Arrow Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
+                <button
+                  onClick={() => { setDrillDentistOrders(null); setOrderFilter('all'); setOrderSearch(''); }}
+                  aria-label="Back"
+                  title="Back"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
+                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+                  </svg>
+                </button>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
+                  {drillDentistOrders.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>}
+                </div>
+              </div>
+
               {/* Search Bar */}
               <div className="ma-search-wrap">
                 <div className="ma-search-bar">
@@ -898,7 +869,27 @@ const MobileAdminDashboard = () => {
           {drillDentistPayments ? (
             /* ── Drill-down: single dentist's payments ── */
             <>
-
+              {/* Back Arrow Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
+                <button
+                  onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }}
+                  aria-label="Back"
+                  title="Back"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
+                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+                  </svg>
+                </button>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
+                  {drillDentistPayments.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>}
+                </div>
+              </div>
 
               {/* Filter Status Pills */}
               <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px' }}>
@@ -1041,13 +1032,131 @@ const MobileAdminDashboard = () => {
           VIEW 4: SETTINGS
           ───────────────────────────────────────────────────────────── */}
       {adminView === 'settings' && (
-        <main className="ma-main" style={{ paddingTop: '24px' }}>
-          <h2 className="ma-hello" style={{ marginBottom: '24px', padding: '0 16px' }}>Settings</h2>
-          <div className="ma-card" style={{ margin: '0 16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
-            <p style={{ color: '#4a6a5a', fontSize: '0.9rem' }}>Admin Settings and Preferences.</p>
-            <button className="btn" onClick={handleLogout} style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center', background: '#dc2626' }}>
-              {Ico.logout(16)} Logout
-            </button>
+        <main className="ma-main" style={{ paddingTop: '16px', paddingBottom: '90px' }}>
+          <div style={{ padding: '0 16px', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
+            <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '4px 0 0' }}>Admin overview and portal management</p>
+          </div>
+
+          <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Card 1: Payments & Revenue Overview */}
+            <div className="ma-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div
+                onClick={() => setExpandedMobileSetting(expandedMobileSetting === 'payments' ? null : 'payments')}
+                style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedMobileSetting === 'payments' ? '#f8faf9' : '#fff' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {Ico.payments ? Ico.payments(20) : Ico.wallet(20)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Payment & Revenue Overview</div>
+                    <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>Tap to view billed, collected, and pending</div>
+                  </div>
+                </div>
+                <div style={{ color: '#6b8a7a' }}>
+                  {expandedMobileSetting === 'payments' ? (Ico.chevronUp ? Ico.chevronUp(18) : '▲') : (Ico.chevronDown ? Ico.chevronDown(18) : '▼')}
+                </div>
+              </div>
+
+              {expandedMobileSetting === 'payments' && (
+                <div style={{ padding: '16px', borderTop: '1px solid #edf2ef', background: '#fafcfa' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase' }}>Total Billed</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1a3028', marginTop: '4px' }}>
+                        {formatINR(paymentData.summary?.totalBilled || 0)}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase' }}>Collected</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#166534', marginTop: '4px' }}>
+                        {formatINR(paymentData.summary?.totalCollected || 0)}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase' }}>Pending</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
+                        {formatINR(paymentData.summary?.totalPending || 0)}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase' }}>Records</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e5038', marginTop: '4px' }}>
+                        {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Card 2: User Accounts Overview */}
+            <div className="ma-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div
+                onClick={() => setExpandedMobileSetting(expandedMobileSetting === 'users' ? null : 'users')}
+                style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedMobileSetting === 'users' ? '#f8faf9' : '#fff' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {Ico.usersS ? Ico.usersS(20) : Ico.users(20)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>User Accounts Overview</div>
+                    <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>Tap to view registered, approved, and rejected</div>
+                  </div>
+                </div>
+                <div style={{ color: '#6b8a7a' }}>
+                  {expandedMobileSetting === 'users' ? (Ico.chevronUp ? Ico.chevronUp(18) : '▲') : (Ico.chevronDown ? Ico.chevronDown(18) : '▼')}
+                </div>
+              </div>
+
+              {expandedMobileSetting === 'users' && (
+                <div style={{ padding: '16px', borderTop: '1px solid #edf2ef', background: '#fafcfa' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase' }}>Total Registered</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', marginTop: '4px' }}>
+                        {stats.total || 0}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase' }}>Approved</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#166534', marginTop: '4px' }}>
+                        {stats.approved || 0}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase' }}>Pending</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
+                        {stats.pending || 0}
+                      </div>
+                    </div>
+                    <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#dc2626', textTransform: 'uppercase' }}>Rejected</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+                        {stats.rejected || 0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Card 3: Account and Logout */}
+            <div className="ma-card" style={{ padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Administrator Account</div>
+                <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+              </div>
+              <button
+                className="btn"
+                onClick={handleLogout}
+                style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px', fontWeight: 600, fontSize: '0.9rem' }}
+              >
+                {Ico.logout(16)} Logout
+              </button>
+            </div>
           </div>
         </main>
       )}
@@ -1062,7 +1171,15 @@ const MobileAdminDashboard = () => {
             <button
               key={item.key}
               className={`ma-bnav-btn ${isActive ? 'ma-bnav-btn--active' : ''}`}
-              onClick={() => setAdminView(item.key)}
+              onClick={() => {
+                setAdminView(item.key);
+                if (item.key === 'orders') fetchAllOrders();
+                if (item.key === 'payments') fetchPayments();
+                if (item.key === 'settings') {
+                  fetchStats();
+                  fetchPayments();
+                }
+              }}
             >
               <div className="ma-bnav-icon-wrap">
                 {item.icon(20)}

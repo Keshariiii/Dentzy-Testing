@@ -67,10 +67,10 @@ export const AdminAuthProvider = ({ children }) => {
   }, []);
 
   // ── Admin login ───────────────────────────────────────────────────────────
-  const adminLogin = useCallback(async (username, password, rememberMe = false) => {
+  const adminLogin = useCallback(async (username, password) => {
     const data = await apiFetch(`${getAdminUrl()}/login`, {
       method: 'POST',
-      body: JSON.stringify({ username, password, rememberMe }),
+      body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request

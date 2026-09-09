@@ -58,6 +58,11 @@ export const Icons = {
   clinic:     (s = 14) => <Icon size={s} d={<><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />,
   package:    (s = 32, sw = 1.2) => <Icon size={s} strokeWidth={sw} d={<><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></>} />,
   moreVertical:(s = 16) => <Icon size={s} d={<><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></>} />,
+  arrowLeft:  (s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>} />,
+  chevronDown:(s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="6 9 12 15 18 9"/></>} />,
+  chevronUp:  (s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="18 15 12 9 6 15"/></>} />,
+  chevronRight:(s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="9 18 15 12 9 6"/></>} />,
+  chevronLeft:(s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="15 18 9 12 15 6"/></>} />,
 };
 
 export const Ico = Icons;

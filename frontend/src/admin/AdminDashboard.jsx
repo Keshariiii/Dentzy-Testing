@@ -63,6 +63,7 @@ const AdminDashboard = () => {
   // Drill-down state for dentist-centric views
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
+  const [expandedSetting, setExpandedSetting] = useState(null); // 'payments' | 'users' | null
   const sseRef = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -555,7 +556,7 @@ const AdminDashboard = () => {
                 <span className="ad-nav-icon">{Ico.payments ? Ico.payments(16) : Ico.wallet(16)}</span>
                 Payments
               </button>
-              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => setAdminView('settings')} aria-label="Settings">
+              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
                 <span className="ad-nav-icon">{Ico.settings ? Ico.settings(16) : '⚙️'}</span>
                 Settings
               </button>
@@ -602,16 +603,28 @@ const AdminDashboard = () => {
               /* ── Payments View ────────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p className="ad-section-title">
-                    {drillDentistPayments ? (
-                      <>
-                        <button onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); }} style={{ background: '#e2ece6', borderRadius: '8px', padding: '6px 12px', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {Ico.chevronLeft ? Ico.chevronLeft(16) : '←'} Back to Dashboard
-                        </button>
-                        {drillDentistPayments.name}{drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}
-                      </>
-                    ) : 'Payments & Billing'}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      onClick={() => {
+                        if (drillDentistPayments) {
+                          setDrillDentistPayments(null);
+                          setPayFilterStatus('all');
+                          setPayFilterMode('all');
+                        } else {
+                          setAdminView('users');
+                        }
+                      }}
+                      title={drillDentistPayments ? "Back to All Payments" : "Back to Dentists"}
+                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
+                    </button>
+                    <p className="ad-section-title" style={{ margin: 0 }}>
+                      {drillDentistPayments ? (
+                        `${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}`
+                      ) : 'Payments & Billing'}
+                    </p>
+                  </div>
                   <button onClick={() => fetchPaymentsRef.current?.()} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
                 </div>
 
@@ -698,22 +711,22 @@ const AdminDashboard = () => {
                         {dentistPaymentGroups.map(d => {
                           const unpaid = d.payments.filter(p => p.paymentStatus !== 'Paid').length;
                           return (
-                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistPayments(d)} style={{ cursor: 'pointer', padding: '16px', borderRadius: '14px', border: '1px solid #e2ece6', background: '#fff' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
-                                  <div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028' }}>{d.name}</div>
-                                    {d.clinicName && <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>{d.clinicName}</div>}
-                                  </div>
+                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistPayments(d)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '16px 20px', borderRadius: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                                <div className="ad-user-info">
+                                  <div className="ad-user-name">{d.name}</div>
+                                  {d.clinicName && <div className="ad-user-email">{d.clinicName}</div>}
                                 </div>
-                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} Cases ›</span>
                               </div>
-                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#f0fdf4', color: '#16a34a' }}>Billed {formatINR(d.totalBilled)}</span>
-                                <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>Collected {formatINR(d.totalCollected)}</span>
-                                {d.totalPending > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>Pending {formatINR(d.totalPending)}</span>}
-                                {unpaid > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>{unpaid} Unpaid</span>}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#f0fdf4', color: '#16a34a' }}>Billed {formatINR(d.totalBilled)}</span>
+                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>Collected {formatINR(d.totalCollected)}</span>
+                                  {d.totalPending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>Pending {formatINR(d.totalPending)}</span>}
+                                  {unpaid > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>{unpaid} Unpaid</span>}
+                                </div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.payments.length} Cases ›</span>
                               </div>
                             </div>
                           );
@@ -727,16 +740,26 @@ const AdminDashboard = () => {
               /* ── Lab Orders View ───────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p className="ad-section-title">
-                    {drillDentistOrders ? (
-                      <>
-                        <button onClick={() => setDrillDentistOrders(null)} style={{ background: '#e2ece6', borderRadius: '8px', padding: '6px 12px', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {Ico.chevronLeft ? Ico.chevronLeft(16) : '←'} Back to Dashboard
-                        </button>
-                        {drillDentistOrders.name}{drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}
-                      </>
-                    ) : 'Lab Orders'}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      onClick={() => {
+                        if (drillDentistOrders) {
+                          setDrillDentistOrders(null);
+                        } else {
+                          setAdminView('users');
+                        }
+                      }}
+                      title={drillDentistOrders ? "Back to All Lab Orders" : "Back to Dentists"}
+                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
+                    </button>
+                    <p className="ad-section-title" style={{ margin: 0 }}>
+                      {drillDentistOrders ? (
+                        `${drillDentistOrders.name}${drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}`
+                      ) : 'Lab Orders'}
+                    </p>
+                  </div>
                   <button onClick={fetchAllOrders} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
                 </div>
                 <div className="ad-content">
@@ -795,21 +818,21 @@ const AdminDashboard = () => {
                           const pending = d.orders.filter(o => o.status === 'Pending').length;
                           const completed = d.orders.filter(o => o.status === 'Completed').length;
                           return (
-                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistOrders(d)} style={{ cursor: 'pointer', padding: '16px', borderRadius: '14px', border: '1px solid #e2ece6', background: '#fff' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
-                                  <div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028' }}>{d.name}</div>
-                                    {d.clinicName && <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>{d.clinicName}</div>}
-                                  </div>
+                            <div key={d._id} className="ad-user-card" onClick={() => setDrillDentistOrders(d)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '16px 20px', borderRadius: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div className="ad-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
+                                <div className="ad-user-info">
+                                  <div className="ad-user-name">{d.name}</div>
+                                  {d.clinicName && <div className="ad-user-email">{d.clinicName}</div>}
                                 </div>
-                                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} Orders ›</span>
                               </div>
-                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {inProgress > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>{inProgress} In Progress</span>}
-                                {pending > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>{pending} Pending</span>}
-                                {completed > 0 && <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{completed} Completed</span>}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  {inProgress > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>{inProgress} In Progress</span>}
+                                  {pending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>{pending} Pending</span>}
+                                  {completed > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{completed} Completed</span>}
+                                </div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.orders.length} Orders ›</span>
                               </div>
                             </div>
                           );
@@ -928,16 +951,143 @@ const AdminDashboard = () => {
 
               </div>
             ) : adminView === 'settings' ? (
-            /* ── Settings View ───────────────────────────────────────── */
-            <div style={{ padding: '24px' }}>
-              <h2>Settings</h2>
-              <p style={{ color: '#6b8a7a', marginBottom: '24px' }}>Admin Settings and Preferences.</p>
-              <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #e2ece6', maxWidth: '400px' }}>
-                <button className="ad-logout" onClick={handleLogout} style={{ width: '100%', display: 'flex', justifyContent: 'center', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
-                  {Ico.logout(15)} Logout
-                </button>
+              /* ── Settings View ───────────────────────────────────────── */
+              <div style={{ padding: '28px 0', maxWidth: '800px' }}>
+                <div className="ad-section-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <button
+                    onClick={() => setAdminView('users')}
+                    title="Back to Dentists"
+                    style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
+                  </button>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
+                    <p style={{ color: '#6b8a7a', fontSize: '0.84rem', margin: 0 }}>Manage portal preferences and view overall performance metrics.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Card 1: Revenue & Payments Overview */}
+                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div
+                      onClick={() => setExpandedSetting(expandedSetting === 'payments' ? null : 'payments')}
+                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'payments' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {Ico.payments ? Ico.payments(22) : Ico.wallet(22)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Payment & Revenue Overview</div>
+                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Click to view total billed, collected, and pending revenue</div>
+                        </div>
+                      </div>
+                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
+                        {expandedSetting === 'payments' ? (Ico.chevronUp ? Ico.chevronUp(20) : '▲') : (Ico.chevronDown ? Ico.chevronDown(20) : '▼')}
+                      </div>
+                    </div>
+
+                    {expandedSetting === 'payments' && (
+                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1a3028', marginTop: '6px' }}>
+                              {formatINR(paymentData.summary?.totalBilled || 0)}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#166534', marginTop: '6px' }}>
+                              {formatINR(paymentData.summary?.totalCollected || 0)}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309', marginTop: '6px' }}>
+                              {formatINR(paymentData.summary?.totalPending || 0)}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e5038', marginTop: '6px' }}>
+                              {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 2: Users Overview */}
+                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div
+                      onClick={() => setExpandedSetting(expandedSetting === 'users' ? null : 'users')}
+                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'users' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {Ico.usersS ? Ico.usersS(22) : Ico.users(22)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>User Accounts Overview</div>
+                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Click to view registered, approved, pending, and rejected accounts</div>
+                        </div>
+                      </div>
+                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
+                        {expandedSetting === 'users' ? (Ico.chevronUp ? Ico.chevronUp(20) : '▲') : (Ico.chevronDown ? Ico.chevronDown(20) : '▼')}
+                      </div>
+                    </div>
+
+                    {expandedSetting === 'users' && (
+                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1a3028', marginTop: '6px' }}>
+                              {stats.total || 0}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#166534', marginTop: '6px' }}>
+                              {stats.approved || 0}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309', marginTop: '6px' }}>
+                              {stats.pending || 0}
+                            </div>
+                          </div>
+                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejected</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#dc2626', marginTop: '6px' }}>
+                              {stats.rejected || 0}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 3: Session & Logout */}
+                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Administrator Account</div>
+                      <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                    </div>
+                    <button
+                      className="ad-logout"
+                      onClick={handleLogout}
+                      style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      {Ico.logout(15)} Logout
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
             ) : null}
 
           </div>{/* /ad-content-inner */}
