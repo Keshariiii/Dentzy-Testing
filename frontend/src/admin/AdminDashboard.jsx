@@ -13,14 +13,14 @@ const dentzyLogo = '/dentzy-logo-v2.png';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 
 const TABS = [
-  { key: 'all',      label: 'All'      },
-  { key: 'pending',  label: 'Pending'  },
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
 ];
 
 const STATUS_BADGE = {
-  pending:  { label: 'Pending',  cls: 'badge-pending'  },
+  pending: { label: 'Pending', cls: 'badge-pending' },
   approved: { label: 'Approved', cls: 'badge-approved' },
   rejected: { label: 'Rejected', cls: 'badge-rejected' },
 };
@@ -29,41 +29,41 @@ const AdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
-  const [activeTab, setActiveTab]         = useState('all');
-  const [adminView, setAdminView]         = useState('users'); // 'users' | 'orders' | 'payments'
-  const [sidebarOpen, setSidebarOpen]     = useState(false);
-  const [users, setUsers]                 = useState([]);
-  const [allOrders, setAllOrders]         = useState([]);
-  const [stats, setStats]                 = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
-  const [loadingUsers, setLoadingUsers]   = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [adminView, setAdminView] = useState('users'); // 'users' | 'orders' | 'payments'
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-  const [sortOrder, setSortOrder]         = useState('desc');
-  const [search, setSearch]               = useState('');
-  const [toast, setToast]                 = useState(null);
-  const [liveNotifs, setLiveNotifs]       = useState([]);
-  const [visiblePw, setVisiblePw]         = useState(null);
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState(null);
+  const [liveNotifs, setLiveNotifs] = useState([]);
+  const [visiblePw, setVisiblePw] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [openMenuId, setOpenMenuId]         = useState(null);
-  const [confirmConfig, setConfirmConfig]   = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState(null);
   // Payments view state
-  const [paymentData, setPaymentData]       = useState({ summary: null, payments: [] });
+  const [paymentData, setPaymentData] = useState({ summary: null, payments: [] });
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [payFilterStatus, setPayFilterStatus] = useState('all');
-  const [payFilterMode, setPayFilterMode]     = useState('all');
-  const [paySearch, setPaySearch]             = useState('');
+  const [payFilterMode, setPayFilterMode] = useState('all');
+  const [paySearch, setPaySearch] = useState('');
   // Record Payment modal state
   const [payModal, setPayModal] = useState(null); // { orderId, caseId, patientName, amount, ... }
-  const [payForm, setPayForm]   = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
+  const [payForm, setPayForm] = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
   // Order & Payment detail modals
-  const [selectedOrder, setSelectedOrder]     = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   // Drill-down state for dentist-centric views
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
-  const sseRef        = useRef(null);
+  const sseRef = useRef(null);
   const toastTimerRef = useRef(null);
 
   /* ── Date string ───────────────────────────────────────────────────────── */
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/orders?limit=200&sort=createdAt&order=desc`);
       if (res.ok) { const d = await res.json(); setAllOrders(d.orders || []); }
-    } catch {}
+    } catch { }
     setLoadingOrders(false);
   }, [ADMIN_API]);
 
@@ -108,7 +108,7 @@ const AdminDashboard = () => {
       if (paySearch) params.set('search', paySearch);
       const res = await authFetchRef.current(`${ADMIN_API}/payments?${params}`);
       if (res.ok) { const d = await res.json(); setPaymentData(d); }
-    } catch {}
+    } catch { }
     setLoadingPayments(false);
   }, [ADMIN_API, payFilterStatus, payFilterMode, paySearch]);
 
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
         const data = await res.json();
         setStats(data);
       }
-    } catch {}
+    } catch { }
   }, [ADMIN_API]);
 
   const fetchUsers = useCallback(async () => {
@@ -131,7 +131,7 @@ const AdminDashboard = () => {
         const data = await res.json();
         setUsers(data.users || []);
       }
-    } catch {}
+    } catch { }
     setLoadingUsers(false);
   }, [ADMIN_API, activeTab, sortOrder]);
 
@@ -142,21 +142,21 @@ const AdminDashboard = () => {
     fetchUsers();
     fetchAllOrders();
     fetchPayments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.username]);
 
   // Re-fetch when tab or sort changes
   useEffect(() => {
     if (!admin?.username) return;
     fetchUsers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, sortOrder]);
 
   // Re-fetch payments when filters change
   useEffect(() => {
     if (!admin?.username || adminView !== 'payments') return;
     fetchPayments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payFilterStatus, payFilterMode]);
 
   // Refs for SSE callbacks
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
             setTimeout(() => setLiveNotifs(prev => prev.filter(n => n.id !== id)), 8000);
             fetchUsersRef.current?.();
             fetchStatsRef.current?.();
-          } catch {}
+          } catch { }
         });
 
         es.addEventListener('user-updated', () => {
@@ -487,7 +487,7 @@ const AdminDashboard = () => {
   }, [paymentData.payments, drillDentistPayments, payFilterStatus, payFilterMode]);
 
   const adminName = admin?.username || 'Admin';
-  const initials  = (adminName || 'AD').slice(0, 2).toUpperCase();
+  const initials = (adminName || 'AD').slice(0, 2).toUpperCase();
 
   /* ═══════════════════════════════════════════════════════════════════════
      RENDER
@@ -555,36 +555,13 @@ const AdminDashboard = () => {
                 <span className="ad-nav-icon">{Ico.payments ? Ico.payments(16) : Ico.wallet(16)}</span>
                 Payments
               </button>
-              <button className="ad-nav-item" aria-label="Settings" disabled>
-                <span className="ad-nav-icon">{Ico.settings(16)}</span>
+              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => setAdminView('settings')} aria-label="Settings">
+                <span className="ad-nav-icon">{Ico.settings ? Ico.settings(16) : '⚙️'}</span>
                 Settings
               </button>
             </nav>
 
-            {/* Stats overview */}
-            <p className="ad-stats-label">Overview</p>
-            <div className="ad-stats">
-              <div className="ad-stat-row">
-                <div className="ad-stat-pill">
-                  <span className="ad-stat-num">{stats.total}</span>
-                  <span className="ad-stat-lbl">Total</span>
-                </div>
-                <div className="ad-stat-pill ad-stat-pending">
-                  <span className="ad-stat-num">{stats.pending}</span>
-                  <span className="ad-stat-lbl">Pending</span>
-                </div>
-              </div>
-              <div className="ad-stat-row">
-                <div className="ad-stat-pill ad-stat-approved">
-                  <span className="ad-stat-num">{stats.approved}</span>
-                  <span className="ad-stat-lbl">Approved</span>
-                </div>
-                <div className="ad-stat-pill ad-stat-rejected">
-                  <span className="ad-stat-num">{stats.rejected}</span>
-                  <span className="ad-stat-lbl">Rejected</span>
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Logout — mirrors ud-logout */}
@@ -597,54 +574,9 @@ const AdminDashboard = () => {
         <main className="ad-main">
           <div className="ad-content-inner">
 
-            {/* Greeting — mirrors ud-greeting / ud-greet-sub */}
-            <h1 className="ad-greeting">
-              Hello, {adminName.charAt(0).toUpperCase() + adminName.slice(1)}
-              <span className="ad-header-live-dot" title="Live notifications active" />
-            </h1>
-            <p className="ad-subheading">
-              Manage user registrations and account approvals.
-            </p>
 
-            {/* Top row: date pill + total badge — mirrors ud-dash-top */}
-            <div className="ad-dash-top">
-              <div className="ad-date-pill">{todayStr}</div>
-              <div className="ad-total-badge">
-                <span>{stats.total}</span> Total Users
-              </div>
-            </div>
 
-            {/* Stat cards — mirrors ud-stats-grid / ud-stat-card */}
-            <div className="ad-stat-cards">
-              <div className="ad-stat-card ad-sc--total">
-                <div className="ad-sc-icon-wrap">{Ico.usersS(22)}</div>
-                <div className="ad-sc-body">
-                  <span className="ad-sc-num">{stats.total}</span>
-                  <span className="ad-sc-lbl">Total Registered</span>
-                </div>
-              </div>
-              <div className="ad-stat-card ad-sc--pending">
-                <div className="ad-sc-icon-wrap">{Ico.clockS(22)}</div>
-                <div className="ad-sc-body">
-                  <span className="ad-sc-num">{stats.pending}</span>
-                  <span className="ad-sc-lbl">Awaiting Approval</span>
-                </div>
-              </div>
-              <div className="ad-stat-card ad-sc--approved">
-                <div className="ad-sc-icon-wrap">{Ico.checkS(22)}</div>
-                <div className="ad-sc-body">
-                  <span className="ad-sc-num">{stats.approved}</span>
-                  <span className="ad-sc-lbl">Approved Accounts</span>
-                </div>
-              </div>
-              <div className="ad-stat-card ad-sc--rejected">
-                <div className="ad-sc-icon-wrap">{Ico.xS(22)}</div>
-                <div className="ad-sc-body">
-                  <span className="ad-sc-num">{stats.rejected}</span>
-                  <span className="ad-sc-lbl">Rejected</span>
-                </div>
-              </div>
-            </div>
+
 
             {/* Live notification banners */}
             {liveNotifs.length > 0 && (
@@ -673,7 +605,9 @@ const AdminDashboard = () => {
                   <p className="ad-section-title">
                     {drillDentistPayments ? (
                       <>
-                        <button onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '8px' }}>← All Dentists</button>
+                        <button onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); }} style={{ background: '#e2ece6', borderRadius: '8px', padding: '6px 12px', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {Ico.chevronLeft ? Ico.chevronLeft(16) : '←'} Back to Dashboard
+                        </button>
                         {drillDentistPayments.name}{drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}
                       </>
                     ) : 'Payments & Billing'}
@@ -681,44 +615,7 @@ const AdminDashboard = () => {
                   <button onClick={() => fetchPaymentsRef.current?.()} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
                 </div>
 
-                {/* Global Metrics (shown always) */}
-                {paymentData.summary && !drillDentistPayments && (
-                  <div className="ad-pay-metrics">
-                    <div className="ad-pay-metric ad-pay-metric--billed">
-                      <span className="ad-pay-metric-label">Total Billed</span>
-                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalBilled)}</span>
-                    </div>
-                    <div className="ad-pay-metric ad-pay-metric--collected">
-                      <span className="ad-pay-metric-label">Collected</span>
-                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalCollected)}</span>
-                    </div>
-                    <div className="ad-pay-metric ad-pay-metric--pending">
-                      <span className="ad-pay-metric-label">Pending</span>
-                      <span className="ad-pay-metric-value">{formatINR(paymentData.summary.totalPending)}</span>
-                    </div>
-                  </div>
-                )}
 
-                {/* Dentist-specific metrics when drilled */}
-                {drillDentistPayments && (() => {
-                  const g = dentistPaymentGroups.find(d => d._id === drillDentistPayments._id);
-                  return g ? (
-                    <div className="ad-pay-metrics">
-                      <div className="ad-pay-metric ad-pay-metric--billed">
-                        <span className="ad-pay-metric-label">Total Billed</span>
-                        <span className="ad-pay-metric-value">{formatINR(g.totalBilled)}</span>
-                      </div>
-                      <div className="ad-pay-metric ad-pay-metric--collected">
-                        <span className="ad-pay-metric-label">Collected</span>
-                        <span className="ad-pay-metric-value">{formatINR(g.totalCollected)}</span>
-                      </div>
-                      <div className="ad-pay-metric ad-pay-metric--pending">
-                        <span className="ad-pay-metric-label">Pending</span>
-                        <span className="ad-pay-metric-value">{formatINR(g.totalPending)}</span>
-                      </div>
-                    </div>
-                  ) : null;
-                })()}
 
                 {drillDentistPayments && (
                   <div className="ad-pay-filters">
@@ -734,7 +631,7 @@ const AdminDashboard = () => {
 
                 <div className="ad-content">
                   {loadingPayments ? (
-                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
+                    <div className="ad-loading"><div className="ad-skeleton-list">{[1, 2, 3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
                   ) : drillDentistPayments ? (
                     /* Drill-down: single dentist's payment table */
                     filteredPaymentsForDrill.length === 0 ? (
@@ -754,7 +651,8 @@ const AdminDashboard = () => {
                                 <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
                                 <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(p.amount || 0)}</td>
                                 <td style={{ padding: '10px 12px' }}>
-                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  <span style={{
+                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                                     background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
                                     color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
                                   }}>{p.paymentStatus || 'Pending'}</span>
@@ -796,7 +694,7 @@ const AdminDashboard = () => {
                     dentistPaymentGroups.length === 0 ? (
                       <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
                     ) : (
-                      <div className="ad-user-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                      <div className="ad-user-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {dentistPaymentGroups.map(d => {
                           const unpaid = d.payments.filter(p => p.paymentStatus !== 'Paid').length;
                           return (
@@ -832,7 +730,9 @@ const AdminDashboard = () => {
                   <p className="ad-section-title">
                     {drillDentistOrders ? (
                       <>
-                        <button onClick={() => setDrillDentistOrders(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '8px' }}>← All Dentists</button>
+                        <button onClick={() => setDrillDentistOrders(null)} style={{ background: '#e2ece6', borderRadius: '8px', padding: '6px 12px', border: 'none', cursor: 'pointer', color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {Ico.chevronLeft ? Ico.chevronLeft(16) : '←'} Back to Dashboard
+                        </button>
                         {drillDentistOrders.name}{drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}
                       </>
                     ) : 'Lab Orders'}
@@ -841,7 +741,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="ad-content">
                   {loadingOrders ? (
-                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
+                    <div className="ad-loading"><div className="ad-skeleton-list">{[1, 2, 3].map(i => <div key={i} className="ad-skeleton-card" />)}</div></div>
                   ) : drillDentistOrders ? (
                     /* Drill-down: single dentist's orders table */
                     filteredOrdersForDrill.length === 0 ? (
@@ -861,13 +761,15 @@ const AdminDashboard = () => {
                                 <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
                                 <td style={{ padding: '10px 12px' }}>{o.serviceType}</td>
                                 <td style={{ padding: '10px 12px' }}>
-                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  <span style={{
+                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                                     background: o.status === 'Completed' ? '#dcfce7' : o.status === 'In Progress' ? '#dbeafe' : o.status === 'Cancelled' ? '#fee2e2' : '#fef9c3',
                                     color: o.status === 'Completed' ? '#16a34a' : o.status === 'In Progress' ? '#1d4ed8' : o.status === 'Cancelled' ? '#dc2626' : '#92400e',
                                   }}>{o.status}</span>
                                 </td>
                                 <td style={{ padding: '10px 12px' }}>
-                                  <span style={{ padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                  <span style={{
+                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
                                     background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
                                     color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
                                   }}>{o.paymentStatus || 'Pending'}</span>
@@ -887,7 +789,7 @@ const AdminDashboard = () => {
                     dentistOrderGroups.length === 0 ? (
                       <div className="ad-empty">{Ico.chart(48)}<p>No lab orders found.</p></div>
                     ) : (
-                      <div className="ad-user-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                      <div className="ad-user-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {dentistOrderGroups.map(d => {
                           const inProgress = d.orders.filter(o => o.status === 'In Progress').length;
                           const pending = d.orders.filter(o => o.status === 'Pending').length;
@@ -917,115 +819,126 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-            ) : (
+            ) : adminView === 'users' || adminView === 'all' || !adminView ? (
               /* ── User Management View ────────────────────────────────── */
               <div>
 
-            {/* Tabs + sort — mirrors ud-tab-header / ud-controls */}
-            <div className="ad-controls">
-              <div className="ad-tabs">
-                {TABS.map(tab => (
-                  <button key={tab.key}
-                    className={`ad-tab ${activeTab === tab.key ? 'ad-tab-active' : ''}`}
-                    onClick={() => setActiveTab(tab.key)}
-                  >
-                    {tab.label}
-                    {tab.key !== 'all' && (
-                      <span className="ad-tab-count">{stats[tab.key] || 0}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+                {/* Tabs + sort — mirrors ud-tab-header / ud-controls */}
+                <div className="ad-controls">
+                  <div className="ad-tabs">
+                    {TABS.map(tab => (
+                      <button key={tab.key}
+                        className={`ad-tab ${activeTab === tab.key ? 'ad-tab-active' : ''}`}
+                        onClick={() => setActiveTab(tab.key)}
+                      >
+                        {tab.label}
+                        {tab.key !== 'all' && (
+                          <span className="ad-tab-count">{stats[tab.key] || 0}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
 
-              <div className="ad-controls-right">
-                <div className="ad-sort">
-                  <span>Sort:</span>
-                  <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="ad-sort-select">
-                    <option value="desc">Newest First</option>
-                    <option value="asc">Oldest First</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="ad-divider" />
-
-            {/* User list */}
-            <div className="ad-content">
-              {loadingUsers ? (
-                <div className="ad-loading">
-                  <div className="ad-skeleton-list">
-                    {[1,2,3,4].map(i => <div key={i} className="ad-skeleton-card" />)}
+                  <div className="ad-controls-right">
+                    <div className="ad-sort">
+                      <span>Sort:</span>
+                      <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="ad-sort-select">
+                        <option value="desc">Newest First</option>
+                        <option value="asc">Oldest First</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              ) : filteredUsers.length === 0 ? (
-                <div className="ad-empty">
-                  {Ico.users(48)}
-                  <p>No {activeTab === 'all' ? '' : activeTab + ' '}users found.</p>
-                </div>
-              ) : (
-                <div className="ad-user-list">
-                  {filteredUsers.map(user => {
-                    const uId = user._id || user.id;
-                    return (
-                    <div key={uId} className={`ad-user-card ${user.status}`}
-                      onClick={() => setSelectedUserId(uId)}
-                      style={{ cursor: 'pointer' }}
-                    >
 
-                      <div className="ad-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
+                <div className="ad-divider" />
 
-                      <div className="ad-user-info">
-                        <div className="ad-user-name">{user?.name || 'Unnamed Dentist'}</div>
-                        <div className="ad-user-email">{user?.email || '—'}</div>
-                        <div className="ad-user-date">
-                          {Ico.clock(12)}
-                          {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', {
-                            day: '2-digit', month: 'short', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
-                          }) : '—'}
-                        </div>
-                        {user.plainPassword && (
-                          <div className="ad-user-pw">
-                            {Ico.lock(12)}
-                            <span className="ad-pw-value">
-                              {visiblePw === uId ? user.plainPassword : '••••••••'}
-                            </span>
-                            <button className="ad-pw-toggle"
-                              onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
-                              title={visiblePw === uId ? 'Hide password' : 'Show password'}
-                            >
-                              {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
-                            </button>
-                          </div>
-                        )}
+                {/* User list */}
+                <div className="ad-content">
+                  {loadingUsers ? (
+                    <div className="ad-loading">
+                      <div className="ad-skeleton-list">
+                        {[1, 2, 3, 4].map(i => <div key={i} className="ad-skeleton-card" />)}
                       </div>
-
-                      {/* Inline action buttons based on status */}
-                      {(user.status === 'pending' || user.status === 'rejected') && (
-                        <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
-                          <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
-                            {Ico.check(14)} Accept
-                          </button>
-                          {user.status === 'pending' && (
-                            <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
-                              {Ico.x(14)} Reject
-                            </button>
-                          )}
-                          <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete">
-                            {Ico.trash(14)}
-                          </button>
-                        </div>
-                      )}
                     </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                  ) : filteredUsers.length === 0 ? (
+                    <div className="ad-empty">
+                      {Ico.users(48)}
+                      <p>No {activeTab === 'all' ? '' : activeTab + ' '}users found.</p>
+                    </div>
+                  ) : (
+                    <div className="ad-user-list">
+                      {filteredUsers.map(user => {
+                        const uId = user._id || user.id;
+                        return (
+                          <div key={uId} className={`ad-user-card ${user.status}`}
+                            onClick={() => setSelectedUserId(uId)}
+                            style={{ cursor: 'pointer' }}
+                          >
 
+                            <div className="ad-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
+
+                            <div className="ad-user-info">
+                              <div className="ad-user-name">{user?.name || 'Unnamed Dentist'}</div>
+                              <div className="ad-user-email">{user?.email || '—'}</div>
+                              <div className="ad-user-date">
+                                {Ico.clock(12)}
+                                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+                                  day: '2-digit', month: 'short', year: 'numeric',
+                                  hour: '2-digit', minute: '2-digit',
+                                }) : '—'}
+                              </div>
+                              {user.plainPassword && (
+                                <div className="ad-user-pw">
+                                  {Ico.lock(12)}
+                                  <span className="ad-pw-value">
+                                    {visiblePw === uId ? user.plainPassword : '••••••••'}
+                                  </span>
+                                  <button className="ad-pw-toggle"
+                                    onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
+                                    title={visiblePw === uId ? 'Hide password' : 'Show password'}
+                                  >
+                                    {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Inline action buttons based on status */}
+                            {(user.status === 'pending' || user.status === 'rejected') && (
+                              <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
+                                <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
+                                  {Ico.check(14)} Accept
+                                </button>
+                                {user.status === 'pending' && (
+                                  <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
+                                    {Ico.x(14)} Reject
+                                  </button>
+                                )}
+                                <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete">
+                                  {Ico.trash(14)}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : adminView === 'settings' ? (
+            /* ── Settings View ───────────────────────────────────────── */
+            <div style={{ padding: '24px' }}>
+              <h2>Settings</h2>
+              <p style={{ color: '#6b8a7a', marginBottom: '24px' }}>Admin Settings and Preferences.</p>
+              <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #e2ece6', maxWidth: '400px' }}>
+                <button className="ad-logout" onClick={handleLogout} style={{ width: '100%', display: 'flex', justifyContent: 'center', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                  {Ico.logout(15)} Logout
+                </button>
+              </div>
             </div>
-          )}
+            ) : null}
 
           </div>{/* /ad-content-inner */}
         </main>

@@ -136,10 +136,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, rememberMe = false) => {
     const data = await apiFetch(`${getAuthUrl()}/login`, {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, rememberMe }),
     });
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));

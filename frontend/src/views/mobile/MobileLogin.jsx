@@ -24,6 +24,7 @@ const MobileLogin = () => {
   const [dentistForm, setDentistForm] = useState({ email: '', password: '' });
   const [adminForm, setAdminForm]     = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe]     = useState(false);
   const [error, setError]               = useState('');
   const [errorAction, setErrorAction]   = useState(null);
   const [loading, setLoading]           = useState(false);
@@ -50,7 +51,7 @@ const MobileLogin = () => {
       }
       setLoading(true);
       try {
-        await login(dentistForm.email.trim(), dentistForm.password);
+        await login(dentistForm.email.trim(), dentistForm.password, rememberMe);
         router.push('/dashboard');
       } catch (err) {
         setError(err.message);
@@ -63,7 +64,7 @@ const MobileLogin = () => {
       }
       setLoading(true);
       try {
-        await adminLogin(adminForm.username, adminForm.password);
+        await adminLogin(adminForm.username, adminForm.password, rememberMe);
         // Clear any stale regular user session
         localStorage.removeItem('dentzy_user');
         router.push('/admin/dashboard');
@@ -222,6 +223,11 @@ const MobileLogin = () => {
               </div>
             </>
           )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: '#6b8a7a', fontSize: '0.9rem' }}>
+            <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }} />
+            <label htmlFor="rememberMe" style={{ cursor: 'pointer' }}>Remember me</label>
+          </div>
 
           <button type="submit" className="m-auth-submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}

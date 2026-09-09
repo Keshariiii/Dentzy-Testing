@@ -31,6 +31,7 @@ const ADMIN_NAV = [
   { key: 'dentists', label: 'Dentists',   icon: (s) => Ico.usersS(s) },
   { key: 'orders',   label: 'Lab Orders', icon: (s) => Ico.labOrder(s) },
   { key: 'payments', label: 'Payments',   icon: (s) => Ico.payments(s) },
+  { key: 'settings', label: 'Settings',   icon: (s) => Ico.settings ? Ico.settings(s) : <span style={{fontSize:s}}>⚙️</span> },
 ];
 
 /* ============================================================
@@ -553,14 +554,9 @@ const MobileAdminDashboard = () => {
       />
 
       {/* Greeting Header */}
+      {adminView !== 'dentists' && adminView !== 'settings' && (
       <div className="ma-greeting">
         <div>
-          {adminView === 'dentists' && (
-            <>
-              <h2 className="ma-hello">Hello, {adminName.charAt(0).toUpperCase() + adminName.slice(1)}</h2>
-              <p className="ma-date">{todayStr}</p>
-            </>
-          )}
           {adminView === 'orders' && !drillDentistOrders && (
             <>
               <h2 className="ma-hello">Lab Orders</h2>
@@ -588,8 +584,8 @@ const MobileAdminDashboard = () => {
         </div>
         <div className="ma-greeting-right">
           {adminView === 'orders' && drillDentistOrders && (
-            <button className="ma-refresh-btn" onClick={() => { setDrillDentistOrders(null); setOrderFilter('all'); setOrderSearch(''); }} title="Back to all dentists" style={{ fontSize: '0.78rem', padding: '4px 10px' }}>
-              ← All Dentists
+            <button className="ma-refresh-btn" onClick={() => { setDrillDentistOrders(null); setOrderFilter('all'); setOrderSearch(''); }} title="Back to all dentists" style={{ padding: '8px' }}>
+              ←
             </button>
           )}
           {adminView === 'orders' && !drillDentistOrders && (
@@ -598,8 +594,8 @@ const MobileAdminDashboard = () => {
             </button>
           )}
           {adminView === 'payments' && drillDentistPayments && (
-            <button className="ma-refresh-btn" onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }} title="Back to all dentists" style={{ fontSize: '0.78rem', padding: '4px 10px' }}>
-              ← All Dentists
+            <button className="ma-refresh-btn" onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }} title="Back to all dentists" style={{ padding: '8px' }}>
+              ←
             </button>
           )}
           {adminView === 'payments' && !drillDentistPayments && (
@@ -607,11 +603,9 @@ const MobileAdminDashboard = () => {
               ↻
             </button>
           )}
-          <button className="ma-logout-btn" onClick={handleLogout} aria-label="Logout">
-            {Ico.logout(16)}
-          </button>
         </div>
       </div>
+      )}
 
       {/* Live Notification Banners */}
       {liveNotifs.length > 0 && (
@@ -660,18 +654,20 @@ const MobileAdminDashboard = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="ma-tabs-wrap">
-            <div className="ma-tabs">
-              {DENTIST_TABS.map(tab => (
-                <button key={tab.key}
-                  className={`ma-tab ${activeTab === tab.key ? 'ma-tab--active' : ''}`}
-                  onClick={() => setActiveTab(tab.key)}>
-                  {tab.label}
-                  {tab.key !== 'all' && (
-                    <span className="ma-tab-count">{stats[tab.key] || 0}</span>
-                  )}
-                </button>
-              ))}
+          <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px', marginTop: adminView === 'dentists' ? '12px' : '0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: 'var(--color-primary-dark)' }}>{Ico.filter(18)}</span>
+              <select 
+                value={activeTab} 
+                onChange={e => setActiveTab(e.target.value)} 
+                style={{ border: 'none', background: 'transparent', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-charcoal)', outline: 'none' }}
+              >
+                {DENTIST_TABS.map(tab => (
+                  <option key={tab.key} value={tab.key}>
+                    {tab.label} {tab.key !== 'all' ? `(${stats[tab.key] || 0})` : ''}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="ma-sort-wrap">
               <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="ma-sort-select">
@@ -779,15 +775,20 @@ const MobileAdminDashboard = () => {
               </div>
 
               {/* Filter Status Chips */}
-              <div className="ma-tabs-wrap">
-                <div className="ma-tabs">
-                  {ORDER_TABS.map(st => (
-                    <button key={st}
-                      className={`ma-tab ${orderFilter === st ? 'ma-tab--active' : ''}`}
-                      onClick={() => setOrderFilter(st)}>
-                      {st === 'all' ? 'All' : st}
-                    </button>
-                  ))}
+              <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: 'var(--color-primary-dark)' }}>{Ico.filter(18)}</span>
+                  <select 
+                    value={orderFilter} 
+                    onChange={e => setOrderFilter(e.target.value)} 
+                    style={{ border: 'none', background: 'transparent', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-charcoal)', outline: 'none' }}
+                  >
+                    {ORDER_TABS.map(st => (
+                      <option key={st} value={st}>
+                        {st === 'all' ? 'All Orders' : st}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -897,37 +898,23 @@ const MobileAdminDashboard = () => {
           {drillDentistPayments ? (
             /* ── Drill-down: single dentist's payments ── */
             <>
-              {/* Dentist financial summary */}
-              {(() => {
-                const g = dentistPaymentGroups.find(d => d._id === drillDentistPayments._id);
-                return g ? (
-                  <div className="ma-pay-metrics-grid">
-                    <div className="ma-pay-metric-box">
-                      <span className="ma-pay-metric-lbl">Total Billed</span>
-                      <span className="ma-pay-metric-val">{formatINR(g.totalBilled)}</span>
-                    </div>
-                    <div className="ma-pay-metric-box">
-                      <span className="ma-pay-metric-lbl">Collected</span>
-                      <span className="ma-pay-metric-val ma-val--green">{formatINR(g.totalCollected)}</span>
-                    </div>
-                    <div className="ma-pay-metric-box">
-                      <span className="ma-pay-metric-lbl">Pending</span>
-                      <span className="ma-pay-metric-val ma-val--amber">{formatINR(g.totalPending)}</span>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
+
 
               {/* Filter Status Pills */}
-              <div className="ma-tabs-wrap">
-                <div className="ma-tabs">
-                  {PAY_STATUS_TABS.map(st => (
-                    <button key={st}
-                      className={`ma-tab ${payFilterStatus === st ? 'ma-tab--active' : ''}`}
-                      onClick={() => setPayFilterStatus(st)}>
-                      {st === 'all' ? 'All' : st}
-                    </button>
-                  ))}
+              <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: 'var(--color-primary-dark)' }}>{Ico.filter(18)}</span>
+                  <select 
+                    value={payFilterStatus} 
+                    onChange={e => setPayFilterStatus(e.target.value)} 
+                    style={{ border: 'none', background: 'transparent', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-charcoal)', outline: 'none' }}
+                  >
+                    {PAY_STATUS_TABS.map(st => (
+                      <option key={st} value={st}>
+                        {st === 'all' ? 'All Status' : st}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1000,23 +987,7 @@ const MobileAdminDashboard = () => {
           ) : (
             /* ── Dentist cards overview for payments ── */
             <>
-              {/* Global Summary Metrics */}
-              {paymentData.summary && (
-                <div className="ma-pay-metrics-grid">
-                  <div className="ma-pay-metric-box">
-                    <span className="ma-pay-metric-lbl">Total Billed</span>
-                    <span className="ma-pay-metric-val">{formatINR(paymentData.summary.totalBilled)}</span>
-                  </div>
-                  <div className="ma-pay-metric-box">
-                    <span className="ma-pay-metric-lbl">Collected</span>
-                    <span className="ma-pay-metric-val ma-val--green">{formatINR(paymentData.summary.totalCollected)}</span>
-                  </div>
-                  <div className="ma-pay-metric-box">
-                    <span className="ma-pay-metric-lbl">Pending</span>
-                    <span className="ma-pay-metric-val ma-val--amber">{formatINR(paymentData.summary.totalPending)}</span>
-                  </div>
-                </div>
-              )}
+
 
               <main className="ma-main">
                 {loadingPayments ? (
@@ -1064,6 +1035,21 @@ const MobileAdminDashboard = () => {
             </>
           )}
         </>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          VIEW 4: SETTINGS
+          ───────────────────────────────────────────────────────────── */}
+      {adminView === 'settings' && (
+        <main className="ma-main" style={{ paddingTop: '24px' }}>
+          <h2 className="ma-hello" style={{ marginBottom: '24px', padding: '0 16px' }}>Settings</h2>
+          <div className="ma-card" style={{ margin: '0 16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
+            <p style={{ color: '#4a6a5a', fontSize: '0.9rem' }}>Admin Settings and Preferences.</p>
+            <button className="btn" onClick={handleLogout} style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center', background: '#dc2626' }}>
+              {Ico.logout(16)} Logout
+            </button>
+          </div>
+        </main>
       )}
 
       {/* ─────────────────────────────────────────────────────────────
