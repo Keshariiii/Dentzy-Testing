@@ -1,0 +1,23 @@
+/**
+ * ================================================================
+ *  DENTZY — Registry Component Styles (Tailwind CSS Layer)
+ * ================================================================
+ *
+ *  Provides Tailwind directives and custom animation keyframes
+ *  for all registry components (Animaster, Vengeance, Skiper, 21st.dev).
+ *
+ *  Imported AFTER tokens.css and reset.css in layout.jsx so Dentzy's
+ *  existing custom properties are available to Tailwind utilities.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Custom animation keyframes for registry components ────────── */
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 3s ease-in-out infinite;
+    background-size: 200% 100%;
+  }
+}

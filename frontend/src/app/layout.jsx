@@ -3,6 +3,7 @@ import { ReticleDev } from './reticle-dev';
 import '../styles/tokens.css';
 import '../styles/reset.css';
 import '../styles/skeleton.css';
+import '../styles/registry.css';
 import '../index.css';
 import '../global-animations.css';
 import '../responsive.css';
