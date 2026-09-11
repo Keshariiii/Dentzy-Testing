@@ -67,10 +67,11 @@
   display: block;
   width: 18px;
   height: 2px;
-  background: #2d3a34;
+  background: var(--dz-color-primary, #708c80);
   border-radius: 2px;
-  transition: transform 0.25s, opacity 0.2s;
+  transition: transform 0.25s, opacity 0.2s, background 0.2s;
 }
+.ad-hamburger:hover span { background: var(--dz-color-primary-dark, #4a6a5a); }
 
 .ad-header-logo {
   display: flex;

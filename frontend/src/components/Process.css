@@ -31,8 +31,8 @@
 }
 
 .process-step:hover .step-content {
-    background: linear-gradient(135deg, #ffffff 0%, #f0f7f4 100%);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(112, 140, 128, 0.12) 100%);
+    box-shadow: 0 15px 30px rgba(112, 140, 128, 0.18);
 }
 
 .step-content {
@@ -66,11 +66,11 @@
     font-weight: bold;
     /* Reset border */
     border: none;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 4px 12px rgba(112, 140, 128, 0.15));
 }
 
 .process-highlight {
-    color: #708c80;
+    color: var(--color-primary, #708c80);
     /* Sage Green */
 }
 
@@ -108,12 +108,12 @@
     line-height: 1.1;
     margin-bottom: clamp(1rem, 2vw, 1.875rem);
     text-transform: uppercase;
-    color: black;
+    color: var(--dz-color-charcoal, #1e2824);
 }
 
 .cuz-subtitle {
     font-size: 1.3rem;
-    color: #555;
+    color: var(--dz-color-text-muted, #64748b);
     font-weight: 400;
     max-width: 450px;
 }

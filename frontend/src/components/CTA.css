@@ -37,18 +37,18 @@
 .btn-cta {
     font-size: 1.2rem;
     padding: 15px 40px;
-    background-color: #708c80;
+    background-color: var(--color-primary, #708c80);
     /* Sage Green */
-    border: 2px solid #708c80;
+    border: 2px solid var(--color-primary, #708c80);
     color: white;
 }
 
 .btn-cta:hover {
-    background-color: #5a7268;
-    /* Darker Sage */
-    border-color: #5a7268;
+    background-color: var(--color-primary-dark, #4a6a5a);
+    /* Deeper Sage */
+    border-color: var(--color-primary-dark, #4a6a5a);
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(112, 140, 128, 0.3);
 }
 
 @media (max-width: 768px) {

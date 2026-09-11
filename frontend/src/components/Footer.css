@@ -118,8 +118,6 @@
 }
 
 .dz-footer__mission {
-  border-left: 3px solid var(--ft-accent);
-  padding-left: 14px;
   font-size: 0.8rem;
   line-height: 1.65;
   color: var(--ft-text-muted);
@@ -343,10 +341,6 @@
   }
 
   .dz-footer__mission {
-    border-left: none;
-    border-top: 3px solid var(--ft-accent);
-    padding-left: 0;
-    padding-top: 12px;
     max-width: 100%;
   }
 

@@ -89,15 +89,15 @@ textarea.form-input {
 }
 
 .send-msg-btn {
-    background-color: var(--color-light-gray);
-    color: var(--color-dark);
+    background-color: var(--color-white, #ffffff);
+    color: var(--color-primary, #708c80);
     border: none;
     padding: 12px 30px;
     border-radius: 50px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
-    transition: background-color 0.25s, transform 0.15s, box-shadow 0.25s;
+    transition: background-color 0.25s, transform 0.15s, box-shadow 0.25s, color 0.25s;
 }
 
 .send-msg-btn:hover {

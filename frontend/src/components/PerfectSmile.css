@@ -20,7 +20,7 @@
     font-size: clamp(2rem, 3vw + 0.5rem, 3.5rem);
     font-weight: 800;
     line-height: 1.1;
-    color: #000;
+    color: var(--dz-color-charcoal, #1e2824);
     margin-bottom: 1.5rem;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -28,7 +28,7 @@
 
 .smile-subtitle {
     font-size: 1.25rem;
-    color: #666;
+    color: var(--dz-color-text-muted, #64748b);
     margin-bottom: 3rem;
     font-weight: 300;
 }
@@ -41,17 +41,17 @@
     font-size: clamp(2.5rem, 3vw + 0.5rem, 4rem);
     font-weight: 900;
     letter-spacing: 4px;
-    color: #000;
+    color: var(--dz-color-charcoal, #1e2824);
 }
 
 .smile-logo .highlight {
-    color: #708c80;
+    color: var(--color-primary, #708c80);
     /* Sage Green match */
 }
 
 .smile-footer-text {
     font-size: 1rem;
-    color: #888;
+    color: var(--dz-color-text-light, #94a3b8);
     line-height: 1.5;
 }
 

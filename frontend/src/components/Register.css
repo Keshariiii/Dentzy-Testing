@@ -60,7 +60,7 @@
 }
 
 .auth-accent {
-  color: #708c80;
+  color: var(--color-primary, #708c80);
   text-transform: inherit;
   font-style: normal;
 }

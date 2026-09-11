@@ -55,7 +55,7 @@
 
 /* ── Active state ─────────────────────────────────────────────── */
 .role-card.active {
-  border-color: #708c80;
+  border-color: var(--color-primary, #708c80);
   background: linear-gradient(145deg, #eef6f0 0%, #ddeee5 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(112, 140, 128, 0.22);
@@ -76,8 +76,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(112, 140, 128, 0.12);
-  color: #708c80;
+  background: var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
+  color: var(--color-primary, #708c80);
   transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
   margin-bottom: 2px;
 }

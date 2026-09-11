@@ -180,7 +180,8 @@
   border-radius: 16px;
   background: #fff;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(112, 140, 128, 0.08);
+  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
   scroll-snap-align: start;
 }
 
@@ -232,6 +233,7 @@
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 700;
+  box-shadow: 0 3px 10px rgba(112, 140, 128, 0.35);
 }
 
 .m-process-step__label {
@@ -241,7 +243,7 @@
 }
 
 .m-process-arrow {
-  color: #cbd5e1;
+  color: var(--color-primary-light, #a3bfb1);
   margin-top: -18px;
 }
 
@@ -252,7 +254,8 @@
   padding: 16px;
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(112, 140, 128, 0.08);
+  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
 }
 
 .m-cuz-content { flex: 1; }
@@ -532,7 +535,8 @@
   border-radius: 16px;
   background: #fff;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(112, 140, 128, 0.08);
+  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
 }
 
 .m-catalog-img { height: 160px; overflow: hidden; }
@@ -567,7 +571,8 @@
   padding: 16px 12px;
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(112, 140, 128, 0.06);
+  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
   text-align: center;
 }
 

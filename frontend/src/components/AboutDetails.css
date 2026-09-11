@@ -12,10 +12,11 @@
 }
 
 .details-intro-box {
-    background-color: #f5f5f5;
-    /* Light gray background */
+    background: rgba(112, 140, 128, 0.04);
+    /* Subtle sage tint */
     padding: 2.5rem;
     border-radius: 8px;
+    border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.15));
     margin-bottom: 4rem;
     text-align: center;
     font-size: 1.15rem;
