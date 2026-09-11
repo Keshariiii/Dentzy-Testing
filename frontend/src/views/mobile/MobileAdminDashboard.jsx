@@ -15,7 +15,6 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import './MobileAdminDashboard.css';
 
 import { Icons as Ico } from '../../components/common/DashboardIcons';
-import { SkiperStatCard } from '../../components/ui/skiper-stat-card';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 
@@ -591,31 +590,6 @@ const MobileAdminDashboard = () => {
           ───────────────────────────────────────────────────────────── */}
       {adminView === 'dentists' && (
         <>
-          {/* ── Skiper UI: Stats Overview ──────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', padding: '12px 16px 0' }}>
-            <SkiperStatCard
-              label="Total Dentists"
-              value={stats.total || 0}
-              icon={Ico.usersS(18)}
-            />
-            <SkiperStatCard
-              label="Pending"
-              value={stats.pending || 0}
-              icon={Ico.clock(18)}
-              trend={stats.pending > 0 ? 'up' : 'neutral'}
-              trendLabel={stats.pending > 0 ? 'Needs attention' : ''}
-            />
-            <SkiperStatCard
-              label="Approved"
-              value={stats.approved || 0}
-              icon={Ico.check(18)}
-            />
-            <SkiperStatCard
-              label="Rejected"
-              value={stats.rejected || 0}
-              icon={Ico.x(18)}
-            />
-          </div>
 
           {/* Search Bar */}
           <div className="ma-search-wrap">
