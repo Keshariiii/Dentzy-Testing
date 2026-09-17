@@ -55,7 +55,7 @@
 }
 
 .connect-title span {
-    color: var(--color-primary, #708c80);
+    color: var(--color-primary, var(--dz-color-primary));
     /* Sage Green */
     display: inline-block;
     transition: color 0.3s ease, transform 0.3s ease;

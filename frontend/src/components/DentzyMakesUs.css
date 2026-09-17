@@ -61,7 +61,7 @@
     height: 2px;
     bottom: -5px;
     left: 0;
-    background-color: var(--dz-color-primary, #708c80);
+    background-color: var(--dz-color-primary, var(--dz-color-primary));
     transition: width 0.3s ease;
 }
 
@@ -73,7 +73,7 @@
 .makes-us-text p {
     font-size: 1.1rem;
     line-height: 1.8;
-    color: var(--dz-color-text-muted, #64748b);
+    color: var(--dz-color-text-muted, var(--dz-color-text-muted));
     transition: color 0.3s ease;
 }
 

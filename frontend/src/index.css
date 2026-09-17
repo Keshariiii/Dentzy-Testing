@@ -12,18 +12,20 @@ html {
 }
 
 :root {
-  --color-primary: #708c80;
-  /* Sage Green — matches login / auth pages */
-  --color-primary-dark: #4a6a5a;
-  --color-charcoal: #1e2824;
-  /* Dark Forest Charcoal */
-  --color-dark: #2a3d35;
-  --color-white: #FFFFFF;
-  --color-light-gray: #f0f2f1;
-  --color-text: #444;
-  --color-text-light: #777;
+  /* ── Legacy token bridge ─────────────────────────────────────────
+     These aliases point to the canonical --dz-* tokens in tokens.css.
+     All 25+ component CSS files still reference these names.
+     Migrate component CSS to --dz-* over time, then remove these.  */
+  --color-primary:      var(--dz-color-primary);
+  --color-primary-dark: var(--dz-color-primary-dark);
+  --color-charcoal:     var(--dz-color-charcoal);
+  --color-dark:         var(--dz-color-dark);
+  --color-white:        var(--dz-color-white);
+  --color-light-gray:   var(--dz-color-border-light);
+  --color-text:         var(--dz-color-text-body);
+  --color-text-light:   #777;
 
-  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-main: var(--dz-font-family);
 
   --gap-section: clamp(3rem, 5vw, 5rem);
 }

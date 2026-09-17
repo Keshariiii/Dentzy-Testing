@@ -90,7 +90,7 @@ textarea.form-input {
 
 .send-msg-btn {
     background-color: var(--color-white, #ffffff);
-    color: var(--color-primary, #708c80);
+    color: var(--color-primary, var(--dz-color-primary));
     border: none;
     padding: 12px 30px;
     border-radius: 50px;
@@ -191,7 +191,7 @@ textarea.form-input {
     border-radius: 10px;
     border: 1.5px solid #c5ddd3;
     background: #eef6f2;
-    color: #1e5038;
+    color: var(--dz-color-primary-accent);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -200,9 +200,9 @@ textarea.form-input {
 }
 
 .contact-captcha-refresh-btn:hover {
-    background: #1e5038;
+    background: var(--dz-color-primary-accent);
     color: #fff;
-    border-color: #1e5038;
+    border-color: var(--dz-color-primary-accent);
     transform: rotate(180deg) scale(1.05);
 }
 
@@ -239,7 +239,7 @@ textarea.form-input {
 }
 
 .contact-captcha-input:focus {
-    border-color: #708c80;
+    border-color: var(--dz-color-primary);
     box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.15);
 }
 

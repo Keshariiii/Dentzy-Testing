@@ -25,7 +25,7 @@
 .service-card:hover {
     transform: translateY(-10px) scale(1.02);
     box-shadow: 0 20px 40px rgba(112, 140, 128, 0.14);
-    border-color: var(--color-primary, #708c80);
+    border-color: var(--color-primary, var(--dz-color-primary));
 }
 
 .service-image {
@@ -56,6 +56,6 @@
 
 .service-info p {
     font-size: 0.9rem;
-    color: var(--dz-color-text-muted, #64748b);
+    color: var(--dz-color-text-muted, var(--dz-color-text-muted));
     line-height: 1.5;
 }

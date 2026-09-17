@@ -12,7 +12,7 @@
   outline: none;
   cursor: pointer;
 
-  background: #708c80;
+  background: var(--dz-color-primary);
   color: #fff;
 
   display: flex;
@@ -51,7 +51,7 @@
 
 .scroll-to-top:active {
   transform: scale(0.92);
-  background: #4a6a5a;
+  background: var(--dz-color-primary-dark);
 }
 
 /* Subtle pulse ring on hover */

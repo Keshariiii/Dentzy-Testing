@@ -5,6 +5,11 @@
  * Only one is ever present in the DOM at any time — the other
  * is fully unmounted, ensuring strict separation with no DOM leakage.
  *
+ * During SSR / initial hydration, renders nothing until the client
+ * resolves the viewport width. This prevents hydration mismatch and
+ * layout flash. The page-level loading.jsx provides visual feedback
+ * in the meantime.
+ *
  * Usage:
  *   <ResponsiveLayout
  *     pcView={<PCHome />}
@@ -23,6 +28,12 @@ import { useIsMobile } from '../hooks/useIsMobile';
 export default function ResponsiveLayout({ pcView, mobileView, breakpoint = 768 }) {
   const isMobile = useIsMobile(breakpoint);
 
+  // During SSR and initial hydration, isMobile is undefined.
+  // Return null to avoid rendering the wrong layout. The route's
+  // loading.jsx (or inline loading state) covers this brief moment.
+  if (isMobile === undefined) return null;
+
   // Only the active branch is mounted; the other is completely absent from the tree
   return isMobile ? <>{mobileView}</> : <>{pcView}</>;
 }
+

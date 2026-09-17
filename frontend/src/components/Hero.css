@@ -75,7 +75,7 @@
 }
 
 .hero-accent {
-    color: #708c80;
+    color: var(--dz-color-primary);
 }
 
 .hero-subtext {

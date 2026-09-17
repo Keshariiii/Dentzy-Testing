@@ -91,7 +91,9 @@ const ContactForm = () => {
                 <h2 className="contact-form-title">We Are Here To Help You</h2>
 
                 <div className="form-bar">
+                    <label htmlFor="contact-name" className="sr-only">Your name</label>
                     <input
+                        id="contact-name"
                         type="text"
                         name="user_name"
                         placeholder="Name"
@@ -99,7 +101,9 @@ const ContactForm = () => {
                         value={formData.user_name}
                         onChange={handleChange}
                     />
+                    <label htmlFor="contact-email" className="sr-only">Your email</label>
                     <input
+                        id="contact-email"
                         type="email"
                         name="user_email"
                         placeholder="Email"
@@ -107,7 +111,9 @@ const ContactForm = () => {
                         value={formData.user_email}
                         onChange={handleChange}
                     />
+                    <label htmlFor="contact-phone" className="sr-only">Phone number</label>
                     <input
+                        id="contact-phone"
                         type="tel"
                         name="contact_number"
                         placeholder="Phone Number"
@@ -115,7 +121,9 @@ const ContactForm = () => {
                         value={formData.contact_number}
                         onChange={handleChange}
                     />
+                    <label htmlFor="contact-subject" className="sr-only">Subject</label>
                     <input
+                        id="contact-subject"
                         type="text"
                         name="subject"
                         placeholder="Subject"
@@ -123,7 +131,9 @@ const ContactForm = () => {
                         value={formData.subject}
                         onChange={handleChange}
                     />
+                    <label htmlFor="contact-message" className="sr-only">Message</label>
                     <textarea
+                        id="contact-message"
                         name="message"
                         placeholder="Message"
                         className="form-input message-input"

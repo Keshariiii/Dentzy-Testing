@@ -26,7 +26,7 @@ html {
 
 ::selection {
   background: rgba(112, 140, 128, 0.32);
-  color: #1a382b;
+  color: var(--dz-color-charcoal);
 }
 
 /* ── Smart Selection: Dark & Colored Surfaces → White Highlight ── */
@@ -51,7 +51,7 @@ html {
 [class*="--dark"],
 [data-theme="dark"] {
   --dz-sel-bg:    #ffffff;
-  --dz-sel-color: #1e2824;
+  --dz-sel-color: var(--dz-color-charcoal);
 }
 
 /* Sage green on primary/accent elements */
@@ -61,7 +61,7 @@ html {
 [class*="badge"],
 [class*="tag-"] {
   --dz-sel-bg:    #ffffff;
-  --dz-sel-color: #1e2824;
+  --dz-sel-color: var(--dz-color-charcoal);
 }
 
 /* Scoped ::selection rules (full cross-browser fallback) */
@@ -79,7 +79,7 @@ html {
 .btn-primary ::selection,
 .m-btn-primary ::selection {
   background: #ffffff;
-  color: #1e2824;
+  color: var(--dz-color-charcoal);
 }
 
 /* ---------------------------------------------------------------------------
@@ -201,19 +201,19 @@ html {
     background-color var(--trans-base),
     color            var(--trans-base),
     transform        var(--trans-fast),
-    box-shadow       var(--trans-base) !important;
+    box-shadow       var(--trans-base);
   will-change: transform;
 }
 
-.btn:hover  { transform: translateY(-2px) !important; }
-.btn:active { transform: translateY(0)    !important; }
+.btn:hover  { transform: translateY(-2px); }
+.btn:active { transform: translateY(0)   ; }
 
 .btn-sm {
   transition:
     background-color var(--trans-base),
     color            var(--trans-base),
     transform        var(--trans-fast),
-    box-shadow       var(--trans-base) !important;
+    box-shadow       var(--trans-base);
 }
 
 /* CTA button pulse on load */
@@ -243,12 +243,12 @@ html {
 
 /* Hamburger bars smooth cross */
 .mobile-menu-btn .bar {
-  transition: all 0.28s var(--ease-smooth) !important;
+  transition: all 0.28s var(--ease-smooth);
 }
 
 /* Drawer slide-in */
 .nav {
-  transition: transform 0.32s var(--ease-smooth) !important;
+  transition: transform 0.32s var(--ease-smooth);
 }
 
 /* ---------------------------------------------------------------------------
@@ -273,22 +273,22 @@ html {
   transition:
     transform   var(--trans-slow) var(--ease-smooth),
     box-shadow  var(--trans-slow),
-    border-color var(--trans-base) !important;
+    border-color var(--trans-base);
   will-change: transform;
 }
 
 .service-card:hover {
-  transform: translateY(-8px) scale(1.015) !important;
-  box-shadow: 0 20px 48px rgba(30, 80, 56, 0.14) !important;
-  border-color: #708c80 !important;
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 20px 48px rgba(30, 80, 56, 0.14);
+  border-color: var(--dz-color-primary);
 }
 
 .service-image img {
-  transition: transform 0.55s var(--ease-smooth) !important;
+  transition: transform 0.55s var(--ease-smooth);
 }
 
 .service-card:hover .service-image img {
-  transform: scale(1.08) !important;
+  transform: scale(1.08);
 }
 
 /* ---------------------------------------------------------------------------
@@ -297,16 +297,16 @@ html {
 .step-content {
   transition:
     filter      0.3s var(--ease-smooth),
-    background  0.3s var(--ease-smooth) !important;
+    background  0.3s var(--ease-smooth);
 }
 
 .process-step {
-  transition: transform 0.38s var(--ease-spring) !important;
+  transition: transform 0.38s var(--ease-spring);
   will-change: transform;
 }
 
 .process-step:hover {
-  transform: translateY(-10px) scale(1.04) !important;
+  transform: translateY(-10px) scale(1.04);
   z-index: 10;
 }
 
@@ -316,27 +316,27 @@ html {
 .makes-us-item {
   transition:
     transform  var(--trans-slow) var(--ease-smooth),
-    opacity    var(--trans-slow) !important;
+    opacity    var(--trans-slow);
 }
 
 .makes-us-item:hover {
-  transform: translateY(-8px) !important;
+  transform: translateY(-8px);
 }
 
 .makes-us-image img {
   transition:
     transform  0.55s var(--ease-smooth),
-    box-shadow var(--trans-slow) !important;
+    box-shadow var(--trans-slow);
 }
 
 .makes-us-item:hover .makes-us-image img {
-  transform: scale(1.06) !important;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18) !important;
+  transform: scale(1.06);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
 }
 
 /* h3 underline grows in on hover */
 .makes-us-text h3::after {
-  transition: width 0.35s var(--ease-smooth) !important;
+  transition: width 0.35s var(--ease-smooth);
 }
 
 /* ---------------------------------------------------------------------------
@@ -353,36 +353,36 @@ html {
 
 .links-col ul li a:hover {
   padding-left: 5px;
-  color: #1e5038 !important;
-  text-decoration: none !important;
+  color: var(--dz-color-primary-accent);
+  text-decoration: none;
 }
 
 /* Social icons */
 .social-icon {
   transition:
     transform   var(--trans-base) var(--ease-spring),
-    color       var(--trans-base) !important;
+    color       var(--trans-base);
 }
 
 .social-icon:hover {
-  transform: scale(1.22) rotate(-5deg) !important;
+  transform: scale(1.22) rotate(-5deg);
 }
 
 /* ---------------------------------------------------------------------------
    12. CONTACT FORM
 --------------------------------------------------------------------------- */
 .form-bar {
-  transition: box-shadow var(--trans-base) !important;
+  transition: box-shadow var(--trans-base);
 }
 
 .form-bar:focus-within {
-  box-shadow: 0 12px 40px rgba(112, 140, 128, 0.35) !important;
+  box-shadow: 0 12px 40px rgba(112, 140, 128, 0.35);
 }
 
 .form-input {
   transition:
     background-color var(--trans-base),
-    box-shadow       var(--trans-base) !important;
+    box-shadow       var(--trans-base);
 }
 
 .send-msg-btn {
@@ -390,11 +390,11 @@ html {
     background-color var(--trans-base),
     color            var(--trans-base),
     transform        var(--trans-fast),
-    box-shadow       var(--trans-base) !important;
+    box-shadow       var(--trans-base);
 }
 
 .send-msg-btn:hover {
-  transform: translateY(-2px) !important;
+  transform: translateY(-2px);
 }
 
 /* ---------------------------------------------------------------------------
@@ -416,7 +416,7 @@ html {
   transition:
     border-color var(--trans-base),
     box-shadow   var(--trans-base),
-    background   var(--trans-base) !important;
+    background   var(--trans-base);
 }
 
 /* Submit button */
@@ -424,15 +424,15 @@ html {
   transition:
     background   var(--trans-base),
     transform    var(--trans-fast),
-    box-shadow   var(--trans-base) !important;
+    box-shadow   var(--trans-base);
 }
 
 .auth-submit:not(:disabled):hover {
-  transform: translateY(-2px) !important;
+  transform: translateY(-2px);
 }
 
 .auth-submit:not(:disabled):active {
-  transform: translateY(0) !important;
+  transform: translateY(0);
 }
 
 /* Role selector card */
@@ -448,13 +448,13 @@ html {
   transition:
     opacity    var(--trans-base),
     transform  var(--trans-base) var(--ease-spring),
-    box-shadow var(--trans-base) !important;
+    box-shadow var(--trans-base);
   will-change: transform, opacity;
 }
 
 .scroll-top-btn:hover,
 .scroll-to-top:hover {
-  transform: translateY(-4px) scale(1.1) !important;
+  transform: translateY(-4px) scale(1.1);
 }
 
 /* ---------------------------------------------------------------------------
@@ -470,11 +470,11 @@ html {
   transition:
     background  var(--trans-base),
     transform   var(--trans-fast),
-    box-shadow  var(--trans-base) !important;
+    box-shadow  var(--trans-base);
 }
 
 .btn-cta:hover {
-  transform: translateY(-3px) !important;
+  transform: translateY(-3px);
 }
 
 /* ---------------------------------------------------------------------------
@@ -495,7 +495,7 @@ a:active {
 /* Remove default outline and replace with brand ring */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.4);
   border-radius: 4px;
 }
 
@@ -537,16 +537,16 @@ img {
   transition:
     transform   var(--trans-base) var(--ease-spring),
     filter      var(--trans-base),
-    opacity     var(--trans-base) !important;
+    opacity     var(--trans-base);
   filter: grayscale(30%);
   opacity: 0.8;
 }
 
 .partner-logo:hover,
 .logo-item:hover {
-  transform: scale(1.08) !important;
-  filter: grayscale(0%) !important;
-  opacity: 1 !important;
+  transform: scale(1.08);
+  filter: grayscale(0%);
+  opacity: 1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -559,7 +559,7 @@ img {
   transition:
     transform   var(--trans-slow) var(--ease-smooth),
     box-shadow  var(--trans-slow),
-    border-color var(--trans-base) !important;
+    border-color var(--trans-base);
   will-change: transform;
 }
 
@@ -567,8 +567,8 @@ img {
 .future-card:hover,
 .product-card:hover,
 .info-card:hover {
-  transform: translateY(-6px) !important;
-  box-shadow: 0 16px 40px rgba(30, 80, 56, 0.12) !important;
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(30, 80, 56, 0.12);
 }
 
 /* ---------------------------------------------------------------------------

@@ -1,0 +1,61 @@
+/* =============================================================================
+   DENTZY — Toast Notification Styles
+   Replaces inline styles from ToastContext.jsx
+============================================================================= */
+
+.dz-toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--dz-z-toast, 99999);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+  width: 90vw;
+  pointer-events: none;
+}
+
+.dz-toast {
+  pointer-events: auto;
+  padding: 12px 18px;
+  border-radius: var(--dz-radius-md, 12px);
+  font-size: var(--dz-font-size-sm, 0.84rem);
+  font-weight: var(--dz-font-weight-semibold, 600);
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--dz-shadow-lg, 0 6px 24px rgba(0,0,0,0.18));
+  animation: toast-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Type variants ──────────────────────────────────────────── */
+.dz-toast--error {
+  background: var(--dz-color-error-bg, #fee2e2);
+  color: var(--dz-color-error-text, #991b1b);
+  border: 1px solid #fca5a5;
+}
+
+.dz-toast--success {
+  background: var(--dz-color-success-bg, #dcfce7);
+  color: var(--dz-color-success-text, #166534);
+  border: 1px solid #86efac;
+}
+
+.dz-toast--warning {
+  background: var(--dz-color-warning-bg, #fef3c7);
+  color: var(--dz-color-warning-text, #92400e);
+  border: 1px solid #fcd34d;
+}
+
+.dz-toast--info {
+  background: var(--dz-color-bg-surface, #ffffff);
+  color: #1e293b;
+  border: 1px solid var(--dz-color-border, #e2e8f0);
+}
+
+/* ── Animation ──────────────────────────────────────────────── */
+@keyframes toast-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -14,6 +14,7 @@ const dentzyLogo = '/dentzy-logo-v2.png';
    SVG ICON LIBRARY — shared across desktop & mobile dashboards
 ============================================================================= */
 import { Icon, Icons } from './common/DashboardIcons';
+import { TICKER_MESSAGES, PIPELINE_STEPS, PIPELINE_STAGES } from './dashboard/shared/constants';
 
 /* =============================================================================
    NAV ITEMS
@@ -28,15 +29,7 @@ const NAV_ITEMS = [
 /* =============================================================================
    TICKER BANNER  (GATE 2027-inspired rolling announcements)
 ============================================================================= */
-const TICKER_MESSAGES = [
-  'Welcome to Dentzy Clinical Lab Portal',
-  'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
-  'New: Zirconia monolithic crowns with multi-shade gradients now available',
-  'Submit STL files for faster digital impression processing',
-  'Payments accepted via UPI, Cash, or Cheque — check the Payments tab',
-  'All cases backed by the Dentzy 1-Year Quality Guarantee',
-  'Lab support: Mon-Sat, 9 AM to 6 PM IST',
-];
+/* Ticker messages imported from dashboard/shared/constants.js */
 
 const TickerBanner = () => (
   <div className="ud-ticker-wrap" aria-label="Lab announcements">
@@ -64,16 +57,10 @@ const TickerBanner = () => (
 /* =============================================================================
    PRODUCTION PIPELINE TIMELINE  (GATE 2027-inspired Important Dates section)
 ============================================================================= */
-const PIPELINE_STEPS = [
-  { key: 'received',   label: 'Order\nReceived',   iconD: 'M9 2h6l3 7H6L9 2zM5 9h14v13a2 2 0 01-2 2H7a2 2 0 01-2-2V9z' },
-  { key: 'design',     label: 'CAD\nDesign',       iconD: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-  { key: 'production', label: 'Milling /\nPrinting', iconD: 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z' },
-  { key: 'qc',         label: 'Quality\nCheck',    iconD: 'M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3' },
-  { key: 'dispatched', label: 'Dispatched', iconD: 'M5 12h14M12 5l7 7-7 7' },
-];
+/* Pipeline steps imported from dashboard/shared/constants.js */
 
 const PipelineRow = ({ order }) => {
-  const activeIdx = order ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(order.stage) : -1;
+  const activeIdx = order ? PIPELINE_STAGES.indexOf(order.stage) : -1;
   return (
     <div className="ud-timeline-steps">
       {PIPELINE_STEPS.map((step, idx) => {
@@ -96,7 +83,7 @@ const PipelineRow = ({ order }) => {
                   </svg>
                 )}
               </div>
-              <span className="ud-ts-label">{step.label}</span>
+              <span className="ud-ts-label">{step.labelDesktop || step.label}</span>
             </div>
             {idx < PIPELINE_STEPS.length - 1 && (
               <div className={`ud-ts-connector${isPast || order?.stage === 'completed' ? ' filled' : ''}`} />

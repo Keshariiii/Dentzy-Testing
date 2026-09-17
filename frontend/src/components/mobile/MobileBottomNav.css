@@ -31,14 +31,14 @@
   background: none;
   cursor: pointer;
   padding: 6px 0;
-  color: #94a3b8;
+  color: var(--dz-color-text-light);
   transition: color 0.2s;
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
 }
 
 .m-bnav-item--active {
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
 }
 
 .m-bnav-icon {
@@ -69,5 +69,5 @@
 
 .m-bnav-item--active .m-bnav-label {
   font-weight: 700;
-  color: var(--color-primary-dark, #4a6a5a);
+  color: var(--color-primary-dark, var(--dz-color-primary-dark));
 }

@@ -55,7 +55,7 @@
 
 /* ── Active state ─────────────────────────────────────────────── */
 .role-card.active {
-  border-color: var(--color-primary, #708c80);
+  border-color: var(--color-primary, var(--dz-color-primary));
   background: linear-gradient(145deg, #eef6f0 0%, #ddeee5 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(112, 140, 128, 0.22);
@@ -63,7 +63,7 @@
 
 /* Admin active: darker green accent */
 #role-admin-btn.active {
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   background: linear-gradient(145deg, #e8f4ee 0%, #d0e8da 100%);
   box-shadow: 0 6px 20px rgba(30, 80, 56, 0.2);
 }
@@ -77,20 +77,20 @@
   align-items: center;
   justify-content: center;
   background: var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
   transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
   margin-bottom: 2px;
 }
 
 .role-card.active .role-icon-wrap {
   background: rgba(112, 140, 128, 0.2);
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   transform: scale(1.08);
 }
 
 #role-admin-btn.active .role-icon-wrap {
   background: rgba(30, 80, 56, 0.15);
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }
 
 .role-icon-svg {
@@ -109,7 +109,7 @@
 }
 
 .role-card.active .role-label {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }
 
 .role-sublabel {
@@ -133,12 +133,12 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #708c80;
+  background: var(--dz-color-primary);
   animation: pip-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 #role-admin-btn .role-active-pip {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
 }
 
 @keyframes pip-pop {
@@ -220,10 +220,10 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--dz-color-border);
   border-radius: 50%;
   background: #fff;
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.15s, background 0.2s, border-color 0.2s;
@@ -232,7 +232,7 @@
 
 .auth-back-to-home-btn:hover {
   background: #f8fafc;
-  border-color: var(--color-primary, #708c80);
-  color: var(--color-primary, #708c80);
+  border-color: var(--color-primary, var(--dz-color-primary));
+  color: var(--color-primary, var(--dz-color-primary));
   transform: translateX(-2px);
 }

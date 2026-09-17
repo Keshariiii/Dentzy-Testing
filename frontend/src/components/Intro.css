@@ -10,7 +10,7 @@
 }
 
 .intro-highlight {
-    color: #708c80;
+    color: var(--dz-color-primary);
     /* Sage Green */
     font-weight: 700;
 }

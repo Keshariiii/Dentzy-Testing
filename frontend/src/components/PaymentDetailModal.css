@@ -64,12 +64,12 @@
   color: #334155;
   padding: 4px 10px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--dz-color-border);
 }
 
 .pdm-inv-badge {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
   font-weight: 600;
 }
 
@@ -79,7 +79,7 @@
   border-radius: 50%;
   border: none;
   background: #f1f5f9;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,7 +89,7 @@
 }
 
 .pdm-close-btn:hover {
-  background: #e2e8f0;
+  background: var(--dz-color-border);
   color: #1e293b;
 }
 
@@ -113,7 +113,7 @@
 .pdm-amount-lbl {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #708c80;
+  color: var(--dz-color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -125,13 +125,13 @@
   border-radius: 12px;
 }
 
-.pdm-status--paid { background: #dcfce7; color: #166534; }
+.pdm-status--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
 .pdm-status--pending { background: #fef9c3; color: #854d0e; }
 
 .pdm-amount-val {
   font-size: 1.65rem;
   font-weight: 800;
-  color: #1e2824;
+  color: var(--dz-color-charcoal);
 }
 
 .pdm-amount-display-row {
@@ -166,7 +166,7 @@
 }
 
 .pdm-amount-trigger--add {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #ffffff;
 }
 
@@ -201,14 +201,14 @@
 }
 
 .pdm-amount-input-box:focus-within {
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   outline: none;
 }
 
 .pdm-currency-prefix {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #708c80;
+  color: var(--dz-color-primary);
   margin-right: 6px;
   user-select: none;
 }
@@ -219,7 +219,7 @@
   width: 100%;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #1e2824;
+  color: var(--dz-color-charcoal);
   padding: 8px 0;
   outline: none !important;
 }
@@ -257,18 +257,18 @@
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .pdm-amount-btn-cancel:hover {
-  background: #e2e8f0;
+  background: var(--dz-color-border);
   color: #334155;
 }
 
 .pdm-amount-btn-save {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   border: none;
   padding: 7px 16px;
   border-radius: 8px;
@@ -299,13 +299,13 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
 }
 
 .pdm-clinic-sub {
   margin: 0;
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
 }
 
 /* ── Grid ───────────────────────────────────── */
@@ -328,14 +328,14 @@
 .pdm-grid-label {
   font-size: 0.68rem;
   font-weight: 600;
-  color: #708c80;
+  color: var(--dz-color-primary);
   text-transform: uppercase;
 }
 
 .pdm-grid-value {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #1e2824;
+  color: var(--dz-color-charcoal);
 }
 
 .pdm-grid-value code {
@@ -348,7 +348,7 @@
 }
 
 .pdm-text-muted {
-  color: #94a3b8;
+  color: var(--dz-color-text-light);
   font-weight: normal;
 }
 
@@ -360,14 +360,14 @@
   display: inline-block;
 }
 
-.pdm-mode--cash { background: #dcfce7; color: #166534; }
+.pdm-mode--cash { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
 .pdm-mode--cheque { background: #dbeafe; color: #1e40af; }
 .pdm-mode--upi { background: #f3e8ff; color: #7e22ce; }
 
 /* ── Notes Box ──────────────────────────────── */
 .pdm-notes-box {
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--dz-color-border);
   border-radius: 12px;
   padding: 12px 14px;
 }
@@ -376,7 +376,7 @@
   display: block;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -412,7 +412,7 @@
   align-items: center;
   gap: 6px;
   background: #fef2f2;
-  color: #ef4444;
+  color: var(--dz-color-error);
   border: 1px solid #fecaca;
   padding: 9px 16px;
   border-radius: 10px;
@@ -423,7 +423,7 @@
 }
 
 .pdm-delete-btn:hover {
-  background: #fee2e2;
+  background: var(--dz-color-error-bg);
 }
 
 .pdm-record-btn {
@@ -431,7 +431,7 @@
   align-items: center;
   gap: 6px;
   background: #f0fdf4;
-  color: #166534;
+  color: var(--dz-color-success-text);
   border: 1px solid #bbf7d0;
   padding: 9px 16px;
   border-radius: 10px;
@@ -442,11 +442,11 @@
 }
 
 .pdm-record-btn:hover {
-  background: #dcfce7;
+  background: var(--dz-color-success-bg);
 }
 
 .pdm-close-footer-btn {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #fff;
   border: none;
   padding: 9px 20px;

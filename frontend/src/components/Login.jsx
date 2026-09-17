@@ -224,6 +224,7 @@ const Login = ({ defaultRole }) => {
               <>
                 {/* Email */}
                 <div className="auth-input-group">
+                  <label htmlFor="login-email" className="sr-only">Email address</label>
                   <span className="auth-input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -240,11 +241,13 @@ const Login = ({ defaultRole }) => {
                     className="auth-input"
                     autoComplete="email"
                     autoFocus
+                    aria-describedby={error ? 'login-error' : undefined}
                   />
                 </div>
 
                 {/* Password */}
                 <div className="auth-input-group">
+                  <label htmlFor="login-password" className="sr-only">Password</label>
                   <span className="auth-input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -305,6 +308,7 @@ const Login = ({ defaultRole }) => {
               <>
                 {/* Username */}
                 <div className="auth-input-group">
+                  <label htmlFor="admin-username" className="sr-only">Username or Admin ID</label>
                   <span className="auth-input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -321,11 +325,13 @@ const Login = ({ defaultRole }) => {
                     className="auth-input"
                     autoComplete="username"
                     autoFocus
+                    aria-describedby={error ? 'login-error' : undefined}
                   />
                 </div>
 
                 {/* Password */}
                 <div className="auth-input-group">
+                  <label htmlFor="admin-password" className="sr-only">Admin Password</label>
                   <span className="auth-input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -378,7 +384,7 @@ const Login = ({ defaultRole }) => {
 
             {/* ── Error ─────────────────────────────── */}
             {error && (
-              <div className="auth-error">
+              <div className="auth-error" id="login-error" role="alert">
                 {error}
                 {errorAction === 'REGISTER' && (
                   <span> <Link href="/register" className="auth-error-link">Register here →</Link></span>
@@ -412,7 +418,7 @@ const Login = ({ defaultRole }) => {
           {isDentist ? (
             <p className="auth-switch">
               Don't Have An Account?{' '}
-              <Link href="/register" id="go-to-register">Sign-in</Link>
+              <Link href="/register" id="go-to-register">Sign Up</Link>
             </p>
           ) : (
             <p className="auth-switch">

@@ -5,11 +5,11 @@
 
 /* ── Theme Tokens (Dentzy palette) ────────────────────────────── */
 :root {
-  --ft-bg:            #1e2824;           /* Dark Forest Charcoal      */
+  --ft-bg:            var(--dz-color-charcoal);           /* Dark Forest Charcoal      */
   --ft-bg-surface:    #2a3d35;           /* Forest Dark               */
   --ft-bg-bottom:     #161e1a;           /* Deeper forest             */
-  --ft-accent:        #708c80;           /* Sage Green (primary)      */
-  --ft-accent-dark:   #4a6a5a;           /* Deep Sage                 */
+  --ft-accent:        var(--dz-color-primary);           /* Sage Green (primary)      */
+  --ft-accent-dark:   var(--dz-color-primary-dark);           /* Deep Sage                 */
   --ft-accent-light:  #a3bfb1;           /* Light Sage                */
   --ft-accent-glow:   rgba(112, 140, 128, 0.18);
   --ft-accent-border: rgba(112, 140, 128, 0.22);

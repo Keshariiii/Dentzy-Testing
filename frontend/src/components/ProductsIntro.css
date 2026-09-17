@@ -44,7 +44,7 @@
 }
 
 .products-title span {
-    color: #708c80;
+    color: var(--dz-color-primary);
     /* Sage green match */
 }
 

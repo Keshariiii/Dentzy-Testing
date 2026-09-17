@@ -1,0 +1,133 @@
+/* =============================================================================
+   DENTZY — Error & Not-Found Pages
+   Shared styles for error.jsx, not-found.jsx, and global-error.jsx
+   Replaces inline styles for maintainability and token compliance.
+============================================================================= */
+
+.dz-error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dz-space-5, 1.25rem);
+  background: var(--dz-color-bg-page, #f8faf9);
+  font-family: var(--dz-font-family, system-ui, sans-serif);
+  box-sizing: border-box;
+}
+
+.dz-error-card {
+  max-width: 460px;
+  width: 100%;
+  background: var(--dz-color-bg-surface, #ffffff);
+  border: 1px solid var(--dz-color-border, #e2ece6);
+  border-radius: var(--dz-radius-lg, 16px);
+  padding: clamp(1.75rem, 5vw, 2.5rem) clamp(1.25rem, 4vw, 2rem);
+  text-align: center;
+  box-shadow: var(--dz-shadow-sm, 0 4px 20px rgba(0,0,0,0.04));
+  box-sizing: border-box;
+}
+
+/* Icon circle */
+.dz-error-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--dz-space-5, 1.25rem);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dz-error-icon--error {
+  background: var(--dz-color-error-bg, #fef2f2);
+  color: #b91c1c;
+}
+
+.dz-error-icon--info {
+  background: #f0f5f2;
+  color: var(--dz-color-primary-dark, #1e5038);
+}
+
+/* Tag label */
+.dz-error-tag {
+  font-size: var(--dz-font-size-xs, 0.8rem);
+  font-weight: var(--dz-font-weight-semibold, 600);
+  color: #6b8a7a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+/* Title */
+.dz-error-title {
+  font-size: clamp(1.25rem, 4vw, 1.45rem);
+  font-weight: var(--dz-font-weight-bold, 700);
+  margin: 0.5rem 0 0.75rem;
+  color: var(--dz-color-text-primary, #1a2e26);
+}
+
+/* Description */
+.dz-error-desc {
+  font-size: var(--dz-font-size-body, 0.9rem);
+  color: #527063;
+  line-height: var(--dz-line-height-normal, 1.5);
+  margin: 0 0 0.5rem;
+}
+
+.dz-error-ref {
+  font-size: 0.78rem;
+  color: var(--dz-color-text-light, #9ca3af);
+  margin: 0 0 1.75rem;
+}
+
+.dz-error-desc--solo {
+  margin: 0 0 1.75rem;
+}
+
+/* Buttons */
+.dz-error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dz-error-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--dz-radius-sm, 8px);
+  font-weight: var(--dz-font-weight-semibold, 600);
+  font-size: 0.92rem;
+  text-decoration: none;
+  box-sizing: border-box;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--dz-transition-fast, 0.15s ease);
+}
+
+.dz-error-btn:hover {
+  opacity: 0.9;
+}
+
+.dz-error-btn--primary {
+  background: var(--dz-color-primary-dark, #1e5038);
+  color: var(--dz-color-white, #ffffff);
+}
+
+.dz-error-btn--secondary {
+  background: #f0f5f2;
+  color: var(--dz-color-primary-dark, #1e5038);
+  border: 1px solid #dbe7e0;
+}
+
+.dz-error-btn--ghost {
+  background: transparent;
+  color: #6b8a7a;
+  font-weight: var(--dz-font-weight-medium, 500);
+  font-size: 0.85rem;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+}

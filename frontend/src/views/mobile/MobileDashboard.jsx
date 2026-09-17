@@ -24,19 +24,12 @@ import './MobileDashboard.css';
    ICONS — shared across desktop & mobile dashboards
 ============================================================ */
 import { Icon, Icons } from '../../components/common/DashboardIcons';
+import { TICKER_MESSAGES, PIPELINE_STEPS, PIPELINE_STAGES } from '../../components/dashboard/shared/constants';
 
 /* ============================================================
    TICKER
 ============================================================ */
-const TICKER_MESSAGES = [
-  'Welcome to Dentzy Clinical Lab Portal',
-  'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
-  'New: Zirconia monolithic crowns with multi-shade gradients now available',
-  'Submit STL files for faster digital impression processing',
-  'Invoices are generated upon case dispatch — check the Payments tab',
-  'All cases backed by the Dentzy 1-Year Quality Guarantee',
-  'Lab support: Mon-Sat, 9 AM to 6 PM IST',
-];
+/* Ticker messages imported from dashboard/shared/constants.js */
 
 const Ticker = () => (
   <div className="m-ticker-wrap" aria-label="Lab announcements">
@@ -56,16 +49,10 @@ const Ticker = () => (
 /* ============================================================
    PIPELINE
 ============================================================ */
-const PIPELINE_STEPS = [
-  { key: 'received',   label: 'Received',    d: 'M9 2h6l3 7H6L9 2zM5 9h14v13a2 2 0 01-2 2H7a2 2 0 01-2-2V9z' },
-  { key: 'design',     label: 'CAD Design',  d: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-  { key: 'production', label: 'Milling',     d: 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z' },
-  { key: 'qc',         label: 'QC',          d: 'M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3' },
-  { key: 'dispatched', label: 'Dispatched',  d: 'M5 12h14M12 5l7 7-7 7' },
-];
+/* Pipeline steps imported from dashboard/shared/constants.js */
 
 const MobilePipelineRow = ({ order }) => {
-  const activeIdx = order ? ['received', 'design', 'production', 'qc', 'dispatched', 'completed'].indexOf(order.stage) : -1;
+  const activeIdx = order ? PIPELINE_STAGES.indexOf(order.stage) : -1;
   return (
     <div className="m-pipeline-steps">
       {PIPELINE_STEPS.map((step, idx) => {
@@ -84,7 +71,7 @@ const MobilePipelineRow = ({ order }) => {
                 ) : (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={step.d} />
+                    <path d={step.iconD} />
                   </svg>
                 )}
               </div>

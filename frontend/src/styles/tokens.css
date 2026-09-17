@@ -19,6 +19,7 @@
   /* ── Color: Brand ────────────────────────────────────────────── */
   --dz-color-primary:         #708c80;   /* Sage Green                */
   --dz-color-primary-dark:    #4a6a5a;   /* Deep Sage                 */
+  --dz-color-primary-accent:  #1e5038;   /* Deep Forest Green         */
   --dz-color-primary-light:   #a3bfb1;   /* Light Sage                */
   --dz-color-primary-muted:   rgba(112, 140, 128, 0.12); /* Subtle tint */
 

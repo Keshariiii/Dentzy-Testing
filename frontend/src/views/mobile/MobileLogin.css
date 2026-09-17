@@ -50,7 +50,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(8px);
@@ -114,7 +114,7 @@
   background: transparent;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
   cursor: pointer;
   transition: background 0.25s, color 0.25s, box-shadow 0.25s;
   -webkit-tap-highlight-color: transparent;
@@ -122,7 +122,7 @@
 
 .m-role-tab--active {
   background: #fff;
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -130,13 +130,13 @@
 .m-auth-title {
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
   margin: 0 0 4px;
 }
 
 .m-auth-subtitle {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--dz-color-text-light);
   margin: 0 0 20px;
 }
 
@@ -144,8 +144,8 @@
 .m-auth-error {
   padding: 10px 14px;
   border-radius: 12px;
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--dz-color-error-bg);
+  color: var(--dz-color-error-text);
   font-size: 0.78rem;
   font-weight: 600;
   margin-bottom: 16px;
@@ -183,11 +183,11 @@
 .m-auth-input-group input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--dz-color-border);
   border-radius: 12px;
   font-size: 0.9rem;
   font-family: inherit;
-  color: var(--color-charcoal, #1e2824);
+  color: var(--color-charcoal, var(--dz-color-charcoal));
   background: #fafbfc;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -198,7 +198,7 @@
 
 .m-auth-input-group input:focus {
   outline: none;
-  border-color: var(--color-primary, #708c80);
+  border-color: var(--color-primary, var(--dz-color-primary));
   box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.12);
   background: #fff;
 }
@@ -225,7 +225,7 @@
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
   width: 34px;
   height: 34px;
   display: flex;
@@ -243,7 +243,7 @@
 
 .m-pw-toggle:active {
   background: rgba(112, 140, 128, 0.15);
-  color: var(--color-primary-dark, #4a6a5a);
+  color: var(--color-primary-dark, var(--dz-color-primary-dark));
   transform: translateY(-50%) scale(0.92);
 }
 
@@ -253,7 +253,7 @@
   padding: 14px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--color-primary, #708c80), var(--color-primary-dark, #4a6a5a));
+  background: linear-gradient(135deg, var(--color-primary, var(--dz-color-primary)), var(--color-primary-dark, var(--dz-color-primary-dark)));
   color: #fff;
   font-size: 0.9rem;
   font-weight: 700;
@@ -283,7 +283,7 @@
 .m-auth-link {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
 }
 
 /* ── Password Strength Bar (Register) ──────── */
@@ -294,7 +294,7 @@
 .m-pw-strength-bar {
   height: 4px;
   border-radius: 2px;
-  background: #e2e8f0;
+  background: var(--dz-color-border);
   overflow: hidden;
   margin-bottom: 4px;
 }
@@ -325,7 +325,7 @@
 }
 
 .m-pw-rule--pass { color: #16a34a; }
-.m-pw-rule--fail { color: #94a3b8; }
+.m-pw-rule--fail { color: var(--dz-color-text-light); }
 
 .m-pw-rule-dot {
   width: 6px;
@@ -373,7 +373,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #64748b;
+  color: var(--dz-color-text-muted);
 }
 
 /* ── Back to login link ─────────────────────── */
@@ -390,7 +390,7 @@
   gap: 4px;
   border: none;
   background: none;
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;

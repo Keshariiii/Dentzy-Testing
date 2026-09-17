@@ -60,7 +60,7 @@
 }
 
 .auth-accent {
-  color: var(--color-primary, #708c80);
+  color: var(--color-primary, var(--dz-color-primary));
   text-transform: inherit;
   font-style: normal;
 }
@@ -145,7 +145,7 @@
 .auth-input-icon {
   position: absolute;
   left: 14px;
-  color: #708c80;
+  color: var(--dz-color-primary);
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -204,7 +204,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 2px solid #708c80;
+  border: 2px solid var(--dz-color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +213,7 @@
 }
 
 .auth-remember input[type='checkbox']:checked + .auth-checkmark {
-  background-color: #708c80;
+  background-color: var(--dz-color-primary);
 }
 
 .auth-remember input[type='checkbox']:checked + .auth-checkmark::after {
@@ -226,13 +226,13 @@
 
 .auth-forgot {
   font-size: 0.8rem;
-  color: #708c80;
+  color: var(--dz-color-primary);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .auth-forgot:hover {
-  color: #4a6a5a;
+  color: var(--dz-color-primary-dark);
   text-decoration: underline;
 }
 
@@ -252,7 +252,7 @@
 }
 
 .auth-pw-toggle:hover {
-  color: #708c80;
+  color: var(--dz-color-primary);
 }
 
 /* ---- Password strength box ---- */
@@ -351,7 +351,7 @@
 }
 
 .auth-error-link {
-  color: #708c80;
+  color: var(--dz-color-primary);
   font-weight: 700;
   text-decoration: underline;
   white-space: nowrap;
@@ -359,7 +359,7 @@
 }
 
 .auth-error-link:hover {
-  color: #4a6a5a;
+  color: var(--dz-color-primary-dark);
 }
 
 /* ---- Submit Button ---- */
@@ -383,7 +383,7 @@
 }
 
 .auth-btn:hover:not(:disabled) {
-  background-color: #708c80;
+  background-color: var(--dz-color-primary);
   color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(112, 140, 128, 0.35);
@@ -422,14 +422,14 @@
 }
 
 .auth-switch a {
-  color: #708c80;
+  color: var(--dz-color-primary);
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .auth-switch a:hover {
-  color: #4a6a5a;
+  color: var(--dz-color-primary-dark);
   text-decoration: underline;
 }
 
@@ -500,7 +500,7 @@
 .pending-email-tag {
   display: inline-block;
   background: #eef6f2;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   border: 1px solid #c5ddd3;
   border-radius: 99px;
   padding: 5px 16px;
@@ -572,7 +572,7 @@
 
 .fp-dev-link {
   font-size: 0.74rem;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   word-break: break-all;
   text-decoration: underline;
   cursor: pointer;
@@ -601,7 +601,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #708c80;
+  color: var(--dz-color-primary);
 }
 
 .captcha-box {
@@ -646,7 +646,7 @@
   border-radius: 10px;
   border: 1.5px solid #c5ddd3;
   background: #eef6f2;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -655,9 +655,9 @@
 }
 
 .captcha-refresh-btn:hover {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #fff;
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   transform: rotate(180deg) scale(1.05);
 }
 
@@ -691,3 +691,36 @@
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 
+/* =====================================================
+   OTP INPUT STYLES (verification step)
+   ===================================================== */
+.otp-input-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.otp-digit {
+  width: 45px;
+  height: 52px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 10px;
+  border: 1.5px solid var(--dz-color-border, #cbd5e1);
+  background: var(--dz-color-bg-surface, #fff);
+  color: var(--dz-color-text-primary, var(--dz-color-charcoal));
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.otp-digit--filled {
+  border-color: var(--dz-color-primary-dark, var(--dz-color-primary-accent));
+  border-width: 2px;
+}
+
+.otp-digit:focus {
+  border-color: var(--dz-color-primary, var(--dz-color-primary));
+  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.2);
+}

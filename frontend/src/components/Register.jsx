@@ -277,7 +277,7 @@ const Register = () => {
 
             <form className="auth-form" onSubmit={handleVerifyOtp}>
               {/* 6-box OTP Input */}
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
+              <div className="otp-input-group" style={{ margin: '20px 0' }} onPaste={handleOtpPaste}>
                 {otp.map((digit, idx) => (
                   <input
                     key={idx}
@@ -288,19 +288,7 @@ const Register = () => {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    style={{
-                      width: '45px',
-                      height: '52px',
-                      fontSize: '1.4rem',
-                      fontWeight: '700',
-                      textAlign: 'center',
-                      borderRadius: '10px',
-                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
-                      background: '#fff',
-                      color: '#1e2824',
-                      outline: 'none',
-                      transition: 'all 0.15s ease',
-                    }}
+                    className={`otp-digit${digit ? ' otp-digit--filled' : ''}`}
                   />
                 ))}
               </div>
@@ -390,6 +378,7 @@ const Register = () => {
           <form className="auth-form" onSubmit={handleSendOtp} noValidate>
             {/* Name */}
             <div className="auth-input-group">
+              <label htmlFor="register-name" className="sr-only">Full name</label>
               <span className="auth-input-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -410,6 +399,7 @@ const Register = () => {
 
             {/* Email */}
             <div className="auth-input-group">
+              <label htmlFor="register-email" className="sr-only">Email address</label>
               <span className="auth-input-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -430,6 +420,7 @@ const Register = () => {
 
             {/* Password */}
             <div className="auth-input-group">
+              <label htmlFor="register-password" className="sr-only">Password</label>
               <span className="auth-input-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -553,6 +544,7 @@ const Register = () => {
                 </button>
               </div>
               <div className="captcha-input-group auth-input-group">
+                <label htmlFor="register-captcha" className="sr-only">CAPTCHA code</label>
                 <span className="auth-input-icon">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -589,7 +581,7 @@ const Register = () => {
 
             {/* Error */}
             {error && (
-              <div className="auth-error">
+              <div className="auth-error" id="register-error" role="alert">
                 {error}
                 {errorAction === 'LOGIN' && (
                   <span> <Link href="/login" className="auth-error-link">Login here →</Link></span>
