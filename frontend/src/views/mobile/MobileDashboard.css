@@ -199,7 +199,7 @@
     display: flex;
     gap: 0;
     white-space: nowrap;
-    animation: m-ticker-scroll 8s linear infinite;
+    animation: m-ticker-scroll 18s linear infinite; /* #40 — Slowed from 8s to 18s for readability */
 }
 
 @keyframes m-ticker-scroll {
@@ -274,7 +274,12 @@
     background: #fff;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
     min-height: 90px;
+    border-left: 3px solid var(--dz-color-border); /* #36 — Visual differentiation */
 }
+
+/* #36 — Colored left borders to differentiate stat cards */
+.m-stat-card:nth-child(1) { border-left-color: var(--dz-color-primary); }
+.m-stat-card:nth-child(2) { border-left-color: var(--dz-color-success); }
 
 /* Stat card left colored borders removed per strict minimalist rule */
 
@@ -456,18 +461,20 @@
 }
 
 .m-ps-current .m-ps-icon {
-    background: var(--color-primary, var(--dz-color-primary));
+    background: var(--dz-color-primary);
     color: #fff;
-    box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.2);
+    box-shadow: 0 0 0 3px var(--dz-color-primary-muted);
 }
 
 .m-ps-label {
-    font-size: 0.55rem;
+    font-size: 0.58rem;
     font-weight: 600;
     color: var(--dz-color-text-light);
     text-align: center;
-    max-width: 44px;
+    max-width: 56px; /* #35 — Increased from 44px to prevent 'Dispatche' clipping */
     line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .m-ps-current .m-ps-label {
@@ -538,7 +545,8 @@
 
 .m-action-icon {
     margin-bottom: 8px;
-    color: var(--dz-color-text-muted);
+    color: var(--dz-color-primary); /* #38 — Brand color instead of muted gray */
+    font-size: 24px; /* #38 — Increased from 16px for visibility */
 }
 
 .m-action-card--green .m-action-icon {
@@ -1187,11 +1195,22 @@
 .m-link-btn {
     border: none;
     background: none;
-    color: var(--color-primary, var(--dz-color-primary));
+    color: var(--dz-color-primary);
     font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
-    padding: 0;
+    padding: 4px 8px; /* #39 — Bigger tap target */
+    min-height: 44px; /* #30 — Touch target minimum */
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+/* #39 — Tap feedback */
+.m-link-btn:active {
+    background: var(--dz-color-primary-muted);
+    transform: scale(0.96);
 }
 
 /* ── Buttons ────────────────────────────────── */

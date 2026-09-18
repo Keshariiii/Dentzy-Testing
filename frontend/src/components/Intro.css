@@ -1,6 +1,6 @@
 .intro {
-    background-color: var(--color-white);
-    color: var(--color-text);
+    background-color: var(--dz-color-bg-surface, #fff);
+    color: var(--dz-color-text-body);
 }
 
 .intro .container {
@@ -10,20 +10,19 @@
 }
 
 .intro-highlight {
-    color: var(--dz-color-primary);
-    /* Sage Green */
-    font-weight: 700;
+    color: var(--dz-color-primary-accent, #1e5038);
+    font-weight: var(--dz-font-weight-bold, 700);
 }
 
 .intro-content {
-    margin-top: 30px;
+    margin-top: var(--dz-space-8, 30px);
     text-align: center;
 }
 
 .intro-text {
-    font-size: clamp(0.95rem, 0.5vw + 0.7rem, 1.1rem);
-    line-height: 1.8;
-    color: var(--color-text-light);
+    font-size: var(--dz-fluid-body, clamp(0.95rem, 0.5vw + 0.7rem, 1.1rem));
+    line-height: var(--dz-line-height-relaxed, 1.8);
+    color: var(--dz-color-text-muted);
 }
 
 @media (max-width: 768px) {

@@ -1,36 +1,36 @@
 .services {
-    background-color: var(--color-white);
+    background-color: var(--dz-color-bg-surface-alt, #f8faf9);
 }
 
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-    gap: var(--dz-fluid-grid-gap, 30px);
+    gap: var(--dz-fluid-grid-gap, 2rem);
     margin-top: clamp(1.5rem, 3vw, 3.125rem);
 }
 
 .service-card {
-    background: white;
-    border-radius: 16px;
+    background: var(--dz-color-bg-surface, #fff);
+    border-radius: var(--dz-radius-lg, 14px);
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--dz-shadow-sm, 0 4px 20px rgba(0, 0, 0, 0.06));
     transition:
         transform  0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         box-shadow 0.38s ease,
         border-color 0.25s ease;
-    border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
+    border: 1px solid var(--dz-color-primary-muted);
     will-change: transform;
 }
 
 .service-card:hover {
     transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(112, 140, 128, 0.14);
-    border-color: var(--color-primary, var(--dz-color-primary));
+    box-shadow: var(--dz-shadow-lg, 0 20px 40px rgba(0, 0, 0, 0.10));
+    border-color: var(--dz-color-primary);
 }
 
 .service-image {
     height: 200px;
-    background-color: rgba(112, 140, 128, 0.06);
+    background-color: var(--dz-color-primary-muted);
 }
 
 .service-image img {
@@ -46,16 +46,18 @@
 }
 
 .service-info {
-    padding: 20px;
+    padding: var(--dz-space-5, 20px);
 }
 
 .service-info h3 {
-    font-size: 1.25rem;
-    margin-bottom: 10px;
+    font-size: var(--dz-fluid-h3, 1.25rem);
+    margin-bottom: var(--dz-space-3, 10px);
+    color: var(--dz-color-primary-accent, #1e5038);
+    font-weight: var(--dz-font-weight-semibold, 600);
 }
 
 .service-info p {
-    font-size: 0.9rem;
-    color: var(--dz-color-text-muted, var(--dz-color-text-muted));
-    line-height: 1.5;
+    font-size: var(--dz-fluid-sm, 0.9rem);
+    color: var(--dz-color-text-muted);
+    line-height: var(--dz-line-height-normal, 1.5);
 }

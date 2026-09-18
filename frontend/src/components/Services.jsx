@@ -29,6 +29,7 @@ const Services = () => {
         <section className="services section-padding" id="services">
             <div className="container">
                 <h2 className="section-title text-center reveal from-bottom">Our Signature Services</h2>
+                <p className="section-subtitle text-center">Precision-crafted restorations for every clinical need</p>
                 <div className="services-grid reveal-stagger">
                     {services.map((service, index) => (
                         <div className={`service-card animate-on-scroll delay-${(index + 1) * 100}`} key={index}>

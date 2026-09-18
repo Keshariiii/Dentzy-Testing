@@ -6,6 +6,7 @@ const Process = () => {
         <section className="process section-padding">
             <div className="container">
                 <h2 className="section-title text-center reveal from-bottom">The DEN<span className="process-highlight">T</span>ZY Process</h2>
+                <p className="section-subtitle text-center">Three steps from impression to perfection</p>
 
                 <div className="process-steps animate-on-scroll reveal-stagger">
                     <div className="process-step">

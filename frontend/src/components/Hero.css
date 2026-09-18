@@ -15,7 +15,7 @@
     overflow: hidden;
 }
 
-/* Video background - ensure it stays fixed if possible or just absolute */
+/* Video background — single rule (duplicate removed #6) */
 .hero-video {
     position: absolute;
     top: 0;
@@ -25,17 +25,6 @@
     object-fit: cover;
     z-index: 0;
     opacity: 0.8;
-    /* Slight transparency if needed */
-}
-
-.hero-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
 }
 
 .hero-overlay {
@@ -44,7 +33,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--dz-color-bg-overlay, rgba(0, 0, 0, 0.45));
     z-index: 1;
 }
 
@@ -53,11 +42,11 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: var(--dz-space-4, 16px);
 }
 
 .hero h1 {
-    font-size: clamp(2.5rem, 4vw + 1rem, 4.5rem);
+    font-size: var(--dz-fluid-display, clamp(2.5rem, 4vw + 1rem, 4.5rem));
     font-weight: 800;
     color: white;
     text-transform: uppercase;
@@ -82,11 +71,15 @@
     font-size: clamp(1.1rem, 1vw + 0.5rem, 1.5rem);
     font-weight: 400;
     letter-spacing: 1.5px;
-    margin-top: 10px;
+    margin-top: var(--dz-space-3, 10px);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+    .hero {
+        background-attachment: scroll; /* Fix parallax on mobile Safari (#29) */
+    }
+
     .hero h1 {
         font-size: 2.5rem;
     }
@@ -96,6 +89,6 @@
     }
 
     .hero-overlay {
-        background: rgba(0, 0, 0, 0.45);
+        background: var(--dz-color-bg-overlay, rgba(0, 0, 0, 0.45));
     }
 }

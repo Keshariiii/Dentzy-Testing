@@ -12,6 +12,8 @@ import DentistDetailModal from '../../admin/DentistDetailModal';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import EmptyState from '../../components/common/EmptyState';
+import { formatINR, formatDate } from '../../utils/format';
 import './MobileAdminDashboard.css';
 
 import { Icons as Ico } from '../../components/common/DashboardIcons';
@@ -39,8 +41,7 @@ const ADMIN_NAV = [
 /* ============================================================
    HELPERS
 ============================================================ */
-const formatINR = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
+/* #63 — Removed duplicate formatINR. Now imported from ../../utils/format */
 
 /* ============================================================
    COMPONENT
@@ -591,6 +592,16 @@ const MobileAdminDashboard = () => {
       {adminView === 'dentists' && (
         <>
 
+          {/* #50 — Section heading with count badge */}
+          <div style={{ padding: '0 16px', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Registered Dentists
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'var(--dz-color-primary-muted)', color: 'var(--dz-color-primary-dark)', padding: '2px 8px', borderRadius: '12px' }}>
+                {stats.total || users.length}
+              </span>
+            </h2>
+          </div>
+
           {/* Search Bar */}
           <div className="ma-search-wrap">
             <div className="ma-search-bar">
@@ -632,10 +643,11 @@ const MobileAdminDashboard = () => {
                 {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="ma-empty">
-                {Ico.users(48)}
-                <p>No {activeTab === 'all' ? '' : activeTab + ' '}dentists found.</p>
-              </div>
+              <EmptyState
+                variant="dentists"
+                message={`No ${activeTab === 'all' ? '' : activeTab + ' '}dentists found`}
+                subtext="New dentists will appear here once they register and await approval."
+              />
             ) : (
               <div className="ma-user-list">
                 {filteredUsers.map(user => {
@@ -772,10 +784,11 @@ const MobileAdminDashboard = () => {
 
               <main className="ma-main">
                 {filteredOrders.length === 0 ? (
-                  <div className="ma-empty">
-                    {Ico.orders(48)}
-                    <p>No orders found for this dentist.</p>
-                  </div>
+                  <EmptyState
+                    variant="orders"
+                    message="No orders found for this dentist"
+                    subtext="Orders will appear here once the dentist submits a lab case."
+                  />
                 ) : (
                   <div className="ma-order-list">
                     {filteredOrders.map(o => (
@@ -830,10 +843,11 @@ const MobileAdminDashboard = () => {
                   {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
                 </div>
               ) : dentistOrderGroups.length === 0 ? (
-                <div className="ma-empty">
-                  {Ico.orders(48)}
-                  <p>No lab orders found.</p>
-                </div>
+                <EmptyState
+                  variant="orders"
+                  message="No lab orders found"
+                  subtext="Lab orders from registered dentists will appear here."
+                />
               ) : (
                 <div className="ma-user-list">
                   {dentistOrderGroups.map(d => {
@@ -850,7 +864,7 @@ const MobileAdminDashboard = () => {
                               {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                             </div>
                           </div>
-                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} Orders ›</span>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} {d.orders.length === 1 ? 'Order' : 'Orders'} ›</span>
                         </div>
                         <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
                           {inProgress > 0 && <span className="ma-pill ma-pill--status-in-progress">{inProgress} In Progress</span>}
@@ -918,10 +932,11 @@ const MobileAdminDashboard = () => {
 
               <main className="ma-main">
                 {filteredPaymentsForDrill.length === 0 ? (
-                  <div className="ma-empty">
-                    {Ico.wallet(48)}
-                    <p>No payment records found.</p>
-                  </div>
+                  <EmptyState
+                    variant="payments"
+                    message="No payment records found"
+                    subtext="Payment records for this dentist will appear here."
+                  />
                 ) : (
                   <div className="ma-pay-list">
                     {filteredPaymentsForDrill.map(p => (
@@ -986,6 +1001,26 @@ const MobileAdminDashboard = () => {
             /* ── Dentist cards overview for payments ── */
             <>
 
+              {/* #57 — Total summary bar */}
+              {paymentData.summary && (
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px',
+                  padding: '12px 16px', marginBottom: '4px'
+                }}>
+                  <div style={{ background: 'var(--dz-color-bg-surface)', borderRadius: '12px', padding: '10px', textAlign: 'center', border: '1px solid var(--dz-color-border-light)' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--dz-color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Billed</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', marginTop: '2px' }}>{formatINR(paymentData.summary.totalBilled || 0)}</div>
+                  </div>
+                  <div style={{ background: 'var(--dz-color-success-bg)', borderRadius: '12px', padding: '10px', textAlign: 'center', border: '1px solid var(--dz-color-border-light)' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--dz-color-success-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Collected</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--dz-color-success-text)', marginTop: '2px' }}>{formatINR(paymentData.summary.totalCollected || 0)}</div>
+                  </div>
+                  <div style={{ background: 'var(--dz-color-warning-bg)', borderRadius: '12px', padding: '10px', textAlign: 'center', border: '1px solid var(--dz-color-border-light)' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--dz-color-warning-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Outstanding</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--dz-color-warning-text)', marginTop: '2px' }}>{formatINR((paymentData.summary.totalBilled || 0) - (paymentData.summary.totalCollected || 0))}</div>
+                  </div>
+                </div>
+              )}
 
               <main className="ma-main">
                 {loadingPayments ? (
@@ -993,10 +1028,11 @@ const MobileAdminDashboard = () => {
                     {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
                   </div>
                 ) : dentistPaymentGroups.length === 0 ? (
-                  <div className="ma-empty">
-                    {Ico.wallet(48)}
-                    <p>No payment records found.</p>
-                  </div>
+                  <EmptyState
+                    variant="payments"
+                    message="No payment records found"
+                    subtext="Payment and billing records will appear here as orders are processed."
+                  />
                 ) : (
                   <div className="ma-user-list">
                     {dentistPaymentGroups.map(d => {
@@ -1011,16 +1047,21 @@ const MobileAdminDashboard = () => {
                                 {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} Cases ›</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} {d.payments.length === 1 ? 'Case' : 'Cases'} ›</span>
                           </div>
                           <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
-                            <span className="ma-pill" style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 600 }}>Billed {formatINR(d.totalBilled)}</span>
-                            <span className="ma-pill" style={{ background: '#dcfce7', color: '#166534', fontWeight: 600 }}>Collected {formatINR(d.totalCollected)}</span>
+                            {/* #56 — Only show non-zero values */}
+                            {d.totalBilled > 0 && (
+                              <span className="ma-pill" style={{ background: 'var(--dz-color-bg-surface-alt)', color: 'var(--dz-color-text-body)', fontWeight: 600 }}>Billed {formatINR(d.totalBilled)}</span>
+                            )}
+                            {d.totalCollected > 0 && (
+                              <span className="ma-pill" style={{ background: 'var(--dz-color-success-bg)', color: 'var(--dz-color-success-text)', fontWeight: 600 }}>Collected {formatINR(d.totalCollected)}</span>
+                            )}
                             {d.totalPending > 0 && (
-                              <span className="ma-pill" style={{ background: '#fef9c3', color: '#92400e', fontWeight: 600 }}>Pending {formatINR(d.totalPending)}</span>
+                              <span className="ma-pill" style={{ background: 'var(--dz-color-warning-bg)', color: 'var(--dz-color-warning-text)', fontWeight: 600 }}>Pending {formatINR(d.totalPending)}</span>
                             )}
                             {unpaid > 0 && (
-                              <span className="ma-pill" style={{ background: '#fee2e2', color: '#dc2626', fontWeight: 600 }}>{unpaid} Unpaid</span>
+                              <span className="ma-pill" style={{ background: 'var(--dz-color-error-bg)', color: 'var(--dz-color-error-text)', fontWeight: 600 }}>{unpaid} Unpaid</span>
                             )}
                           </div>
                         </div>

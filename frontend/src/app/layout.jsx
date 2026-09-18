@@ -83,6 +83,12 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>{process.env.NODE_ENV === 'development' ? <ReticleDev /> : null}
+        <noscript>
+          <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <h1>Dentzy</h1>
+            <p>JavaScript is required to use the Dentzy dental lab portal. Please enable JavaScript in your browser settings and refresh the page.</p>
+          </div>
+        </noscript>
         <Providers>
           {children}
         </Providers>

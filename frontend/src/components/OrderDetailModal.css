@@ -58,9 +58,10 @@
 }
 
 .odm-case-badge {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--dz-font-family); /* #46 — App font instead of monospace */
   font-size: 0.82rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
   background: #f1f5f9;
   color: #334155;
   padding: 4px 10px;
@@ -106,13 +107,16 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-bottom: 12px; /* #47 — Visual divider */
+  border-bottom: 1px solid var(--dz-color-border-light, #e2e8f0); /* #47 */
+  margin-bottom: 4px;
 }
 
 .odm-patient-name {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-charcoal, var(--dz-color-charcoal));
+  color: var(--dz-color-charcoal);
 }
 
 .odm-dentist-sub {
@@ -159,8 +163,8 @@
 }
 
 .odm-pipeline-dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;  /* #41 — Increased from 12px for visibility */
+  height: 16px;
   border-radius: 50%;
   background: #cbd5e1;
   transition: all 0.2s ease;
@@ -329,11 +333,13 @@
 }
 
 .odm-pay-row code {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--dz-font-family); /* #46 — Consistent with app font */
+  letter-spacing: 0.04em;
   background: #f1f5f9;
   padding: 2px 6px;
   border-radius: 4px;
   color: #334155;
+  font-weight: 600;
 }
 
 /* ── Amount Inline Editor ──────────────────── */
@@ -432,6 +438,19 @@
   margin-top: 2px;
 }
 
+/* #45 — Payment Pending Banner */
+.odm-pending-banner {
+  background: var(--dz-color-warning-bg, #fef3c7);
+  color: var(--dz-color-warning-text, #92400e);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 0 0 12px 12px;
+  margin-top: -4px;
+  letter-spacing: 0.02em;
+}
+
 /* ── Footer Actions ─────────────────────────── */
 .odm-footer {
   display: flex;
@@ -496,6 +515,6 @@
     to { transform: translateY(0); }
   }
   .odm-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr); /* #43 — Keep 2-col on mobile, content is small */
   }
 }

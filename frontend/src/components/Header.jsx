@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
@@ -90,7 +90,7 @@ const Header = () => {
 
           {user ? (
             <div className="nav-user-info">
-              <span className="nav-username">👤 {user.name}</span>
+              <span className="nav-username"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{user.name}</span>
               <button
                 id="logout-btn"
                 className="btn-sm nav-logout"

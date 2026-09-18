@@ -35,10 +35,11 @@
   transition: color 0.2s;
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
+  min-height: 44px; /* #30 — Touch target minimum */
 }
 
 .m-bnav-item--active {
-  color: var(--color-primary, var(--dz-color-primary));
+  color: var(--dz-color-primary);
 }
 
 .m-bnav-icon {
@@ -46,13 +47,13 @@
   align-items: center;
   justify-content: center;
   width: 44px;
-  height: 30px;
+  height: 44px; /* #30 — Touch target minimum */
   border-radius: 16px;
   transition: background 0.25s, transform 0.15s;
 }
 
 .m-bnav-item--active .m-bnav-icon {
-  background: rgba(112, 140, 128, 0.12);
+  background: var(--dz-color-primary-muted);
   transform: scale(1.05);
 }
 
@@ -69,5 +70,5 @@
 
 .m-bnav-item--active .m-bnav-label {
   font-weight: 700;
-  color: var(--color-primary-dark, var(--dz-color-primary-dark));
+  color: var(--dz-color-primary-dark);
 }

@@ -27,7 +27,7 @@
 }
 
 .cta h2 {
-    font-size: clamp(1.6rem, 2.5vw + 0.5rem, 3rem);
+    font-size: var(--dz-fluid-h1, clamp(1.6rem, 2.5vw + 0.5rem, 3rem));
     color: white;
     margin-bottom: clamp(1rem, 2vw, 1.875rem);
     text-transform: uppercase;
@@ -35,33 +35,32 @@
 }
 
 .btn-cta {
-    font-size: 1.2rem;
-    padding: 15px 40px;
-    background-color: var(--color-primary, var(--dz-color-primary));
-    /* Sage Green */
-    border: 2px solid var(--color-primary, var(--dz-color-primary));
+    font-size: var(--dz-fluid-body, 1.2rem);
+    padding: var(--dz-space-4, 15px) var(--dz-space-10, 40px);
+    background-color: var(--dz-color-primary);
+    border: 2px solid var(--dz-color-primary);
     color: white;
 }
 
 .btn-cta:hover {
-    background-color: var(--color-primary-dark, var(--dz-color-primary-dark));
-    /* Deeper Sage */
-    border-color: var(--color-primary-dark, var(--dz-color-primary-dark));
+    background-color: var(--dz-color-primary-dark);
+    border-color: var(--dz-color-primary-dark);
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(112, 140, 128, 0.3);
+    box-shadow: var(--dz-shadow-md);
 }
 
 @media (max-width: 768px) {
+    .cta {
+        padding: var(--dz-space-20, 80px) 0;
+        background-attachment: scroll; /* Fix parallax on mobile Safari (#29) */
+    }
+
     .cta h2 {
         font-size: 2rem;
     }
 
     .btn-cta {
-        padding: 12px 30px;
+        padding: var(--dz-space-3, 12px) var(--dz-space-8, 30px);
         font-size: 1rem;
-    }
-
-    .cta {
-        padding: 80px 0;
     }
 }

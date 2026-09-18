@@ -1338,6 +1338,47 @@
 
 .ud-ts-connector.filled { background: var(--dz-color-primary); }
 
+/* -- #17 Welcome Banner ---------------------------------------------------- */
+.ud-welcome-banner {
+  background: linear-gradient(135deg, var(--dz-color-bg-surface-alt), rgba(112, 140, 128, 0.08));
+  border: 1px solid var(--dz-color-primary-muted);
+  border-radius: var(--dz-radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.ud-welcome-banner h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--dz-color-primary-accent);
+  margin: 0 0 8px;
+}
+
+.ud-welcome-banner p {
+  font-size: 0.85rem;
+  color: var(--dz-color-text-muted);
+  margin: 0 0 12px;
+}
+
+.ud-welcome-banner ol {
+  list-style: decimal;
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ud-welcome-banner li {
+  font-size: 0.85rem;
+  color: var(--dz-color-text-body);
+  line-height: 1.5;
+}
+
+.ud-welcome-banner li strong {
+  color: var(--dz-color-primary-accent);
+}
+
 /* -- Section Headers --------------------------------------------------------- */
 .ud-actions-section  { margin-bottom: 28px; }
 .ud-resources-section { margin-bottom: 28px; }

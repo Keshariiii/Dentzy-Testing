@@ -40,7 +40,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2a3d35, var(--color-charcoal, var(--dz-color-charcoal)));
+  background: linear-gradient(135deg, #1a2e24, var(--dz-color-charcoal)); /* #53 — Darker gradient for admin */
   color: #fff;
   display: flex;
   align-items: center;
@@ -48,6 +48,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--dz-color-primary-dark); /* #53 — Ring to distinguish from user avatars */
 }
 
 .ma-hello {
@@ -672,10 +673,11 @@
 }
 
 .ma-card-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-charcoal, var(--dz-color-charcoal));
+  font-size: 1rem; /* #58 — Increased for hierarchy */
+  font-weight: 800;
+  color: var(--dz-color-charcoal);
   display: block;
+  text-transform: capitalize; /* #51 — Capitalize names */
 }
 
 .ma-card-sub {
@@ -685,7 +687,8 @@
 }
 
 .ma-case-badge {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--dz-font-family); /* #46 — App font with letter-spacing */
+  letter-spacing: 0.05em;
   font-size: 0.75rem;
   font-weight: 600;
   background: #f1f5f9;
@@ -744,9 +747,10 @@
   line-height: 1.2;
 }
 
+/* #54 — Standardized payment status colors */
 .ma-pill--status-completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.ma-pill--status-in-progress { background: #dbeafe; color: #1e40af; }
-.ma-pill--status-pending { background: #fef9c3; color: #854d0e; }
+.ma-pill--status-in-progress { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); }
+.ma-pill--status-pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); }
 .ma-pill--status-cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
 
 .ma-pill--pay-paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }

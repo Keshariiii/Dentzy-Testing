@@ -8,6 +8,7 @@ import './DentistDashboard.css';
 import { formatINR, formatDate } from '../utils/format';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
+import EmptyState from './common/EmptyState';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* =============================================================================
@@ -282,6 +283,25 @@ const DentistDashboard = () => {
   const userName  = user?.name || 'Doctor';
   const initials  = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
+  /* #22 — Keyboard shortcuts for power users */
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  useEffect(() => {
+    const handleShortcut = (e) => {
+      // Don't fire when typing in inputs
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'n': setActiveTab('orders'); break;
+        case 's': setActiveTab('settings'); break;
+        case '?': setShowShortcuts(prev => !prev); break;
+        default: break;
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
   /* ============================================================
      RENDER: Dashboard Overview  (GATE 2027-inspired layout)
   ============================================================ */
@@ -349,6 +369,19 @@ const DentistDashboard = () => {
         {/* Announcement Ticker */}
         <TickerBanner />
 
+        {/* #17 — Welcome banner for first-time users */}
+        {stats && stats.orders.total === 0 && (
+          <div className="ud-welcome-banner">
+            <h3>Welcome, Dr. {userName}! <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dz-color-primary-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M15 19l3 3 4-4"/></svg></h3>
+            <p>Here's how to get started with Dentzy:</p>
+            <ol>
+              <li>Complete your <strong>profile</strong> in Settings</li>
+              <li>Submit your first <strong>lab order</strong></li>
+              <li>Track your case through the <strong>production pipeline</strong></li>
+            </ol>
+          </div>
+        )}
+
         {/* Greeting Row */}
         <div className="ud-dash-top">
           <div>
@@ -361,7 +394,7 @@ const DentistDashboard = () => {
         {/* Stat Cards */}
         {stats ? (
           <div className="ud-stats-grid">
-            <div className="ud-stat-card ud-stat-card--green">
+            <div className="ud-stat-card ud-stat-card--green" title="Total lab orders submitted — includes pending, in-progress, and completed cases">
               <div className="ud-stat-icon-wrap ud-icon-blue">{Icons.orders(22)}</div>
               <div className="ud-stat-info">
                 <span className="ud-stat-num">{stats.orders.total}</span>
@@ -373,7 +406,7 @@ const DentistDashboard = () => {
               </div>
             </div>
 
-            <div className="ud-stat-card ud-stat-card--emerald">
+            <div className="ud-stat-card ud-stat-card--emerald" title="Cases that have passed QC and been dispatched to your clinic">
               <div className="ud-stat-icon-wrap ud-icon-green">{Icons.checkCircle(22)}</div>
               <div className="ud-stat-info">
                 <span className="ud-stat-num">{stats.orders.completed}</span>
@@ -397,8 +430,8 @@ const DentistDashboard = () => {
         {/* Important Sections — Action Hub */}
         <div className="ud-actions-section">
           <div className="ud-section-header">
-            <h3 className="ud-section-heading">Important Sections</h3>
-            <p className="ud-section-sub">Explore key areas of your dental lab portal</p>
+            <h3 className="ud-section-heading">Quick Actions</h3>
+            <p className="ud-section-sub">Jump to key areas of your dental lab portal</p>
           </div>
           <div className="ud-actions-hub">
             {ACTION_ITEMS.map((a) => (
@@ -505,11 +538,11 @@ const DentistDashboard = () => {
       {loading ? (
         <div className="ud-loading"><div className="ud-spinner" /><span>Loading orders...</span></div>
       ) : orders.length === 0 ? (
-        <div className="ud-empty">
-          <div className="ud-empty-icon">{Icons.inbox(40)}</div>
-          <p>No lab orders found</p>
-          <p className="ud-empty-sub">Orders placed through your dashboard will appear here.</p>
-        </div>
+        <EmptyState
+          variant="orders"
+          message="No lab orders found"
+          subtext="Orders placed through your dashboard will appear here."
+        />
       ) : (
         <div className="ud-table-wrap">
           <table className="ud-table">
@@ -1032,11 +1065,11 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment }) => (
     {loading ? (
       <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
     ) : payments.length === 0 ? (
-      <div className="ud-empty">
-        <div className="ud-empty-icon">{Icons.inbox(40)}</div>
-        <p>No payment records found</p>
-        <p className="ud-empty-sub">Payment records will appear here once orders are created.</p>
-      </div>
+      <EmptyState
+        variant="payments"
+        message="No payment records found"
+        subtext="Payment records will appear here once orders are created."
+      />
     ) : (
       <div className="ud-table-wrap">
         <table className="ud-table">

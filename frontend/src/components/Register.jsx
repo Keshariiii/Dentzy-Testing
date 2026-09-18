@@ -38,6 +38,8 @@ const Register = () => {
   const [errorAction, setErrorAction] = useState(null);
   const [loading, setLoading]         = useState(false);
   const [pwFocused, setPwFocused]     = useState(false);
+  /* #33 — Field-level validation state */
+  const [fieldErrors, setFieldErrors] = useState({ name: '', email: '' });
 
   // CAPTCHA state
   const [captchaInput, setCaptchaInput]   = useState('');
@@ -104,6 +106,24 @@ const Register = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
     setErrorAction(null);
+    /* #33 — Clear field error on type */
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors(prev => ({ ...prev, [e.target.name]: '' }));
+    }
+  };
+
+  /* #33 — Real-time email validation on blur */
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'email' && value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value.trim())) {
+        setFieldErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+      }
+    }
+    if (name === 'name' && value.trim() && value.trim().length < 2) {
+      setFieldErrors(prev => ({ ...prev, name: 'Name must be at least 2 characters' }));
+    }
   };
 
   // ── Step 1: Submit form → Send OTP ──────────────────────────────────
@@ -112,8 +132,23 @@ const Register = () => {
     setError('');
     setErrorAction(null);
 
-    if (!form.name.trim() || !form.email.trim() || !form.password) {
-      setError('Please fill in all fields.');
+    /* #34 — Specific error messages instead of generic 'fill all fields' */
+    if (!form.name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+    if (!form.email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      setError('Please enter a valid email address (e.g. doctor@clinic.com).');
+      setFieldErrors(prev => ({ ...prev, email: 'Invalid email format' }));
+      return;
+    }
+    if (!form.password) {
+      setError('Please create a password.');
       return;
     }
 
@@ -375,6 +410,29 @@ const Register = () => {
         <div className="auth-card">
           <h2 className="auth-card-title">Sign up</h2>
 
+          {/* #32 — Registration progress indicator */}
+          <div className="auth-progress">
+            {[
+              { num: 1, label: 'Create Account' },
+              { num: 2, label: 'Verify Email' },
+              { num: 3, label: 'Approval' },
+            ].map((s, i) => (
+              <React.Fragment key={s.num}>
+                <div className={`auth-progress-step ${step >= s.num ? 'auth-progress-step--active' : ''} ${step === s.num ? 'auth-progress-step--current' : ''}`}>
+                  <div className="auth-progress-dot">
+                    {step > s.num ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : s.num}
+                  </div>
+                  <span className="auth-progress-label">{s.label}</span>
+                </div>
+                {i < 2 && <div className={`auth-progress-line ${step > s.num ? 'auth-progress-line--done' : ''}`} />}
+              </React.Fragment>
+            ))}
+          </div>
+
           <form className="auth-form" onSubmit={handleSendOtp} noValidate>
             {/* Name */}
             <div className="auth-input-group">
@@ -392,10 +450,12 @@ const Register = () => {
                 placeholder="Name"
                 value={form.name}
                 onChange={handleChange}
-                className="auth-input"
+                onBlur={handleBlur}
+                className={`auth-input${fieldErrors.name ? ' auth-input--error' : ''}`}
                 autoComplete="name"
               />
             </div>
+            {fieldErrors.name && <div className="auth-field-error">{fieldErrors.name}</div>}
 
             {/* Email */}
             <div className="auth-input-group">
@@ -413,10 +473,12 @@ const Register = () => {
                 placeholder="Email"
                 value={form.email}
                 onChange={handleChange}
-                className="auth-input"
+                onBlur={handleBlur}
+                className={`auth-input${fieldErrors.email ? ' auth-input--error' : ''}`}
                 autoComplete="email"
               />
             </div>
+            {fieldErrors.email && <div className="auth-field-error">{fieldErrors.email}</div>}
 
             {/* Password */}
             <div className="auth-input-group">

@@ -17,6 +17,7 @@ import MobileHeader from '../../components/mobile/MobileHeader';
 import MobileBottomNav from '../../components/mobile/MobileBottomNav';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
+import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 
@@ -465,8 +466,8 @@ const MobileDashboard = () => {
         {/* Action Hub */}
         <div className="m-section">
           <div className="m-section-hdr">
-            <h3 className="m-section-h">Important Sections</h3>
-            <p className="m-section-sub">Explore key areas of your dental lab portal</p>
+            <h3 className="m-section-h">Quick Actions</h3>
+            <p className="m-section-sub">Jump to key areas of your dental lab portal</p>
           </div>
           <div className="m-action-hub">
             {ACTION_ITEMS.map((a) => (
@@ -578,11 +579,11 @@ const MobileDashboard = () => {
           <OrderSkeleton count={4} />
         </SkeletonGroup>
       ) : orders.length === 0 ? (
-        <div className="m-empty">
-          {Icons.inbox(40)}
-          <p>No lab orders found</p>
-          <p className="m-empty-sub">Orders placed through your portal will appear here.</p>
-        </div>
+        <EmptyState
+          variant="orders"
+          message="No lab orders found"
+          subtext="Orders placed through your portal will appear here."
+        />
       ) : (
         <>
           <div className="m-count-label">{orders.length} order{orders.length !== 1 ? 's' : ''}</div>
@@ -646,11 +647,11 @@ const MobileDashboard = () => {
             <OrderSkeleton count={3} />
           </SkeletonGroup>
         ) : data.length === 0 ? (
-          <div className="m-empty">
-            {Icons.inbox(40)}
-            <p>No payment records found</p>
-            <p className="m-empty-sub">Payment records will appear here once orders are created.</p>
-          </div>
+          <EmptyState
+            variant="payments"
+            message="No payment records found"
+            subtext="Payment records will appear here once orders are created."
+          />
         ) : (
           <div className="m-cards-list">
             {data.map((p) => (
