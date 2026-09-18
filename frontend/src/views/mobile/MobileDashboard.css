@@ -269,19 +269,14 @@
 }
 
 .m-stat-card {
-    padding: 14px;
-    border-radius: 14px;
+    padding: 12px;
+    border-radius: 12px;
     background: #fff;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
-    min-height: 90px;
-    border-left: 3px solid var(--dz-color-border); /* #36 — Visual differentiation */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
-
-/* #36 — Colored left borders to differentiate stat cards */
-.m-stat-card:nth-child(1) { border-left-color: var(--dz-color-primary); }
-.m-stat-card:nth-child(2) { border-left-color: var(--dz-color-success); }
-
-/* Stat card left colored borders removed per strict minimalist rule */
 
 .m-stat-skeleton {
     background: linear-gradient(90deg, #f1f5f9 25%, var(--dz-color-border) 50%, #f1f5f9 75%);
@@ -540,8 +535,6 @@
 .m-action-card:active {
     transform: scale(0.96);
 }
-
-/* Action card color accents removed for minimalism */
 
 .m-action-icon {
     margin-bottom: 8px;
