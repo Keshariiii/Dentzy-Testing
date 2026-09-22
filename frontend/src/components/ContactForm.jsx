@@ -172,7 +172,7 @@ const ContactForm = () => {
                     </div>
                     <div className="info-item">
                         <h3>Working Hours:</h3>
-                        <p>Mon-Fri, 9 AM-6 PM</p>
+                        <p>Mon-Sat, 9 AM-6 PM</p>
                     </div>
                     <div className="action-item">
                         <button 

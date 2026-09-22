@@ -396,7 +396,7 @@ const Register = () => {
           <h1 className="auth-welcome">
             <span>WELCOME</span>
             <span>TO</span>
-            <span>DENT<em className="auth-accent">Z</em>Y</span>
+            <span>DEN<em className="auth-accent">T</em>ZY</span>
           </h1>
         </div>
       </div>

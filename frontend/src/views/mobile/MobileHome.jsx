@@ -162,7 +162,7 @@ const MobileHome = () => {
 
         {/* 5. Process */}
         <section className="m-process-section">
-          <h2 className="m-section-title">
+          <h2 className="m-section-title" style={{ color: 'var(--dz-color-text-primary, #333)' }}>
             The DEN<span className="m-accent">T</span>ZY Process
           </h2>
           <div className="m-process-steps">
