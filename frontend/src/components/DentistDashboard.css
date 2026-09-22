@@ -519,7 +519,7 @@
   color: var(--dz-color-primary-accent);
   padding: 2px 8px;
   border-radius: 5px;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
   font-size: 0.78rem;
   font-weight: 500;
 }

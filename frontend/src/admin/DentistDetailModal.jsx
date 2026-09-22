@@ -383,7 +383,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
         {/* Toast */}
         {toast && (
-          <div className={`ddm-toast ${toast.type === 'error' ? 'ddm-toast--error' : 'ddm-toast--success'}`}>
+          <div className={`ddm-toast ${toast.type === 'error' ? 'ddm-toast--error' : 'ddm-toast--success'}`} role="alert">
             {toast.type === 'error' ? Ico.x(13) : Ico.check(13)}
             <span>{toast.msg}</span>
           </div>

@@ -795,7 +795,7 @@
     font-size: 0.72rem;
     font-weight: 700;
     color: var(--color-primary, var(--dz-color-primary));
-    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
 }
 
 .m-order-card__body {

@@ -384,7 +384,7 @@
 }
 
 .ddm-order-caseid {
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
   font-size: 0.75rem;
   font-weight: 700;
   color: #1e5038;

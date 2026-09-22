@@ -50,6 +50,7 @@ export const ToastProvider = ({ children }) => {
               key={toast.id}
               onClick={() => removeToast(toast.id)}
               className={`dz-toast ${TOAST_TYPE_CLASS[toast.type] || TOAST_TYPE_CLASS.info}`}
+              role="alert"
             >
               {toast.message}
             </div>

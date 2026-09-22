@@ -1347,7 +1347,7 @@ const MobileAdminDashboard = () => {
 
       {/* Toast */}
       {toast && (
-        <div className={`ma-toast ${toast.type === 'error' ? 'ma-toast--error' : 'ma-toast--success'}`}>
+        <div className={`ma-toast ${toast.type === 'error' ? 'ma-toast--error' : 'ma-toast--success'}`} role="alert">
           {toast.type === 'error' ? Ico.x(14) : Ico.check(14)}
           <span>{toast.msg}</span>
         </div>

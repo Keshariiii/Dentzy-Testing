@@ -1097,7 +1097,7 @@ const AdminDashboard = () => {
 
       {/* Toast */}
       {toast && (
-        <div className={`ad-toast ${toast.type === 'error' ? 'ad-toast-error' : 'ad-toast-success'}`}>
+        <div className={`ad-toast ${toast.type === 'error' ? 'ad-toast-error' : 'ad-toast-success'}`} role="alert">
           {toast.type === 'error' ? Ico.x(14) : Ico.check(14)}
           <span>{toast.msg}</span>
         </div>

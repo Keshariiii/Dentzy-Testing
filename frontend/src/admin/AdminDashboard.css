@@ -752,7 +752,7 @@
 }
 
 .ad-pw-value {
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
   font-size: 0.76rem;
   color: #5a4020;
   background: #fef9c3;

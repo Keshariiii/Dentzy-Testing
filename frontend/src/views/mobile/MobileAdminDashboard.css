@@ -387,7 +387,7 @@
 
 .ma-pw-value {
   flex: 1;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
   font-size: 0.72rem;
   color: var(--color-charcoal, var(--dz-color-charcoal));
   letter-spacing: 0.05em;

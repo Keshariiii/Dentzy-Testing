@@ -668,7 +668,7 @@
   word-break: break-all;
   text-decoration: underline;
   cursor: pointer;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
 }
 
 .fp-dev-link:hover { color: #14532d; }
@@ -780,7 +780,7 @@
   font-weight: 700;
   font-size: 0.95rem !important;
   text-transform: uppercase;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
 }
 
 /* =====================================================
