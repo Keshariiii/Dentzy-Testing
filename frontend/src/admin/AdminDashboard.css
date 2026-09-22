@@ -627,12 +627,10 @@
   font-family: inherit;
   color: #333;
   padding: 8px 0;
-  width: 100%;
-  max-width: 180px;
-  transition: max-width 0.25s ease;
+  width: 180px;
 }
 
-.ad-search-input:focus { max-width: 220px; }
+.ad-search-input:focus { width: 220px; }
 .ad-search-input::placeholder { color: #bcc8c2; }
 
 /* Sort */

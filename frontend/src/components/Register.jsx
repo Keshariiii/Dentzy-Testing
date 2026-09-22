@@ -95,11 +95,11 @@ const Register = () => {
 
   // Strength label & colour
   const strength = useMemo(() => {
-    if (passedCount === 0) return { label: '', color: '#e0e0e0', width: '0%' };
-    if (passedCount <= 2)  return { label: 'Weak',   color: '#e74c3c', width: '33%' };
-    if (passedCount <= 3)  return { label: 'Fair',   color: '#f39c12', width: '55%' };
-    if (passedCount === 4) return { label: 'Good',   color: '#708c80', width: '78%' };
-    return                        { label: 'Strong', color: '#27ae60', width: '100%' };
+    if (passedCount === 0) return { label: '', color: '#e0e0e0', fill: 0 };
+    if (passedCount <= 2)  return { label: 'Weak',   color: '#e74c3c', fill: 0.33 };
+    if (passedCount <= 3)  return { label: 'Fair',   color: '#f39c12', fill: 0.55 };
+    if (passedCount === 4) return { label: 'Good',   color: '#708c80', fill: 0.78 };
+    return                        { label: 'Strong', color: '#27ae60', fill: 1 };
   }, [passedCount]);
 
   const handleChange = (e) => {
@@ -529,7 +529,7 @@ const Register = () => {
                 <div className="pw-strength-bar-track">
                   <div
                     className="pw-strength-bar-fill"
-                    style={{ width: strength.width, backgroundColor: strength.color }}
+                    style={{ '--pw-fill': strength.fill, backgroundColor: strength.color }}
                   />
                 </div>
                 {strength.label && (

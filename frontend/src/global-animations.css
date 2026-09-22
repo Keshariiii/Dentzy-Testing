@@ -8,7 +8,7 @@
    1. EASING CUSTOM PROPERTIES
 --------------------------------------------------------------------------- */
 :root {
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo */
   --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-out:    cubic-bezier(0.0,  0.0,  0.2,  1.0);
   --ease-inout:  cubic-bezier(0.4,  0.0,  0.2,  1.0);
@@ -180,7 +180,7 @@ html {
 .anim-fade-in    { animation: fadeIn    0.5s var(--ease-smooth) both; }
 .anim-slide-left { animation: slideLeft 0.6s var(--ease-smooth) both; }
 .anim-scale-in   { animation: scaleIn   0.5s var(--ease-smooth) both; }
-.anim-pop-in     { animation: popIn     0.45s var(--ease-spring) both; }
+.anim-pop-in     { animation: popIn     0.45s var(--ease-expo) both; }
 .anim-float      { animation: float     6s ease-in-out infinite; }
 
 .delay-0   { animation-delay: 0s; }
@@ -301,7 +301,7 @@ html {
 }
 
 .process-step {
-  transition: transform 0.38s var(--ease-spring);
+  transition: transform 0.38s var(--ease-expo);
   will-change: transform;
 }
 
@@ -360,7 +360,7 @@ html {
 /* Social icons */
 .social-icon {
   transition:
-    transform   var(--trans-base) var(--ease-spring),
+    transform   var(--trans-base) var(--ease-expo),
     color       var(--trans-base);
 }
 
@@ -447,7 +447,7 @@ html {
 .scroll-to-top {
   transition:
     opacity    var(--trans-base),
-    transform  var(--trans-base) var(--ease-spring),
+    transform  var(--trans-base) var(--ease-expo),
     box-shadow var(--trans-base);
   will-change: transform, opacity;
 }
@@ -535,7 +535,7 @@ img {
 .partner-logo,
 .logo-item {
   transition:
-    transform   var(--trans-base) var(--ease-spring),
+    transform   var(--trans-base) var(--ease-expo),
     filter      var(--trans-base),
     opacity     var(--trans-base);
   filter: grayscale(30%);

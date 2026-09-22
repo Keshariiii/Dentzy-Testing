@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import { ReticleDev } from './reticle-dev';
 import '../styles/tokens.css';
 import '../styles/reset.css';
@@ -9,11 +9,11 @@ import '../global-animations.css';
 import '../responsive.css';
 import Providers from './Providers';
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-dm-sans',
 });
 
 export const metadata = {
@@ -67,7 +67,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={dmSans.variable}>
       <head>
         <script
           type="application/ld+json"
