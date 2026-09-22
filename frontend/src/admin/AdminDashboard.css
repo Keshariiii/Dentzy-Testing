@@ -1,6 +1,6 @@
 /* Inter is self-hosted via next/font/google — no @import needed */
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 
 /* =============================================================================
    DENTZY ADMIN DASHBOARD
@@ -17,9 +17,9 @@
   height: 100vh;
   min-height: 100vh;
   overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #f4f6f5;
-  color: #2d3a34;
+  font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
+  background: var(--dz-color-bg-page, #f4f7f5);
+  color: var(--dz-color-text-primary, #1e2824);
 }
 
 .ad-body {

@@ -1,6 +1,6 @@
 /* Inter is self-hosted via next/font/google — no @import needed */
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ROOT LAYOUT
@@ -10,9 +10,9 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #f4f6f5;
-  color: #2d3a34;
+  font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
+  background: var(--dz-color-bg-page, #f4f7f5);
+  color: var(--dz-color-text-primary, #1e2824);
 }
 
 .ud-body {
@@ -30,8 +30,8 @@
   gap: 20px;
   padding: 0 28px;
   height: 60px;
-  background: #ffffff;
-  border-bottom: 1px solid #e4ebe7;
+  background: var(--dz-color-bg-surface, #ffffff);
+  border-bottom: 1px solid var(--dz-color-border-light, #e4ebe7);
   flex-shrink: 0;
   z-index: 100;
 }

@@ -6,7 +6,7 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
 }
 
 /* ---- Left Panel ---- */
