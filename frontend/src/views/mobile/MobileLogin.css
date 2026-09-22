@@ -303,6 +303,7 @@
   height: 100%;
   border-radius: 2px;
   transition: width 0.3s, background 0.3s;
+  will-change: width;
 }
 
 .m-pw-strength-label {

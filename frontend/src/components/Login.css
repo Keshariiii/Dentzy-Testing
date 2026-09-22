@@ -134,7 +134,7 @@
   height: 5px;
   border-radius: 50%;
   background: var(--dz-color-primary);
-  animation: pip-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: pip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 #role-admin-btn .role-active-pip {

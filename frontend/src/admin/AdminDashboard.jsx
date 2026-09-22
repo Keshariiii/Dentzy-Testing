@@ -557,7 +557,7 @@ const AdminDashboard = () => {
                 Payments
               </button>
               <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
-                <span className="ad-nav-icon">{Ico.settings ? Ico.settings(16) : '⚙️'}</span>
+                <span className="ad-nav-icon">{Ico.settings(16)}</span>
                 Settings
               </button>
             </nav>
@@ -984,7 +984,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                       <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
-                        {expandedSetting === 'payments' ? (Ico.chevronUp ? Ico.chevronUp(20) : '▲') : (Ico.chevronDown ? Ico.chevronDown(20) : '▼')}
+                        {expandedSetting === 'payments' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
                       </div>
                     </div>
 
@@ -1036,7 +1036,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                       <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
-                        {expandedSetting === 'users' ? (Ico.chevronUp ? Ico.chevronUp(20) : '▲') : (Ico.chevronDown ? Ico.chevronDown(20) : '▼')}
+                        {expandedSetting === 'users' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
                       </div>
                     </div>
 

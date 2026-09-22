@@ -35,7 +35,7 @@ const ADMIN_NAV = [
   { key: 'dentists', label: 'Dentists',   icon: (s) => Ico.usersS(s) },
   { key: 'orders',   label: 'Lab Orders', icon: (s) => Ico.labOrder(s) },
   { key: 'payments', label: 'Payments',   icon: (s) => Ico.payments(s) },
-  { key: 'settings', label: 'Settings',   icon: (s) => Ico.settings ? Ico.settings(s) : <span style={{fontSize:s}}>⚙️</span> },
+  { key: 'settings', label: 'Settings',   icon: (s) => Ico.settings(s) },
 ];
 
 /* ============================================================
@@ -1103,7 +1103,7 @@ const MobileAdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ color: '#6b8a7a' }}>
-                  {expandedMobileSetting === 'payments' ? (Ico.chevronUp ? Ico.chevronUp(18) : '▲') : (Ico.chevronDown ? Ico.chevronDown(18) : '▼')}
+                  {expandedMobileSetting === 'payments' ? Ico.chevronUp(18) : Ico.chevronDown(18)}
                 </div>
               </div>
 
@@ -1155,7 +1155,7 @@ const MobileAdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ color: '#6b8a7a' }}>
-                  {expandedMobileSetting === 'users' ? (Ico.chevronUp ? Ico.chevronUp(18) : '▲') : (Ico.chevronDown ? Ico.chevronDown(18) : '▼')}
+                  {expandedMobileSetting === 'users' ? Ico.chevronUp(18) : Ico.chevronDown(18)}
                 </div>
               </div>
 

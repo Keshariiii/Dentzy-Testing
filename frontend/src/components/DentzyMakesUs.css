@@ -56,17 +56,18 @@
 .makes-us-text h3::after {
     content: '';
     position: absolute;
-    width: 0;
+    width: 100%;
     height: 2px;
     bottom: -5px;
     left: 0;
     background-color: var(--dz-color-primary);
-    transition: width 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
 }
 
 .makes-us-item:hover .makes-us-text h3::after {
-    width: 100%;
-    /* Underline animation on hover */
+    transform: scaleX(1);
 }
 
 .makes-us-text p {

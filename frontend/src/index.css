@@ -178,16 +178,16 @@ img {
   position: absolute;
   bottom: -6px;
   left: 50%;
-  transform: translateX(-50%);
-  width: 0;
+  transform: translateX(-50%) scaleX(0);
+  width: 60px;
   height: 3px;
   background: linear-gradient(90deg, var(--dz-color-primary-accent, #1e5038), var(--dz-color-primary, #708c80));
   border-radius: 2px;
-  transition: width 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .section-title:hover::after {
-  width: 60px;
+  transform: translateX(-50%) scaleX(1);
 }
 
 /* Text center sections — full-width title treatment */
