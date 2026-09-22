@@ -79,7 +79,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     }
 
     // 2. EHLO with valid host
-    await sendCommand('EHLO smtp.gmail.com');
+    await sendCommand('EHLO dentzy-testing.pages.dev');
     while (true) {
       const line = await readLine();
       if (line.startsWith('250 ') || !line.startsWith('250-')) break;
@@ -141,6 +141,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
       `Date: ${new Date().toUTCString()}`,
       `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
+      `List-Unsubscribe: <mailto:${cleanUser}?subject=unsubscribe>`,
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       ``,
       `--${boundary}`,
@@ -184,68 +185,24 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
 }
 
 /**
- * Brevo (Sendinblue) REST API fallback — used when Gmail SMTP fails.
- */
-async function sendBrevoEmail({ apiKey, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', senderEmail = 'dentzyemail@gmail.com' }) {
-  const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
-  const toName = (typeof to === 'object' && to?.name) ? to.name : '';
-  const plain = textContent || htmlToPlainText(htmlContent);
-
-  try {
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sender: { name: senderName, email: senderEmail },
-        to: [{ email: toAddress, ...(toName ? { name: toName } : {}) }],
-        replyTo: { name: senderName, email: senderEmail },
-        subject,
-        htmlContent,
-        textContent: plain,
-      }),
-    });
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`Brevo ${res.status}: ${errBody}`);
-    }
-    logger.info('Brevo email delivered successfully', { to: toAddress });
-    return { success: true };
-  } catch (err) {
-    logger.error('Brevo email error', { error: err.message });
-    return { success: false, error: err.message };
-  }
-}
-
-/**
- * Send an email via Gmail SMTP, falling back to Brevo REST API on failure.
+ * Send an email via Gmail SMTP (App Password authentication).
  */
 export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions' }) {
-  // Try Gmail SMTP first
-  if (env.GMAIL_APP_PASSWORD) {
-    const result = await sendGmailSMTP({
-      user: env.GMAIL_USER || 'dentzyemail@gmail.com',
-      pass: env.GMAIL_APP_PASSWORD,
-      to, subject, htmlContent, textContent, senderName,
-    });
-    if (result.success) return result;
-    logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: result.error });
+  if (!env.GMAIL_APP_PASSWORD) {
+    return { success: false, error: 'No email provider configured (GMAIL_APP_PASSWORD missing)' };
   }
-  // Brevo fallback
-  if (env.BREVO_API_KEY) {
-    return sendBrevoEmail({
-      apiKey: env.BREVO_API_KEY,
-      to, subject, htmlContent, textContent, senderName,
-      senderEmail: env.BREVO_SENDER_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com',
-    });
-  }
-  return { success: false, error: 'No email provider configured' };
+  return sendGmailSMTP({
+    user: env.GMAIL_USER || 'dentzyemail@gmail.com',
+    pass: env.GMAIL_APP_PASSWORD,
+    to, subject, htmlContent, textContent, senderName,
+  });
 }
 
 /**
  * Sends Registration Email Verification 6-Digit OTP.
  */
 export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy: ${otp} is your verification code`;
+  const subject = `Dentzy — Verify your email address`;
   const textContent = `DENTZY - Email Verification
 
 Hello ${name},
@@ -294,7 +251,7 @@ https://dentzy-testing.pages.dev`;
                   ${otp}
                 </div>
                 <div style="margin-top: 8px; font-size: 12px; color: #6b8a7a; font-weight: 600;">
-                  ⏱ Valid for 5 minutes
+                  Valid for 5 minutes
                 </div>
               </div>
 
@@ -330,7 +287,7 @@ https://dentzy-testing.pages.dev`;
  * Sends Password Reset 6-Digit OTP Email.
  */
 export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy: ${otp} is your password reset code`;
+  const subject = `Dentzy — Reset your password`;
   const textContent = `DENTZY - Password Reset
 
 Hello ${name},
@@ -379,7 +336,7 @@ https://dentzy-testing.pages.dev`;
                   ${otp}
                 </div>
                 <div style="margin-top: 8px; font-size: 12px; color: #6b8a7a; font-weight: 600;">
-                  ⏱ Valid for 5 minutes
+                  Valid for 5 minutes
                 </div>
               </div>
 
@@ -561,7 +518,7 @@ export async function sendRegistrationPendingEmail({ env, user }) {
     </p>
 
     <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #92400e;">
-      <strong>⏳ What happens next?</strong><br>
+      <strong>What happens next?</strong><br>
       Our team will review your registration and approve your account. You will receive an email notification once your account is activated.
     </div>
 
@@ -581,7 +538,7 @@ export async function sendRegistrationPendingEmail({ env, user }) {
  * User Notification — Account Approved.
  */
 export async function sendUserApprovedEmail({ env, user }) {
-  const subject = `Your Dentzy Account Has Been Approved!`;
+  const subject = `Your Dentzy Account Has Been Approved`;
   const htmlContent = `
 <!DOCTYPE html>
 <html>
