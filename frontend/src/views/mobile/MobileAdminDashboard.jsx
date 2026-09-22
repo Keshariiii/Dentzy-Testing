@@ -593,7 +593,7 @@ const MobileAdminDashboard = () => {
         <>
 
           {/* #50 — Section heading with count badge */}
-          <div style={{ padding: '0 16px', marginBottom: '8px' }}>
+          <div style={{ padding: '0 16px', marginBottom: '8px', marginTop: '16px' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               Registered Dentists
               <span style={{ fontSize: '0.72rem', fontWeight: 700, background: 'var(--dz-color-primary-muted)', color: 'var(--dz-color-primary-dark)', padding: '2px 8px', borderRadius: '12px' }}>
@@ -891,7 +891,7 @@ const MobileAdminDashboard = () => {
             /* ── Drill-down: single dentist's payments ── */
             <>
               {/* Back Arrow Bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', paddingTop: '16px', background: 'transparent' }}>
                 <button
                   onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }}
                   aria-label="Back"
@@ -1005,7 +1005,7 @@ const MobileAdminDashboard = () => {
               {paymentData.summary && (
                 <div style={{
                   display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px',
-                  padding: '12px 16px', marginBottom: '4px'
+                  padding: '12px 16px', paddingTop: '16px', marginBottom: '4px'
                 }}>
                   <div style={{ background: 'var(--dz-color-bg-surface)', borderRadius: '12px', padding: '10px', textAlign: 'center', border: '1px solid var(--dz-color-border-light)' }}>
                     <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--dz-color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Billed</div>
@@ -1022,7 +1022,7 @@ const MobileAdminDashboard = () => {
                 </div>
               )}
 
-              <main className="ma-main">
+              <main className="ma-main" style={!paymentData.summary ? { paddingTop: '16px' } : undefined}>
                 {loadingPayments ? (
                   <div className="ma-loading">
                     {[1, 2, 3].map(i => <div key={i} className="ma-skeleton-card" />)}
