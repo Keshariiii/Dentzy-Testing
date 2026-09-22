@@ -11,6 +11,11 @@
   background: #f4f7f5;
 }
 
+/* Consistent gap between the sticky header and all view content */
+.ma-shell > .m-header {
+  margin-bottom: 16px;
+}
+
 .ma-main {
   flex: 1;
   overflow-y: auto;
