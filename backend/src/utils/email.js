@@ -131,17 +131,16 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     const rawHtmlB64 = btoa(unescape(encodeURIComponent(htmlContent)));
     const wrappedHtmlB64 = rawHtmlB64.match(/.{1,76}/g)?.join('\r\n') || rawHtmlB64;
 
+    const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@gmail.com>`;
+
     const msg = [
       `From: "${senderName}" <${cleanUser}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
       `Reply-To: "${senderName}" <${cleanUser}>`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       `Date: ${new Date().toUTCString()}`,
+      `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
-      `Auto-Submitted: auto-generated`,
-      `X-Auto-Response-Suppress: All`,
-      `X-Priority: 1 (Highest)`,
-      `Importance: High`,
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       ``,
       `--${boundary}`,
