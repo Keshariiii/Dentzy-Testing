@@ -86,6 +86,9 @@ CREATE TABLE IF NOT EXISTS staff (
     username TEXT NOT NULL UNIQUE COLLATE NOCASE,
     password TEXT NOT NULL,
     displayName TEXT NOT NULL DEFAULT '',
+    email TEXT DEFAULT '',
+    designation TEXT DEFAULT '',
+    employeeId TEXT DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL

@@ -43,8 +43,18 @@ export const updatePaymentStatusSchema = z.object({
   }
 });
 
+const DESIGNATIONS = [
+  'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
+  'Ceramist', 'Quality Control', 'Intern', 'IT Department', 'Receptionist',
+  'Accountant', 'Manager', 'Operations Head', 'Director', 'CTO', 'CEO',
+];
+
 export const createStaffSchema = z.object({
   username: z.string().trim().min(3, 'Username must be at least 3 characters.').max(50),
   password: z.string().min(6, 'Password must be at least 6 characters.').max(100),
   displayName: z.string().trim().min(1, 'Display name is required.').max(100),
+  email: z.string().email('Invalid email.').optional().or(z.literal('')).default(''),
+  designation: z.string().min(1, 'Designation is required.').max(50).default('Lab Assistant'),
 });
+
+export { DESIGNATIONS };

@@ -5,7 +5,13 @@
  * Ponytail: one component, shared by desktop + mobile.
  * Impeccable: no emojis, no card borders (shadows only), premium micro-animations.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+
+const DESIGNATIONS = [
+  'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
+  'Ceramist', 'Quality Control', 'Intern', 'IT Department', 'Receptionist',
+  'Accountant', 'Manager', 'Operations Head', 'Director', 'CTO', 'CEO',
+];
 
 const SUB_VIEWS = [
   { key: 'members', label: 'Members' },
@@ -20,10 +26,11 @@ const StaffManagementView = ({
   fetchStaff, setStaffList, Ico, setConfirmConfig,
 }) => {
   const [subView, setSubView] = useState('members');
+  const [activeDesignation, setActiveDesignation] = useState(null);
 
   // ── Create Staff Modal ──────────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ displayName: '', username: '', password: '' });
+  const [createForm, setCreateForm] = useState({ displayName: '', username: '', password: '', email: '', designation: 'Lab Assistant' });
   const [createError, setCreateError] = useState('');
   const [createSaving, setCreateSaving] = useState(false);
 
@@ -45,13 +52,15 @@ const StaffManagementView = ({
           displayName: createForm.displayName.trim(),
           username: createForm.username.trim(),
           password: createForm.password,
+          email: createForm.email.trim(),
+          designation: createForm.designation,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         showToast(data.message || 'Staff account created.');
         setShowCreateModal(false);
-        setCreateForm({ displayName: '', username: '', password: '' });
+        setCreateForm({ displayName: '', username: '', password: '', email: '', designation: 'Lab Assistant' });
         fetchStaff();
       } else {
         setCreateError(data.message || 'Failed to create staff.');
@@ -237,11 +246,53 @@ const StaffManagementView = ({
 
   useEffect(() => { if (subView === 'metrics') fetchMetrics(); }, [subView, metricsMonth, fetchMetrics]);
 
+  // ── Edit Staff Modal ────────────────────────────────────────────────────
+  const [editStaff, setEditStaff] = useState(null);
+  const [editForm, setEditForm] = useState({ displayName: '', email: '', designation: '' });
+  const [editError, setEditError] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
+  const openEditModal = (s) => {
+    setEditStaff(s);
+    setEditForm({ displayName: s.displayName || '', email: s.email || '', designation: s.designation || 'Lab Assistant' });
+    setEditError('');
+  };
+
+  const handleEditStaff = async () => {
+    setEditError('');
+    if (!editForm.displayName.trim()) { setEditError('Display name is required.'); return; }
+    setEditSaving(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/staff/${editStaff.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Staff updated.');
+        setEditStaff(null);
+        fetchStaff();
+      } else setEditError(data.message || 'Failed');
+    } catch { setEditError('Network error.'); }
+    setEditSaving(false);
+  };
+
   // ── Filtered staff list ─────────────────────────────────────────────────
   const filtered = (staffList || []).filter(s =>
     (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
     (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase())
   );
+
+  // ── Designation Groups ──────────────────────────────────────────────────
+  const designationGroups = useMemo(() => {
+    const groups = {};
+    (staffList || []).forEach(s => {
+      const d = s.designation || 'Unassigned';
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(s);
+    });
+    return groups;
+  }, [staffList]);
 
   /* ── Shared Styles ─────────────────────────────────────────────────────── */
   const cardStyle = {
@@ -291,6 +342,11 @@ const StaffManagementView = ({
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
+              {activeDesignation && (
+                <button onClick={() => setActiveDesignation(null)} style={{ ...btnSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {Ico.arrowLeft ? Ico.arrowLeft(14) : '<'} All Designations
+                </button>
+              )}
               <button onClick={fetchStaff} style={btnSecondary}>Refresh</button>
               <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>+ Add Staff</button>
             </div>
@@ -298,43 +354,101 @@ const StaffManagementView = ({
 
           {loadingStaff ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
-          ) : filtered.length === 0 ? (
-            <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
-              {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
-              <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Click "+ Add Staff" to create accounts.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gap: '12px' }}>
-              {filtered.map(s => (
-                <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          ) : !activeDesignation ? (
+            /* ── Designation Cards Grid ── */
+            Object.keys(designationGroups).length === 0 ? (
+              <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
+                <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Click "+ Add Staff" to create accounts.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
+                {Object.entries(designationGroups).map(([designation, members]) => (
+                  <div key={designation}
+                    onClick={() => setActiveDesignation(designation)}
+                    style={{
+                      ...cardStyle, cursor: 'pointer', textAlign: 'center', padding: '24px 16px',
+                      transition: 'box-shadow 0.25s, transform 0.25s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
                     <div style={{
-                      width: '42px', height: '42px', borderRadius: '50%', background: '#e8f5ee',
+                      width: '52px', height: '52px', borderRadius: '50%', background: '#e8f5ee',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, color: '#1e5038', fontSize: '0.92rem',
-                    }}>
-                      {(s.displayName || 'S').charAt(0).toUpperCase()}
+                      fontWeight: 800, color: '#1e5038', fontSize: '1.1rem', margin: '0 auto 12px',
+                    }}>{members.length}</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>{designation}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '4px' }}>
+                      {members.length} member{members.length !== 1 ? 's' : ''}
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>{s.displayName}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#708c80' }}>@{s.username}</div>
+                    <div style={{ marginTop: '8px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {members.filter(m => m.status === 'active').length > 0 && (
+                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
+                          {members.filter(m => m.status === 'active').length} active
+                        </span>
+                      )}
+                      {members.filter(m => m.status !== 'active').length > 0 && (
+                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>
+                          {members.filter(m => m.status !== 'active').length} inactive
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                      background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
-                      color: s.status === 'active' ? '#16a34a' : '#dc2626',
-                    }}>{s.status}</span>
-                    <button onClick={() => handleToggleStatus(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
-                      {s.status === 'active' ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button onClick={() => handleDeleteStaff(s)} style={{ ...btnSecondary, background: '#fef2f2', color: '#dc2626', fontSize: '0.72rem', padding: '4px 10px' }}>
-                      {Ico.trash(13)}
-                    </button>
+                ))}
+              </div>
+            )
+          ) : (
+            /* ── Staff List Within Designation ── */
+            <div>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>
+                {activeDesignation} ({(designationGroups[activeDesignation] || []).length})
+              </h3>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {(designationGroups[activeDesignation] || []).filter(s =>
+                  (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
+                  (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase())
+                ).map(s => (
+                  <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{
+                        width: '42px', height: '42px', borderRadius: '50%', background: '#e8f5ee',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 700, color: '#1e5038', fontSize: '0.92rem',
+                      }}>
+                        {(s.displayName || 'S').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>
+                          {s.displayName}
+                          {s.employeeId && (
+                            <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
+                              #{s.employeeId}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#708c80' }}>@{s.username}{s.email ? ` | ${s.email}` : ''}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
+                        background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
+                        color: s.status === 'active' ? '#16a34a' : '#dc2626',
+                      }}>{s.status}</span>
+                      <button onClick={() => openEditModal(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
+                        Edit
+                      </button>
+                      <button onClick={() => handleToggleStatus(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
+                        {s.status === 'active' ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button onClick={() => handleDeleteStaff(s)} style={{ ...btnSecondary, background: '#fef2f2', color: '#dc2626', fontSize: '0.72rem', padding: '4px 10px' }}>
+                        {Ico.trash(13)}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -517,7 +631,7 @@ const StaffManagementView = ({
       {/* ── CREATE STAFF MODAL ────────────────────────── */}
       {showCreateModal && (
         <div className="ad-modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
             <div className="ad-pay-modal-header">
               <h3>Create Staff Account</h3>
               <button className="ad-pay-modal-close" onClick={() => setShowCreateModal(false)}>{Ico.x(16)}</button>
@@ -525,8 +639,21 @@ const StaffManagementView = ({
             <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={labelStyle}>Display Name</label>
-                <input type="text" placeholder="e.g. Rahul - Lab Tech" value={createForm.displayName}
+                <input type="text" placeholder="e.g. Rahul Sharma" value={createForm.displayName}
                   onChange={e => setCreateForm(f => ({ ...f, displayName: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input type="email" placeholder="e.g. rahul@example.com" value={createForm.email}
+                  onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Designation</label>
+                <select value={createForm.designation}
+                  onChange={e => setCreateForm(f => ({ ...f, designation: e.target.value }))}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
               </div>
               <div>
                 <label style={labelStyle}>Username</label>
@@ -630,6 +757,49 @@ const StaffManagementView = ({
               <button className="ad-pay-btn-cancel" onClick={() => setShowAddItem(false)}>Cancel</button>
               <button className="ad-pay-btn-confirm" onClick={handleAddItem} disabled={itemFormSaving}>
                 {itemFormSaving ? 'Saving...' : 'Add Item'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT STAFF MODAL ────────────────────────────── */}
+      {editStaff && (
+        <div className="ad-modal-overlay" onClick={() => setEditStaff(null)}>
+          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '460px' }}>
+            <div className="ad-pay-modal-header">
+              <h3>Edit Staff — {editStaff.displayName}</h3>
+              <button className="ad-pay-modal-close" onClick={() => setEditStaff(null)}>{Ico.x(16)}</button>
+            </div>
+            <div style={{ padding: '8px 0', fontSize: '0.82rem', color: '#708c80' }}>
+              Employee ID: <strong style={{ color: '#1a3028' }}>#{editStaff.employeeId || 'N/A'}</strong>
+              {' | '} Username: <strong style={{ color: '#1a3028' }}>@{editStaff.username}</strong>
+            </div>
+            <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={labelStyle}>Display Name</label>
+                <input type="text" value={editForm.displayName}
+                  onChange={e => setEditForm(f => ({ ...f, displayName: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input type="email" value={editForm.email}
+                  onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Designation</label>
+                <select value={editForm.designation}
+                  onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
+            {editError && <div className="ad-pay-form-error">{editError}</div>}
+            <div className="ad-pay-modal-actions">
+              <button className="ad-pay-btn-cancel" onClick={() => setEditStaff(null)}>Cancel</button>
+              <button className="ad-pay-btn-confirm" onClick={handleEditStaff} disabled={editSaving}>
+                {editSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>

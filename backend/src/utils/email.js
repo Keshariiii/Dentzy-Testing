@@ -677,3 +677,55 @@ export async function sendPaymentReminderEmail({ env, dentist, order, payment })
   return sendEmail({ env, to: dentist.email, subject, htmlContent });
 }
 
+/**
+ * Staff Welcome — Registration Confirmation Email.
+ */
+export async function sendStaffWelcomeEmail({ env, staffMember }) {
+  const subject = `Welcome to Dentzy Staff Portal — You have been registered`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="margin: 0; color: #1e5038; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">DENTZY</h2>
+      <p style="margin: 4px 0 0 0; color: #6b8a7a; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">by Namrata Dental Solutions</p>
+    </div>
+    <h3 style="color: #1e5038; margin-top: 0; text-align: center;">Welcome to the Team!</h3>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      Hello <strong>${escapeHtml(staffMember.displayName)}</strong>,<br><br>
+      You have been registered as a staff member on the Dentzy Clinical Lab Portal. Here are your details:
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Employee ID:</td>
+        <td style="padding: 8px 0;"><code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${escapeHtml(staffMember.employeeId)}</code></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Designation:</td>
+        <td style="padding: 8px 0;"><strong>${escapeHtml(staffMember.designation)}</strong></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Username:</td>
+        <td style="padding: 8px 0;">${escapeHtml(staffMember.username)}</td>
+      </tr>
+    </table>
+
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>Getting Started:</strong><br>
+      Log in to the Staff Portal using your username and the password provided by your administrator.
+    </div>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/login" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 15px;">Log In to Portal</a>
+    </div>
+
+    <p style="color: #64748b; font-size: 13px;">Best regards,<br><strong>Dentzy Dental Solutions Team</strong></p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: staffMember.email, subject, htmlContent });
+}

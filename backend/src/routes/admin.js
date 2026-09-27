@@ -5,7 +5,7 @@ import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStage
 import { signJWT, hashPassword } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
-import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail } from '../utils/email.js';
+import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail, sendStaffWelcomeEmail } from '../utils/email.js';
 import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 const admin = new Hono();
@@ -561,7 +561,7 @@ admin.post('/orders/:id/remind-payment', verifyAdmin(), async (c) => {
 admin.get('/staff', verifyAdmin(), async (c) => {
   try {
     const rows = await c.env.DB.prepare(
-      'SELECT id, username, displayName, status, createdAt, updatedAt FROM staff ORDER BY createdAt DESC'
+      'SELECT id, username, displayName, email, designation, employeeId, status, createdAt, updatedAt FROM staff ORDER BY createdAt DESC'
     ).all();
     return c.json({ staff: rows.results || [] });
   } catch (err) {
@@ -572,20 +572,34 @@ admin.get('/staff', verifyAdmin(), async (c) => {
 
 // POST /api/admin/staff -- create new staff account
 admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
-  const { username, password, displayName } = c.get('body');
+  const { username, password, displayName, email, designation } = c.get('body');
   const id = newId();
   const ts = now();
   const hashed = await hashPassword(password);
 
+  // ponytail: auto-generate employeeId from max existing
+  const maxRow = await c.env.DB.prepare(
+    "SELECT MAX(CAST(employeeId AS INTEGER)) as maxId FROM staff WHERE employeeId != ''"
+  ).first();
+  const employeeId = String(((maxRow?.maxId) || 0) + 1).padStart(4, '0');
+
   try {
     await c.env.DB.prepare(
-      'INSERT INTO staff (id, username, password, displayName, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, username, hashed, displayName, 'active', ts, ts).run();
+      'INSERT INTO staff (id, username, password, displayName, email, designation, employeeId, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, username, hashed, displayName, email || '', designation || 'Lab Assistant', employeeId, 'active', ts, ts).run();
 
-    auditLog('STAFF_CREATED', { username, displayName });
+    auditLog('STAFF_CREATED', { username, displayName, employeeId, designation });
+
+    // ponytail: fire-and-forget welcome email if email is provided
+    if (email && c.env.GMAIL_APP_PASSWORD) {
+      const work = sendStaffWelcomeEmail({ env: c.env, staffMember: { displayName, username, email, designation, employeeId } });
+      if (c.executionCtx?.waitUntil) c.executionCtx.waitUntil(work);
+      else await work;
+    }
+
     return c.json({
       message: 'Staff account created.',
-      staff: { id, username, displayName, status: 'active', createdAt: ts },
+      staff: { id, username, displayName, email: email || '', designation: designation || 'Lab Assistant', employeeId, status: 'active', createdAt: ts },
     }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
@@ -593,6 +607,35 @@ admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
     }
     logger.error('Failed to create staff', { error: err.message });
     return c.json({ message: 'Failed to create staff account.' }, 500);
+  }
+});
+
+// PATCH /api/admin/staff/:id -- edit staff details (displayName, email, designation)
+admin.patch('/staff/:id', verifyAdmin(), async (c) => {
+  const { id } = c.req.param();
+  const body = await c.req.json();
+  const { displayName, email, designation } = body;
+  const ts = now();
+
+  const updates = ['updatedAt = ?'];
+  const binds = [ts];
+
+  if (displayName !== undefined) { updates.push('displayName = ?'); binds.push(displayName.trim()); }
+  if (email !== undefined) { updates.push('email = ?'); binds.push(email.trim()); }
+  if (designation !== undefined) { updates.push('designation = ?'); binds.push(designation); }
+
+  binds.push(id);
+  try {
+    const { meta } = await c.env.DB.prepare(
+      `UPDATE staff SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...binds).run();
+    if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
+
+    auditLog('STAFF_EDITED', { staffId: id, displayName, email, designation });
+    return c.json({ message: 'Staff details updated.' });
+  } catch (err) {
+    logger.error('Staff edit error', { error: err.message });
+    return c.json({ message: 'Failed to update staff.' }, 500);
   }
 });
 

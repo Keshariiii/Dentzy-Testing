@@ -250,4 +250,132 @@ staff.get('/metrics', verifyStaff(), async (c) => {
   }
 });
 
+// ── Staff Dentist Management ─────────────────────────────────────────────────
+
+// GET /api/staff/users — staff sees all approved dentists
+staff.get('/users', verifyStaff(), async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT id, name, email, phone, clinicName, address, createdAt FROM users WHERE status = 'approved' ORDER BY name ASC"
+    ).all();
+    return c.json({ users: results.map(u => ({ ...u, _id: u.id })) });
+  } catch (err) {
+    logger.error('Staff users list error', { error: err.message });
+    return c.json({ message: 'Failed to load dentists.' }, 500);
+  }
+});
+
+// GET /api/staff/users/:id — staff sees a specific dentist with orders & payments
+staff.get('/users/:id', verifyStaff(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const user = await c.env.DB.prepare(
+      "SELECT id, name, email, phone, clinicName, address, createdAt FROM users WHERE id = ? AND status = 'approved'"
+    ).bind(id).first();
+    if (!user) return c.json({ message: 'Dentist not found.' }, 404);
+
+    const { results: orders } = await c.env.DB.prepare(
+      `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus,
+       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber, p.paidAt, p.id as paymentId
+       FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+       WHERE o.ownerId = ? ORDER BY o.createdAt DESC`
+    ).bind(id).all();
+
+    return c.json({
+      user: { ...user, _id: user.id },
+      orders: orders.map(o => ({ ...o, _id: o.id })),
+    });
+  } catch (err) {
+    logger.error('Staff user detail error', { error: err.message });
+    return c.json({ message: 'Failed to load dentist details.' }, 500);
+  }
+});
+
+// PATCH /api/staff/orders/:id — staff can update order fields (status, dueDate, notes, priority)
+staff.patch('/orders/:id', verifyStaff(), async (c) => {
+  try {
+    const orderId = c.req.param('id');
+    const body = await c.req.json();
+    const { status, dueDate, notes, priority, stage } = body;
+    const ts = now();
+
+    const updates = ['updatedAt = ?'];
+    const binds = [ts];
+
+    if (status !== undefined) { updates.push('status = ?'); binds.push(status); }
+    if (dueDate !== undefined) { updates.push('dueDate = ?'); binds.push(dueDate); }
+    if (notes !== undefined) { updates.push('notes = ?'); binds.push(notes); }
+    if (priority !== undefined) { updates.push('priority = ?'); binds.push(priority); }
+    if (stage !== undefined) {
+      updates.push('stage = ?'); binds.push(stage);
+      // ponytail: auto-assign staff when updating stage
+      updates.push('assigned_staff_id = ?'); binds.push(c.get('staff').id);
+    }
+
+    binds.push(orderId);
+    const { meta } = await c.env.DB.prepare(
+      `UPDATE lab_orders SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...binds).run();
+    if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
+
+    auditLog('STAFF_ORDER_UPDATED', { orderId, staffId: c.get('staff').id });
+    return c.json({ message: 'Order updated.' });
+  } catch (err) {
+    logger.error('Staff order update error', { error: err.message });
+    return c.json({ message: 'Failed to update order.' }, 500);
+  }
+});
+
+// GET /api/staff/payments — staff sees all payments
+staff.get('/payments', verifyStaff(), async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT p.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
+       FROM payments p LEFT JOIN users u ON p.ownerId = u.id ORDER BY p.createdAt DESC LIMIT 200`
+    ).all();
+    return c.json({
+      payments: results.map(r => ({
+        ...r, _id: r.id,
+        owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+      })),
+    });
+  } catch (err) {
+    logger.error('Staff payments list error', { error: err.message });
+    return c.json({ message: 'Failed to load payments.' }, 500);
+  }
+});
+
+// PATCH /api/staff/payments/:id — staff updates payment status
+staff.patch('/payments/:id', verifyStaff(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const { status, paymentMode, referenceNumber } = body;
+    const ts = now();
+
+    if (!status) return c.json({ message: 'Status is required.' }, 400);
+
+    const updates = ['status = ?', 'updatedAt = ?'];
+    const binds = [status, ts];
+
+    if (paymentMode !== undefined) { updates.push('paymentMode = ?'); binds.push(paymentMode); }
+    if (referenceNumber !== undefined) { updates.push('referenceNumber = ?'); binds.push(referenceNumber); }
+    if (status === 'Paid') { updates.push('paidAt = ?'); binds.push(ts); }
+    else { updates.push('paidAt = ?'); binds.push(null); }
+
+    binds.push(id);
+    const { meta } = await c.env.DB.prepare(
+      `UPDATE payments SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...binds).run();
+    if (!meta.changes) return c.json({ message: 'Payment not found.' }, 404);
+
+    auditLog('STAFF_PAYMENT_UPDATED', { paymentId: id, status, staffId: c.get('staff').id });
+    return c.json({ message: `Payment marked as ${status}.` });
+  } catch (err) {
+    logger.error('Staff payment update error', { error: err.message });
+    return c.json({ message: 'Failed to update payment.' }, 500);
+  }
+});
+
 export default staff;
+
