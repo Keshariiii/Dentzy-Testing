@@ -623,9 +623,215 @@ admin.delete('/staff/:id', verifyAdmin(), async (c) => {
   ).bind(id).first();
   if (!row) return c.json({ message: 'Staff not found.' }, 404);
 
-  await c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id).run();
+  // ponytail: clean up attendance records too
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM staff_attendance WHERE staff_id = ?').bind(id),
+    c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id),
+  ]);
   auditLog('STAFF_DELETED', { staffId: id, username: row.username });
   return c.json({ message: 'Staff account deleted.' });
 });
 
+// ── Staff Attendance (Admin marks manually) ─────────────────────────────────
+
+// POST /api/admin/staff/:id/attendance — mark attendance for a date
+admin.post('/staff/:id/attendance', verifyAdmin(), async (c) => {
+  try {
+    const staffId = c.req.param('id');
+    const body = await c.req.json();
+    const { date, status } = body;
+
+    if (!date || !status) return c.json({ message: 'Date and status are required.' }, 400);
+    if (!['Present', 'Absent', 'Half-day'].includes(status))
+      return c.json({ message: 'Status must be Present, Absent, or Half-day.' }, 400);
+
+    // Verify staff exists
+    const staff = await c.env.DB.prepare('SELECT id FROM staff WHERE id = ?').bind(staffId).first();
+    if (!staff) return c.json({ message: 'Staff not found.' }, 404);
+
+    const id = newId();
+    const ts = now();
+
+    // Upsert: if attendance for this date already exists, update it
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM staff_attendance WHERE staff_id = ? AND date = ?'
+    ).bind(staffId, date).first();
+
+    if (existing) {
+      await c.env.DB.prepare(
+        'UPDATE staff_attendance SET status = ?, logged_by_admin = ?, created_at = ? WHERE id = ?'
+      ).bind(status, c.get('admin').username, ts, existing.id).run();
+    } else {
+      await c.env.DB.prepare(
+        'INSERT INTO staff_attendance (id, staff_id, date, status, logged_by_admin, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(id, staffId, date, status, c.get('admin').username, ts).run();
+    }
+
+    auditLog('STAFF_ATTENDANCE_MARKED', { staffId, date, status, admin: c.get('admin').username });
+    return c.json({ message: `Attendance marked as ${status} for ${date}.` });
+  } catch (err) {
+    logger.error('Admin attendance error', { error: err.message });
+    return c.json({ message: 'Failed to mark attendance.' }, 500);
+  }
+});
+
+// GET /api/admin/staff/:id/attendance — get attendance history for a staff member
+admin.get('/staff/:id/attendance', verifyAdmin(), async (c) => {
+  try {
+    const staffId = c.req.param('id');
+    const month = c.req.query('month'); // optional YYYY-MM filter
+
+    let sql = 'SELECT * FROM staff_attendance WHERE staff_id = ?';
+    const params = [staffId];
+
+    if (month) {
+      sql += ' AND date LIKE ?';
+      params.push(`${month}%`);
+    }
+    sql += ' ORDER BY date DESC';
+
+    const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+    return c.json({ attendance: results || [] });
+  } catch (err) {
+    logger.error('Admin attendance history error', { error: err.message });
+    return c.json({ message: 'Failed to load attendance.' }, 500);
+  }
+});
+
+// ── Inventory Oversight (Admin) ─────────────────────────────────────────────
+
+// GET /api/admin/staff/inventory — admin sees full inventory
+admin.get('/staff/inventory', verifyAdmin(), async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      'SELECT * FROM inventory ORDER BY item_name ASC'
+    ).all();
+    return c.json({ items: results || [] });
+  } catch (err) {
+    logger.error('Admin inventory list error', { error: err.message });
+    return c.json({ message: 'Failed to load inventory.' }, 500);
+  }
+});
+
+// POST /api/admin/staff/inventory — admin adds inventory item
+admin.post('/staff/inventory', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const { item_name, quantity, unit, min_stock } = body;
+    if (!item_name || !unit) return c.json({ message: 'Item name and unit are required.' }, 400);
+
+    const id = newId();
+    const ts = now();
+    await c.env.DB.prepare(
+      'INSERT INTO inventory (id, item_name, quantity, unit, min_stock, updated_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, item_name.trim(), quantity || 0, unit.trim(), min_stock || 0, c.get('admin').username, ts, ts).run();
+
+    auditLog('ADMIN_INVENTORY_ADDED', { id, item_name });
+    return c.json({ message: 'Item added.', item: { id, item_name, quantity: quantity || 0, unit, min_stock: min_stock || 0, created_at: ts, updated_at: ts } }, 201);
+  } catch (err) {
+    if (err.message?.includes('UNIQUE')) return c.json({ message: 'Item already exists.' }, 409);
+    logger.error('Admin inventory add error', { error: err.message });
+    return c.json({ message: 'Failed to add item.' }, 500);
+  }
+});
+
+// PATCH /api/admin/staff/inventory/:id — admin updates inventory
+admin.patch('/staff/inventory/:id', verifyAdmin(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const { quantity, item_name, unit, min_stock } = body;
+    const ts = now();
+
+    const updates = ['updated_at = ?', 'updated_by = ?'];
+    const binds = [ts, c.get('admin').username];
+
+    if (quantity !== undefined) { updates.push('quantity = ?'); binds.push(quantity); }
+    if (item_name !== undefined) { updates.push('item_name = ?'); binds.push(item_name.trim()); }
+    if (unit !== undefined) { updates.push('unit = ?'); binds.push(unit.trim()); }
+    if (min_stock !== undefined) { updates.push('min_stock = ?'); binds.push(min_stock); }
+
+    binds.push(id);
+    const { meta } = await c.env.DB.prepare(
+      `UPDATE inventory SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...binds).run();
+    if (!meta.changes) return c.json({ message: 'Item not found.' }, 404);
+
+    auditLog('ADMIN_INVENTORY_UPDATED', { id });
+    return c.json({ message: 'Inventory updated.' });
+  } catch (err) {
+    logger.error('Admin inventory update error', { error: err.message });
+    return c.json({ message: 'Failed to update inventory.' }, 500);
+  }
+});
+
+// DELETE /api/admin/staff/inventory/:id — admin deletes inventory item
+admin.delete('/staff/inventory/:id', verifyAdmin(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const { meta } = await c.env.DB.prepare('DELETE FROM inventory WHERE id = ?').bind(id).run();
+    if (!meta.changes) return c.json({ message: 'Item not found.' }, 404);
+    auditLog('ADMIN_INVENTORY_DELETED', { id });
+    return c.json({ message: 'Item deleted.' });
+  } catch (err) {
+    logger.error('Admin inventory delete error', { error: err.message });
+    return c.json({ message: 'Failed to delete item.' }, 500);
+  }
+});
+
+// ── Staff Metrics / Leaderboard (Admin) ─────────────────────────────────────
+
+// GET /api/admin/staff/metrics — leaderboard: cases processed + attendance per staff
+admin.get('/staff/metrics', verifyAdmin(), async (c) => {
+  try {
+    const month = c.req.query('month') || new Date().toISOString().slice(0, 7); // YYYY-MM
+
+    // Cases processed per staff this month
+    const { results: caseResults } = await c.env.DB.prepare(`
+      SELECT s.id, s.displayName, s.username, s.status,
+        COALESCE(counts.total, 0) as casesProcessed
+      FROM staff s
+      LEFT JOIN (
+        SELECT assigned_staff_id, COUNT(*) as total
+        FROM lab_orders
+        WHERE updatedAt >= ? AND assigned_staff_id IS NOT NULL
+        GROUP BY assigned_staff_id
+      ) counts ON s.id = counts.assigned_staff_id
+      ORDER BY casesProcessed DESC
+    `).bind(`${month}-01T00:00:00.000Z`).all();
+
+    // Attendance summary per staff this month
+    const { results: attendanceResults } = await c.env.DB.prepare(`
+      SELECT staff_id,
+        SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as presentDays,
+        SUM(CASE WHEN status = 'Half-day' THEN 1 ELSE 0 END) as halfDays,
+        SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absentDays
+      FROM staff_attendance
+      WHERE date LIKE ?
+      GROUP BY staff_id
+    `).bind(`${month}%`).all();
+
+    // Merge attendance into staff list
+    const attendanceMap = {};
+    (attendanceResults || []).forEach(a => {
+      attendanceMap[a.staff_id] = { presentDays: a.presentDays, halfDays: a.halfDays, absentDays: a.absentDays };
+    });
+
+    const leaderboard = (caseResults || []).map(s => ({
+      id: s.id,
+      displayName: s.displayName,
+      username: s.username,
+      status: s.status,
+      casesProcessed: s.casesProcessed,
+      ...(attendanceMap[s.id] || { presentDays: 0, halfDays: 0, absentDays: 0 }),
+    }));
+
+    return c.json({ month, leaderboard });
+  } catch (err) {
+    logger.error('Admin staff metrics error', { error: err.message });
+    return c.json({ message: 'Failed to load metrics.' }, 500);
+  }
+});
+
 export default admin;
+

@@ -92,3 +92,26 @@ CREATE TABLE IF NOT EXISTS staff (
 );
 CREATE INDEX IF NOT EXISTS idx_staff_username ON staff(username);
 CREATE INDEX IF NOT EXISTS idx_staff_status ON staff(status);
+
+CREATE TABLE IF NOT EXISTS staff_attendance (
+    id TEXT PRIMARY KEY,
+    staff_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('Present', 'Absent', 'Half-day')),
+    logged_by_admin TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_attendance_staff ON staff_attendance(staff_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_date ON staff_attendance(date);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_unique ON staff_attendance(staff_id, date);
+
+CREATE TABLE IF NOT EXISTS inventory (
+    id TEXT PRIMARY KEY,
+    item_name TEXT NOT NULL,
+    quantity INTEGER DEFAULT 0,
+    unit TEXT NOT NULL DEFAULT 'pcs',
+    min_stock INTEGER DEFAULT 0,
+    updated_by TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
