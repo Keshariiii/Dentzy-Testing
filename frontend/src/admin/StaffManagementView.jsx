@@ -307,11 +307,6 @@ const StaffManagementView = ({
     padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
     background: '#e8f5ee', color: '#1e5038', fontWeight: 600, fontSize: '0.78rem',
   };
-  const inputStyle = {
-    width: '100%', padding: '10px 14px', border: '1px solid #e2ece6', borderRadius: '10px',
-    fontSize: '0.88rem', outline: 'none', background: '#f8faf9', boxSizing: 'border-box',
-  };
-  const labelStyle = { display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '4px' };
 
   return (
     <div>
@@ -636,34 +631,33 @@ const StaffManagementView = ({
               <h3>Create Staff Account</h3>
               <button className="ad-pay-modal-close" onClick={() => setShowCreateModal(false)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={labelStyle}>Display Name</label>
+            <div className="ad-pay-modal-body">
+              <div className="ad-pay-form-group">
+                <label>Display Name</label>
                 <input type="text" placeholder="e.g. Rahul Sharma" value={createForm.displayName}
-                  onChange={e => setCreateForm(f => ({ ...f, displayName: e.target.value }))} style={inputStyle} />
+                  onChange={e => setCreateForm(f => ({ ...f, displayName: e.target.value }))} />
               </div>
-              <div>
-                <label style={labelStyle}>Email</label>
+              <div className="ad-pay-form-group">
+                <label>Email</label>
                 <input type="email" placeholder="e.g. rahul@example.com" value={createForm.email}
-                  onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+                  onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} />
               </div>
-              <div>
-                <label style={labelStyle}>Designation</label>
+              <div className="ad-pay-form-group">
+                <label>Designation</label>
                 <select value={createForm.designation}
-                  onChange={e => setCreateForm(f => ({ ...f, designation: e.target.value }))}
-                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  onChange={e => setCreateForm(f => ({ ...f, designation: e.target.value }))}>
                   {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={labelStyle}>Username</label>
+              <div className="ad-pay-form-group">
+                <label>Username</label>
                 <input type="text" placeholder="e.g. rahul_tech" value={createForm.username}
-                  onChange={e => setCreateForm(f => ({ ...f, username: e.target.value }))} style={inputStyle} />
+                  onChange={e => setCreateForm(f => ({ ...f, username: e.target.value }))} />
               </div>
-              <div>
-                <label style={labelStyle}>Password</label>
+              <div className="ad-pay-form-group">
+                <label>Password</label>
                 <input type="text" placeholder="Min 6 characters" value={createForm.password}
-                  onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))} style={inputStyle} />
+                  onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))} />
               </div>
             </div>
             {createError && <div className="ad-pay-form-error">{createError}</div>}
@@ -685,16 +679,16 @@ const StaffManagementView = ({
               <h3>Mark Attendance</h3>
               <button className="ad-pay-modal-close" onClick={() => setAttendanceStaff(null)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '8px 0', fontSize: '0.88rem', color: '#4a7060' }}>
+            <div style={{ padding: '8px 22px', fontSize: '0.88rem', color: '#4a7060' }}>
               Marking for <strong style={{ color: '#1a3028' }}>{attendanceStaff.displayName}</strong>
             </div>
-            <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={labelStyle}>Date</label>
-                <input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)} style={inputStyle} />
+            <div className="ad-pay-modal-body">
+              <div className="ad-pay-form-group">
+                <label>Date</label>
+                <input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)} />
               </div>
-              <div>
-                <label style={labelStyle}>Status</label>
+              <div className="ad-pay-form-group">
+                <label>Status</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {['Present', 'Absent', 'Half-day'].map(st => (
                     <button key={st} onClick={() => setAttendanceStatus(st)}
@@ -728,28 +722,28 @@ const StaffManagementView = ({
               <h3>Add Inventory Item</h3>
               <button className="ad-pay-modal-close" onClick={() => setShowAddItem(false)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={labelStyle}>Item Name</label>
+            <div className="ad-pay-modal-body">
+              <div className="ad-pay-form-group">
+                <label>Item Name</label>
                 <input type="text" placeholder="e.g. Zirconia Disc 98mm" value={itemForm.item_name}
-                  onChange={e => setItemForm(f => ({ ...f, item_name: e.target.value }))} style={inputStyle} />
+                  onChange={e => setItemForm(f => ({ ...f, item_name: e.target.value }))} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="ad-pay-form-row">
                 <div>
-                  <label style={labelStyle}>Quantity</label>
+                  <label>Quantity</label>
                   <input type="number" min="0" placeholder="0" value={itemForm.quantity}
-                    onChange={e => setItemForm(f => ({ ...f, quantity: e.target.value }))} style={inputStyle} />
+                    onChange={e => setItemForm(f => ({ ...f, quantity: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Unit</label>
+                  <label>Unit</label>
                   <input type="text" placeholder="pcs / grams / ml" value={itemForm.unit}
-                    onChange={e => setItemForm(f => ({ ...f, unit: e.target.value }))} style={inputStyle} />
+                    onChange={e => setItemForm(f => ({ ...f, unit: e.target.value }))} />
                 </div>
               </div>
-              <div>
-                <label style={labelStyle}>Min Stock Alert</label>
+              <div className="ad-pay-form-group">
+                <label>Min Stock Alert</label>
                 <input type="number" min="0" placeholder="0 (disabled)" value={itemForm.min_stock}
-                  onChange={e => setItemForm(f => ({ ...f, min_stock: e.target.value }))} style={inputStyle} />
+                  onChange={e => setItemForm(f => ({ ...f, min_stock: e.target.value }))} />
               </div>
             </div>
             {itemFormError && <div className="ad-pay-form-error">{itemFormError}</div>}
@@ -771,26 +765,25 @@ const StaffManagementView = ({
               <h3>Edit Staff — {editStaff.displayName}</h3>
               <button className="ad-pay-modal-close" onClick={() => setEditStaff(null)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '8px 0', fontSize: '0.82rem', color: '#708c80' }}>
+            <div style={{ padding: '8px 22px', fontSize: '0.82rem', color: '#708c80' }}>
               Employee ID: <strong style={{ color: '#1a3028' }}>#{editStaff.employeeId || 'N/A'}</strong>
               {' | '} Username: <strong style={{ color: '#1a3028' }}>@{editStaff.username}</strong>
             </div>
-            <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={labelStyle}>Display Name</label>
+            <div className="ad-pay-modal-body">
+              <div className="ad-pay-form-group">
+                <label>Display Name</label>
                 <input type="text" value={editForm.displayName}
-                  onChange={e => setEditForm(f => ({ ...f, displayName: e.target.value }))} style={inputStyle} />
+                  onChange={e => setEditForm(f => ({ ...f, displayName: e.target.value }))} />
               </div>
-              <div>
-                <label style={labelStyle}>Email</label>
+              <div className="ad-pay-form-group">
+                <label>Email</label>
                 <input type="email" value={editForm.email}
-                  onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+                  onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
               </div>
-              <div>
-                <label style={labelStyle}>Designation</label>
+              <div className="ad-pay-form-group">
+                <label>Designation</label>
                 <select value={editForm.designation}
-                  onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}
-                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}>
                   {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>

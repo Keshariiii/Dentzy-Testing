@@ -1225,31 +1225,60 @@
 }
 
 /* Form */
+.ad-pay-modal-body {
+  padding: 8px 0 16px;
+}
 .ad-pay-form-group {
   padding: 0 22px;
   margin-top: 14px;
 }
-.ad-pay-form-group label {
+.ad-pay-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+  padding: 0 22px;
+  margin-top: 14px;
+}
+.ad-pay-form-row > div {
+  padding: 0;
+  margin-top: 0;
+}
+.ad-pay-form-group label,
+.ad-pay-form-row label {
   display: block;
   font-size: 0.78rem;
   font-weight: 600;
   color: #4a7060;
   margin-bottom: 5px;
 }
-.ad-pay-form-group input {
+.ad-pay-form-group input,
+.ad-pay-form-group select {
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid #e4ebe7;
+  border: 1px solid #cbd5d0;
   border-radius: 8px;
   font-size: 0.85rem;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   background: #fff;
+  box-sizing: border-box;
 }
-.ad-pay-form-group input:focus {
+.ad-pay-form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23708c80' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.ad-pay-form-group input:focus,
+.ad-pay-form-group select:focus {
   outline: none;
   border-color: #1e5038;
   box-shadow: 0 0 0 2px rgba(30,80,56,0.08);
+}
+.ad-pay-form-group input::placeholder {
+  color: #9ca3af;
 }
 .ad-pay-form-error {
   margin: 10px 22px 0;
@@ -1310,6 +1339,24 @@
     max-width: none;
     margin: 12px;
     border-radius: 12px;
+    box-sizing: border-box;
+  }
+  .ad-pay-form-group input,
+  .ad-pay-form-group select {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+  .ad-pay-btn-cancel,
+  .ad-pay-btn-confirm {
+    min-height: 44px;
+    font-size: 0.84rem;
+  }
+  .ad-pay-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .ad-pay-form-row > div + div {
+    margin-top: 14px;
   }
 }
 @media (max-width: 480px) {
