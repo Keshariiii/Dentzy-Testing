@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyAdmin } from '../middleware/auth.js';
-import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema } from '../validators/admin.js';
-import { signJWT } from '../utils/crypto.js';
+import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema, createStaffSchema } from '../validators/admin.js';
+import { signJWT, hashPassword } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail } from '../utils/email.js';
@@ -553,6 +553,79 @@ admin.post('/orders/:id/remind-payment', verifyAdmin(), async (c) => {
     logger.error('Admin payment reminder error', { error: error.message });
     return c.json({ message: 'Failed to send reminder.' }, 500);
   }
+});
+
+// ── Staff Management ────────────────────────────────────────────────────────
+
+// GET /api/admin/staff -- list all staff
+admin.get('/staff', verifyAdmin(), async (c) => {
+  try {
+    const rows = await c.env.DB.prepare(
+      'SELECT id, username, displayName, status, createdAt, updatedAt FROM staff ORDER BY createdAt DESC'
+    ).all();
+    return c.json({ staff: rows.results || [] });
+  } catch (err) {
+    logger.error('Failed to fetch staff', { error: err.message });
+    return c.json({ message: 'Failed to fetch staff.' }, 500);
+  }
+});
+
+// POST /api/admin/staff -- create new staff account
+admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
+  const { username, password, displayName } = c.get('body');
+  const id = newId();
+  const ts = now();
+  const hashed = await hashPassword(password);
+
+  try {
+    await c.env.DB.prepare(
+      'INSERT INTO staff (id, username, password, displayName, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, username, hashed, displayName, 'active', ts, ts).run();
+
+    auditLog('STAFF_CREATED', { username, displayName });
+    return c.json({
+      message: 'Staff account created.',
+      staff: { id, username, displayName, status: 'active', createdAt: ts },
+    }, 201);
+  } catch (err) {
+    if (err.message?.includes('UNIQUE constraint')) {
+      return c.json({ message: 'This username is already taken.' }, 409);
+    }
+    logger.error('Failed to create staff', { error: err.message });
+    return c.json({ message: 'Failed to create staff account.' }, 500);
+  }
+});
+
+// PATCH /api/admin/staff/:id/status -- toggle active/inactive
+admin.patch('/staff/:id/status', verifyAdmin(), async (c) => {
+  const { id } = c.req.param();
+  const row = await c.env.DB.prepare(
+    'SELECT id, status FROM staff WHERE id = ?'
+  ).bind(id).first();
+  if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+  const newStatus = row.status === 'active' ? 'inactive' : 'active';
+  await c.env.DB.prepare(
+    'UPDATE staff SET status = ?, updatedAt = ? WHERE id = ?'
+  ).bind(newStatus, now(), id).run();
+  auditLog('STAFF_STATUS_CHANGED', { staffId: id, newStatus });
+  return c.json({
+    message: `Staff ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
+    status: newStatus,
+  });
+});
+
+// DELETE /api/admin/staff/:id -- delete staff account
+admin.delete('/staff/:id', verifyAdmin(), async (c) => {
+  const { id } = c.req.param();
+  const row = await c.env.DB.prepare(
+    'SELECT id, username FROM staff WHERE id = ?'
+  ).bind(id).first();
+  if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+  await c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id).run();
+  auditLog('STAFF_DELETED', { staffId: id, username: row.username });
+  return c.json({ message: 'Staff account deleted.' });
 });
 
 export default admin;

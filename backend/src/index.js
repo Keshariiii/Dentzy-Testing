@@ -4,6 +4,7 @@ import auth from './routes/auth.js';
 import admin from './routes/admin.js';
 import dashboard from './routes/dashboard.js';
 import contact from './routes/contact.js';
+import staff from './routes/staff.js';
 
 const app = new Hono();
 
@@ -64,6 +65,7 @@ app.get('/api/health', async (c) => {
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.route('/api/auth', auth);
 app.route('/api/admin', admin);
+app.route('/api/staff', staff);
 app.route('/api/dashboard', dashboard);
 app.route('/api/contact', contact);
 

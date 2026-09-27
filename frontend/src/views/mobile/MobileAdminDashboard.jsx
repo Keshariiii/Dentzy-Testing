@@ -32,10 +32,9 @@ const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
 const PAY_MODE_TABS = ['all', 'Cash', 'Cheque', 'UPI'];
 
 const ADMIN_NAV = [
-  { key: 'dentists', label: 'Dentists',   icon: (s) => Ico.usersS(s) },
-  { key: 'orders',   label: 'Lab Orders', icon: (s) => Ico.labOrder(s) },
-  { key: 'payments', label: 'Payments',   icon: (s) => Ico.payments(s) },
-  { key: 'settings', label: 'Settings',   icon: (s) => Ico.settings(s) },
+  { key: 'dentists', label: 'Dentist',  icon: (s) => Ico.usersS(s) },
+  { key: 'staff',    label: 'Staff',    icon: (s) => Ico.usersS(s) },
+  { key: 'settings', label: 'Settings', icon: (s) => Ico.settings(s) },
 ];
 
 /* ============================================================
@@ -50,8 +49,14 @@ const MobileAdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
-  // Primary view: 'dentists' | 'orders' | 'payments'
+  // Primary view: 'dentists' | 'staff' | 'settings'
   const [adminView, setAdminView] = useState('dentists');
+  // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments'
+  const [dentistSubView, setDentistSubView] = useState(null);
+  // Staff view state
+  const [staffList, setStaffList] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
+  const [staffSearch, setStaffSearch] = useState('');
 
   // Dentists view state
   const [activeTab, setActiveTab]         = useState('all');
@@ -102,6 +107,15 @@ const MobileAdminDashboard = () => {
   const todayStr = new Date().toLocaleDateString('en-IN', {
     weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
   });
+
+  const fetchStaff = useCallback(async () => {
+    setLoadingStaff(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/staff`);
+      if (res.ok) { const d = await res.json(); setStaffList(d.staff || []); }
+    } catch {}
+    setLoadingStaff(false);
+  }, [authFetch, ADMIN_API]);
 
   const adminName = admin?.username || 'Admin';
   const initials  = adminName.slice(0, 2).toUpperCase();
@@ -195,7 +209,7 @@ const MobileAdminDashboard = () => {
 
   // Re-fetch payments when payment filters change
   useEffect(() => {
-    if (!admin?.username || adminView !== 'payments') return;
+    if (!admin?.username || (adminView !== 'dentists' || dentistSubView !== 'payments')) return;
     fetchPayments();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payFilterStatus, payFilterMode]);
@@ -589,10 +603,59 @@ const MobileAdminDashboard = () => {
       {/* ─────────────────────────────────────────────────────────────
           VIEW 1: DENTISTS
           ───────────────────────────────────────────────────────────── */}
-      {adminView === 'dentists' && (
-        <>
+      {adminView === 'dentists' && !dentistSubView && (
+        /* Dentist Landing Page with 3 sub-section cards */
+        <div style={{ padding: '16px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: '0 0 16px' }}>Dentist Management</h2>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {[
+              { key: 'users', label: 'Dentists', desc: 'Manage registered dentists', iconFn: () => Ico.usersS(22) },
+              { key: 'orders', label: 'Lab Orders', desc: 'Track all lab orders', iconFn: () => Ico.labOrder(22) },
+              { key: 'payments', label: 'Payments', desc: 'Billing and payment records', iconFn: () => Ico.payments(22) },
+            ].map(card => (
+              <button key={card.key}
+                onClick={() => {
+                  setDentistSubView(card.key);
+                  if (card.key === 'orders') fetchAllOrders();
+                  if (card.key === 'payments') fetchPaymentsRef.current?.();
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 16px',
+                  background: '#fff', borderRadius: '14px', border: 'none', cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)', textAlign: 'left', width: '100%',
+                }}>
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '12px', background: 'var(--dz-color-primary-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dz-color-primary-dark)',
+                  flexShrink: 0,
+                }}>{card.iconFn()}</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a1a1a' }}>{card.label}</div>
+                  <div style={{ fontSize: '0.76rem', color: '#708c80', marginTop: '2px' }}>{card.desc}</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aab" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {/* #50 — Section heading with count badge */}
+      {adminView === 'dentists' && dentistSubView === 'users' && (
+        <>
+          {/* Back to Dentist landing */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
+            <button onClick={() => setDentistSubView(null)} aria-label="Back"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+          </div>
+
+          {/* #50 -- Section heading with count badge */}
           <div style={{ padding: '0 16px', marginBottom: '8px' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               Registered Dentists
@@ -720,11 +783,18 @@ const MobileAdminDashboard = () => {
         </>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          VIEW 2: LAB ORDERS
-          ───────────────────────────────────────────────────────────── */}
-      {adminView === 'orders' && (
+      {adminView === 'dentists' && dentistSubView === 'orders' && (
         <>
+          {/* Back to Dentist landing */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
+            <button onClick={() => setDentistSubView(null)} aria-label="Back"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+          </div>
           {drillDentistOrders ? (
             /* ── Drill-down: single dentist's orders ── */
             <>
@@ -882,11 +952,18 @@ const MobileAdminDashboard = () => {
         </>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          VIEW 3: PAYMENTS & BILLING
-          ───────────────────────────────────────────────────────────── */}
-      {adminView === 'payments' && (
+      {adminView === 'dentists' && dentistSubView === 'payments' && (
         <>
+          {/* Back to Dentist landing */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
+            <button onClick={() => setDentistSubView(null)} aria-label="Back"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+          </div>
           {drillDentistPayments ? (
             /* ── Drill-down: single dentist's payments ── */
             <>
@@ -1076,9 +1153,60 @@ const MobileAdminDashboard = () => {
         </>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          VIEW 4: SETTINGS
-          ───────────────────────────────────────────────────────────── */}
+      {/* STAFF VIEW */}
+      {adminView === 'staff' && (
+        <div style={{ padding: '16px', paddingBottom: '90px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: '0 0 16px' }}>Staff Management</h2>
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#a0b5a9' }}>{Ico.search(14)}</span>
+            <input type="text" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #e4eae7', borderRadius: '10px', fontSize: '0.85rem', background: '#f8faf9', outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          {loadingStaff ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#708c80' }}>Loading...</div>
+          ) : (staffList.filter(s =>
+              s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) ||
+              s.username?.toLowerCase().includes(staffSearch.toLowerCase())
+            )).length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              {Ico.usersS(48)}
+              <p style={{ marginTop: '16px', color: '#708c80', fontSize: '0.85rem' }}>No staff members found. Create staff accounts from the admin portal.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '10px' }}>
+              {staffList
+                .filter(s => s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) || s.username?.toLowerCase().includes(staffSearch.toLowerCase()))
+                .map(s => (
+                <div key={s.id} style={{
+                  background: '#fff', borderRadius: '12px', padding: '14px 16px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '36px', height: '36px', borderRadius: '50%', background: '#e2ece6',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, color: '#1e5038', fontSize: '0.85rem'
+                    }}>
+                      {(s.displayName || s.username || 'S').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a1a1a' }}>{s.displayName}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#708c80' }}>@{s.username}</div>
+                    </div>
+                  </div>
+                  <span style={{
+                    padding: '3px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
+                    background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
+                    color: s.status === 'active' ? '#16a34a' : '#dc2626',
+                  }}>{s.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {adminView === 'settings' && (
         <main className="ma-main" style={{ paddingTop: '16px', paddingBottom: '90px' }}>
           <div style={{ padding: '0 16px', marginBottom: '16px' }}>
@@ -1221,8 +1349,8 @@ const MobileAdminDashboard = () => {
               className={`ma-bnav-btn ${isActive ? 'ma-bnav-btn--active' : ''}`}
               onClick={() => {
                 setAdminView(item.key);
-                if (item.key === 'orders') fetchAllOrders();
-                if (item.key === 'payments') fetchPayments();
+                if (item.key === 'dentists') setDentistSubView(null);
+                if (item.key === 'staff') fetchStaff();
                 if (item.key === 'settings') {
                   fetchStats();
                   fetchPayments();
@@ -1234,11 +1362,6 @@ const MobileAdminDashboard = () => {
                 {item.key === 'dentists' && stats.pending > 0 && (
                   <span className="ma-bnav-badge ma-bnav-badge--pending">
                     {stats.pending}
-                  </span>
-                )}
-                {item.key === 'payments' && (paymentData.summary?.pendingCount || 0) > 0 && (
-                  <span className="ma-bnav-badge ma-bnav-badge--pending">
-                    {paymentData.summary.pendingCount}
                   </span>
                 )}
               </div>

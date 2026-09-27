@@ -30,7 +30,8 @@ const AdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   const [activeTab, setActiveTab] = useState('all');
-  const [adminView, setAdminView] = useState('users'); // 'users' | 'orders' | 'payments'
+  const [adminView, setAdminView] = useState('dentists'); // 'dentists' | 'staff' | 'settings'
+  const [dentistSubView, setDentistSubView] = useState('users'); // 'users' | 'orders' | 'payments'
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
@@ -64,6 +65,10 @@ const AdminDashboard = () => {
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
   const [expandedSetting, setExpandedSetting] = useState(null); // 'payments' | 'users' | null
+  // Staff view state
+  const [staffList, setStaffList] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
+  const [staffSearch, setStaffSearch] = useState('');
   const sseRef = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -441,6 +446,14 @@ const AdminDashboard = () => {
   };
 
 
+  const fetchStaff = useCallback(async () => {
+    setLoadingStaff(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/staff`);
+      if (res.ok) { const d = await res.json(); setStaffList(d.staff || []); }
+    } catch {}
+    setLoadingStaff(false);
+  }, [authFetch, ADMIN_API]);
 
   const filteredUsers = (users || []).filter(u =>
     (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
@@ -544,17 +557,13 @@ const AdminDashboard = () => {
 
             {/* Nav — mirrors ud-nav */}
             <nav className="ad-nav">
-              <button className={`ad-nav-item ${adminView === 'users' ? 'active' : ''}`} onClick={() => setAdminView('users')} aria-label="Dashboard">
+              <button className={`ad-nav-item ${adminView === 'dentists' ? 'active' : ''}`} onClick={() => setAdminView('dentists')} aria-label="Dentist">
                 <span className="ad-nav-icon">{Ico.grid(16)}</span>
-                Dentists
+                Dentist
               </button>
-              <button className={`ad-nav-item ${adminView === 'orders' ? 'active' : ''}`} onClick={() => { setAdminView('orders'); fetchAllOrders(); }} aria-label="Lab Orders">
-                <span className="ad-nav-icon">{Ico.package ? Ico.package(16) : Ico.chart(16)}</span>
-                Lab Orders
-              </button>
-              <button className={`ad-nav-item ${adminView === 'payments' ? 'active' : ''}`} onClick={() => { setAdminView('payments'); fetchPaymentsRef.current?.(); }} aria-label="Payments">
-                <span className="ad-nav-icon">{Ico.payments ? Ico.payments(16) : Ico.wallet(16)}</span>
-                Payments
+              <button className={`ad-nav-item ${adminView === 'staff' ? 'active' : ''}`} onClick={() => { setAdminView('staff'); fetchStaff(); }} aria-label="Staff">
+                <span className="ad-nav-icon">{Ico.usersS ? Ico.usersS(16) : Ico.grid(16)}</span>
+                Staff
               </button>
               <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
                 <span className="ad-nav-icon">{Ico.settings(16)}</span>
@@ -599,7 +608,33 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {adminView === 'payments' ? (
+            {/* ── Dentist Sub-Nav ─────────────────────────────── */}
+            {adminView === 'dentists' && (
+              <div style={{ display: 'flex', gap: '8px', padding: '12px 0', marginBottom: '16px' }}>
+                {[
+                  { key: 'users', label: 'Dentists' },
+                  { key: 'orders', label: 'Lab Orders' },
+                  { key: 'payments', label: 'Payments' },
+                ].map(sub => (
+                  <button key={sub.key}
+                    onClick={() => {
+                      setDentistSubView(sub.key);
+                      if (sub.key === 'orders') fetchAllOrders();
+                      if (sub.key === 'payments') fetchPaymentsRef.current?.();
+                    }}
+                    style={{
+                      padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                      background: dentistSubView === sub.key ? '#1e5038' : '#f0f7f3',
+                      color: dentistSubView === sub.key ? '#fff' : '#4a7060',
+                      fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s ease',
+                    }}>
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {adminView === 'dentists' && dentistSubView === 'payments' ? (
               /* ── Payments View ────────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -736,7 +771,7 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-            ) : adminView === 'orders' ? (
+            ) : adminView === 'dentists' && dentistSubView === 'orders' ? (
               /* ── Lab Orders View ───────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -842,7 +877,7 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-            ) : adminView === 'users' || adminView === 'all' || !adminView ? (
+            ) : adminView === 'dentists' && dentistSubView === 'users' ? (
               /* ── User Management View ────────────────────────────────── */
               <div>
 
@@ -950,12 +985,68 @@ const AdminDashboard = () => {
                 </div>
 
               </div>
+            ) : adminView === 'staff' ? (
+              /* ── Staff Management View ─────────────────────────────── */
+              <div>
+                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p className="ad-section-title" style={{ margin: 0 }}>Staff Management</p>
+                  <button onClick={fetchStaff} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Refresh</button>
+                </div>
+                <div className="ad-header-search" style={{ margin: '16px 0' }}>
+                  <span className="ad-search-icon">{Ico.search(14)}</span>
+                  <input type="text" className="ad-search" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} />
+                </div>
+                <div className="ad-content">
+                  {loadingStaff ? (
+                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
+                  ) : (staffList.filter(s =>
+                      s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) ||
+                      s.username?.toLowerCase().includes(staffSearch.toLowerCase())
+                    )).length === 0 ? (
+                    <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                      {Ico.grid(48)}
+                      <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Create staff accounts to manage your lab team.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      {staffList
+                        .filter(s => s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) || s.username?.toLowerCase().includes(staffSearch.toLowerCase()))
+                        .map(s => (
+                        <div key={s.id} style={{
+                          background: '#fff', borderRadius: '12px', padding: '16px 20px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '40px', height: '40px', borderRadius: '50%', background: '#e2ece6',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 700, color: '#1e5038', fontSize: '0.9rem'
+                            }}>
+                              {(s.displayName || s.username || 'S').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>{s.displayName}</div>
+                              <div style={{ fontSize: '0.78rem', color: '#708c80' }}>@{s.username}</div>
+                            </div>
+                          </div>
+                          <span style={{
+                            padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
+                            background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
+                            color: s.status === 'active' ? '#16a34a' : '#dc2626',
+                          }}>{s.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : adminView === 'settings' ? (
               /* ── Settings View ───────────────────────────────────────── */
               <div style={{ padding: '28px 0', maxWidth: '800px' }}>
                 <div className="ad-section-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                   <button
-                    onClick={() => setAdminView('users')}
+                    onClick={() => setAdminView('dentists')}
                     title="Back to Dentists"
                     style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >

@@ -1,10 +1,11 @@
 'use client';
 /**
- * Providers — Client component that wraps the entire app with context providers.
+ * Providers -- Client component that wraps the entire app with context providers.
  * Separated from layout.jsx because providers use React hooks (client-only).
  */
 import { ToastProvider } from '../context/ToastContext';
 import { AdminAuthProvider } from '../admin/AdminAuthContext';
+import { StaffAuthProvider } from '../staff/StaffAuthContext';
 import { AuthProvider } from '../context/AuthContext';
 import { OfflineQueueProvider } from '../context/OfflineQueueContext';
 import { useGlobalHaptics } from '../hooks/useGlobalHaptics';
@@ -16,14 +17,16 @@ export default function Providers({ children }) {
   return (
     <ToastProvider>
       <AdminAuthProvider>
-        <AuthProvider>
-          <OfflineQueueProvider>
-            <div className="App">
-              {children}
-            </div>
-            <ScrollToTop />
-          </OfflineQueueProvider>
-        </AuthProvider>
+        <StaffAuthProvider>
+          <AuthProvider>
+            <OfflineQueueProvider>
+              <div className="App">
+                {children}
+              </div>
+              <ScrollToTop />
+            </OfflineQueueProvider>
+          </AuthProvider>
+        </StaffAuthProvider>
       </AdminAuthProvider>
     </ToastProvider>
   );

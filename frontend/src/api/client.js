@@ -11,6 +11,7 @@
 
 export const getAdminUrl   = () => '/api/admin';
 export const getAuthUrl    = () => '/api/auth';
+export const getStaffUrl   = () => '/api/staff';
 export const getDashUrl    = () => '/api/dashboard';
 export const getContactUrl = () => '/api/contact';
 

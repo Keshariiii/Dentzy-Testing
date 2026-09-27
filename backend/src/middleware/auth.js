@@ -53,3 +53,22 @@ export const verifyAdmin = () => async (c, next) => {
     return c.json({ message: 'Invalid or expired admin token.' }, 401);
   }
 };
+
+export const verifyStaff = () => async (c, next) => {
+  const token = extractToken(c, 'dentzy_staff_jwt');
+  if (!token) return c.json({ message: 'Staff access denied. No token.' }, 401);
+
+  try {
+    const payload = await verifyJWT(token, c.env.STAFF_JWT_SECRET);
+    if (payload.role !== 'staff') throw new Error('Not staff');
+    const staff = await c.env.DB.prepare(
+      'SELECT id, username, displayName, status FROM staff WHERE id = ?'
+    ).bind(payload.id).first();
+    if (!staff) return c.json({ message: 'Staff not found.' }, 401);
+    if (staff.status !== 'active') return c.json({ message: 'Staff account is inactive.' }, 403);
+    c.set('staff', { ...payload, displayName: staff.displayName });
+    await next();
+  } catch {
+    return c.json({ message: 'Invalid or expired staff token.' }, 401);
+  }
+};
