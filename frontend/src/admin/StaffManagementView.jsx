@@ -404,17 +404,17 @@ const StaffManagementView = ({
                   (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
                   (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase())
                 ).map(s => (
-                  <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div key={s.id} className="ad-staff-card" style={cardStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
                       <div style={{
                         width: '42px', height: '42px', borderRadius: '50%', background: '#e8f5ee',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, color: '#1e5038', fontSize: '0.92rem',
+                        fontWeight: 700, color: '#1e5038', fontSize: '0.92rem', flexShrink: 0,
                       }}>
                         {(s.displayName || 'S').charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {s.displayName}
                           {s.employeeId && (
                             <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
@@ -422,10 +422,12 @@ const StaffManagementView = ({
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: '#708c80' }}>@{s.username}{s.email ? ` | ${s.email}` : ''}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#708c80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          @{s.username}{s.email ? ` | ${s.email}` : ''}
+                        </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="ad-staff-card-actions">
                       <span style={{
                         padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
                         background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
