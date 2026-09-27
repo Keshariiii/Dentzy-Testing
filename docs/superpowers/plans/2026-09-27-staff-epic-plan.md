@@ -65,11 +65,8 @@ Modified `backend/src/routes/staff.js` — added orders (list + stage update wit
 - [x] **Step 4: Build verification**
 `wrangler deploy --dry-run` passed cleanly (818 KiB bundle, no errors).
 
-- [ ] **Step 5: Commit**
-```bash
-git add backend/
-git commit -m "feat(backend): staff epic db schemas, attendance, inventory and orders APIs"
-```
+- [x] **Step 5: Commit**
+Committed in `dd12e67`.
 
 ---
 
@@ -83,31 +80,26 @@ git commit -m "feat(backend): staff epic db schemas, attendance, inventory and o
 - Consumes: `POST /api/admin/staff/:id/attendance`
 - Consumes: `GET /api/admin/staff/inventory` (New) and `GET /api/admin/staff/metrics` (New)
 
-- [ ] **Step 1: Add "Create Staff" UI to Staff List**
-In `AdminDashboard.jsx` (Staff View), add a clean modal for the admin to create new staff accounts (inputs: Display Name, Username, Password).
+- [x] **Step 1: Add "Create Staff" UI to Staff List**
+Created `StaffManagementView.jsx` shared component with Create Staff modal (Display Name, Username, Password).
 
-- [ ] **Step 2: Add "Mark Attendance" Action to Staff List**
-In `AdminDashboard.jsx` (Staff View), add a clean, borderless modal (Impeccable style) triggered by a "Mark Attendance" button next to each staff member.
+- [x] **Step 2: Add "Mark Attendance" Action to Staff List**
+Added Mark Attendance modal with date picker and Present/Absent/Half-day status buttons + attendance history view.
 
-- [ ] **Step 3: Add Inventory & Metrics Oversight Views**
-In the Staff section of `AdminDashboard.jsx`, add two sub-views or cards:
-  1. **Inventory:** A read/write table mirroring the staff inventory, allowing Admin to audit or correct stock.
-  2. **Metrics:** A leaderboard view showing attendance history and cases processed per staff member.
+- [x] **Step 3: Add Inventory & Metrics Oversight Views**
+Added 4-tab sub-navigation: Members, Attendance, Inventory (CRUD with +/- stock buttons), Metrics (leaderboard with Staff of the Month).
 
-- [ ] **Step 4: Implement API calls**
-Write the fetch calls to send `POST /api/admin/staff` (to create staff), `status` for attendance, and fetch metrics/inventory.
+- [x] **Step 4: Implement API calls**
+All fetch calls wired: create staff, toggle status, delete staff, mark attendance, fetch history, inventory CRUD, metrics/leaderboard.
 
-- [ ] **Step 5: Update Mobile Admin View**
-Replicate the clean manual attendance modal and basic oversight stats in `MobileAdminDashboard.jsx`.
+- [x] **Step 5: Update Mobile Admin View**
+Both `AdminDashboard.jsx` and `MobileAdminDashboard.jsx` share the same `StaffManagementView` component (ponytail: one component, not two).
 
-- [ ] **Step 6: Test UI rendering**
-Run `npm run build` in frontend to ensure zero compilation errors. 
+- [x] **Step 6: Test UI rendering**
+`npm run build` passed cleanly -- compiled successfully, 13/13 pages generated, 0 errors.
 
-- [ ] **Step 7: Commit**
-```bash
-git add frontend/src/admin frontend/src/views/mobile
-git commit -m "feat(admin): complete staff management UI with attendance, inventory, and metrics oversight"
-```
+- [x] **Step 7: Commit**
+Combined frontend epic commit.
 
 ---
 
@@ -115,55 +107,51 @@ git commit -m "feat(admin): complete staff management UI with attendance, invent
 
 **Files:**
 - Create: `frontend/src/staff/StaffDashboard.jsx`
-- Create: `frontend/src/views/mobile/MobileStaffDashboard.jsx`
-- Modify: `frontend/src/app/page.jsx` or relevant routing to load Staff dashboard when `StaffAuthContext` is valid.
+- Create: `frontend/src/staff/StaffDashboard.css`
+- Create: `frontend/src/app/staff/dashboard/page.jsx`
+- Modify: `frontend/src/app/page.jsx`
+- Modify: `frontend/src/components/Login.jsx` and `frontend/src/views/mobile/MobileLogin.jsx`
 
 **Interfaces:**
 - Consumes: `GET /api/staff/orders` and `PATCH /api/staff/orders/:id/stage`
 
-- [ ] **Step 1: Build the Staff Shell**
-Create `StaffDashboard.jsx` with a premium, minimalist sidebar/navbar. 3 sections: Orders, Inventory, Leaderboard. Use smooth micro-animations on hover. No card borders.
+- [x] **Step 1: Build the Staff Shell**
+Created `StaffDashboard.jsx` with top header, 3-section nav (Orders, Inventory, Leaderboard), premium micro-animations, no card borders.
 
-- [ ] **Step 2: Implement Order Management**
-Fetch `/api/staff/orders`. Render a board or list of cases. Add a visually polished "Stage Updater" (e.g., a stepper from CAD Design -> Milling -> QC). 
+- [x] **Step 2: Implement Order Management**
+Orders view fetches `/api/staff/orders` with All/My Cases filter. Stage stepper with color-coded dots (Received -> CAD Design -> Milling -> QC -> Dispatched -> Completed).
 
-- [ ] **Step 3: Build Mobile Staff View**
-Create `MobileStaffDashboard.jsx` with a bottom tab navigation matching the 3 sections. Clean, tappable, borderless cards with soft shadows.
+- [x] **Step 3: Build Mobile Staff View**
+Ponytail: StaffDashboard is already responsive with CSS media queries + mobile bottom nav. No separate MobileStaffDashboard needed.
 
-- [ ] **Step 4: Route the Staff Portal**
-Connect the main layout/routing so logged-in staff land on `StaffDashboard` instead of `Login`.
+- [x] **Step 4: Route the Staff Portal**
+Created `/staff/dashboard` route page. Updated `page.jsx` to redirect staff users. Fixed login components to redirect to `/staff/dashboard`.
 
-- [ ] **Step 5: Commit**
-```bash
-git add frontend/
-git commit -m "feat(staff): premium staff portal shell and order management UI"
-```
+- [x] **Step 5: Commit**
+Combined frontend epic commit.
 
 ---
 
 ### Task 4: Frontend - Inventory & Leaderboard (Gamification)
 
 **Files:**
-- Modify: `frontend/src/staff/StaffDashboard.jsx`
-- Modify: `frontend/src/views/mobile/MobileStaffDashboard.jsx`
+- Already in: `frontend/src/staff/StaffDashboard.jsx` (built together with Task 3, ponytail: no separate step)
 
 **Interfaces:**
 - Consumes: `GET /api/staff/inventory`
 
-- [ ] **Step 1: Build Inventory Tracker**
-Add the Inventory view to the Staff Dashboard. A simple, elegant table/list of materials (Zirconia Discs, Powders) with quick + / - stock adjustment buttons.
+- [x] **Step 1: Build Inventory Tracker**
+Inventory view with item list, +/- stock adjustment buttons, "Add Item" modal, LOW STOCK alerts. No card borders (shadows only).
 
-- [ ] **Step 2: Build Leaderboard/Gamification Widget**
-Add a "Cases Processed this Month" widget. Visually engaging (maybe a sleek progress ring or bar, utilizing 21st.dev design cues). Highlights "Staff of the Month" if applicable.
+- [x] **Step 2: Build Leaderboard/Gamification Widget**
+"My Performance" view with metric cards: Cases This Month, Days Present, Half Days. Hover-lift animations on cards.
 
-- [ ] **Step 3: Ensure strict UI Rules**
-Double-check: no emojis in the leaderboard, no borders on the inventory cards or widget containers.
+- [x] **Step 3: Ensure strict UI Rules**
+Verified: zero emojis, all cards use box-shadows only (no borders), clean typography, micro-animations on hover.
 
-- [ ] **Step 4: Final Build & Verification**
-Run `npm run build` to ensure the frontend compiles statically without errors.
+- [x] **Step 4: Final Build & Verification**
+`npm run build` passed: compiled successfully, 14/14 pages generated (including new `/staff/dashboard`), 0 errors.
 
-- [ ] **Step 5: Commit**
-```bash
-git add frontend/
-git commit -m "feat(staff): inventory tracking and gamification leaderboard"
-```
+- [x] **Step 5: Commit**
+Combined frontend epic commit.
+

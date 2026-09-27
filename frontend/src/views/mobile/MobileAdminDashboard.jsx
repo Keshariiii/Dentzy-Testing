@@ -13,6 +13,7 @@ import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EmptyState from '../../components/common/EmptyState';
+import StaffManagementView from '../../admin/StaffManagementView';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileAdminDashboard.css';
 
@@ -1156,54 +1157,19 @@ const MobileAdminDashboard = () => {
       {/* STAFF VIEW */}
       {adminView === 'staff' && (
         <div style={{ padding: '16px', paddingBottom: '90px' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: '0 0 16px' }}>Staff Management</h2>
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#a0b5a9' }}>{Ico.search(14)}</span>
-            <input type="text" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #e4eae7', borderRadius: '10px', fontSize: '0.85rem', background: '#f8faf9', outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-          {loadingStaff ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#708c80' }}>Loading...</div>
-          ) : (staffList.filter(s =>
-              s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) ||
-              s.username?.toLowerCase().includes(staffSearch.toLowerCase())
-            )).length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              {Ico.usersS(48)}
-              <p style={{ marginTop: '16px', color: '#708c80', fontSize: '0.85rem' }}>No staff members found. Create staff accounts from the admin portal.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gap: '10px' }}>
-              {staffList
-                .filter(s => s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) || s.username?.toLowerCase().includes(staffSearch.toLowerCase()))
-                .map(s => (
-                <div key={s.id} style={{
-                  background: '#fff', borderRadius: '12px', padding: '14px 16px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '50%', background: '#e2ece6',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, color: '#1e5038', fontSize: '0.85rem'
-                    }}>
-                      {(s.displayName || s.username || 'S').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a1a1a' }}>{s.displayName}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#708c80' }}>@{s.username}</div>
-                    </div>
-                  </div>
-                  <span style={{
-                    padding: '3px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
-                    background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
-                    color: s.status === 'active' ? '#16a34a' : '#dc2626',
-                  }}>{s.status}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <StaffManagementView
+            authFetch={authFetch}
+            ADMIN_API={ADMIN_API}
+            showToast={showToast}
+            staffList={staffList}
+            loadingStaff={loadingStaff}
+            staffSearch={staffSearch}
+            setStaffSearch={setStaffSearch}
+            fetchStaff={fetchStaff}
+            setStaffList={setStaffList}
+            Ico={Ico}
+            setConfirmConfig={setConfirmConfig}
+          />
         </div>
       )}
 

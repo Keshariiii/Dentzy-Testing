@@ -4,6 +4,7 @@
  */
 import { useAuth } from '../context/AuthContext';
 import { useAdminAuth } from '../admin/AdminAuthContext';
+import { useStaffAuth } from '../staff/StaffAuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import ResponsiveLayout from '../layouts/ResponsiveLayout';
@@ -13,14 +14,16 @@ import MobileHome from '../views/mobile/MobileHome';
 export default function HomePage() {
   const { user, loading: userLoading } = useAuth();
   const { admin, loading: adminLoading } = useAdminAuth();
+  const { staff, loading: staffLoading } = useStaffAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!userLoading && !adminLoading) {
+    if (!userLoading && !adminLoading && !staffLoading) {
       if (user) router.replace('/dashboard');
       else if (admin) router.replace('/admin/dashboard');
+      else if (staff) router.replace('/staff/dashboard');
     }
-  }, [user, admin, userLoading, adminLoading, router]);
+  }, [user, admin, staff, userLoading, adminLoading, staffLoading, router]);
 
   // While auth is loading, show the landing page (not a blank screen).
   // The useEffect above will redirect once auth confirms a session.

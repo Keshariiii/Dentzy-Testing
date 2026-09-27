@@ -6,6 +6,7 @@ import DentistDetailModal from './DentistDetailModal';
 import OrderDetailModal from '../components/OrderDetailModal';
 import PaymentDetailModal from '../components/PaymentDetailModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import StaffManagementView from './StaffManagementView';
 import './AdminDashboard.css';
 import { formatINR } from '../utils/format';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -987,60 +988,19 @@ const AdminDashboard = () => {
               </div>
             ) : adminView === 'staff' ? (
               /* ── Staff Management View ─────────────────────────────── */
-              <div>
-                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p className="ad-section-title" style={{ margin: 0 }}>Staff Management</p>
-                  <button onClick={fetchStaff} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Refresh</button>
-                </div>
-                <div className="ad-header-search" style={{ margin: '16px 0' }}>
-                  <span className="ad-search-icon">{Ico.search(14)}</span>
-                  <input type="text" className="ad-search" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} />
-                </div>
-                <div className="ad-content">
-                  {loadingStaff ? (
-                    <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
-                  ) : (staffList.filter(s =>
-                      s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) ||
-                      s.username?.toLowerCase().includes(staffSearch.toLowerCase())
-                    )).length === 0 ? (
-                    <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                      {Ico.grid(48)}
-                      <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Create staff accounts to manage your lab team.</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '12px' }}>
-                      {staffList
-                        .filter(s => s.displayName?.toLowerCase().includes(staffSearch.toLowerCase()) || s.username?.toLowerCase().includes(staffSearch.toLowerCase()))
-                        .map(s => (
-                        <div key={s.id} style={{
-                          background: '#fff', borderRadius: '12px', padding: '16px 20px',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{
-                              width: '40px', height: '40px', borderRadius: '50%', background: '#e2ece6',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontWeight: 700, color: '#1e5038', fontSize: '0.9rem'
-                            }}>
-                              {(s.displayName || s.username || 'S').charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>{s.displayName}</div>
-                              <div style={{ fontSize: '0.78rem', color: '#708c80' }}>@{s.username}</div>
-                            </div>
-                          </div>
-                          <span style={{
-                            padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                            background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
-                            color: s.status === 'active' ? '#16a34a' : '#dc2626',
-                          }}>{s.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <StaffManagementView
+                authFetch={authFetch}
+                ADMIN_API={ADMIN_API}
+                showToast={showToast}
+                staffList={staffList}
+                loadingStaff={loadingStaff}
+                staffSearch={staffSearch}
+                setStaffSearch={setStaffSearch}
+                fetchStaff={fetchStaff}
+                setStaffList={setStaffList}
+                Ico={Ico}
+                setConfirmConfig={setConfirmConfig}
+              />
             ) : adminView === 'settings' ? (
               /* ── Settings View ───────────────────────────────────────── */
               <div style={{ padding: '28px 0', maxWidth: '800px' }}>

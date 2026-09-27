@@ -88,7 +88,7 @@ const MobileLogin = () => {
         await staffLogin(staffForm.username, staffForm.password);
         localStorage.removeItem('dentzy_user');
         localStorage.removeItem('dentzy_admin_info');
-        router.push('/dashboard');
+        router.push('/staff/dashboard');
       } catch (err) {
         setError(err.message);
       } finally { setLoading(false); }
