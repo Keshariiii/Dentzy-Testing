@@ -79,6 +79,14 @@ export const StaffAuthProvider = ({ children }) => {
     setStaff(null);
   }, []);
 
+  // ── Update staff state (after profile save) ───────────────────────────────
+  const updateStaffState = useCallback((updatedStaff) => {
+    setStaff(updatedStaff);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dentzy_staff_info', JSON.stringify(updatedStaff));
+    }
+  }, []);
+
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {
     try {
@@ -104,8 +112,8 @@ export const StaffAuthProvider = ({ children }) => {
   }, []);
 
   const value = useMemo(() => ({
-    staff, loading, staffLogin, staffLogout, authFetch, STAFF_API,
-  }), [staff, loading, staffLogin, staffLogout, authFetch, STAFF_API]);
+    staff, loading, staffLogin, staffLogout, updateStaffState, authFetch, STAFF_API,
+  }), [staff, loading, staffLogin, staffLogout, updateStaffState, authFetch, STAFF_API]);
 
   return (
     <StaffAuthContext.Provider value={value}>

@@ -9,13 +9,14 @@ import { formatINR, formatDate } from '../utils/format';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
 import EmptyState from './common/EmptyState';
+import ProductionPipeline from './common/ProductionPipeline';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* =============================================================================
    SVG ICON LIBRARY — shared across desktop & mobile dashboards
 ============================================================================= */
 import { Icon, Icons } from './common/DashboardIcons';
-import { TICKER_MESSAGES, PIPELINE_STEPS, PIPELINE_STAGES } from './dashboard/shared/constants';
+import { TICKER_MESSAGES } from './dashboard/shared/constants';
 
 /* =============================================================================
    NAV ITEMS
@@ -55,92 +56,7 @@ const TickerBanner = () => (
   </div>
 );
 
-/* =============================================================================
-   PRODUCTION PIPELINE TIMELINE  (GATE 2027-inspired Important Dates section)
-============================================================================= */
-/* Pipeline steps imported from dashboard/shared/constants.js */
-
-const PipelineRow = ({ order }) => {
-  const activeIdx = order ? PIPELINE_STAGES.indexOf(order.stage) : -1;
-  return (
-    <div className="ud-timeline-steps">
-      {PIPELINE_STEPS.map((step, idx) => {
-        const isPast    = activeIdx >= 0 && idx < activeIdx;
-        const isCurrent = idx === activeIdx;
-        const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
-        return (
-          <React.Fragment key={step.key}>
-            <div className={`ud-ts-step ud-ts-${cls}`}>
-              <div className="ud-ts-icon">
-                {isPast || order?.stage === 'completed' ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={step.iconD}/>
-                  </svg>
-                )}
-              </div>
-              <span className="ud-ts-label">{step.labelDesktop || step.label}</span>
-            </div>
-            {idx < PIPELINE_STEPS.length - 1 && (
-              <div className={`ud-ts-connector${isPast || order?.stage === 'completed' ? ' filled' : ''}`} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-};
-
-const LabTimeline = ({ stats, orders, onViewOrders }) => {
-  const [showAllPipelines, setShowAllPipelines] = useState(false);
-  const inProgress = stats?.orders?.inProgress ?? 0;
-  
-  const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const activeOrder = unfinishedOrders[0] || orders?.[0];
-  const displayOrders = showAllPipelines ? unfinishedOrders : [activeOrder];
-  
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {displayOrders.map((order, index) => (
-        <div key={order?._id || index} className="ud-timeline-card">
-          <div className="ud-timeline-header">
-            <div>
-              <h3 className="ud-timeline-title">Production Pipeline</h3>
-              <p className="ud-timeline-sub">
-                {order 
-                  ? `Case ${order.caseId} • ${order.patientName} (${order.serviceType})`
-                  : 'Live status of your active lab cases'}
-              </p>
-            </div>
-            <div className="ud-timeline-hdr-right">
-              {index === 0 && inProgress > 0 && (
-                <span className="ud-live-pill">
-                  <span className="ud-pulse-dot" />
-                  {inProgress} In Progress
-                </span>
-              )}
-              {index === 0 && unfinishedOrders.length > 1 && (
-                <button 
-                  className="ud-timeline-view-btn" 
-                  style={{ marginLeft: '1rem' }} 
-                  onClick={() => setShowAllPipelines(!showAllPipelines)}
-                >
-                  {showAllPipelines ? 'View Less' : 'View More'}
-                </button>
-              )}
-            </div>
-          </div>
-          <PipelineRow order={order} />
-        </div>
-      ))}
-    </div>
-  );
-};
+/* Pipeline component now imported from common/ProductionPipeline */
 
 /* =============================================================================
    STATUS BADGE
@@ -424,7 +340,7 @@ const DentistDashboard = () => {
 
         {/* Production Pipeline Timeline */}
         {stats && (
-          <LabTimeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />
+          <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />
         )}
 
         {/* Important Sections — Action Hub */}

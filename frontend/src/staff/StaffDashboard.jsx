@@ -1,7 +1,7 @@
 'use client';
 /**
  * StaffDashboard — Full-featured Staff Portal.
- * Sections: Orders, Inventory, Leaderboard.
+ * Sections: Orders, Dentists, Inventory, Leaderboard, Settings.
  * Premium 21st.dev-inspired design. No emojis. No card borders (shadows only).
  * Ponytail: one component serves both desktop and mobile via responsive CSS.
  */
@@ -9,6 +9,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStaffAuth } from './StaffAuthContext';
 import { Icons as Ico } from '../components/common/DashboardIcons';
+import StaffOrderModal from './StaffOrderModal';
+import StaffPaymentModal from './StaffPaymentModal';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -25,11 +27,12 @@ const NAV_ITEMS = [
   { key: 'dentists', label: 'Dentists' },
   { key: 'inventory', label: 'Inventory' },
   { key: 'leaderboard', label: 'Leaderboard' },
+  { key: 'settings', label: 'Settings' },
 ];
 
 const StaffDashboard = () => {
   const router = useRouter();
-  const { staff, staffLogout, authFetch, STAFF_API } = useStaffAuth();
+  const { staff, staffLogout, updateStaffState, authFetch, STAFF_API } = useStaffAuth();
   const [activeView, setActiveView] = useState('orders');
 
   // ── Orders ──────────────────────────────────────────────────────────────
@@ -159,11 +162,11 @@ const StaffDashboard = () => {
   const [dentistOrders, setDentistOrders] = useState([]);
   const [loadingDentistDetail, setLoadingDentistDetail] = useState(false);
   const [dentistSubTab, setDentistSubTab] = useState('orders');
+
+  // ── Order / Payment Modal State ─────────────────────────────────────────
   const [editOrderModal, setEditOrderModal] = useState(null);
-  const [editOrderForm, setEditOrderForm] = useState({});
   const [editOrderSaving, setEditOrderSaving] = useState(false);
   const [editPaymentModal, setEditPaymentModal] = useState(null);
-  const [editPaymentForm, setEditPaymentForm] = useState({ status: '', paymentMode: '', referenceNumber: '' });
   const [editPaymentSaving, setEditPaymentSaving] = useState(false);
 
   const fetchDentists = useCallback(async () => {
@@ -190,38 +193,122 @@ const StaffDashboard = () => {
     setLoadingDentistDetail(false);
   }, [authFetch, STAFF_API]);
 
-  const handleEditOrder = async () => {
+  // ── Order/Payment Modal handlers ────────────────────────────────────────
+  const handleEditOrderSubmit = async (order, form) => {
     setEditOrderSaving(true);
     try {
-      const res = await authFetch(`${STAFF_API}/orders/${editOrderModal._id || editOrderModal.id}`, {
+      const res = await authFetch(`${STAFF_API}/orders/${order._id || order.id}`, {
         method: 'PATCH',
-        body: JSON.stringify(editOrderForm),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (res.ok) {
         showToast(data.message || 'Order updated.');
         setEditOrderModal(null);
+        fetchOrders();
         if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
     setEditOrderSaving(false);
   };
 
-  const handleEditPayment = async () => {
+  const handleEditPaymentSubmit = async (payment, form) => {
     setEditPaymentSaving(true);
     try {
-      const res = await authFetch(`${STAFF_API}/payments/${editPaymentModal.paymentId || editPaymentModal._id}`, {
+      const res = await authFetch(`${STAFF_API}/payments/${payment.paymentId || payment._id}`, {
         method: 'PATCH',
-        body: JSON.stringify(editPaymentForm),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (res.ok) {
         showToast(data.message || 'Payment updated.');
         setEditPaymentModal(null);
+        fetchOrders();
         if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
     setEditPaymentSaving(false);
+  };
+
+  // ── Settings ────────────────────────────────────────────────────────────
+  const [profileForm, setProfileForm] = useState({ displayName: '', email: '', phone: '', dob: '' });
+  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwMsg, setPwMsg] = useState({ type: '', text: '' });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
+  useEffect(() => {
+    if (staff) {
+      setProfileForm({
+        displayName: staff.displayName || '',
+        email: staff.email || '',
+        phone: staff.phone || '',
+        dob: staff.dob ? (staff.dob.length >= 10 ? staff.dob.slice(0, 10) : staff.dob) : '',
+      });
+    }
+  }, [staff]);
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    if (profileForm.displayName.trim().length < 2) {
+      setProfileMsg({ type: 'error', text: 'Name must be at least 2 characters.' });
+      return;
+    }
+    setProfileSaving(true);
+    setProfileMsg({ type: '', text: '' });
+    try {
+      const res = await authFetch(`${STAFF_API}/profile`, {
+        method: 'PUT',
+        body: JSON.stringify(profileForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        updateStaffState(data.staff);
+        setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
+        setIsEditingProfile(false);
+      } else {
+        setProfileMsg({ type: 'error', text: data.message || 'Failed to update profile.' });
+      }
+    } catch {
+      setProfileMsg({ type: 'error', text: 'Network error.' });
+    }
+    setProfileSaving(false);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwMsg({ type: '', text: '' });
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwMsg({ type: 'error', text: 'New passwords do not match.' });
+      return;
+    }
+    if (pwForm.newPassword.length < 6) {
+      setPwMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const res = await authFetch(`${STAFF_API}/change-password`, {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPwMsg({ type: 'success', text: data.message || 'Password changed successfully!' });
+        setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setTimeout(() => { setShowChangePassword(false); setPwMsg({ type: '', text: '' }); }, 1800);
+      } else {
+        setPwMsg({ type: 'error', text: data.message || 'Failed to change password.' });
+      }
+    } catch {
+      setPwMsg({ type: 'error', text: 'Network error.' });
+    }
+    setPwSaving(false);
   };
 
   // ── Helpers ─────────────────────────────────────────────────────────────
@@ -245,6 +332,23 @@ const StaffDashboard = () => {
 
   const staffName = staff?.displayName || staff?.username || 'Staff';
   const initials = staffName.slice(0, 2).toUpperCase();
+
+  const formatDob = (dob) => {
+    if (!dob) return '\u2014';
+    const d = new Date(dob);
+    if (isNaN(d.getTime())) return '\u2014';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  const EyeIcon = ({ show }) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {show ? (
+        <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
+      ) : (
+        <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
+      )}
+    </svg>
+  );
 
   return (
     <div className="sd-shell">
@@ -315,7 +419,8 @@ const StaffDashboard = () => {
               {filteredOrders.map(order => {
                 const currentStageIdx = STAGES.findIndex(s => s.key === order.stage);
                 return (
-                  <div key={order.id || order._id} className="sd-order-card">
+                  <div key={order.id || order._id} className="sd-order-card sd-order-card--clickable"
+                    onClick={() => setEditOrderModal(order)}>
                     <div className="sd-order-header">
                       <div>
                         <span className="sd-order-caseid">{order.caseId || 'N/A'}</span>
@@ -331,7 +436,7 @@ const StaffDashboard = () => {
                     </div>
 
                     {/* Stage Stepper */}
-                    <div className="sd-stage-stepper">
+                    <div className="sd-stage-stepper" onClick={e => e.stopPropagation()}>
                       {STAGES.map((stage, idx) => (
                         <button key={stage.key}
                           className={`sd-stage-step ${idx <= currentStageIdx ? 'sd-stage-step--done' : ''} ${idx === currentStageIdx ? 'sd-stage-step--current' : ''}`}
@@ -567,16 +672,10 @@ const StaffDashboard = () => {
                         </div>
                         <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                           <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                            onClick={() => {
-                              setEditOrderModal(order);
-                              setEditOrderForm({ status: order.status || 'Pending', dueDate: order.dueDate || '', notes: order.notes || '', priority: order.priority || 'Normal', stage: order.stage || 'received' });
-                            }}>Edit Order</button>
+                            onClick={() => setEditOrderModal(order)}>Edit Order</button>
                           {order.paymentId && (
                             <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                              onClick={() => {
-                                setEditPaymentModal(order);
-                                setEditPaymentForm({ status: order.paymentStatus || 'Pending', paymentMode: order.paymentMode || '', referenceNumber: order.referenceNumber || '' });
-                              }}>Update Payment</button>
+                              onClick={() => setEditPaymentModal(order)}>Update Payment</button>
                           )}
                         </div>
                       </div>
@@ -607,10 +706,7 @@ const StaffDashboard = () => {
                         {order.paymentId && (
                           <div style={{ marginTop: '8px' }}>
                             <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                              onClick={() => {
-                                setEditPaymentModal(order);
-                                setEditPaymentForm({ status: order.paymentStatus || 'Pending', paymentMode: order.paymentMode || '', referenceNumber: order.referenceNumber || '' });
-                              }}>Update Payment</button>
+                              onClick={() => setEditPaymentModal(order)}>Update Payment</button>
                           </div>
                         )}
                       </div>
@@ -620,101 +716,203 @@ const StaffDashboard = () => {
               )}
             </div>
           )}
-
-          {/* Edit Order Modal */}
-          {editOrderModal && (
-            <div className="sd-modal-overlay" onClick={() => setEditOrderModal(null)}>
-              <div className="sd-modal" onClick={e => e.stopPropagation()}>
-                <div className="sd-modal-header">
-                  <h3>Edit Order - {editOrderModal.caseId}</h3>
-                  <button className="sd-modal-close" onClick={() => setEditOrderModal(null)}>{Ico.x(16)}</button>
-                </div>
-                <div className="sd-modal-body">
-                  <div className="sd-field">
-                    <label>Status</label>
-                    <select value={editOrderForm.status}
-                      onChange={e => setEditOrderForm(f => ({ ...f, status: e.target.value }))}>
-                      {['Pending', 'In Progress', 'Completed', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  <div className="sd-field">
-                    <label>Stage</label>
-                    <select value={editOrderForm.stage}
-                      onChange={e => setEditOrderForm(f => ({ ...f, stage: e.target.value }))}>
-                      {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                    </select>
-                  </div>
-                  <div className="sd-field">
-                    <label>Priority</label>
-                    <select value={editOrderForm.priority}
-                      onChange={e => setEditOrderForm(f => ({ ...f, priority: e.target.value }))}>
-                      {['Low', 'Normal', 'High', 'Urgent'].map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                  <div className="sd-field">
-                    <label>Due Date</label>
-                    <input type="date" value={(editOrderForm.dueDate || '').slice(0, 10)}
-                      onChange={e => setEditOrderForm(f => ({ ...f, dueDate: e.target.value }))} />
-                  </div>
-                  <div className="sd-field">
-                    <label>Notes</label>
-                    <textarea rows="3" value={editOrderForm.notes}
-                      onChange={e => setEditOrderForm(f => ({ ...f, notes: e.target.value }))} />
-                  </div>
-                </div>
-                <div className="sd-modal-actions">
-                  <button className="sd-btn-secondary" onClick={() => setEditOrderModal(null)}>Cancel</button>
-                  <button className="sd-btn-primary" onClick={handleEditOrder} disabled={editOrderSaving}>
-                    {editOrderSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Edit Payment Modal */}
-          {editPaymentModal && (
-            <div className="sd-modal-overlay" onClick={() => setEditPaymentModal(null)}>
-              <div className="sd-modal" onClick={e => e.stopPropagation()}>
-                <div className="sd-modal-header">
-                  <h3>Update Payment - {editPaymentModal.caseId}</h3>
-                  <button className="sd-modal-close" onClick={() => setEditPaymentModal(null)}>{Ico.x(16)}</button>
-                </div>
-                <div className="sd-modal-body">
-                  <div className="sd-field">
-                    <label>Payment Status</label>
-                    <select value={editPaymentForm.status}
-                      onChange={e => setEditPaymentForm(f => ({ ...f, status: e.target.value }))}>
-                      {['Pending', 'Paid', 'Overdue', 'Cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  {editPaymentForm.status === 'Paid' && (
-                    <>
-                      <div className="sd-field">
-                        <label>Payment Mode</label>
-                        <select value={editPaymentForm.paymentMode}
-                          onChange={e => setEditPaymentForm(f => ({ ...f, paymentMode: e.target.value }))}>
-                          {['', 'Cash', 'UPI', 'Cheque', 'Other'].map(m => <option key={m} value={m}>{m || 'Select...'}</option>)}
-                        </select>
-                      </div>
-                      <div className="sd-field">
-                        <label>Reference / Transaction Number</label>
-                        <input type="text" placeholder="UTR / Cheque No." value={editPaymentForm.referenceNumber}
-                          onChange={e => setEditPaymentForm(f => ({ ...f, referenceNumber: e.target.value }))} />
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="sd-modal-actions">
-                  <button className="sd-btn-secondary" onClick={() => setEditPaymentModal(null)}>Cancel</button>
-                  <button className="sd-btn-primary" onClick={handleEditPayment} disabled={editPaymentSaving}>
-                    {editPaymentSaving ? 'Saving...' : 'Update Payment'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </main>
+      )}
+
+      {/* ── SETTINGS VIEW ────────────────────────────────────────────── */}
+      {activeView === 'settings' && (
+        <main className="sd-main">
+          <h2 className="sd-section-title" style={{ marginBottom: '20px' }}>Account Settings</h2>
+
+          {/* Profile Card */}
+          <div className="sd-settings-card">
+            <div className="sd-settings-card-head">
+              <div className="sd-settings-avatar">{initials}</div>
+              <div className="sd-settings-card-head-info">
+                <span className="sd-settings-card-name">{staff?.displayName || staff?.username}</span>
+                <span className="sd-settings-card-email">{staff?.email || staff?.username}</span>
+              </div>
+              {!isEditingProfile && (
+                <button
+                  type="button"
+                  className="sd-btn-secondary"
+                  onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {!isEditingProfile && (
+              <div className="sd-settings-info-rows">
+                <div className="sd-settings-info-row">
+                  <span className="sd-settings-info-label">Full Name</span>
+                  <span className="sd-settings-info-value">{staff?.displayName || '\u2014'}</span>
+                </div>
+                <div className="sd-settings-info-row">
+                  <span className="sd-settings-info-label">Username</span>
+                  <span className="sd-settings-info-value">{staff?.username || '\u2014'}</span>
+                </div>
+                <div className="sd-settings-info-row">
+                  <span className="sd-settings-info-label">Date of Birth</span>
+                  <span className="sd-settings-info-value">{formatDob(staff?.dob)}</span>
+                </div>
+                <div className="sd-settings-info-row">
+                  <span className="sd-settings-info-label">Email</span>
+                  <span className="sd-settings-info-value">{staff?.email || '\u2014'}</span>
+                </div>
+                <div className="sd-settings-info-row">
+                  <span className="sd-settings-info-label">Phone</span>
+                  <span className="sd-settings-info-value">{staff?.phone || '\u2014'}</span>
+                </div>
+              </div>
+            )}
+
+            {isEditingProfile && (
+              <form className="sd-settings-edit-form" onSubmit={handleProfileSave} noValidate>
+                <div className="sd-field">
+                  <label>Display Name</label>
+                  <input
+                    type="text"
+                    value={profileForm.displayName}
+                    onChange={e => setProfileForm(p => ({ ...p, displayName: e.target.value }))}
+                    placeholder="Your name"
+                    maxLength={60}
+                    autoFocus
+                  />
+                </div>
+                <div className="sd-field-row">
+                  <div className="sd-field">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div className="sd-field">
+                    <label>Phone</label>
+                    <input
+                      type="tel"
+                      value={profileForm.phone}
+                      onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+                      placeholder="Mobile number"
+                      maxLength={20}
+                    />
+                  </div>
+                </div>
+                <div className="sd-field">
+                  <label>Date of Birth</label>
+                  <input
+                    type="date"
+                    value={profileForm.dob}
+                    onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                {profileMsg.text && (
+                  <div className={`sd-form-msg sd-form-msg--${profileMsg.type}`}>
+                    {profileMsg.text}
+                  </div>
+                )}
+                <div className="sd-modal-actions">
+                  <button type="button" className="sd-btn-secondary" onClick={() => { setIsEditingProfile(false); setProfileMsg({ type: '', text: '' }); }} disabled={profileSaving}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="sd-btn-primary" disabled={profileSaving}>
+                    {profileSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {profileMsg.text && !isEditingProfile && (
+              <div className={`sd-form-msg sd-form-msg--${profileMsg.type}`}>
+                {profileMsg.text}
+              </div>
+            )}
+          </div>
+
+          {/* Security Card */}
+          <div className="sd-settings-card" style={{ marginTop: '16px' }}>
+            <div className="sd-settings-action-row">
+              <div className="sd-settings-action-info">
+                <span className="sd-settings-action-label">Change Password</span>
+                <span className="sd-settings-action-sub">Update your login password.</span>
+              </div>
+              <button
+                type="button"
+                className="sd-btn-secondary"
+                onClick={() => {
+                  setShowChangePassword(v => !v);
+                  setPwMsg({ type: '', text: '' });
+                  setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }}
+              >
+                {showChangePassword ? 'Cancel' : 'Change'}
+              </button>
+            </div>
+
+            {showChangePassword && (
+              <form className="sd-settings-edit-form" onSubmit={handlePasswordChange} noValidate style={{ marginTop: '16px' }}>
+                {[
+                  { key: 'current', label: 'Current Password', field: 'currentPassword', autoComplete: 'current-password' },
+                  { key: 'new',     label: 'New Password',     field: 'newPassword',     autoComplete: 'new-password' },
+                  { key: 'confirm', label: 'Confirm Password', field: 'confirmPassword', autoComplete: 'new-password' },
+                ].map(({ key, label, field, autoComplete }) => (
+                  <div className="sd-field" key={key}>
+                    <label>{label}</label>
+                    <div className="sd-pw-wrap">
+                      <input
+                        type={showPw[key] ? 'text' : 'password'}
+                        value={pwForm[field]}
+                        onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))}
+                        placeholder={label}
+                        autoComplete={autoComplete}
+                      />
+                      <button
+                        type="button"
+                        className="sd-pw-toggle"
+                        onClick={() => setShowPw(p => ({ ...p, [key]: !p[key] }))}
+                        aria-label={showPw[key] ? 'Hide' : 'Show'}
+                      >
+                        <EyeIcon show={showPw[key]} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {pwMsg.text && (
+                  <div className={`sd-form-msg sd-form-msg--${pwMsg.type}`}>
+                    {pwMsg.text}
+                  </div>
+                )}
+                <button type="submit" className="sd-btn-primary" disabled={pwSaving} style={{ alignSelf: 'flex-start' }}>
+                  {pwSaving ? 'Saving...' : 'Update Password'}
+                </button>
+              </form>
+            )}
+          </div>
+        </main>
+      )}
+
+      {/* ── Modals (global — work from any view) ─────────────────────── */}
+      {editOrderModal && (
+        <StaffOrderModal
+          order={editOrderModal}
+          onClose={() => setEditOrderModal(null)}
+          onSave={handleEditOrderSubmit}
+          saving={editOrderSaving}
+        />
+      )}
+
+      {editPaymentModal && (
+        <StaffPaymentModal
+          payment={editPaymentModal}
+          onClose={() => setEditPaymentModal(null)}
+          onSave={handleEditPaymentSubmit}
+          saving={editPaymentSaving}
+        />
       )}
 
       {/* ── Mobile Bottom Nav ────────────────────────────────────────── */}

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyStaff } from '../middleware/auth.js';
 import { staffLoginSchema } from '../validators/staff.js';
-import { comparePassword, signJWT } from '../utils/crypto.js';
+import { comparePassword, hashPassword, signJWT } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
@@ -66,7 +66,68 @@ staff.post('/logout', (c) => {
 });
 
 // GET /api/staff/me
-staff.get('/me', verifyStaff(), (c) => c.json({ staff: c.get('staff') }));
+staff.get('/me', verifyStaff(), async (c) => {
+  const row = await c.env.DB.prepare(
+    'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+  ).bind(c.get('staff').id).first();
+  return c.json({ staff: { ...row, role: 'staff' } });
+});
+
+// PUT /api/staff/profile
+staff.put('/profile', verifyStaff(), async (c) => {
+  try {
+    const staffId = c.get('staff').id;
+    const { displayName, email, phone, dob } = await c.req.json();
+    const ts = now();
+
+    const { meta } = await c.env.DB.prepare(
+      'UPDATE staff SET displayName = ?, email = ?, phone = ?, dob = ?, updatedAt = ? WHERE id = ?'
+    ).bind(displayName || '', email || '', phone || '', dob || '', ts, staffId).run();
+
+    if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
+
+    const updated = await c.env.DB.prepare(
+      'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+    ).bind(staffId).first();
+    auditLog('STAFF_PROFILE_UPDATED', { staffId });
+
+    return c.json({ message: 'Profile updated.', staff: { ...updated, role: 'staff' } });
+  } catch (err) {
+    logger.error('Staff profile update error', { error: err.message });
+    return c.json({ message: 'Failed to update profile.' }, 500);
+  }
+});
+
+// PUT /api/staff/change-password
+staff.put('/change-password', verifyStaff(), async (c) => {
+  try {
+    const staffId = c.get('staff').id;
+    const { currentPassword, newPassword } = await c.req.json();
+
+    if (!currentPassword || !newPassword) {
+      return c.json({ message: 'Current and new passwords are required.' }, 400);
+    }
+    if (newPassword.length < 6) {
+      return c.json({ message: 'New password must be at least 6 characters.' }, 400);
+    }
+
+    const row = await c.env.DB.prepare('SELECT password FROM staff WHERE id = ?').bind(staffId).first();
+    if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+    const valid = await comparePassword(currentPassword, row.password);
+    if (!valid) return c.json({ message: 'Incorrect current password.' }, 401);
+
+    const hashed = await hashPassword(newPassword);
+    const ts = now();
+    await c.env.DB.prepare('UPDATE staff SET password = ?, updatedAt = ? WHERE id = ?').bind(hashed, ts, staffId).run();
+
+    auditLog('STAFF_PASSWORD_CHANGED', { staffId });
+    return c.json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    logger.error('Staff password change error', { error: err.message });
+    return c.json({ message: 'Failed to update password.' }, 500);
+  }
+});
 
 // ── Staff Orders ─────────────────────────────────────────────────────────────
 

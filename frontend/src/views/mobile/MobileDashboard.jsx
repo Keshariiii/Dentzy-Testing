@@ -20,12 +20,13 @@ import PaymentDetailModal from '../../components/PaymentDetailModal';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
+import ProductionPipeline from '../../components/common/ProductionPipeline';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
 ============================================================ */
 import { Icon, Icons } from '../../components/common/DashboardIcons';
-import { TICKER_MESSAGES, PIPELINE_STEPS, PIPELINE_STAGES } from '../../components/dashboard/shared/constants';
+import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
 
 /* ============================================================
    TICKER
@@ -47,92 +48,7 @@ const Ticker = () => (
   </div>
 );
 
-/* ============================================================
-   PIPELINE
-============================================================ */
-/* Pipeline steps imported from dashboard/shared/constants.js */
-
-const MobilePipelineRow = ({ order }) => {
-  const activeIdx = order ? PIPELINE_STAGES.indexOf(order.stage) : -1;
-  return (
-    <div className="m-pipeline-steps">
-      {PIPELINE_STEPS.map((step, idx) => {
-        const isPast    = activeIdx >= 0 && idx < activeIdx;
-        const isCurrent = idx === activeIdx;
-        const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
-        return (
-          <React.Fragment key={step.key}>
-            <div className={`m-ps-step m-ps-${cls}`}>
-              <div className="m-ps-icon">
-                {isPast || order?.stage === 'completed' ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d={step.iconD} />
-                  </svg>
-                )}
-              </div>
-              <span className="m-ps-label">{step.label}</span>
-            </div>
-            {idx < PIPELINE_STEPS.length - 1 && (
-              <div className={`m-ps-connector${isPast || order?.stage === 'completed' ? ' filled' : ''}`} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-};
-
-const MobilePipeline = ({ stats, orders, onViewOrders }) => {
-  const [showAllPipelines, setShowAllPipelines] = useState(false);
-  const inProgress = stats?.orders?.inProgress ?? 0;
-  
-  const unfinishedOrders = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const activeOrder = unfinishedOrders[0] || orders?.[0];
-  const displayOrders = showAllPipelines ? unfinishedOrders : [activeOrder];
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {displayOrders.map((order, index) => (
-        <div key={order?._id || index} className="m-pipeline-card">
-          <div className="m-pipeline-hdr">
-            <div>
-              <h3 className="m-pipeline-title">Production Pipeline</h3>
-              <p className="m-pipeline-sub">
-                {order 
-                  ? `Case ${order.caseId} • ${order.patientName}`
-                  : 'Live status of your active lab cases'}
-              </p>
-            </div>
-            <div className="m-pipeline-hdr-right" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-              {index === 0 && inProgress > 0 && (
-                <span className="m-live-pill">
-                  <span className="m-pulse-dot" />
-                  {inProgress} In Progress
-                </span>
-              )}
-              {index === 0 && unfinishedOrders.length > 1 && (
-                <button 
-                  className="m-link-btn" 
-                  onClick={() => setShowAllPipelines(!showAllPipelines)}
-                >
-                  {showAllPipelines ? 'View Less' : 'View More'}
-                </button>
-              )}
-            </div>
-          </div>
-          
-          <MobilePipelineRow order={order} />
-        </div>
-      ))}
-    </div>
-  );
-};
+/* Pipeline component now imported from common/ProductionPipeline */
 
 /* ============================================================
    STATUS PILL
@@ -461,7 +377,7 @@ const MobileDashboard = () => {
         )}
 
         {/* Pipeline */}
-        {stats && <MobilePipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
+        {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
         {/* Action Hub */}
         <div className="m-section">

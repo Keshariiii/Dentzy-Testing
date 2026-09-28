@@ -658,3 +658,214 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Clickable Order Card ──────────────────────────────────────────── */
+.sd-order-card--clickable { cursor: pointer; }
+
+/* ── Modal Summary Strip ───────────────────────────────────────────── */
+.sd-modal-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: #f0f7f3;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: #4a7060;
+}
+
+/* ── Select styling (matches input) ────────────────────────────────── */
+.sd-field select,
+.sd-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2ece6;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  outline: none;
+  background: #f8faf9;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  color: #1a3028;
+}
+.sd-field select:focus,
+.sd-field textarea:focus { border-color: #1e5038; }
+
+.sd-field textarea { resize: vertical; min-height: 68px; }
+
+/* ── Settings Card ─────────────────────────────────────────────────── */
+.sd-settings-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.sd-settings-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.sd-settings-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5038 0%, #2a7b55 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sd-settings-card-head-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sd-settings-card-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a3028;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sd-settings-card-email {
+  font-size: 0.82rem;
+  color: #708c80;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Settings Info Rows (read-only view) ───────────────────────────── */
+.sd-settings-info-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.sd-settings-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f7f3;
+}
+
+.sd-settings-info-row:last-child { border-bottom: none; }
+
+.sd-settings-info-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #708c80;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sd-settings-info-value {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #1a3028;
+  text-align: right;
+}
+
+/* ── Settings Edit Form ────────────────────────────────────────────── */
+.sd-settings-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ── Settings Security Action Row ──────────────────────────────────── */
+.sd-settings-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.sd-settings-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sd-settings-action-label {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #1a3028;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sd-settings-action-sub {
+  font-size: 0.78rem;
+  color: #708c80;
+}
+
+/* ── Password Wrap (input + toggle) ────────────────────────────────── */
+.sd-pw-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sd-pw-wrap input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.sd-pw-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a0b5a9;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.sd-pw-toggle:hover { color: #1e5038; }
+
+/* ── Form Messages ─────────────────────────────────────────────────── */
+.sd-form-msg {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.sd-form-msg--success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.sd-form-msg--error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ── Mobile Settings Adjustments ───────────────────────────────────── */
+@media (max-width: 767px) {
+  .sd-settings-card { padding: 16px; }
+  .sd-settings-card-head { flex-wrap: wrap; }
+  .sd-settings-info-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .sd-settings-info-value { text-align: left; }
+  .sd-settings-action-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sd-field-row { grid-template-columns: 1fr; }
+}
