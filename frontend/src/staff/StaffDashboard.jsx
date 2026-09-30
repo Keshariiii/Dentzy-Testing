@@ -11,6 +11,7 @@ import { useStaffAuth } from './StaffAuthContext';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
+import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -23,11 +24,11 @@ const STAGES = [
 ];
 
 const NAV_ITEMS = [
-  { key: 'orders', label: 'Orders' },
-  { key: 'dentists', label: 'Dentists' },
-  { key: 'inventory', label: 'Inventory' },
-  { key: 'leaderboard', label: 'Leaderboard' },
-  { key: 'settings', label: 'Settings' },
+  { key: 'orders', label: 'Orders', icon: (active) => Ico.labOrder(active ? 20 : 19) },
+  { key: 'dentists', label: 'Dentists', icon: (active) => Ico.clinic(active ? 20 : 19) },
+  { key: 'inventory', label: 'Inventory', icon: (active) => Ico.package(active ? 20 : 19) },
+  { key: 'leaderboard', label: 'Leaderboard', icon: (active) => Ico.chart(active ? 20 : 19) },
+  { key: 'settings', label: 'Settings', icon: (active) => Ico.settings(active ? 20 : 19) },
 ];
 
 const StaffDashboard = () => {
@@ -915,16 +916,12 @@ const StaffDashboard = () => {
         />
       )}
 
-      {/* ── Mobile Bottom Nav ────────────────────────────────────────── */}
-      <div className="sd-bottom-nav">
-        {NAV_ITEMS.map(item => (
-          <button key={item.key}
-            className={`sd-bnav-btn ${activeView === item.key ? 'sd-bnav-btn--active' : ''}`}
-            onClick={() => setActiveView(item.key)}>
-            <span className="sd-bnav-label">{item.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
+      <TwentyFirstBottomNav
+        items={NAV_ITEMS}
+        activeKey={activeView}
+        onChange={setActiveView}
+      />
     </div>
   );
 };

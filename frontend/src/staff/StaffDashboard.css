@@ -1,22 +1,20 @@
 /**
  * StaffDashboard.css — Premium Staff Portal styles.
  * 21st.dev-inspired: shadows only (no borders), subtle animations, clean typography.
- * Responsive: desktop (full nav) + mobile (bottom nav).
+ * Responsive: desktop (full nav) + mobile (21st.dev animated bottom nav).
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ── Shell ──────────────────────────────────────────────────────────── */
 .sd-shell {
   min-height: 100vh;
   background: #f4f6f5;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--dz-font-family, system-ui, -apple-system, BlinkMacSystemFont, sans-serif);
   color: #1a3028;
   padding-bottom: 0;
 }
 
 @media (max-width: 767px) {
-  .sd-shell { padding-bottom: 72px; }
+  .sd-shell { padding-bottom: 84px; }
 }
 
 /* ── Header ─────────────────────────────────────────────────────────── */
@@ -94,8 +92,10 @@
 @media (max-width: 767px) {
   .sd-header { padding: 12px 16px; }
   .sd-header-name { display: none; }
+  .sd-header-title { display: none; }
   .sd-logout-text { display: none; }
   .sd-logout-btn { padding: 6px 8px; }
+  .sd-logo { height: 32px; }
 }
 
 /* ── Nav ────────────────────────────────────────────────────────────── */
@@ -612,47 +612,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Mobile Bottom Nav ──────────────────────────────────────────────── */
-.sd-bottom-nav {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .sd-bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #fff;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
-    padding: 8px 0;
-    z-index: 100;
-  }
-
-  .sd-bnav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 4px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #a0b5a9;
-    transition: color 0.2s;
-  }
-
-  .sd-bnav-btn--active { color: #1e5038; }
-
-  .sd-bnav-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-  }
-
-  .sd-bnav-btn--active .sd-bnav-label { font-weight: 700; }
-}
+/* ponytail: old .sd-bottom-nav removed — replaced by 21st.dev TwentyFirstBottomNav (Tailwind) */
 
 /* ── Spin (for loading spinner reuse) ───────────────────────────────── */
 @keyframes spin {
