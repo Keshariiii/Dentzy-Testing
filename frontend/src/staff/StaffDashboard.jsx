@@ -353,15 +353,28 @@ const StaffDashboard = () => {
 
   return (
     <div className="sd-shell">
-      {/* ── Top Bar ─────────────────────────────────────────────────── */}
+      {/* -- Top Bar --------------------------------------------------------- */}
       <header className="sd-header">
-        <div className="sd-header-left">
+        <button
+          type="button"
+          className="sd-header-left"
+          onClick={() => setActiveView('settings')}
+          aria-label="Go to Staff Settings"
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 'inherit' }}
+        >
           <img src="/dentzy-logo-v2.png" alt="Dentzy" className="sd-logo" />
           <span className="sd-header-title">Staff Portal</span>
-        </div>
+        </button>
         <div className="sd-header-right">
           <span className="sd-header-name">{staffName}</span>
-          <div className="sd-avatar">{initials}</div>
+          <button
+            type="button"
+            onClick={() => setActiveView('settings')}
+            aria-label="Staff Profile Settings"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            <div className="sd-avatar">{initials}</div>
+          </button>
           <button onClick={handleLogout} className="sd-logout-btn">
             {Ico.logout(16)} <span className="sd-logout-text">Logout</span>
           </button>

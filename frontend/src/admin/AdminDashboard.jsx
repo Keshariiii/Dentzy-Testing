@@ -517,9 +517,20 @@ const AdminDashboard = () => {
           <span /><span /><span />
         </button>
         {/* Logo */}
-        <div className="ad-header-logo">
-          <img src={dentzyLogo} alt="Dentzy" className="ad-logo-img" />
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setAdminView('settings');
+            fetchStatsRef.current?.();
+            fetchPaymentsRef.current?.();
+          }}
+          aria-label="Go to Settings"
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+        >
+          <div className="ad-header-logo">
+            <img src={dentzyLogo} alt="Dentzy" className="ad-logo-img" />
+          </div>
+        </button>
 
         {/* Search */}
         <div className="ad-header-search">
@@ -527,14 +538,24 @@ const AdminDashboard = () => {
           <input
             type="text"
             className="ad-search"
-            placeholder="Search users…"
+            placeholder="Search users..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         {/* Admin info */}
-        <div className="ad-header-user">
+        <button
+          type="button"
+          className="ad-header-user"
+          onClick={() => {
+            setAdminView('settings');
+            fetchStatsRef.current?.();
+            fetchPaymentsRef.current?.();
+          }}
+          aria-label="Admin Profile Settings"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+        >
           <div className="ad-header-user-details">
             <span className="ad-header-admin-name">{adminName}</span>
             <span className="ad-header-admin-role">
@@ -543,7 +564,7 @@ const AdminDashboard = () => {
             </span>
           </div>
           <div className="ad-header-avatar">{initials}</div>
-        </div>
+        </button>
       </header>
 
       {/* ── BODY ──────────────────────────────────────────────────────────── */}

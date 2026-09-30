@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 /**
  * MobileHeader — Sleek app-style top bar for mobile views.
  *
@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHeader.css';
 
-const MobileHeader = ({ title = null, showBack = false, transparent = false, showLogin = true, onAvatarClick = null, children = null, rightElement = null }) => {
+const MobileHeader = ({ title = null, showBack = false, transparent = false, showLogin = true, onAvatarClick = null, onLogoClick = null, children = null, rightElement = null }) => {
   const { user } = useAuth();
   const router = useRouter();
   const initials = user?.name
@@ -34,6 +34,15 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
+          </button>
+        ) : onLogoClick ? (
+          <button
+            type="button"
+            onClick={onLogoClick}
+            aria-label="Settings"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          >
+            <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />
           </button>
         ) : (
           <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />

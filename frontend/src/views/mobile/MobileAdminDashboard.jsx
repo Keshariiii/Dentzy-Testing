@@ -20,6 +20,8 @@ import './MobileAdminDashboard.css';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
+import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
+import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 
 const DENTIST_TABS = [
   { key: 'all',      label: 'All' },
@@ -32,10 +34,11 @@ const ORDER_TABS = ['all', 'In Progress', 'Pending', 'Completed', 'Cancelled'];
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
 const PAY_MODE_TABS = ['all', 'Cash', 'Cheque', 'UPI'];
 
-const ADMIN_NAV = [
-  { key: 'dentists', label: 'Dentist',  icon: (s) => Ico.usersS(s) },
-  { key: 'staff',    label: 'Staff',    icon: (s) => Ico.usersS(s) },
-  { key: 'settings', label: 'Settings', icon: (s) => Ico.settings(s) },
+/* ponytail: ADMIN_NAV_ITEMS feeds TwentyFirstBottomNav -- badge is dynamic via stats.pending */
+const ADMIN_NAV_BASE = [
+  { key: 'dentists', label: 'Dentists', icon: () => Ico.usersS(20) },
+  { key: 'staff',    label: 'Staff',    icon: () => Ico.user(20)   },
+  { key: 'settings', label: 'Settings', icon: () => Ico.settings(20) },
 ];
 
 /* ============================================================
@@ -54,6 +57,8 @@ const MobileAdminDashboard = () => {
   const [adminView, setAdminView] = useState('dentists');
   // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments'
   const [dentistSubView, setDentistSubView] = useState(null);
+  // Staff sub-view: null (landing) | 'members' | 'attendance' | 'inventory' | 'metrics'
+  const [staffSubView, setStaffSubView] = useState(null);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -569,8 +574,32 @@ const MobileAdminDashboard = () => {
       <MobileHeader
         title={null}
         showLogin={false}
-        rightElement={<div className="ma-avatar">{initials}</div>}
+        onLogoClick={() => {
+          setAdminView('settings');
+          setDentistSubView(null);
+          setStaffSubView(null);
+          fetchStats();
+          fetchPayments();
+        }}
+        rightElement={
+          <button
+            type="button"
+            className="ma-avatar"
+            onClick={() => {
+              setAdminView('settings');
+              setDentistSubView(null);
+              setStaffSubView(null);
+              fetchStats();
+              fetchPayments();
+            }}
+            aria-label="Admin Settings"
+            style={{ border: 'none', cursor: 'pointer' }}
+          >
+            {initials}
+          </button>
+        }
       />
+
 
 
 
@@ -614,30 +643,17 @@ const MobileAdminDashboard = () => {
               { key: 'orders', label: 'Lab Orders', desc: 'Track all lab orders', iconFn: () => Ico.labOrder(22) },
               { key: 'payments', label: 'Payments', desc: 'Billing and payment records', iconFn: () => Ico.payments(22) },
             ].map(card => (
-              <button key={card.key}
+              <TwentyFirstNavCard
+                key={card.key}
+                label={card.label}
+                desc={card.desc}
+                icon={card.iconFn()}
                 onClick={() => {
                   setDentistSubView(card.key);
                   if (card.key === 'orders') fetchAllOrders();
                   if (card.key === 'payments') fetchPaymentsRef.current?.();
                 }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '14px', padding: '18px 16px',
-                  background: '#fff', borderRadius: '14px', border: 'none', cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)', textAlign: 'left', width: '100%',
-                }}>
-                <div style={{
-                  width: '44px', height: '44px', borderRadius: '12px', background: 'var(--dz-color-primary-muted)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dz-color-primary-dark)',
-                  flexShrink: 0,
-                }}>{card.iconFn()}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a1a1a' }}>{card.label}</div>
-                  <div style={{ fontSize: '0.76rem', color: '#708c80', marginTop: '2px' }}>{card.desc}</div>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aab" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -1154,23 +1170,67 @@ const MobileAdminDashboard = () => {
         </>
       )}
 
-      {/* STAFF VIEW */}
-      {adminView === 'staff' && (
-        <div style={{ padding: '16px', paddingBottom: '90px' }}>
-          <StaffManagementView
-            authFetch={authFetch}
-            ADMIN_API={ADMIN_API}
-            showToast={showToast}
-            staffList={staffList}
-            loadingStaff={loadingStaff}
-            staffSearch={staffSearch}
-            setStaffSearch={setStaffSearch}
-            fetchStaff={fetchStaff}
-            setStaffList={setStaffList}
-            Ico={Ico}
-            setConfirmConfig={setConfirmConfig}
-          />
+      {/* ─────────────────────────────────────────────────────────────
+          VIEW 2: STAFF
+          ───────────────────────────────────────────────────────────── */}
+      {adminView === 'staff' && !staffSubView && (
+        /* Staff Landing Page with 4 sub-section cards */
+        <div style={{ padding: '16px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: '0 0 16px' }}>Staff Management</h2>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {[
+              { key: 'members', label: 'Members', desc: 'Manage staff directory and roles', iconFn: () => Ico.usersS ? Ico.usersS(22) : Ico.user(22) },
+              { key: 'attendance', label: 'Attendance', desc: 'Daily check-in and attendance history', iconFn: () => Ico.clockS ? Ico.clockS(22) : Ico.clock(22) },
+              { key: 'inventory', label: 'Inventory', desc: 'Lab materials and stock levels', iconFn: () => Ico.package(22) },
+              { key: 'metrics', label: 'Metrics', desc: 'Staff performance and analytics', iconFn: () => Ico.chart ? Ico.chart(22) : Ico.dashboard(22) },
+            ].map(card => (
+              <TwentyFirstNavCard
+                key={card.key}
+                label={card.label}
+                desc={card.desc}
+                icon={card.iconFn()}
+                onClick={() => setStaffSubView(card.key)}
+              />
+            ))}
+          </div>
         </div>
+      )}
+
+      {adminView === 'staff' && staffSubView && (
+        <>
+          {/* Back to Staff landing */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
+            <button
+              onClick={() => setStaffSubView(null)}
+              aria-label="Back to Staff Management"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+          </div>
+
+          <div style={{ padding: '16px', paddingBottom: '90px' }}>
+            <StaffManagementView
+              authFetch={authFetch}
+              ADMIN_API={ADMIN_API}
+              showToast={showToast}
+              staffList={staffList}
+              loadingStaff={loadingStaff}
+              staffSearch={staffSearch}
+              setStaffSearch={setStaffSearch}
+              fetchStaff={fetchStaff}
+              setStaffList={setStaffList}
+              Ico={Ico}
+              setConfirmConfig={setConfirmConfig}
+              activeSubView={staffSubView}
+              onSubViewChange={setStaffSubView}
+              hideSubNav={true}
+            />
+          </div>
+        </>
       )}
 
       {adminView === 'settings' && (
@@ -1303,39 +1363,28 @@ const MobileAdminDashboard = () => {
         </main>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          APP BOTTOM NAVIGATION BAR: Dentists | Lab Orders | Payments
-          ───────────────────────────────────────────────────────────── */}
-      <div className="ma-bottom-nav">
-        {ADMIN_NAV.map((item) => {
-          const isActive = adminView === item.key;
-          return (
-            <button
-              key={item.key}
-              className={`ma-bnav-btn ${isActive ? 'ma-bnav-btn--active' : ''}`}
-              onClick={() => {
-                setAdminView(item.key);
-                if (item.key === 'dentists') setDentistSubView(null);
-                if (item.key === 'staff') fetchStaff();
-                if (item.key === 'settings') {
-                  fetchStats();
-                  fetchPayments();
-                }
-              }}
-            >
-              <div className="ma-bnav-icon-wrap">
-                {item.icon(20)}
-                {item.key === 'dentists' && stats.pending > 0 && (
-                  <span className="ma-bnav-badge ma-bnav-badge--pending">
-                    {stats.pending}
-                  </span>
-                )}
-              </div>
-              <span className="ma-bnav-label">{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ── 21st.dev: Floating Bottom Navigation ────────────────────── */}
+      <TwentyFirstBottomNav
+        items={ADMIN_NAV_BASE.map(item => ({
+          ...item,
+          badge: item.key === 'dentists' && stats.pending > 0 ? stats.pending : undefined,
+        }))}
+        activeKey={adminView}
+        onChange={(key) => {
+          setAdminView(key);
+          if (key === 'dentists') setDentistSubView(null);
+          if (key === 'staff') {
+            setStaffSubView(null);
+            fetchStaff();
+          }
+          if (key === 'settings') {
+            fetchStats();
+            fetchPayments();
+          }
+        }}
+        layoutId="admin-nav-pill"
+        ariaLabel="Admin navigation"
+      />
 
       {/* ─────────────────────────────────────────────────────────────
           RECORD PAYMENT MODAL (Mobile Bottom Sheet / Dialog)

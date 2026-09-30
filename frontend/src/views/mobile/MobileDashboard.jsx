@@ -14,7 +14,7 @@ import { apiFetch } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
 import { Skeleton, SkeletonGroup, OrderSkeleton, StatCardSkeleton } from '../../components/Skeleton';
 import MobileHeader from '../../components/mobile/MobileHeader';
-import MobileBottomNav from '../../components/mobile/MobileBottomNav';
+import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
 import EmptyState from '../../components/common/EmptyState';
@@ -83,13 +83,13 @@ const formatDob = (dob) => {
 };
 
 /* ============================================================
-   TABS CONFIG
+   TABS CONFIG — feeds TwentyFirstBottomNav
 ============================================================ */
-const TABS = [
-  { key: 'dashboard', label: 'Overview',  icon: Icons.dashboard },
-  { key: 'orders',    label: 'Orders',    icon: Icons.labOrder },
-  { key: 'payments',  label: 'Payments',  icon: Icons.payments },
-  { key: 'settings',  label: 'Settings',  icon: Icons.settings },
+const DENTIST_NAV_ITEMS = [
+  { key: 'dashboard', label: 'Overview',  icon: (active) => Icons.dashboard(active ? 20 : 19) },
+  { key: 'orders',    label: 'Orders',    icon: (active) => Icons.labOrder(active ? 20 : 19) },
+  { key: 'payments',  label: 'Payments',  icon: (active) => Icons.payments(active ? 20 : 19) },
+  { key: 'settings',  label: 'Settings',  icon: (active) => Icons.settings(active ? 20 : 19) },
 ];
 
 /* ============================================================
@@ -869,19 +869,14 @@ const MobileDashboard = () => {
         {renderContent()}
       </main>
 
-      {/* App-style Bottom Navigation Bar */}
-      <div className="m-tab-bar">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`m-tab-btn ${activeTab === t.key ? 'm-tab-btn--active' : ''}`}
-            onClick={() => setActiveTab(t.key)}
-          >
-            <span className="m-tab-icon">{t.icon(activeTab === t.key ? 20 : 18)}</span>
-            <span className="m-tab-label">{t.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* -- 21st.dev: Floating Bottom Navigation -- */}
+      <TwentyFirstBottomNav
+        items={DENTIST_NAV_ITEMS}
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        layoutId="dentist-nav-pill"
+        ariaLabel="Dentist portal navigation"
+      />
 
       {/* Order Detail Modal */}
       <OrderDetailModal

@@ -16,7 +16,7 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 72px;
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0));
 }
 
 /* ── Header Search Bar (PC-Grade Search Pill) ───────── */
@@ -93,72 +93,8 @@
     color: var(--dz-color-charcoal);
 }
 
-/* ── Native Bottom Tab Bar ─────────────────────────── */
-.m-tab-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0));
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
-}
+/* ponytail: Legacy .m-tab-bar styles removed -- now handled by TwentyFirstBottomNav */
 
-.m-tab-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    flex: 1;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 6px 4px;
-    color: var(--dz-color-text-light);
-    transition: color 0.2s, transform 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    min-width: 0;
-}
-
-.m-tab-btn:active {
-    transform: scale(0.92);
-}
-
-.m-tab-btn--active {
-    color: var(--color-primary, var(--dz-color-primary));
-}
-
-.m-tab-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
-}
-
-.m-tab-btn--active .m-tab-icon {
-    transform: translateY(-1px);
-}
-
-.m-tab-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.m-tab-btn--active .m-tab-label {
-    color: var(--color-primary-dark, var(--dz-color-primary-dark));
-    font-weight: 700;
-}
 
 /* ── Tab Content ────────────────────────────── */
 .m-tab-content {

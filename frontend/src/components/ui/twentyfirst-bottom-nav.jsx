@@ -10,18 +10,20 @@ import { cn } from '../../lib/utils';
  * Designed for mobile viewports (< 768px). Uses pure SVG icons with zero emojis.
  *
  * @param {object} props
- * @param {Array<{ key: string, label: string, icon: (active: boolean) => React.ReactNode }>} props.items
+ * @param {Array<{ key: string, label: string, icon: (active: boolean) => React.ReactNode, badge?: number | string }>} props.items
  * @param {string} props.activeKey
  * @param {(key: string) => void} props.onChange
  * @param {string} [props.className]
- * @param {string} [props.layoutId='staff-nav-pill']
+ * @param {string} [props.layoutId='bottom-nav-pill']
+ * @param {string} [props.ariaLabel='Navigation']
  */
 export function TwentyFirstBottomNav({
   items,
   activeKey,
   onChange,
   className,
-  layoutId = 'staff-nav-pill',
+  layoutId = 'bottom-nav-pill',
+  ariaLabel = 'Navigation',
 }) {
   return (
     <nav
@@ -32,10 +34,12 @@ export function TwentyFirstBottomNav({
         'md:hidden',
         className,
       )}
-      aria-label="Staff navigation"
+      aria-label={ariaLabel}
     >
       {items.map((item) => {
         const isActive = item.key === activeKey;
+        const hasBadge = item.badge != null && (typeof item.badge !== 'number' || item.badge > 0);
+
         return (
           <button
             key={item.key}
@@ -58,6 +62,11 @@ export function TwentyFirstBottomNav({
             )}
             <span className="relative z-10 flex items-center justify-center mb-0.5">
               {item.icon(isActive)}
+              {hasBadge && (
+                <span className="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm pointer-events-none">
+                  {item.badge}
+                </span>
+              )}
             </span>
             <span
               className={cn(

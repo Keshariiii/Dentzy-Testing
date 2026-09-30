@@ -20,7 +20,7 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0 16px 72px;
+  padding: 0 16px calc(84px + env(safe-area-inset-bottom, 0));
 }
 
 /* ── Greeting ───────────────────────────────── */
@@ -512,88 +512,7 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* ── Native Bottom Navigation Bar ─────────────────────────── */
-.ma-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0));
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
-}
-
-.ma-bnav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  flex: 1;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 6px 4px;
-  color: var(--dz-color-text-light);
-  transition: color 0.2s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  min-width: 0;
-}
-
-.ma-bnav-btn:active {
-  transform: scale(0.92);
-}
-
-.ma-bnav-btn--active {
-  color: var(--color-primary-dark, var(--dz-color-primary-dark));
-}
-
-.ma-bnav-icon-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-}
-
-.ma-bnav-btn--active .ma-bnav-icon-wrap {
-  transform: translateY(-1px);
-}
-
-.ma-bnav-badge {
-  position: absolute;
-  top: -4px;
-  right: -10px;
-  font-size: 0.55rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 8px;
-  line-height: 1;
-}
-
-.ma-bnav-badge--pending  { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); }
-.ma-bnav-badge--approved { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.ma-bnav-badge--rejected { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
-
-.ma-bnav-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.ma-bnav-btn--active .ma-bnav-label {
-  color: var(--color-charcoal, var(--dz-color-charcoal));
-  font-weight: 700;
-}
+/* ponytail: Legacy .ma-bottom-nav styles removed -- now handled by TwentyFirstBottomNav */
 
 .ma-error-banner { margin: 0 16px 16px; padding: 12px; background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border-radius: 12px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
 .ma-error-banner span { flex: 1; }

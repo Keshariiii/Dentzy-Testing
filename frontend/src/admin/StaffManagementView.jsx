@@ -6,6 +6,7 @@
  * Impeccable: no emojis, no card borders (shadows only), premium micro-animations.
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented-tabs';
 
 const DESIGNATIONS = [
   'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
@@ -24,8 +25,11 @@ const StaffManagementView = ({
   authFetch, ADMIN_API, showToast,
   staffList, loadingStaff, staffSearch, setStaffSearch,
   fetchStaff, setStaffList, Ico, setConfirmConfig,
+  activeSubView, onSubViewChange, hideSubNav = false,
 }) => {
-  const [subView, setSubView] = useState('members');
+  const [internalSubView, setInternalSubView] = useState('members');
+  const subView = activeSubView !== undefined ? activeSubView : internalSubView;
+  const setSubView = onSubViewChange || setInternalSubView;
   const [activeDesignation, setActiveDesignation] = useState(null);
 
   // ── Create Staff Modal ──────────────────────────────────────────────────
@@ -310,21 +314,17 @@ const StaffManagementView = ({
 
   return (
     <div>
-      {/* Sub-Nav */}
-      <div style={{ display: 'flex', gap: '8px', padding: '12px 0', marginBottom: '16px', flexWrap: 'wrap' }}>
-        {SUB_VIEWS.map(sv => (
-          <button key={sv.key}
-            onClick={() => setSubView(sv.key)}
-            style={{
-              padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              background: subView === sv.key ? '#1e5038' : '#f0f7f3',
-              color: subView === sv.key ? '#fff' : '#4a7060',
-              fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s ease',
-            }}>
-            {sv.label}
-          </button>
-        ))}
-      </div>
+      {/* Sub-Nav -- hidden when parent controls navigation (e.g. mobile landing cards) */}
+      {!hideSubNav && (
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center' }}>
+          <TwentyFirstSegmentedTabs
+            tabs={SUB_VIEWS}
+            activeKey={subView}
+            onTabChange={setSubView}
+            layoutId="staff-subview-pill"
+          />
+        </div>
+      )}
 
       {/* ── MEMBERS ────────────────────────────────────── */}
       {subView === 'members' && (
