@@ -105,7 +105,7 @@ describe('Auth Validators', () => {
 
 describe('Contact Validators', () => {
   describe('submitContactSchema', () => {
-    const base = { name: 'John', email: 'j@d.com', message: 'Hello' };
+    const base = { name: 'John', email: 'j@d.com', message: 'Hello', captchaInput: 'ABC123', captchaToken: 'tok' };
 
     it('accepts valid contact', () => valid(submitContactSchema, base));
     it('accepts with optional fields', () => valid(submitContactSchema, {
@@ -115,7 +115,8 @@ describe('Contact Validators', () => {
     it('rejects missing name', () => invalid(submitContactSchema, { ...base, name: '' }));
     it('rejects missing message', () => invalid(submitContactSchema, { ...base, message: '' }));
     it('rejects invalid email', () => invalid(submitContactSchema, { ...base, email: 'not-email' }));
-    it('rejects message exceeding 1500 words', () => invalid(submitContactSchema, { ...base, message: Array(1502).fill('word').join(' ') }));
+    it('rejects missing captchaInput', () => invalid(submitContactSchema, { ...base, captchaInput: '' }));
+    it('rejects missing captchaToken', () => invalid(submitContactSchema, { ...base, captchaToken: '' }));
   });
 });
 

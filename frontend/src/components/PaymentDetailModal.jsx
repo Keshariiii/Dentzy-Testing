@@ -3,7 +3,6 @@ import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
-import { Pencil, Plus } from 'lucide-react';
 
 
 
@@ -170,12 +169,12 @@ export default function PaymentDetailModal({
                   >
                     {currentAmount > 0 ? (
                       <>
-                        <Pencil size={13} strokeWidth={2} />
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                         Edit Amount
                       </>
                     ) : (
                       <>
-                        <Plus size={13} strokeWidth={2.5} />
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Add Amount
                       </>
                     )}

@@ -21,7 +21,6 @@ import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
-import { ArrowRight, FileText, Search, X as XIcon, AlertTriangle as AlertTriangleIcon } from 'lucide-react';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -394,7 +393,9 @@ const MobileDashboard = () => {
                 <p className="m-action-desc">{a.desc}</p>
                 <span className="m-action-cta">
                   {a.cta}
-                  <ArrowRight size={12} strokeWidth={2.5} />
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
                 </span>
               </button>
             ))}
@@ -411,7 +412,10 @@ const MobileDashboard = () => {
             {RESOURCES.map((r) => (
               <div key={r.key} className="m-resource-card">
                 <div className="m-resource-icon">
-                  <FileText size={18} strokeWidth={1.8} />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
                 </div>
                 <div className="m-resource-info">
                   <span className="m-resource-title">{r.title}</span>
@@ -458,7 +462,9 @@ const MobileDashboard = () => {
       <div className="m-tab-header">
         <h2 className="m-tab-title">Lab Orders</h2>
         <div className="m-search-bar">
-          <Search size={14} strokeWidth={2} />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
           <input
             type="text"
             className="m-search-input"
@@ -469,7 +475,9 @@ const MobileDashboard = () => {
           />
           {search && (
             <button className="m-search-clear" onClick={() => { setSearch(''); fetchOrders(); }}>
-              <XIcon size={13} strokeWidth={2.5} />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
             </button>
           )}
         </div>
@@ -774,7 +782,10 @@ const MobileDashboard = () => {
         <div className="m-modal-backdrop" onClick={() => setShowDeleteModal(false)}>
           <div className="m-modal" onClick={e => e.stopPropagation()}>
             <div className="m-modal-icon">
-              <AlertTriangleIcon size={26} strokeWidth={2} color="#c0392b" />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
             </div>
             <h3 className="m-modal-title">Delete Account?</h3>
             <p className="m-modal-body">
@@ -828,7 +839,9 @@ const MobileDashboard = () => {
     <div className="m-app-shell">
       <MobileHeader title={null} onAvatarClick={() => setActiveTab('settings')}>
         <div className="m-header-search-bar">
-          <Search size={14} strokeWidth={2} />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
           <input
             type="text"
             className="m-header-search-input"
@@ -844,7 +857,9 @@ const MobileDashboard = () => {
           />
           {search && (
             <button className="m-header-search-clear" onClick={() => { setSearch(''); fetchOrders(); }}>
-              <XIcon size={12} strokeWidth={2.5} />
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
             </button>
           )}
         </div>

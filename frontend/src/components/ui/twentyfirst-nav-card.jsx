@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /**
@@ -76,12 +75,20 @@ export function TwentyFirstNavCard({
         )}
       </div>
 
-      <ChevronRight
-        size={16}
-        strokeWidth={2}
-        className="ml-auto shrink-0 text-[#aab] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#1e5038]"
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#aab"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:stroke-[#1e5038]"
         aria-hidden="true"
-      />
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
     </motion.button>
   );
 }

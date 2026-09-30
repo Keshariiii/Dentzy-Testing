@@ -8,7 +8,18 @@
 import React, { useState, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 
-import { MapPin, Phone, Mail, Clock, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
+/* ── Inline SVG icons (replaces lucide-react) ───────────────── */
+const SvgIcon = ({ children, size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+);
+const MapPin = ({ size, className }) => <SvgIcon size={size} className={className}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></SvgIcon>;
+const Phone = ({ size, className }) => <SvgIcon size={size} className={className}><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></SvgIcon>;
+const Mail = ({ size, className }) => <SvgIcon size={size} className={className}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></SvgIcon>;
+const Clock = ({ size, className }) => <SvgIcon size={size} className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></SvgIcon>;
+const AlertTriangle = ({ size, className }) => <SvgIcon size={size} className={className}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></SvgIcon>;
+const Info = ({ size, className }) => <SvgIcon size={size} className={className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></SvgIcon>;
+const ShieldAlert = ({ size, className }) => <SvgIcon size={size} className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></SvgIcon>;
 
 import './Footer.css';
 

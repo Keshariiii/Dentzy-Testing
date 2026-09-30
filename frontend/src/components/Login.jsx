@@ -5,19 +5,65 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAdminAuth } from '../admin/AdminAuthContext';
 import { useStaffAuth } from '../staff/StaffAuthContext';
-import { Stethoscope, ShieldCheck, ClipboardList, User, Lock, Eye, EyeOff, LogIn, ArrowLeft, Info } from 'lucide-react';
-import { TwentyFirstSegmentedTabs } from './ui/twentyfirst-segmented-tabs';
-import { VengeanceButton } from './ui/vengeance-button';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Login.css';
 
-// ─── Role Tab Config ──────────────────────────────────────────────────────────
+// ─── SVG Icons ───────────────────────────────────────────────────────────────
 
-const ROLE_TABS = [
-  { key: 'dentist', label: 'Dentist' },
-  { key: 'admin',   label: 'Admin' },
-  { key: 'staff',   label: 'Staff' },
-];
+const DentistIcon = () => (
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
+    {/* Tooth shape */}
+    <path
+      d="M22 8C17 8 12 13 12 20c0 4 1.5 7.5 2.5 11C16 37 17 42 17 46c0 3 1 6 4 6s4-3 5-6l1.5-5c.5-2 1.5-3 4.5-3s4 1 4.5 3L38 46c1 3 2 6 5 6s4-3 4-6c0-4 1-9 2.5-15C50.5 27.5 52 24 52 20c0-7-5-12-10-12-3 0-6 1.5-10 1.5S25 8 22 8z"
+      fill="currentColor"
+      fillOpacity="0.15"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Shine lines */}
+    <path d="M24 15 Q26 12 28 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
+    <path d="M29 13 Q30.5 10.5 32 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
+  </svg>
+);
+
+const AdminIcon = () => (
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
+    {/* Shield */}
+    <path
+      d="M32 6L12 14v14c0 13 9 25 20 28 11-3 20-15 20-28V14L32 6z"
+      fill="currentColor"
+      fillOpacity="0.15"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Checkmark */}
+    <path
+      d="M22 32l7 7 13-13"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const StaffIcon = () => (
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
+    {/* Clipboard */}
+    <rect x="16" y="8" width="32" height="48" rx="4" fill="currentColor" fillOpacity="0.15"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <rect x="24" y="4" width="16" height="10" rx="3" fill="currentColor" fillOpacity="0.15"
+      stroke="currentColor" strokeWidth="2.5" />
+    {/* Lines */}
+    <line x1="24" y1="26" x2="40" y2="26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+    <line x1="24" y1="34" x2="36" y2="34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+    <line x1="24" y1="42" x2="38" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+  </svg>
+);
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -162,7 +208,10 @@ const Login = ({ defaultRole }) => {
       {/* ── Right Panel ───────────────────────────── */}
       <div className="auth-right">
         <button className="auth-back-to-home-btn" onClick={() => router.push('/')} aria-label="Back" title="Back">
-          <ArrowLeft size={20} strokeWidth={2.2} />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
         </button>
 
         <div className="auth-header-logo">
@@ -171,14 +220,53 @@ const Login = ({ defaultRole }) => {
 
         <div className="auth-card login-unified-card">
 
-          {/* ── Role Selector — 21st.dev Segmented Tabs ── */}
-          <TwentyFirstSegmentedTabs
-            tabs={ROLE_TABS}
-            activeKey={activeRole}
-            onTabChange={handleRoleSwitch}
-            layoutId="login-role-pill"
-            className="login-role-tabs"
-          />
+          {/* ── Role Selector ─────────────────────── */}
+          <div className="role-selector">
+            <button
+              type="button"
+              id="role-dentist-btn"
+              className={`role-card ${isDentist ? 'active' : ''}`}
+              onClick={() => handleRoleSwitch('dentist')}
+              aria-pressed={isDentist}
+            >
+              <div className="role-icon-wrap">
+                <DentistIcon />
+              </div>
+              <span className="role-label">Dentist</span>
+              <span className="role-sublabel">User Portal</span>
+              {isDentist && <span className="role-active-pip" />}
+            </button>
+
+            <button
+              type="button"
+              id="role-admin-btn"
+              className={`role-card ${isAdmin ? 'active' : ''}`}
+              onClick={() => handleRoleSwitch('admin')}
+              aria-pressed={isAdmin}
+            >
+              <div className="role-icon-wrap">
+                <AdminIcon />
+              </div>
+              <span className="role-label">Admin</span>
+              <span className="role-sublabel">Management Portal</span>
+              {isAdmin && <span className="role-active-pip" />}
+            </button>
+
+            <button
+              type="button"
+              id="role-staff-btn"
+              className={`role-card ${isStaff ? 'active' : ''}`}
+              onClick={() => handleRoleSwitch('staff')}
+              aria-pressed={isStaff}
+            >
+              <div className="role-icon-wrap">
+                <StaffIcon />
+              </div>
+              <span className="role-label">Staff</span>
+              <span className="role-sublabel">Lab Portal</span>
+              {isStaff && <span className="role-active-pip" />}
+            </button>
+          </div>
 
           {/* ── Form Title ────────────────────────── */}
           <h2 className="auth-card-title login-role-title">
@@ -195,7 +283,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="login-email" className="sr-only">Email address</label>
                   <span className="auth-input-icon">
-                    <User size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
                   </span>
                   <input
                     id="login-email"
@@ -215,7 +306,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="login-password" className="sr-only">Password</label>
                   <span className="auth-input-icon">
-                    <Lock size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
                   </span>
                   <input
                     id="login-password"
@@ -234,7 +328,18 @@ const Login = ({ defaultRole }) => {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+                    {showPassword ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
                   </button>
                 </div>
 
@@ -262,7 +367,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="admin-username" className="sr-only">Username or Admin ID</label>
                   <span className="auth-input-icon">
-                    <User size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
                   </span>
                   <input
                     id="admin-username"
@@ -282,7 +390,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="admin-password" className="sr-only">Admin Password</label>
                   <span className="auth-input-icon">
-                    <Lock size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
                   </span>
                   <input
                     id="admin-password"
@@ -301,13 +412,28 @@ const Login = ({ defaultRole }) => {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+                    {showPassword ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
                   </button>
                 </div>
 
                 {/* Admin restricted note */}
                 <p className="login-admin-note">
-                  <Info size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
                   Restricted access -- authorised personnel only.
                 </p>
               </>
@@ -318,7 +444,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="staff-username" className="sr-only">Staff Username</label>
                   <span className="auth-input-icon">
-                    <User size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
                   </span>
                   <input
                     id="staff-username"
@@ -338,7 +467,10 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="staff-password" className="sr-only">Staff Password</label>
                   <span className="auth-input-icon">
-                    <Lock size={16} strokeWidth={2} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
                   </span>
                   <input
                     id="staff-password"
@@ -357,13 +489,28 @@ const Login = ({ defaultRole }) => {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+                    {showPassword ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
                   </button>
                 </div>
 
                 {/* Staff access note */}
                 <p className="login-admin-note">
-                  <Info size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
                   Lab staff access -- credentials provided by admin.
                 </p>
               </>
@@ -379,23 +526,26 @@ const Login = ({ defaultRole }) => {
               </div>
             )}
 
-            {/* ── Submit — VengeanceButton ──────────── */}
-            <VengeanceButton
-              type="submit"
-              size="md"
-              className="auth-vengeance-btn"
-              disabled={loading}
+            {/* ── Submit ────────────────────────────── */}
+            <button
               id={isDentist ? 'login-submit' : 'admin-login-btn'}
+              type="submit"
+              className={`auth-btn ${(isAdmin || isStaff) ? 'al-submit-btn' : ''}`}
+              disabled={loading}
             >
               {loading ? (
                 <span className="auth-spinner" />
               ) : (
                 <>
-                  <LogIn size={16} strokeWidth={2} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
                   {isDentist ? 'Login' : isAdmin ? 'Access Dashboard' : 'Staff Login'}
                 </>
               )}
-            </VengeanceButton>
+            </button>
           </form>
 
           {/* ── Footer links ──────────────────────── */}

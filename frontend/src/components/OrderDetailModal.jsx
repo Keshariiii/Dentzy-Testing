@@ -3,7 +3,6 @@ import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
-import { Zap, Circle } from 'lucide-react';
 import { PIPELINE_STAGES } from './dashboard/shared/constants';
 
 /* #64 — Use shared pipeline stages instead of local duplicates */
@@ -154,8 +153,8 @@ export default function OrderDetailModal({
                 <span className={`odm-priority-pill odm-priority--${(order.priority || 'normal').toLowerCase()}`}>
                   {/* #44 — Priority icons for scanability */}
                   {(order.priority || 'normal').toLowerCase() === 'high' || (order.priority || 'normal').toLowerCase() === 'rush' || (order.priority || 'normal').toLowerCase() === 'urgent'
-                    ? <Zap size={12} fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}} />
-                    : <Circle size={10} fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}} />}
+                    ? <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    : <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><circle cx="12" cy="12" r="6"/></svg>}
                   {order.priority || 'Normal'}
                 </span>
               </span>

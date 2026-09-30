@@ -4,8 +4,6 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthUrl } from '../api/client';
-import { User, Mail, Lock, Eye, EyeOff, Check, X, Clock, RefreshCw, ShieldCheck, Loader2 } from 'lucide-react';
-import { VengeanceButton } from './ui/vengeance-button';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Register.css';
 
@@ -265,7 +263,10 @@ const Register = () => {
           </div>
           <div className="auth-card pending-card">
             <div className="pending-icon">
-              <Clock size={40} strokeWidth={1.5} color="var(--dz-color-primary, #708c80)" />
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
             </div>
             <h2 className="auth-card-title">Awaiting Approval</h2>
             <p className="pending-msg">
@@ -275,11 +276,9 @@ const Register = () => {
               Our admin will review your account and approve it shortly. You'll be able to log in once approved.
             </p>
             <div className="pending-email-tag">{pending?.email || form.email}</div>
-            <VengeanceButton asChild size="md" className="auth-vengeance-btn" style={{ marginTop: '20px' }}>
-              <Link href="/login" id="go-to-login-pending" style={{ textDecoration: 'none' }}>
-                Go to Login
-              </Link>
-            </VengeanceButton>
+            <Link href="/login" id="go-to-login-pending" className="auth-btn" style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+              Go to Login
+            </Link>
           </div>
         </div>
       </div>
@@ -338,9 +337,9 @@ const Register = () => {
                 </div>
               )}
 
-              <VengeanceButton type="submit" size="md" className="auth-vengeance-btn" disabled={loading || otp.join('').length !== 6} id="register-verify-otp-btn">
-                {loading ? <Loader2 size={18} className="animate-spin" /> : 'Verify & Create Account →'}
-              </VengeanceButton>
+              <button id="register-verify-otp-btn" type="submit" className="auth-btn" disabled={loading || otp.join('').length !== 6}>
+                {loading ? <span className="auth-spinner" /> : 'Verify & Create Account →'}
+              </button>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
                 <button
@@ -422,7 +421,9 @@ const Register = () => {
                 <div className={`auth-progress-step ${step >= s.num ? 'auth-progress-step--active' : ''} ${step === s.num ? 'auth-progress-step--current' : ''}`}>
                   <div className="auth-progress-dot">
                     {step > s.num ? (
-                      <Check size={12} strokeWidth={3} />
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     ) : s.num}
                   </div>
                   <span className="auth-progress-label">{s.label}</span>
@@ -437,7 +438,10 @@ const Register = () => {
             <div className="auth-input-group">
               <label htmlFor="register-name" className="sr-only">Full name</label>
               <span className="auth-input-icon">
-                <User size={16} strokeWidth={2} />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
               </span>
               <input
                 id="register-name"
@@ -457,7 +461,10 @@ const Register = () => {
             <div className="auth-input-group">
               <label htmlFor="register-email" className="sr-only">Email address</label>
               <span className="auth-input-icon">
-                <Mail size={16} strokeWidth={2} />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
               </span>
               <input
                 id="register-email"
@@ -477,7 +484,10 @@ const Register = () => {
             <div className="auth-input-group">
               <label htmlFor="register-password" className="sr-only">Password</label>
               <span className="auth-input-icon">
-                <Lock size={16} strokeWidth={2} />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
               </span>
               <input
                 id="register-password"
@@ -497,7 +507,18 @@ const Register = () => {
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+                {showPassword ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
               </button>
             </div>
 
@@ -523,9 +544,14 @@ const Register = () => {
                     <li key={rule.id} className={`pw-rule ${rule.passed ? 'passed' : 'failed'}`}>
                       <span className="pw-rule-icon">
                         {rule.passed ? (
-                          <Check size={12} strokeWidth={3} />
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
                         ) : (
-                          <X size={12} strokeWidth={3} />
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
                         )}
                       </span>
                       {rule.label}
@@ -544,7 +570,16 @@ const Register = () => {
                     ? <div dangerouslySetInnerHTML={{ __html: captchaSvg }} style={{ width: '100%' }} />
                     : (
                       <div className="captcha-placeholder">
-                        <Loader2 size={22} strokeWidth={2} color="var(--dz-color-primary, #708c80)" className="captcha-spin" />
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="captcha-spin">
+                          <line x1="12" y1="2" x2="12" y2="6"/>
+                          <line x1="12" y1="18" x2="12" y2="22"/>
+                          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+                          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+                          <line x1="2" y1="12" x2="6" y2="12"/>
+                          <line x1="18" y1="12" x2="22" y2="12"/>
+                          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
+                          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+                        </svg>
                       </div>
                     )
                   }
@@ -558,13 +593,25 @@ const Register = () => {
                   aria-label="Refresh CAPTCHA"
                 >
                   {/* Refresh icon */}
-                  <RefreshCw size={17} strokeWidth={2.2} className={captchaLoading ? 'captcha-spin' : ''} />
+                  <svg
+                    width="17" height="17"
+                    viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor"
+                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                    className={captchaLoading ? 'captcha-spin' : ''}
+                  >
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
                 </button>
               </div>
               <div className="captcha-input-group auth-input-group">
                 <label htmlFor="register-captcha" className="sr-only">CAPTCHA code</label>
                 <span className="auth-input-icon">
-                  <ShieldCheck size={15} strokeWidth={2} />
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
                 </span>
                 <input
                   id="register-captcha"
@@ -605,16 +652,19 @@ const Register = () => {
             )}
 
             {/* Submit */}
-            <VengeanceButton type="submit" size="md" className="auth-vengeance-btn" disabled={loading} id="register-submit">
+            <button id="register-submit" type="submit" className="auth-btn" disabled={loading}>
               {loading ? (
-                <Loader2 size={18} className="animate-spin" />
+                <span className="auth-spinner" />
               ) : (
                 <>
-                  <Mail size={16} strokeWidth={2} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
                   Verify Email & Sign Up
                 </>
               )}
-            </VengeanceButton>
+            </button>
           </form>
 
           <p className="auth-switch">
