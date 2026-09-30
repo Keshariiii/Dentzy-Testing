@@ -1,15 +1,19 @@
 /**
  * PipelinePage.css — Dedicated production pipeline listing.
- * Premium, spacious, responsive. Uses project tokens (--dz-*).
+ * Redesigned to match the clinical dashboard: full-bleed background,
+ * Dentzy header bar, full-width horizontal cards. No ::before stripes.
+ * Uses project design tokens (--dz-*).
  */
 
-/* ── Page shell ───────────────────────────────────────────────────── */
-.plp-page {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 28px 32px 60px;
+/* ── Full-bleed viewport wrapper ─────────────────────────────────── */
+.plp-viewport {
   min-height: 100vh;
-  background: #f4f6f5;
+  width: 100%;
+  background: var(--dz-color-bg-page, #f4f7f5);
+  font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
+  color: var(--dz-color-text-primary, #1e2824);
+  display: flex;
+  flex-direction: column;
 }
 
 .plp-loading-screen {
@@ -17,7 +21,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #f4f6f5;
+  background: var(--dz-color-bg-page, #f4f7f5);
 }
 
 .plp-spinner {
@@ -33,7 +37,120 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Header ───────────────────────────────────────────────────────── */
+/* ── Dentzy Top Header (mirrors .ud-header from clinical dashboard) ── */
+.plp-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 28px;
+  height: 60px;
+  background: var(--dz-color-bg-surface, #ffffff);
+  border-bottom: 1px solid var(--dz-color-border-light, #e4ebe7);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.plp-top-header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.plp-header-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.plp-logo-img {
+  height: 34px;
+  width: auto;
+}
+
+/* Breadcrumbs */
+.plp-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.plp-breadcrumb-link {
+  color: var(--dz-color-primary-accent, #1e5038);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.plp-breadcrumb-link:hover {
+  opacity: 0.7;
+}
+
+.plp-breadcrumb-sep {
+  color: #c5d8ce;
+  user-select: none;
+}
+
+.plp-breadcrumb-current {
+  color: #5a7a6e;
+  font-weight: 600;
+}
+
+/* User pill in header */
+.plp-top-header-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.plp-header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: background 0.2s, transform 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plp-header-user:hover {
+  background: rgba(112, 140, 128, 0.1);
+  transform: translateY(-1px);
+}
+
+.plp-header-user-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a3028;
+}
+
+.plp-header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--dz-color-primary-accent, #1e5038);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+/* ── Content container (centered, max-width) ─────────────────────── */
+.plp-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 32px 60px;
+  width: 100%;
+}
+
+/* ── Page header ─────────────────────────────────────────────────── */
 .plp-page-header {
   margin-bottom: 24px;
 }
@@ -106,7 +223,7 @@
   50%      { opacity: 0.4; transform: scale(0.7); }
 }
 
-/* ── Filter tabs ──────────────────────────────────────────────────── */
+/* ── Filter tabs ─────────────────────────────────────────────────── */
 .plp-filters {
   display: flex;
   gap: 8px;
@@ -165,46 +282,33 @@
   font-weight: 700;
 }
 
-/* ── Grid ─────────────────────────────────────────────────────────── */
-.plp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 18px;
+/* ── Full-width pipeline list (replaces .plp-grid) ───────────────── */
+.plp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
-/* ── Card ─────────────────────────────────────────────────────────── */
+/* ── Card (full-width horizontal bar) ────────────────────────────── */
 .plp-card {
+  width: 100%;
   background: #fff;
   border-radius: 16px;
-  padding: 22px 24px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1.5px solid transparent;
+  padding: 22px 26px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eaf0ec;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
 }
 
-.plp-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--dz-color-primary-accent, #1e5038) 0%, #2d8c5a 100%);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
+/* NO ::before top stripe — removed per plan */
 
 .plp-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   border-color: #d1ddd6;
-}
-
-.plp-card:hover::before {
-  opacity: 1;
+  transform: translateY(-2px);
 }
 
 .plp-card:focus-visible {
@@ -216,35 +320,37 @@
   opacity: 0.82;
 }
 
-.plp-card--completed::before {
-  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
-}
-
 .plp-card--cancelled {
   opacity: 0.6;
 }
 
-.plp-card--cancelled::before {
-  background: linear-gradient(90deg, #dc2626 0%, #f87171 100%);
-}
-
 .plp-card--skeleton {
-  padding: 24px;
+  padding: 24px 26px;
   cursor: default;
 }
 
 .plp-card--skeleton:hover {
   transform: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* ── Card header ──────────────────────────────────────────────────── */
+/* ── Card top row (header + actions) ─────────────────────────────── */
+.plp-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
 .plp-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .plp-card-id {
@@ -256,34 +362,13 @@
   padding: 3px 10px;
   border-radius: 6px;
   letter-spacing: 0.3px;
-}
-
-.plp-stage-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.plp-stage-badge--received   { background: #fff7ed; color: #9a3412; }
-.plp-stage-badge--design     { background: #eff6ff; color: #1d4ed8; }
-.plp-stage-badge--production { background: #faf5ff; color: #7e22ce; }
-.plp-stage-badge--qc         { background: #fefce8; color: #854d0e; }
-.plp-stage-badge--dispatched { background: #ecfdf5; color: #065f46; }
-.plp-stage-badge--completed  { background: #dcfce7; color: #16a34a; }
-
-/* ── Card info ────────────────────────────────────────────────────── */
-.plp-card-info {
-  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .plp-card-patient {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1a3028;
-  margin-bottom: 4px;
   line-height: 1.3;
 }
 
@@ -291,7 +376,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.73rem;
+  font-size: 0.75rem;
   color: #8aa59d;
   flex-wrap: wrap;
 }
@@ -301,28 +386,42 @@
   margin: 0 2px;
 }
 
-/* ── Pipeline inside card ─────────────────────────────────────────── */
-.plp-card-pipeline {
-  margin-bottom: 12px;
-}
-
-/* ── Card footer ──────────────────────────────────────────────────── */
-.plp-card-footer {
+.plp-card-actions {
   display: flex;
-  justify-content: flex-end;
-  padding-top: 10px;
-  border-top: 1px solid #f0f4f2;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
+/* ── Stage badges ────────────────────────────────────────────────── */
+.plp-stage-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.plp-stage-badge--received   { background: #fff7ed; color: #9a3412; }
+.plp-stage-badge--design     { background: #eff6ff; color: #1d4ed8; }
+.plp-stage-badge--production { background: #faf5ff; color: #7e22ce; }
+.plp-stage-badge--qc         { background: #fefce8; color: #854d0e; }
+.plp-stage-badge--dispatched { background: #ecfdf5; color: #065f46; }
+.plp-stage-badge--completed  { background: #dcfce7; color: #16a34a; }
+
+/* ── View Details link ───────────────────────────────────────────── */
 .plp-view-detail {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--dz-color-primary-accent, #1e5038);
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.2s, gap 0.2s;
+  white-space: nowrap;
 }
 
 .plp-card:hover .plp-view-detail {
@@ -330,7 +429,28 @@
   gap: 7px;
 }
 
-/* ── Empty state ──────────────────────────────────────────────────── */
+/* ── Pipeline steps (full width inside card body) ────────────────── */
+.plp-card-pipeline {
+  width: 100%;
+}
+
+/* Skeleton body layout */
+.plp-card-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.plp-card-body .plp-card-info {
+  flex-shrink: 0;
+  min-width: 180px;
+}
+
+.plp-card-body .plp-card-pipeline {
+  flex: 1;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
 .plp-empty {
   text-align: center;
   padding: 60px 20px;
@@ -388,9 +508,35 @@
   background: #fef2f2;
 }
 
-/* ── Mobile ───────────────────────────────────────────────────────── */
+/* ── Mobile ──────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
-  .plp-page {
+  /* Top header: compact */
+  .plp-top-header {
+    padding: 0 16px;
+    height: 52px;
+    gap: 12px;
+  }
+
+  .plp-logo-img {
+    height: 28px;
+  }
+
+  .plp-breadcrumbs {
+    display: none;
+  }
+
+  .plp-header-user-name {
+    display: none;
+  }
+
+  .plp-header-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.64rem;
+  }
+
+  /* Container */
+  .plp-container {
     padding: 16px 16px 80px;
   }
 
@@ -402,18 +548,32 @@
     font-size: 0.78rem;
   }
 
-  .plp-grid {
-    grid-template-columns: 1fr;
+  .plp-list {
     gap: 14px;
   }
 
   .plp-card {
-    padding: 16px 18px 14px;
+    padding: 16px 18px;
     border-radius: 14px;
+  }
+
+  /* Stack card top on mobile */
+  .plp-card-top {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .plp-card-header {
+    gap: 8px;
   }
 
   .plp-card-patient {
     font-size: 0.86rem;
+  }
+
+  .plp-card-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .plp-filter-tab {
@@ -428,9 +588,9 @@
   }
 }
 
-/* ── Tablet ───────────────────────────────────────────────────────── */
+/* ── Tablet ──────────────────────────────────────────────────────── */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .plp-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .plp-container {
+    padding: 20px 24px 60px;
   }
 }
