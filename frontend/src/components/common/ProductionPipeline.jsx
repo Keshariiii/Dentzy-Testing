@@ -9,6 +9,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { PIPELINE_STEPS, PIPELINE_STAGES } from '../dashboard/shared/constants';
+import { Check, Package } from 'lucide-react';
 import './ProductionPipeline.css';
 
 /* ── Single Pipeline Row (step icons + connectors) ─────────────────────────── */
@@ -28,10 +29,7 @@ export const PipelineSteps = ({ order }) => {
             <div className={`pp-step ${cls}`}>
               <div className="pp-step-icon">
                 {isPast ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <Check size={15} strokeWidth={3} />
                 ) : (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,10 +70,7 @@ const ProductionPipeline = ({ stats, orders, onViewOrders }) => {
         </div>
         <div className="pp-empty">
           <div className="pp-empty-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 2h6l3 7H6L9 2zM5 9h14v13a2 2 0 01-2 2H7a2 2 0 01-2-2V9z" />
-            </svg>
+            <Package size={36} strokeWidth={1.5} />
           </div>
           <p>No active orders in the pipeline.</p>
         </div>

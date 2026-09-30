@@ -18,6 +18,7 @@ import { formatINR, formatDate } from '../../utils/format';
 import './MobileAdminDashboard.css';
 
 import { Icons as Ico } from '../../components/common/DashboardIcons';
+import { ChevronLeft, ArrowLeft } from 'lucide-react';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
@@ -665,9 +666,7 @@ const MobileAdminDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
             <button onClick={() => setDentistSubView(null)} aria-label="Back"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <ChevronLeft size={20} strokeWidth={2.2} />
             </button>
             <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>
@@ -806,9 +805,7 @@ const MobileAdminDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
             <button onClick={() => setDentistSubView(null)} aria-label="Back"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <ChevronLeft size={20} strokeWidth={2.2} />
             </button>
             <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>
@@ -827,9 +824,7 @@ const MobileAdminDashboard = () => {
                     background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-                  </svg>
+                  <ArrowLeft size={18} strokeWidth={2.2} />
                 </button>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
@@ -975,9 +970,7 @@ const MobileAdminDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
             <button onClick={() => setDentistSubView(null)} aria-label="Back"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <ChevronLeft size={20} strokeWidth={2.2} />
             </button>
             <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>
@@ -996,9 +989,7 @@ const MobileAdminDashboard = () => {
                     background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
-                  </svg>
+                  <ArrowLeft size={18} strokeWidth={2.2} />
                 </button>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
@@ -1205,9 +1196,7 @@ const MobileAdminDashboard = () => {
               aria-label="Back to Staff Management"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <ChevronLeft size={20} strokeWidth={2.2} />
             </button>
             <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>

@@ -7,6 +7,7 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { ChevronLeft, LogIn } from 'lucide-react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHeader.css';
 
@@ -30,10 +31,7 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
       <div className="m-header__left">
         {showBack ? (
           <button className="m-header__back" onClick={() => router.push(-1)} aria-label="Go back">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+            <ChevronLeft size={22} strokeWidth={2} />
           </button>
         ) : onLogoClick ? (
           <button
@@ -64,12 +62,7 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
           </button>
         ) : showLogin ? (
           <button className="m-header__login-btn" onClick={() => router.push('/login')} aria-label="Login">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
+            <LogIn size={22} strokeWidth={2} />
           </button>
         ) : null}
       </div>

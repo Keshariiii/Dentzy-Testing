@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 import { getAuthUrl } from '../../api/client';
+import { ArrowLeft, Check } from 'lucide-react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css';
 
@@ -197,10 +198,7 @@ const MobileForgotPassword = () => {
     <div className="m-auth-page">
       {/* Back Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/login')} aria-label="Back" title="Back">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
+        <ArrowLeft size={20} strokeWidth={2.2} />
       </button>
 
       <div className="m-auth-logo">
@@ -212,9 +210,7 @@ const MobileForgotPassword = () => {
         {step === 4 ? (
           <div style={{ textAlign: 'center', padding: '10px 0' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <Check size={28} strokeWidth={2.5} />
             </div>
             <h1 className="m-auth-title">Password Updated!</h1>
             <p className="m-auth-subtitle" style={{ marginTop: '8px' }}>

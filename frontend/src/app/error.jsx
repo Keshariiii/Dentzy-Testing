@@ -6,6 +6,7 @@
  * Responsive for mobile (<768px) and desktop screens.
  */
 import '../styles/error-pages.css';
+import { AlertTriangle } from 'lucide-react';
 
 export default function Error({ error, reset }) {
   const refId = 'DZ-ERR-' + Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -14,11 +15,7 @@ export default function Error({ error, reset }) {
     <div className="dz-error-page">
       <div className="dz-error-card">
         <div className="dz-error-icon dz-error-icon--error">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
+          <AlertTriangle size={28} strokeWidth={2} />
         </div>
 
         <span className="dz-error-tag">Something went wrong</span>

@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import Footer from '../../components/Footer';
+import { ArrowRight } from 'lucide-react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHome.css';
 
@@ -173,9 +174,7 @@ const MobileHome = () => {
                   <span className="m-process-step__label">{step}</span>
                 </div>
                 {i < 2 && <div className="m-process-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                  </svg>
+                  <ArrowRight size={16} strokeWidth={2.5} />
                 </div>}
               </React.Fragment>
             ))}

@@ -9,18 +9,14 @@ import Link from 'next/link';
  * Responsive for mobile (<768px) and desktop screens.
  */
 import '../styles/error-pages.css';
+import { Info } from 'lucide-react';
 
 export default function NotFound() {
   return (
     <div className="dz-error-page">
       <div className="dz-error-card">
         <div className="dz-error-icon dz-error-icon--info">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          <Info size={28} strokeWidth={2} />
         </div>
 
         <span className="dz-error-tag">Page Not Found (404)</span>
