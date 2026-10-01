@@ -581,7 +581,7 @@ admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
   const maxRow = await c.env.DB.prepare(
     "SELECT MAX(CAST(employeeId AS INTEGER)) as maxId FROM staff WHERE employeeId != ''"
   ).first();
-  const employeeId = String(((maxRow?.maxId) || 0) + 1).padStart(4, '0');
+  const employeeId = String(((maxRow?.maxId) || 0) + 1);
 
   try {
     await c.env.DB.prepare(

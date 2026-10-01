@@ -7,6 +7,7 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented-tabs';
+import { Trash2 } from 'lucide-react';
 
 const DESIGNATIONS = [
   'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
@@ -311,6 +312,11 @@ const StaffManagementView = ({
     padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
     background: '#e8f5ee', color: '#1e5038', fontWeight: 600, fontSize: '0.78rem',
   };
+  const inputStyle = {
+    padding: '8px 12px', borderRadius: '8px', border: '1px solid #d4ddd8',
+    background: '#ffffff', color: '#1a3028', fontSize: '0.82rem', outline: 'none',
+    boxSizing: 'border-box',
+  };
 
   return (
     <div>
@@ -439,8 +445,25 @@ const StaffManagementView = ({
                       <button onClick={() => handleToggleStatus(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
                         {s.status === 'active' ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button onClick={() => handleDeleteStaff(s)} style={{ ...btnSecondary, background: '#fef2f2', color: '#dc2626', fontSize: '0.72rem', padding: '4px 10px' }}>
-                        {Ico.trash(13)}
+                      <button
+                        onClick={() => handleDeleteStaff(s)}
+                        title="Delete Staff"
+                        aria-label={`Delete ${s.displayName}`}
+                        style={{
+                          ...btnSecondary,
+                          background: '#fef2f2',
+                          color: '#dc2626',
+                          fontSize: '0.72rem',
+                          padding: '4px 10px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+                        <span>Delete</span>
                       </button>
                     </div>
                   </div>
@@ -551,8 +574,24 @@ const StaffManagementView = ({
                     <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e5038', minWidth: '28px', textAlign: 'center' }}>{item.quantity}</span>
                     <button onClick={() => handleUpdateStock(item, 1)}
                       style={{ ...btnSecondary, width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>+</button>
-                    <button onClick={() => handleDeleteItem(item)} style={{ ...btnSecondary, background: '#fef2f2', color: '#dc2626', width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {Ico.trash(13)}
+                    <button
+                      onClick={() => handleDeleteItem(item)}
+                      title="Delete Item"
+                      aria-label={`Delete ${item.item_name}`}
+                      style={{
+                        ...btnSecondary,
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        width: '32px',
+                        height: '32px',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Trash2 size={15} strokeWidth={2.2} style={{ flexShrink: 0 }} />
                     </button>
                   </div>
                 </div>

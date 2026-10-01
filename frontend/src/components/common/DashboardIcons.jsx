@@ -7,7 +7,8 @@ import React from 'react';
 
 export const Icon = ({ d, size = 18, strokeWidth = 1.8, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}
+    style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
     {typeof d === 'string' ? <path d={d} /> : d}
   </svg>
 );
@@ -32,7 +33,7 @@ export const Icons = {
   chat:       (s = 22) => <Icon size={s} strokeWidth={1.5} d={<><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>} />,
   download:   (s = 15) => <Icon size={s} strokeWidth={2.2} d={<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>} />,
   phone:      (s = 13) => <Icon size={s} d={<><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></>} />,
-  trash:      (s = 14) => <Icon size={s} d={<><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>} />,
+  trash:      (s = 14, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>} />,
   warn:       (s = 26) => <Icon size={s} d={<><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />,
   eye:        (s = 16, show = false) => show
     ? <Icon size={s} d={<><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>} />
