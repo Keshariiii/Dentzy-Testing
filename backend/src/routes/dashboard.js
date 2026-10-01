@@ -162,6 +162,36 @@ dashboard.get('/payments', async (c) => {
 });
 
 
+// GET /api/dashboard/notice — dentist notice bar config
+const DEFAULT_NOTICE = {
+  enabled: true,
+  messages: [
+    'Welcome to Dentzy Clinical Lab Portal',
+    'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
+    'New: Zirconia monolithic crowns with multi-shade gradients now available',
+    'Submit STL files for faster digital impression processing',
+    'Invoices are generated upon case dispatch — check the Payments tab',
+    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'Lab support: Mon-Sat, 9 AM to 6 PM IST',
+  ],
+};
+
+dashboard.get('/notice', async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      "SELECT value FROM app_settings WHERE key = 'dentist_notice_bar'"
+    ).first();
+    if (row?.value) {
+      const parsed = JSON.parse(row.value);
+      return c.json({ enabled: !!parsed.enabled, messages: parsed.messages || [] });
+    }
+    return c.json(DEFAULT_NOTICE);
+  } catch (error) {
+    logger.error('Dashboard notice error', { error: error.message });
+    return c.json(DEFAULT_NOTICE);
+  }
+});
+
 // GET /api/dashboard/me
 dashboard.get('/me', (c) => c.json({ user: c.get('user') }));
 

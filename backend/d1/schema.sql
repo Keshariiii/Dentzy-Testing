@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS staff (
     password TEXT NOT NULL,
     displayName TEXT NOT NULL DEFAULT '',
     email TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    dob TEXT DEFAULT '',
     designation TEXT DEFAULT '',
     employeeId TEXT DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
@@ -117,4 +119,12 @@ CREATE TABLE IF NOT EXISTS inventory (
     updated_by TEXT DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+);
+
+-- Generic App Settings (Key-Value)
+CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    updated_by TEXT DEFAULT 'admin'
 );

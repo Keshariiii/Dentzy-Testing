@@ -27,6 +27,8 @@ import ProductionPipeline from '../../components/common/ProductionPipeline';
 ============================================================ */
 import { Icon, Icons } from '../../components/common/DashboardIcons';
 import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
+import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
+import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
 
 /* ============================================================
    TICKER
@@ -109,6 +111,9 @@ const MobileDashboard = () => {
   const [error,       setError]       = useState(null);
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  // Notice bar state
+  const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
+
   // Settings state
   const [profileForm, setProfileForm]           = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
   const [profileMsg,  setProfileMsg]            = useState({ type: '', text: '' });
@@ -141,6 +146,26 @@ const MobileDashboard = () => {
       });
     }
   }, [user]);
+
+  const fetchNotice = useCallback(async () => {
+    try {
+      const res = await authFetch(`${DASH_URL}/notice`);
+      if (res.ok) {
+        const d = await res.json();
+        setNoticeData({ enabled: d.enabled !== false, messages: d.messages?.length ? d.messages : TICKER_MESSAGES });
+      }
+    } catch { /* fallback to defaults already set */ }
+  }, [authFetch, DASH_URL]);
+
+  useEffect(() => {
+    if (user) fetchNotice();
+  }, [user, fetchNotice]);
+
+  useEffect(() => {
+    const onFocus = () => { if (user) fetchNotice(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user, fetchNotice]);
 
   const fetchStats = useCallback(async () => {
     setError(null);
@@ -320,7 +345,18 @@ const MobileDashboard = () => {
 
     return (
       <div className="m-tab-content">
-        <Ticker />
+        {noticeData.enabled && noticeData.messages.length > 0 && (
+          <TwentyFirstNoticeBar messages={noticeData.messages} className="mb-4" />
+        )}
+
+        {/* Welcome banner for first-time users */}
+        {stats && stats.orders.total === 0 && (
+          <DentistWelcomeBanner
+            userName={userName}
+            onNavigateSettings={() => setActiveTab('settings')}
+            onNavigateOrders={() => setActiveTab('orders')}
+          />
+        )}
 
         {/* Greeting */}
         <div className="m-overview-greeting">

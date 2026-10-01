@@ -17,6 +17,8 @@ const dentzyLogo = '/dentzy-logo-v2.png';
 ============================================================================= */
 import { Icon, Icons } from './common/DashboardIcons';
 import { TICKER_MESSAGES } from './dashboard/shared/constants';
+import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
+import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 
 /* =============================================================================
    NAV ITEMS
@@ -106,6 +108,9 @@ const DentistDashboard = () => {
   const [isEditingProfile, setIsEditingProfile]     = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
+  // Notice bar state
+  const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
+
   // Sync profile form when user changes
   useEffect(() => {
     if (user) {
@@ -148,6 +153,27 @@ const DentistDashboard = () => {
   useEffect(() => {
     if (user) fetchStats();
   }, [user, fetchStats]);
+
+  // Fetch notice bar config on mount and on window focus
+  const fetchNotice = useCallback(async () => {
+    try {
+      const res = await authFetch(`${DASH_URL}/notice`);
+      if (res.ok) {
+        const d = await res.json();
+        setNoticeData({ enabled: d.enabled !== false, messages: d.messages?.length ? d.messages : TICKER_MESSAGES });
+      }
+    } catch { /* fallback to defaults already set */ }
+  }, [authFetch, DASH_URL]);
+
+  useEffect(() => {
+    if (user) fetchNotice();
+  }, [user, fetchNotice]);
+
+  useEffect(() => {
+    const onFocus = () => { if (user) fetchNotice(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user, fetchNotice]);
 
   useEffect(() => {
     if (user) {
@@ -283,19 +309,17 @@ const DentistDashboard = () => {
       <div className="ud-content-inner">
 
         {/* Announcement Ticker */}
-        <TickerBanner />
+        {noticeData.enabled && noticeData.messages.length > 0 && (
+          <TwentyFirstNoticeBar messages={noticeData.messages} />
+        )}
 
-        {/* #17 — Welcome banner for first-time users */}
+        {/* Welcome banner for first-time users */}
         {stats && stats.orders.total === 0 && (
-          <div className="ud-welcome-banner">
-            <h3>Welcome, Dr. {userName}! <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dz-color-primary-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M15 19l3 3 4-4"/></svg></h3>
-            <p>Here's how to get started with Dentzy:</p>
-            <ol>
-              <li>Complete your <strong>profile</strong> in Settings</li>
-              <li>Submit your first <strong>lab order</strong></li>
-              <li>Track your case through the <strong>production pipeline</strong></li>
-            </ol>
-          </div>
+          <DentistWelcomeBanner
+            userName={userName}
+            onNavigateSettings={() => setActiveTab('settings')}
+            onNavigateOrders={() => setActiveTab('orders')}
+          />
         )}
 
         {/* Greeting Row */}

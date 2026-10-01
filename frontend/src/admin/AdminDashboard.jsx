@@ -9,6 +9,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import StaffManagementView from './StaffManagementView';
 import './AdminDashboard.css';
 import { formatINR } from '../utils/format';
+import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -65,7 +66,15 @@ const AdminDashboard = () => {
   // Drill-down state for dentist-centric views
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
-  const [expandedSetting, setExpandedSetting] = useState(null); // 'payments' | 'users' | null
+  const [expandedSetting, setExpandedSetting] = useState(null); // 'payments' | 'users' | 'notice' | null
+  // Notice bar settings state
+  const [noticeEnabled, setNoticeEnabled] = useState(true);
+  const [noticeMessages, setNoticeMessages] = useState([]);
+  const [noticeNewMsg, setNoticeNewMsg] = useState('');
+  const [noticeEditIdx, setNoticeEditIdx] = useState(null);
+  const [noticeEditVal, setNoticeEditVal] = useState('');
+  const [noticeSaving, setNoticeSaving] = useState(false);
+  const [noticeLoaded, setNoticeLoaded] = useState(false);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -118,6 +127,39 @@ const AdminDashboard = () => {
     } catch { }
     setLoadingPayments(false);
   }, [ADMIN_API, payFilterStatus, payFilterMode, paySearch]);
+
+  /* ── Notice bar fetch ───────────────────────────────────────────────── */
+  const fetchNotice = useCallback(async () => {
+    try {
+      const res = await authFetchRef.current(`${ADMIN_API}/settings/notice`);
+      if (res.ok) {
+        const d = await res.json();
+        setNoticeEnabled(d.enabled !== false);
+        setNoticeMessages(d.messages || []);
+        setNoticeLoaded(true);
+      }
+    } catch { }
+  }, [ADMIN_API]);
+
+  const handleNoticeSave = useCallback(async () => {
+    setNoticeSaving(true);
+    try {
+      const res = await authFetchRef.current(`${ADMIN_API}/settings/notice`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: noticeEnabled, messages: noticeMessages }),
+      });
+      if (res.ok) {
+        showToast('Notice bar updated.', 'success');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.message || 'Failed to save.', 'error');
+      }
+    } catch {
+      showToast('Failed to save notice.', 'error');
+    }
+    setNoticeSaving(false);
+  }, [ADMIN_API, noticeEnabled, noticeMessages]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -1040,6 +1082,192 @@ const AdminDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                  {/* Card 0: Notice Bar Manager */}
+                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div
+                      onClick={() => { setExpandedSetting(expandedSetting === 'notice' ? null : 'notice'); if (!noticeLoaded) fetchNotice(); }}
+                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'notice' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {Ico.bell ? Ico.bell(22) : Ico.grid(22)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Dentist Portal Notice Bar</div>
+                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Manage scrolling announcements visible to all dentists</div>
+                        </div>
+                      </div>
+                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
+                        {expandedSetting === 'notice' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
+                      </div>
+                    </div>
+
+                    {expandedSetting === 'notice' && (
+                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
+                        {/* Master Toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '12px 16px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px' }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a3028' }}>Show Notice Bar to Dentists</div>
+                            <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>When disabled, the ticker is hidden across all dentist dashboards</div>
+                          </div>
+                          <button
+                            onClick={() => setNoticeEnabled(v => !v)}
+                            style={{
+                              width: '48px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', position: 'relative',
+                              background: noticeEnabled ? '#22c55e' : '#d1d5db', transition: 'background 0.2s',
+                            }}
+                            aria-label="Toggle notice bar"
+                          >
+                            <span style={{
+                              position: 'absolute', top: '3px', left: noticeEnabled ? '25px' : '3px',
+                              width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+                            }} />
+                          </button>
+                        </div>
+
+                        {/* Live Preview */}
+                        {noticeMessages.length > 0 && (
+                          <div style={{ marginBottom: '20px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
+                            <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
+                              <TwentyFirstNoticeBar messages={noticeMessages} />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Add New Message */}
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                          <input
+                            type="text"
+                            value={noticeNewMsg}
+                            onChange={e => setNoticeNewMsg(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && noticeNewMsg.trim()) {
+                                setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]);
+                                setNoticeNewMsg('');
+                              }
+                            }}
+                            placeholder="Type a new announcement..."
+                            maxLength={250}
+                            style={{ flex: 1, padding: '8px 14px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.85rem', outline: 'none' }}
+                          />
+                          <button
+                            disabled={!noticeNewMsg.trim()}
+                            onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
+                            style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', background: noticeNewMsg.trim() ? '#1e5038' : '#d4ddd8', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: noticeNewMsg.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                          >
+                            + Add
+                          </button>
+                        </div>
+
+                        {/* Message List */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                          {noticeMessages.map((msg, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px' }}>
+                              {/* Reorder */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
+                                <button
+                                  disabled={idx === 0}
+                                  onClick={() => { const arr = [...noticeMessages]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; setNoticeMessages(arr); }}
+                                  style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? '#d4ddd8' : '#6b8a7a', fontSize: '10px', padding: '0 2px', lineHeight: 1 }}
+                                  aria-label="Move up"
+                                >
+                                  &#9650;
+                                </button>
+                                <button
+                                  disabled={idx === noticeMessages.length - 1}
+                                  onClick={() => { const arr = [...noticeMessages]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; setNoticeMessages(arr); }}
+                                  style={{ background: 'none', border: 'none', cursor: idx === noticeMessages.length - 1 ? 'default' : 'pointer', color: idx === noticeMessages.length - 1 ? '#d4ddd8' : '#6b8a7a', fontSize: '10px', padding: '0 2px', lineHeight: 1 }}
+                                  aria-label="Move down"
+                                >
+                                  &#9660;
+                                </button>
+                              </div>
+                              {/* Message text (inline edit) */}
+                              {noticeEditIdx === idx ? (
+                                <input
+                                  autoFocus
+                                  type="text"
+                                  value={noticeEditVal}
+                                  onChange={e => setNoticeEditVal(e.target.value)}
+                                  onBlur={() => {
+                                    if (noticeEditVal.trim()) {
+                                      const arr = [...noticeMessages]; arr[idx] = noticeEditVal.trim(); setNoticeMessages(arr);
+                                    }
+                                    setNoticeEditIdx(null);
+                                  }}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') { e.target.blur(); }
+                                    if (e.key === 'Escape') { setNoticeEditIdx(null); }
+                                  }}
+                                  maxLength={250}
+                                  style={{ flex: 1, padding: '4px 8px', borderRadius: '6px', border: '1px solid #1e5038', fontSize: '0.83rem', outline: 'none' }}
+                                />
+                              ) : (
+                                <span
+                                  onDoubleClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
+                                  style={{ flex: 1, fontSize: '0.83rem', color: '#2a4a3c', cursor: 'text' }}
+                                  title="Double-click to edit"
+                                >
+                                  {msg}
+                                </span>
+                              )}
+                              {/* Edit button */}
+                              <button
+                                onClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b8a7a', padding: '2px' }}
+                                aria-label="Edit"
+                              >
+                                {Ico.edit ? Ico.edit(14) : '\u270E'}
+                              </button>
+                              {/* Delete */}
+                              <button
+                                onClick={() => setNoticeMessages(prev => prev.filter((_, i) => i !== idx))}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '2px' }}
+                                aria-label="Delete"
+                              >
+                                {Ico.trash(14)}
+                              </button>
+                            </div>
+                          ))}
+                          {noticeMessages.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '20px', color: '#6b8a7a', fontSize: '0.85rem' }}>No announcements added yet.</div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => {
+                              setNoticeMessages([
+                                'Welcome to Dentzy Clinical Lab Portal',
+                                'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
+                                'New: Zirconia monolithic crowns with multi-shade gradients now available',
+                                'Submit STL files for faster digital impression processing',
+                                'Invoices are generated upon case dispatch \u2014 check the Payments tab',
+                                'All cases backed by the Dentzy 1-Year Quality Guarantee',
+                                'Lab support: Mon-Sat, 9 AM to 6 PM IST',
+                              ]);
+                              setNoticeEnabled(true);
+                            }}
+                            style={{ padding: '8px 18px', borderRadius: '10px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}
+                          >
+                            Reset to Defaults
+                          </button>
+                          <button
+                            onClick={handleNoticeSave}
+                            disabled={noticeSaving}
+                            style={{ padding: '8px 22px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
+                          >
+                            {noticeSaving ? 'Saving...' : 'Save Changes'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Card 1: Revenue & Payments Overview */}
                   <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                     <div

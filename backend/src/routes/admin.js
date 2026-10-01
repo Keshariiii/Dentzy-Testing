@@ -876,5 +876,87 @@ admin.get('/staff/metrics', verifyAdmin(), async (c) => {
   }
 });
 
-export default admin;
+// ── Notice Bar Settings (Admin) ─────────────────────────────────────────────
 
+const DEFAULT_NOTICE_MESSAGES = [
+  'Welcome to Dentzy Clinical Lab Portal',
+  'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
+  'New: Zirconia monolithic crowns with multi-shade gradients now available',
+  'Submit STL files for faster digital impression processing',
+  'Invoices are generated upon case dispatch — check the Payments tab',
+  'All cases backed by the Dentzy 1-Year Quality Guarantee',
+  'Lab support: Mon-Sat, 9 AM to 6 PM IST',
+];
+
+// GET /api/admin/settings/notice — fetch current notice bar config
+admin.get('/settings/notice', verifyAdmin(), async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'dentist_notice_bar'"
+    ).first();
+    if (row?.value) {
+      const parsed = JSON.parse(row.value);
+      return c.json({
+        enabled: !!parsed.enabled,
+        messages: parsed.messages || [],
+        updated_at: row.updated_at,
+        updated_by: row.updated_by,
+      });
+    }
+    return c.json({ enabled: true, messages: DEFAULT_NOTICE_MESSAGES, updated_at: null, updated_by: null });
+  } catch (err) {
+    logger.error('Admin notice get error', { error: err.message });
+    return c.json({ message: 'Failed to load notice settings.' }, 500);
+  }
+});
+
+// PUT /api/admin/settings/notice — update notice bar config
+admin.put('/settings/notice', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const { enabled, messages } = body;
+
+    // Validate enabled
+    if (typeof enabled !== 'boolean') {
+      return c.json({ message: '"enabled" must be a boolean.' }, 400);
+    }
+
+    // Validate messages
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 25) {
+      return c.json({ message: 'Messages must be an array of 1 to 25 items.' }, 400);
+    }
+
+    const cleaned = [];
+    for (let i = 0; i < messages.length; i++) {
+      if (typeof messages[i] !== 'string') {
+        return c.json({ message: `Message at index ${i} must be a string.` }, 400);
+      }
+      const trimmed = messages[i].trim();
+      if (trimmed.length === 0 || trimmed.length > 250) {
+        return c.json({ message: `Message at index ${i} must be 1-250 characters.` }, 400);
+      }
+      cleaned.push(trimmed);
+    }
+
+    const value = JSON.stringify({ enabled, messages: cleaned });
+    const ts = now();
+    const updatedBy = c.get('admin').username;
+
+    await c.env.DB.prepare(
+      `INSERT INTO app_settings (key, value, updated_at, updated_by)
+       VALUES ('dentist_notice_bar', ?, ?, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = excluded.updated_at,
+         updated_by = excluded.updated_by`
+    ).bind(value, ts, updatedBy).run();
+
+    auditLog('ADMIN_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled });
+    return c.json({ message: 'Notice bar updated.', enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
+  } catch (err) {
+    logger.error('Admin notice update error', { error: err.message });
+    return c.json({ message: 'Failed to update notice settings.' }, 500);
+  }
+});
+
+export default admin;
