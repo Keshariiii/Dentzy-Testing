@@ -23,6 +23,7 @@ import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
+import TwentyFirstNoticeList from '../../components/ui/twentyfirst-notice-list';
 
 const DENTIST_TABS = [
   { key: 'all',      label: 'All' },
@@ -105,8 +106,6 @@ const MobileAdminDashboard = () => {
   const [noticeEnabled, setNoticeEnabled] = useState(true);
   const [noticeMessages, setNoticeMessages] = useState([]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
-  const [noticeEditIdx, setNoticeEditIdx] = useState(null);
-  const [noticeEditVal, setNoticeEditVal] = useState('');
   const [noticeSaving, setNoticeSaving] = useState(false);
   const [noticeLoaded, setNoticeLoaded] = useState(false);
 
@@ -1424,76 +1423,11 @@ const MobileAdminDashboard = () => {
                     </button>
                   </div>
 
-                  {/* Message Items */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {noticeMessages.map((msg, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }}>
-                        {/* Reorder */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
-                          <button
-                            disabled={idx === 0}
-                            onClick={() => { const arr = [...noticeMessages]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; setNoticeMessages(arr); }}
-                            style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? '#d4ddd8' : '#6b8a7a', fontSize: '9px', padding: '0 2px', lineHeight: 1 }}
-                            aria-label="Move up"
-                          >
-                            ▲
-                          </button>
-                          <button
-                            disabled={idx === noticeMessages.length - 1}
-                            onClick={() => { const arr = [...noticeMessages]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; setNoticeMessages(arr); }}
-                            style={{ background: 'none', border: 'none', cursor: idx === noticeMessages.length - 1 ? 'default' : 'pointer', color: idx === noticeMessages.length - 1 ? '#d4ddd8' : '#6b8a7a', fontSize: '9px', padding: '0 2px', lineHeight: 1 }}
-                            aria-label="Move down"
-                          >
-                            ▼
-                          </button>
-                        </div>
-
-                        {/* Text */}
-                        {noticeEditIdx === idx ? (
-                          <input
-                            autoFocus
-                            type="text"
-                            value={noticeEditVal}
-                            onChange={e => setNoticeEditVal(e.target.value)}
-                            onBlur={() => {
-                              if (noticeEditVal.trim()) {
-                                const arr = [...noticeMessages]; arr[idx] = noticeEditVal.trim(); setNoticeMessages(arr);
-                              }
-                              setNoticeEditIdx(null);
-                            }}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') e.target.blur();
-                              if (e.key === 'Escape') setNoticeEditIdx(null);
-                            }}
-                            maxLength={250}
-                            style={{ flex: 1, minWidth: 0, padding: '4px 8px', borderRadius: '6px', border: '1px solid #1e5038', fontSize: '0.8rem', outline: 'none' }}
-                          />
-                        ) : (
-                          <span
-                            onClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                            style={{ flex: 1, minWidth: 0, fontSize: '0.8rem', color: '#2a4a3c', cursor: 'text', wordBreak: 'break-word', lineHeight: 1.3 }}
-                          >
-                            {msg}
-                          </span>
-                        )}
-
-                        <button
-                          onClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b8a7a', padding: '4px', flexShrink: 0 }}
-                          aria-label="Edit"
-                        >
-                          {Ico.edit ? Ico.edit(14) : '\u270E'}
-                        </button>
-                        <button
-                          onClick={() => setNoticeMessages(prev => prev.filter((_, i) => i !== idx))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px', flexShrink: 0 }}
-                          aria-label="Delete"
-                        >
-                          {Ico.trash ? Ico.trash(14) : '\u2715'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Draggable Reorderable List (21st.dev) */}
+                  <TwentyFirstNoticeList
+                    messages={noticeMessages}
+                    onChange={setNoticeMessages}
+                  />
 
                   {/* Actions */}
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '6px' }}>

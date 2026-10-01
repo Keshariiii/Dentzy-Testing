@@ -63,6 +63,9 @@ export const Icons = {
   chevronUp:  (s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="18 15 12 9 6 15"/></>} />,
   chevronRight:(s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="9 18 15 12 9 6"/></>} />,
   chevronLeft:(s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><polyline points="15 18 9 12 15 6"/></>} />,
+  edit:       (s = 15, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>} />,
+  pencil:     (s = 15, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>} />,
+  grip:       (s = 16) => <Icon size={s} strokeWidth={2} d={<><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></>} />,
 };
 
 export const Ico = Icons;

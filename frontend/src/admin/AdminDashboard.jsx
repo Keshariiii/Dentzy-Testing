@@ -11,6 +11,7 @@ import './AdminDashboard.css';
 import { formatINR } from '../utils/format';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
+import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -72,8 +73,6 @@ const AdminDashboard = () => {
   const [noticeEnabled, setNoticeEnabled] = useState(true);
   const [noticeMessages, setNoticeMessages] = useState([]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
-  const [noticeEditIdx, setNoticeEditIdx] = useState(null);
-  const [noticeEditVal, setNoticeEditVal] = useState('');
   const [noticeSaving, setNoticeSaving] = useState(false);
   const [noticeLoaded, setNoticeLoaded] = useState(false);
   // Staff view state
@@ -1190,75 +1189,12 @@ const AdminDashboard = () => {
                           </button>
                         </div>
 
-                        {/* Message List */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-                          {noticeMessages.map((msg, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
-                                <button
-                                  disabled={idx === 0}
-                                  onClick={() => { const arr = [...noticeMessages]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; setNoticeMessages(arr); }}
-                                  style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? '#d4ddd8' : '#6b8a7a', fontSize: '11px', padding: '0 4px', lineHeight: 1 }}
-                                  aria-label="Move up"
-                                >
-                                  &#9650;
-                                </button>
-                                <button
-                                  disabled={idx === noticeMessages.length - 1}
-                                  onClick={() => { const arr = [...noticeMessages]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; setNoticeMessages(arr); }}
-                                  style={{ background: 'none', border: 'none', cursor: idx === noticeMessages.length - 1 ? 'default' : 'pointer', color: idx === noticeMessages.length - 1 ? '#d4ddd8' : '#6b8a7a', fontSize: '11px', padding: '0 4px', lineHeight: 1 }}
-                                  aria-label="Move down"
-                                >
-                                  &#9660;
-                                </button>
-                              </div>
-                              {noticeEditIdx === idx ? (
-                                <input
-                                  autoFocus
-                                  type="text"
-                                  value={noticeEditVal}
-                                  onChange={e => setNoticeEditVal(e.target.value)}
-                                  onBlur={() => {
-                                    if (noticeEditVal.trim()) {
-                                      const arr = [...noticeMessages]; arr[idx] = noticeEditVal.trim(); setNoticeMessages(arr);
-                                    }
-                                    setNoticeEditIdx(null);
-                                  }}
-                                  onKeyDown={e => {
-                                    if (e.key === 'Enter') e.target.blur();
-                                    if (e.key === 'Escape') setNoticeEditIdx(null);
-                                  }}
-                                  maxLength={250}
-                                  style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1px solid #1e5038', fontSize: '0.85rem', outline: 'none' }}
-                                />
-                              ) : (
-                                <span
-                                  onDoubleClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                                  style={{ flex: 1, fontSize: '0.86rem', color: '#2a4a3c', cursor: 'text' }}
-                                  title="Double-click to edit"
-                                >
-                                  {msg}
-                                </span>
-                              )}
-                              <button
-                                onClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b8a7a', padding: '4px' }}
-                                aria-label="Edit"
-                              >
-                                {Ico.edit ? Ico.edit(15) : '✎'}
-                              </button>
-                              <button
-                                onClick={() => setNoticeMessages(prev => prev.filter((_, i) => i !== idx))}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px' }}
-                                aria-label="Delete"
-                              >
-                                {Ico.trash(15)}
-                              </button>
-                            </div>
-                          ))}
-                          {noticeMessages.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '24px', color: '#6b8a7a', fontSize: '0.88rem' }}>No announcements added yet.</div>
-                          )}
+                        {/* Draggable Reorderable List (21st.dev) */}
+                        <div style={{ marginBottom: '24px' }}>
+                          <TwentyFirstNoticeList
+                            messages={noticeMessages}
+                            onChange={setNoticeMessages}
+                          />
                         </div>
 
                         {/* Action Footer */}
