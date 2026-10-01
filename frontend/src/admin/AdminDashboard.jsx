@@ -10,6 +10,7 @@ import StaffManagementView from './StaffManagementView';
 import './AdminDashboard.css';
 import { formatINR } from '../utils/format';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
+import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -66,7 +67,7 @@ const AdminDashboard = () => {
   // Drill-down state for dentist-centric views
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
-  const [expandedSetting, setExpandedSetting] = useState(null); // 'payments' | 'users' | 'notice' | null
+  const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
   const [noticeMessages, setNoticeMessages] = useState([]);
@@ -629,7 +630,7 @@ const AdminDashboard = () => {
                 <span className="ad-nav-icon">{Ico.usersS ? Ico.usersS(16) : Ico.grid(16)}</span>
                 Staff
               </button>
-              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
+              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); setSettingsSubView(null); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
                 <span className="ad-nav-icon">{Ico.settings(16)}</span>
                 Settings
               </button>
@@ -1065,72 +1066,99 @@ const AdminDashboard = () => {
                 setConfirmConfig={setConfirmConfig}
               />
             ) : adminView === 'settings' ? (
-              /* ── Settings View ───────────────────────────────────────── */
+              /* ── Settings View (Sub-view Architecture) ───────────────── */
               <div style={{ padding: '28px 20px', maxWidth: '860px', margin: '0 auto', width: '100%' }}>
-                <div className="ad-section-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                  <button
-                    onClick={() => setAdminView('dentists')}
-                    title="Back to Dentists"
-                    style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
-                  </button>
+
+                {/* Sub-view Landing Grid (when settingsSubView === null) */}
+                {!settingsSubView ? (
+                  <>
+                    <div className="ad-section-header" style={{ marginBottom: '24px' }}>
+                      <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
+                      <p style={{ color: '#6b8a7a', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '16px' }}>
+                      <TwentyFirstNavCard
+                        label="Dentist Portal Notice Bar"
+                        desc="Manage scrolling announcements visible to all dentists"
+                        icon={Ico.bell ? Ico.bell(22) : Ico.grid(22)}
+                        onClick={() => {
+                          setSettingsSubView('notice');
+                          if (!noticeLoaded) fetchNotice();
+                        }}
+                      />
+                      <TwentyFirstNavCard
+                        label="Payment & Revenue Overview"
+                        desc="View total billed, collected, and pending revenue statistics"
+                        icon={Ico.payments ? Ico.payments(22) : Ico.wallet(22)}
+                        onClick={() => setSettingsSubView('payments')}
+                      />
+                      <TwentyFirstNavCard
+                        label="User Accounts Overview"
+                        desc="Track registered, approved, pending, and rejected dentist accounts"
+                        icon={Ico.usersS ? Ico.usersS(22) : Ico.users(22)}
+                        onClick={() => setSettingsSubView('users')}
+                      />
+                      <TwentyFirstNavCard
+                        label="Administrator Account"
+                        desc="View active session, security options, and account logout"
+                        icon={Ico.user ? Ico.user(22) : Ico.settings(22)}
+                        onClick={() => setSettingsSubView('account')}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  /* Sub-Page Content Views */
                   <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
-                    <p style={{ color: '#6b8a7a', fontSize: '0.84rem', margin: 0 }}>Manage portal preferences and view overall performance metrics.</p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                  {/* Card 0: Notice Bar Manager */}
-                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                    <div
-                      onClick={() => { setExpandedSetting(expandedSetting === 'notice' ? null : 'notice'); if (!noticeLoaded) fetchNotice(); }}
-                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'notice' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {Ico.bell ? Ico.bell(22) : Ico.grid(22)}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Dentist Portal Notice Bar</div>
-                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Manage scrolling announcements visible to all dentists</div>
-                        </div>
-                      </div>
-                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
-                        {expandedSetting === 'notice' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
+                    {/* Common Sub-Page Header with Back Button */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                      <button
+                        onClick={() => setSettingsSubView(null)}
+                        title="Back to Settings"
+                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                      >
+                        {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
+                      </button>
+                      <div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>
+                          {settingsSubView === 'notice' && 'Dentist Portal Notice Bar'}
+                          {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
+                          {settingsSubView === 'users' && 'User Accounts Overview'}
+                          {settingsSubView === 'account' && 'Administrator Account'}
+                        </h2>
+                        <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
                       </div>
                     </div>
 
-                    {expandedSetting === 'notice' && (
-                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
+                    {/* Sub-Page 1: Notice Bar Manager */}
+                    {settingsSubView === 'notice' && (
+                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         {/* Master Toggle */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '12px 16px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px' }}>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a3028' }}>Show Notice Bar to Dentists</div>
-                            <div style={{ fontSize: '0.78rem', color: '#6b8a7a' }}>When disabled, the ticker is hidden across all dentist dashboards</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Show Notice Bar to Dentists</div>
+                            <div style={{ fontSize: '0.8rem', color: '#6b8a7a', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all dentist dashboards</div>
                           </div>
                           <button
                             onClick={() => setNoticeEnabled(v => !v)}
                             style={{
-                              width: '48px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', position: 'relative',
+                              width: '52px', height: '28px', borderRadius: '14px', border: 'none', cursor: 'pointer', position: 'relative',
                               background: noticeEnabled ? '#22c55e' : '#d1d5db', transition: 'background 0.2s',
                             }}
                             aria-label="Toggle notice bar"
                           >
                             <span style={{
-                              position: 'absolute', top: '3px', left: noticeEnabled ? '25px' : '3px',
-                              width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+                              position: 'absolute', top: '3px', left: noticeEnabled ? '27px' : '3px',
+                              width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
                             }} />
                           </button>
                         </div>
 
                         {/* Live Preview */}
                         {noticeMessages.length > 0 && (
-                          <div style={{ marginBottom: '20px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
+                          <div style={{ marginBottom: '24px' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
                             <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
                               <TwentyFirstNoticeBar messages={noticeMessages} />
                             </div>
@@ -1138,7 +1166,7 @@ const AdminDashboard = () => {
                         )}
 
                         {/* Add New Message */}
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                           <input
                             type="text"
                             value={noticeNewMsg}
@@ -1149,29 +1177,28 @@ const AdminDashboard = () => {
                                 setNoticeNewMsg('');
                               }
                             }}
-                            placeholder="Type a new announcement..."
+                            placeholder="Type a new announcement message..."
                             maxLength={250}
-                            style={{ flex: 1, padding: '8px 14px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.85rem', outline: 'none' }}
+                            style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
                           />
                           <button
                             disabled={!noticeNewMsg.trim()}
                             onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
-                            style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', background: noticeNewMsg.trim() ? '#1e5038' : '#d4ddd8', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: noticeNewMsg.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                            style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: noticeNewMsg.trim() ? '#1e5038' : '#d4ddd8', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: noticeNewMsg.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
                           >
-                            + Add
+                            + Add Message
                           </button>
                         </div>
 
                         {/* Message List */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
                           {noticeMessages.map((msg, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '10px' }}>
-                              {/* Reorder */}
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
                                 <button
                                   disabled={idx === 0}
                                   onClick={() => { const arr = [...noticeMessages]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; setNoticeMessages(arr); }}
-                                  style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? '#d4ddd8' : '#6b8a7a', fontSize: '10px', padding: '0 2px', lineHeight: 1 }}
+                                  style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? '#d4ddd8' : '#6b8a7a', fontSize: '11px', padding: '0 4px', lineHeight: 1 }}
                                   aria-label="Move up"
                                 >
                                   &#9650;
@@ -1179,13 +1206,12 @@ const AdminDashboard = () => {
                                 <button
                                   disabled={idx === noticeMessages.length - 1}
                                   onClick={() => { const arr = [...noticeMessages]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; setNoticeMessages(arr); }}
-                                  style={{ background: 'none', border: 'none', cursor: idx === noticeMessages.length - 1 ? 'default' : 'pointer', color: idx === noticeMessages.length - 1 ? '#d4ddd8' : '#6b8a7a', fontSize: '10px', padding: '0 2px', lineHeight: 1 }}
+                                  style={{ background: 'none', border: 'none', cursor: idx === noticeMessages.length - 1 ? 'default' : 'pointer', color: idx === noticeMessages.length - 1 ? '#d4ddd8' : '#6b8a7a', fontSize: '11px', padding: '0 4px', lineHeight: 1 }}
                                   aria-label="Move down"
                                 >
                                   &#9660;
                                 </button>
                               </div>
-                              {/* Message text (inline edit) */}
                               {noticeEditIdx === idx ? (
                                 <input
                                   autoFocus
@@ -1199,46 +1225,44 @@ const AdminDashboard = () => {
                                     setNoticeEditIdx(null);
                                   }}
                                   onKeyDown={e => {
-                                    if (e.key === 'Enter') { e.target.blur(); }
-                                    if (e.key === 'Escape') { setNoticeEditIdx(null); }
+                                    if (e.key === 'Enter') e.target.blur();
+                                    if (e.key === 'Escape') setNoticeEditIdx(null);
                                   }}
                                   maxLength={250}
-                                  style={{ flex: 1, padding: '4px 8px', borderRadius: '6px', border: '1px solid #1e5038', fontSize: '0.83rem', outline: 'none' }}
+                                  style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1px solid #1e5038', fontSize: '0.85rem', outline: 'none' }}
                                 />
                               ) : (
                                 <span
                                   onDoubleClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                                  style={{ flex: 1, fontSize: '0.83rem', color: '#2a4a3c', cursor: 'text' }}
+                                  style={{ flex: 1, fontSize: '0.86rem', color: '#2a4a3c', cursor: 'text' }}
                                   title="Double-click to edit"
                                 >
                                   {msg}
                                 </span>
                               )}
-                              {/* Edit button */}
                               <button
                                 onClick={() => { setNoticeEditIdx(idx); setNoticeEditVal(msg); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b8a7a', padding: '2px' }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b8a7a', padding: '4px' }}
                                 aria-label="Edit"
                               >
-                                {Ico.edit ? Ico.edit(14) : '\u270E'}
+                                {Ico.edit ? Ico.edit(15) : '✎'}
                               </button>
-                              {/* Delete */}
                               <button
                                 onClick={() => setNoticeMessages(prev => prev.filter((_, i) => i !== idx))}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '2px' }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px' }}
                                 aria-label="Delete"
                               >
-                                {Ico.trash(14)}
+                                {Ico.trash(15)}
                               </button>
                             </div>
                           ))}
                           {noticeMessages.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '20px', color: '#6b8a7a', fontSize: '0.85rem' }}>No announcements added yet.</div>
+                            <div style={{ textAlign: 'center', padding: '24px', color: '#6b8a7a', fontSize: '0.88rem' }}>No announcements added yet.</div>
                           )}
                         </div>
 
-                        {/* Action Buttons */}
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        {/* Action Footer */}
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #edf2ef' }}>
                           <button
                             onClick={() => {
                               setNoticeMessages([
@@ -1246,147 +1270,110 @@ const AdminDashboard = () => {
                                 'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
                                 'New: Zirconia monolithic crowns with multi-shade gradients now available',
                                 'Submit STL files for faster digital impression processing',
-                                'Invoices are generated upon case dispatch \u2014 check the Payments tab',
+                                'Invoices are generated upon case dispatch — check the Payments tab',
                                 'All cases backed by the Dentzy 1-Year Quality Guarantee',
                                 'Lab support: Mon-Sat, 9 AM to 6 PM IST',
                               ]);
                               setNoticeEnabled(true);
                             }}
-                            style={{ padding: '8px 18px', borderRadius: '10px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}
+                            style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                           >
                             Reset to Defaults
                           </button>
                           <button
                             onClick={handleNoticeSave}
                             disabled={noticeSaving}
-                            style={{ padding: '8px 22px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
+                            style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
                           >
                             {noticeSaving ? 'Saving...' : 'Save Changes'}
                           </button>
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Card 1: Revenue & Payments Overview */}
-                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                    <div
-                      onClick={() => setExpandedSetting(expandedSetting === 'payments' ? null : 'payments')}
-                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'payments' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {Ico.payments ? Ico.payments(22) : Ico.wallet(22)}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Payment & Revenue Overview</div>
-                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Click to view total billed, collected, and pending revenue</div>
-                        </div>
-                      </div>
-                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
-                        {expandedSetting === 'payments' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
-                      </div>
-                    </div>
-
-                    {expandedSetting === 'payments' && (
-                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
+                    {/* Sub-Page 2: Payments & Revenue Analytics */}
+                    {settingsSubView === 'payments' && (
+                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1a3028', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalBilled || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#166534', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalCollected || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalPending || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e5038', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e5038', marginTop: '8px' }}>
                               {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
                             </div>
                           </div>
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Card 2: Users Overview */}
-                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                    <div
-                      onClick={() => setExpandedSetting(expandedSetting === 'users' ? null : 'users')}
-                      style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: expandedSetting === 'users' ? '#f8faf9' : '#fff', transition: 'background 0.2s' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#e8f5ee', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {Ico.usersS ? Ico.usersS(22) : Ico.users(22)}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>User Accounts Overview</div>
-                          <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Click to view registered, approved, pending, and rejected accounts</div>
-                        </div>
-                      </div>
-                      <div style={{ color: '#6b8a7a', display: 'flex', alignItems: 'center' }}>
-                        {expandedSetting === 'users' ? Ico.chevronUp(20) : Ico.chevronDown(20)}
-                      </div>
-                    </div>
-
-                    {expandedSetting === 'users' && (
-                      <div style={{ padding: '20px 24px', borderTop: '1px solid #edf2ef', background: '#fdfdfd' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1a3028', marginTop: '6px' }}>
+                    {/* Sub-Page 3: User Accounts Overview */}
+                    {settingsSubView === 'users' && (
+                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
                               {stats.total || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#166534', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
                               {stats.approved || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
                               {stats.pending || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '12px', padding: '16px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejected</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#dc2626', marginTop: '6px' }}>
+                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejected</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#dc2626', marginTop: '8px' }}>
                               {stats.rejected || 0}
                             </div>
                           </div>
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Card 3: Session & Logout */}
-                  <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2ece6', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>Administrator Account</div>
-                      <div style={{ fontSize: '0.82rem', color: '#6b8a7a' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
-                    </div>
-                    <button
-                      className="ad-logout"
-                      onClick={handleLogout}
-                      style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      {Ico.logout(15)} Logout
-                    </button>
+                    {/* Sub-Page 4: Administrator Account */}
+                    {settingsSubView === 'account' && (
+                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Administrator Account</div>
+                          <div style={{ fontSize: '0.85rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                        </div>
+                        <button
+                          className="ad-logout"
+                          onClick={handleLogout}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', padding: '10px 22px', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                          {Ico.logout(16)} Logout
+                        </button>
+                      </div>
+                    )}
+
                   </div>
-                </div>
+                )}
               </div>
             ) : null}
 
