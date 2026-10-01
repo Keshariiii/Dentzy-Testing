@@ -81,6 +81,13 @@ const AdminDashboard = () => {
   const [staffSearch, setStaffSearch] = useState('');
   const sseRef = useRef(null);
   const toastTimerRef = useRef(null);
+  const prevAdminViewRef = useRef('dentists');
+
+  useEffect(() => {
+    if (adminView !== 'settings') {
+      prevAdminViewRef.current = adminView;
+    }
+  }, [adminView]);
 
   /* ── Date string ───────────────────────────────────────────────────────── */
   const todayStr = new Date().toLocaleDateString('en-IN', {
@@ -1071,9 +1078,35 @@ const AdminDashboard = () => {
                 {/* Sub-view Landing Grid (when settingsSubView === null) */}
                 {!settingsSubView ? (
                   <>
-                    <div className="ad-section-header" style={{ marginBottom: '24px' }}>
-                      <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
-                      <p style={{ color: '#6b8a7a', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setAdminView(prevAdminViewRef.current || 'dentists')}
+                        title="Back to Dashboard"
+                        aria-label="Back to Dashboard"
+                        style={{
+                          background: '#e2ece6',
+                          borderRadius: '10px',
+                          width: '38px',
+                          height: '38px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#1e5038',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#d0e4d7'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#e2ece6'; }}
+                      >
+                        {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
+                      </button>
+                      <div className="ad-section-header" style={{ marginBottom: 0 }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
+                        <p style={{ color: '#6b8a7a', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
+                      </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '16px' }}>
@@ -1110,11 +1143,15 @@ const AdminDashboard = () => {
                   /* Sub-Page Content Views */
                   <div>
                     {/* Common Sub-Page Header with Back Button */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
                       <button
+                        type="button"
                         onClick={() => setSettingsSubView(null)}
                         title="Back to Settings"
-                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                        aria-label="Back to Settings"
+                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#d0e4d7'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#e2ece6'; }}
                       >
                         {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
                       </button>
