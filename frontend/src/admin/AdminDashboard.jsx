@@ -1066,7 +1066,7 @@ const AdminDashboard = () => {
               />
             ) : adminView === 'settings' ? (
               /* ── Settings View ───────────────────────────────────────── */
-              <div style={{ padding: '28px 0', maxWidth: '800px' }}>
+              <div style={{ padding: '28px 20px', maxWidth: '860px', margin: '0 auto', width: '100%' }}>
                 <div className="ad-section-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                   <button
                     onClick={() => setAdminView('dentists')}
