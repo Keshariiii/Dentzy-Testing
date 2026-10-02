@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthUrl } from '../api/client';
+import PasswordStrengthMeter from './ui/password-strength-meter';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Register.css';
 
@@ -525,18 +526,7 @@ const Register = () => {
             {/* Password strength meter + checklist */}
             {(pwFocused && form.password.length > 0) && (
               <div className="pw-strength-box">
-                {/* Strength bar */}
-                <div className="pw-strength-bar-track">
-                  <div
-                    className="pw-strength-bar-fill"
-                    style={{ '--pw-fill': strength.fill, backgroundColor: strength.color }}
-                  />
-                </div>
-                {strength.label && (
-                  <span className="pw-strength-label" style={{ color: strength.color }}>
-                    {strength.label}
-                  </span>
-                )}
+                <PasswordStrengthMeter password={form.password} />
 
                 {/* Rules checklist */}
                 <ul className="pw-rules">

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { getAuthUrl } from '../api/client';
+import PasswordStrengthMeter from './ui/password-strength-meter';
 import './Register.css';
 
 const API = () => getAuthUrl();
@@ -486,12 +487,7 @@ const ForgotPassword = () => {
             {/* Password Strength Meter */}
             {(pwFocused && form.password.length > 0) && (
               <div className="pw-strength-box">
-                <div className="pw-strength-bar-track">
-                  <div className="pw-strength-bar-fill" style={{ '--pw-fill': strength.fill, backgroundColor: strength.color }} />
-                </div>
-                {strength.label && (
-                  <span className="pw-strength-label" style={{ color: strength.color }}>{strength.label}</span>
-                )}
+                <PasswordStrengthMeter password={form.password} />
                 <ul className="pw-rules">
                   {ruleResults.map((rule) => (
                     <li key={rule.id} className={`pw-rule ${rule.passed ? 'passed' : 'failed'}`}>

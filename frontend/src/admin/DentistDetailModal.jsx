@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import './DentistDetailModal.css';
+import BaseModal from '../components/ui/BaseModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -87,12 +88,6 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
   useEffect(() => { load(); }, [load]);
 
-  /* ── Close on Escape ─────────────────────────────────────────────────── */
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
 
   /* ── Toast helper ────────────────────────────────────────────────────── */
   const showToast = (msg, type = 'success') => {
@@ -174,8 +169,17 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   };
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
-    <div className="ddm-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="ddm-panel" onClick={e => e.stopPropagation()}>
+    <>
+      <BaseModal
+        isOpen={Boolean(userId)}
+        onClose={onClose}
+        maxWidth="max-w-3xl"
+        className="ddm-panel-wrap"
+        closeOnEscape={!confirmConfig}
+        raw={true}
+        id={`dentist-${userId}`}
+      >
+        <div className="ddm-panel-content">
 
         {/* Header */}
         <div className="ddm-header">
@@ -388,13 +392,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
             <span>{toast.msg}</span>
           </div>
         )}
-      </div>
+        </div>
+      </BaseModal>
 
       <ConfirmDialog
         isOpen={!!confirmConfig}
         {...confirmConfig}
       />
-    </div>
+    </>
   );
 };
 

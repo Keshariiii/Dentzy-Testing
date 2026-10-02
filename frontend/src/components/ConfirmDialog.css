@@ -17,6 +17,16 @@
   to { opacity: 1; }
 }
 
+.cd-panel-modal {
+  max-width: 420px;
+  background: #ffffff;
+}
+
+.cd-panel-content {
+  padding: 28px 24px;
+  text-align: center;
+}
+
 .cd-panel {
   background: #ffffff;
   width: 100%;

@@ -8,6 +8,8 @@ import './DentistDashboard.css';
 import { formatINR, formatDate } from '../utils/format';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
+import BaseModal from './ui/BaseModal';
+import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import EmptyState from './common/EmptyState';
 import ProductionPipeline from './common/ProductionPipeline';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -80,7 +82,7 @@ const DentistDashboard = () => {
   const router = useRouter();
   const { user, logout, authFetch, updateUserState, API_URL, DASH_URL } = useAuth();
 
-  const [activeTab, setActiveTab]     = useState('dashboard');
+  const [activeTab, setActiveTab] = useDashboardUrlState('tab', 'dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch]           = useState('');
   const [stats, setStats]             = useState(null);
@@ -860,9 +862,14 @@ const DentistDashboard = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="ud-modal-backdrop" onClick={() => setShowDeleteModal(false)}>
-          <div className="ud-modal" onClick={e => e.stopPropagation()}>
+      <BaseModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="ud-delete-modal"
+      >
+        <div className="ud-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
             <div className="ud-modal-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
@@ -902,8 +909,7 @@ const DentistDashboard = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </BaseModal>
     </div>
   );
 

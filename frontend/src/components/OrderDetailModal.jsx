@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
 import './OrderDetailModal.css';
@@ -12,10 +13,8 @@ const STAGE_LABELS = {
   design: 'CAD/CAM',
   production: 'Milling',
   qc: 'QC Check',
-  dispatched: 'Dispatch',  /* #42 — Abbreviated from 'Ready for Dispatch' to avoid clipping */
+  dispatched: 'Dispatch',
 };
-
-
 
 export default function OrderDetailModal({
   order,
@@ -27,8 +26,15 @@ export default function OrderDetailModal({
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Keep last order in ref so exit animation has data to render
+  const lastOrderRef = useRef(order);
+  if (order) {
+    lastOrderRef.current = order;
+  }
+  const displayOrder = order || lastOrderRef.current;
+
   // Amount inline edit state
-  const [currentAmount, setCurrentAmount] = useState(order?.amount || 0);
+  const [currentAmount, setCurrentAmount] = useState(displayOrder?.amount || 0);
   const [isEditingAmount, setIsEditingAmount] = useState(false);
   const [amountInput, setAmountInput] = useState('');
   const [savingAmount, setSavingAmount] = useState(false);
@@ -42,18 +48,10 @@ export default function OrderDetailModal({
     }
   }, [order]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showConfirmDelete, isEditingAmount, onClose]);
+  if (!displayOrder && !order) return null;
 
-  if (!order) return null;
-
-  const orderId = order._id || order.id;
-  const currentStage = (order.stage || 'received').toLowerCase();
+  const orderId = displayOrder._id || displayOrder.id;
+  const currentStage = (displayOrder.stage || 'received').toLowerCase();
   const stageIdx = STAGES.indexOf(currentStage);
 
   const handleDeleteConfirm = async () => {
@@ -80,7 +78,7 @@ export default function OrderDetailModal({
     setAmountError('');
     try {
       if (onUpdateAmount) {
-        await onUpdateAmount(order, val);
+        await onUpdateAmount(displayOrder, val);
       }
       setCurrentAmount(val);
       setIsEditingAmount(false);
@@ -91,21 +89,28 @@ export default function OrderDetailModal({
     }
   };
 
-  const dentistName = order.owner?.name || order.dentistName || '—';
-  const clinicName = order.owner?.clinicName || order.clinicName || '';
-  const dentistEmail = order.owner?.email || order.dentistEmail || '';
+  const dentistName = displayOrder.owner?.name || displayOrder.dentistName || '—';
+  const clinicName = displayOrder.owner?.clinicName || displayOrder.clinicName || '';
+  const dentistEmail = displayOrder.owner?.email || displayOrder.dentistEmail || '';
 
   return (
     <>
-      <div className="odm-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <div className="odm-modal" onClick={(e) => e.stopPropagation()}>
-          
+      <BaseModal
+        isOpen={Boolean(order)}
+        onClose={onClose}
+        maxWidth="max-w-2xl"
+        className="odm-modal-wrap"
+        closeOnEscape={!showConfirmDelete && !isEditingAmount}
+        raw={true}
+        id={`order-${orderId}`}
+      >
+        <div className="odm-modal-content">
           {/* Header */}
           <div className="odm-header">
             <div className="odm-case-badge-wrap">
-              <span className="odm-case-badge">{order.caseId || 'Order Details'}</span>
-              <span className={`odm-status-pill odm-status--${(order.status || 'pending').toLowerCase()}`}>
-                {order.status || 'Pending'}
+              <span className="odm-case-badge">{displayOrder.caseId || 'Order Details'}</span>
+              <span className={`odm-status-pill odm-status--${(displayOrder.status || 'pending').toLowerCase()}`}>
+                {displayOrder.status || 'Pending'}
               </span>
             </div>
             <button className="odm-close-btn" onClick={onClose} aria-label="Close modal">
@@ -115,7 +120,7 @@ export default function OrderDetailModal({
 
           {/* Title / Patient */}
           <div className="odm-title-section">
-            <h2 className="odm-patient-name">{order.patientName || 'Unnamed Patient'}</h2>
+            <h2 className="odm-patient-name">{displayOrder.patientName || 'Unnamed Patient'}</h2>
             <p className="odm-dentist-sub">
               <span>{dentistName}</span>
               {clinicName && <span> · {clinicName}</span>}
@@ -145,35 +150,34 @@ export default function OrderDetailModal({
           <div className="odm-grid">
             <div className="odm-grid-item">
               <span className="odm-grid-label">Service Type</span>
-              <span className="odm-grid-value">{order.serviceType || 'Standard'}</span>
+              <span className="odm-grid-value">{displayOrder.serviceType || 'Standard'}</span>
             </div>
             <div className="odm-grid-item">
               <span className="odm-grid-label">Priority</span>
               <span className="odm-grid-value">
-                <span className={`odm-priority-pill odm-priority--${(order.priority || 'normal').toLowerCase()}`}>
-                  {/* #44 — Priority icons for scanability */}
-                  {(order.priority || 'normal').toLowerCase() === 'high' || (order.priority || 'normal').toLowerCase() === 'rush' || (order.priority || 'normal').toLowerCase() === 'urgent'
+                <span className={`odm-priority-pill odm-priority--${(displayOrder.priority || 'normal').toLowerCase()}`}>
+                  {(displayOrder.priority || 'normal').toLowerCase() === 'high' || (displayOrder.priority || 'normal').toLowerCase() === 'rush' || (displayOrder.priority || 'normal').toLowerCase() === 'urgent'
                     ? <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     : <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><circle cx="12" cy="12" r="6"/></svg>}
-                  {order.priority || 'Normal'}
+                  {displayOrder.priority || 'Normal'}
                 </span>
               </span>
             </div>
             <div className="odm-grid-item">
               <span className="odm-grid-label">Created At</span>
-              <span className="odm-grid-value">{formatDate(order.createdAt)}</span>
+              <span className="odm-grid-value">{formatDate(displayOrder.createdAt)}</span>
             </div>
             <div className="odm-grid-item">
               <span className="odm-grid-label">Target Due Date</span>
-              <span className="odm-grid-value">{formatDate(order.dueDate)}</span>
+              <span className="odm-grid-value">{formatDate(displayOrder.dueDate)}</span>
             </div>
           </div>
 
           {/* Clinical Notes */}
-          {order.notes && (
+          {displayOrder.notes && (
             <div className="odm-notes-box">
               <span className="odm-notes-label">Clinical Instructions & Notes</span>
-              <p className="odm-notes-text">{order.notes}</p>
+              <p className="odm-notes-text">{displayOrder.notes}</p>
             </div>
           )}
 
@@ -181,8 +185,8 @@ export default function OrderDetailModal({
           <div className="odm-payment-card">
             <div className="odm-payment-header">
               <span className="odm-payment-title">Payment Information</span>
-              <span className={`odm-pay-pill odm-pay--${(order.paymentStatus || 'pending').toLowerCase()}`}>
-                {order.paymentStatus || 'Pending'}
+              <span className={`odm-pay-pill odm-pay--${(displayOrder.paymentStatus || 'pending').toLowerCase()}`}>
+                {displayOrder.paymentStatus || 'Pending'}
               </span>
             </div>
             <div className="odm-payment-body">
@@ -238,30 +242,29 @@ export default function OrderDetailModal({
               {amountError && (
                 <div className="odm-amount-error-msg">{amountError}</div>
               )}
-              {order.paymentStatus === 'Paid' && (
+              {displayOrder.paymentStatus === 'Paid' && (
                 <>
                   <div className="odm-pay-row">
                     <span>Payment Mode:</span>
-                    <span className="odm-pay-mode-val">{order.paymentMode || 'Direct'}</span>
+                    <span className="odm-pay-mode-val">{displayOrder.paymentMode || 'Direct'}</span>
                   </div>
-                  {order.referenceNumber && (
+                  {displayOrder.referenceNumber && (
                     <div className="odm-pay-row">
                       <span>Ref / Transaction ID:</span>
-                      <code>{order.referenceNumber}</code>
+                      <code>{displayOrder.referenceNumber}</code>
                     </div>
                   )}
-                  {order.paidAt && (
+                  {displayOrder.paidAt && (
                     <div className="odm-pay-row">
                       <span>Payment Verified:</span>
-                      <span>{formatDate(order.paidAt)}</span>
+                      <span>{formatDate(displayOrder.paidAt)}</span>
                     </div>
                   )}
                 </>
               )}
             </div>
 
-            {/* #45 — Payment pending banner */}
-            {(order.paymentStatus || 'Pending').toLowerCase() === 'pending' && currentAmount > 0 && (
+            {(displayOrder.paymentStatus || 'Pending').toLowerCase() === 'pending' && currentAmount > 0 && (
               <div className="odm-pending-banner">
                 Payment Pending — {formatINR(currentAmount)} due
               </div>
@@ -283,15 +286,14 @@ export default function OrderDetailModal({
               Close
             </button>
           </div>
-
         </div>
-      </div>
+      </BaseModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog
         isOpen={showConfirmDelete}
         title="Delete Order?"
-        message={`Are you sure you want to delete order "${order.caseId}" for ${order.patientName || 'this patient'}? This will also remove any linked payment records. This action cannot be undone.`}
+        message={`Are you sure you want to delete order "${displayOrder.caseId}" for ${displayOrder.patientName || 'this patient'}? This will also remove any linked payment records. This action cannot be undone.`}
         confirmText="Delete Order"
         cancelText="Cancel"
         type="danger"

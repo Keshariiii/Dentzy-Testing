@@ -7,6 +7,8 @@ import OrderDetailModal from '../components/OrderDetailModal';
 import PaymentDetailModal from '../components/PaymentDetailModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import StaffManagementView from './StaffManagementView';
+import BaseModal from '../components/ui/BaseModal';
+import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import './AdminDashboard.css';
 import { formatINR } from '../utils/format';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
@@ -34,8 +36,8 @@ const AdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   const [activeTab, setActiveTab] = useState('all');
-  const [adminView, setAdminView] = useState('dentists'); // 'dentists' | 'staff' | 'settings'
-  const [dentistSubView, setDentistSubView] = useState('users'); // 'users' | 'orders' | 'payments'
+  const [adminView, setAdminView] = useDashboardUrlState('view', 'dentists'); // 'dentists' | 'staff' | 'settings'
+  const [dentistSubView, setDentistSubView] = useDashboardUrlState('sub', 'users'); // 'users' | 'orders' | 'payments'
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
@@ -1402,9 +1404,15 @@ const AdminDashboard = () => {
       />
 
       {/* ── Record Payment Modal ──────────────────────────────────────── */}
-      {payModal && (
-        <div className="ad-modal-overlay" onClick={() => setPayModal(null)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()}>
+      <BaseModal
+        isOpen={Boolean(payModal)}
+        onClose={() => setPayModal(null)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="ad-pay-modal"
+      >
+        {payModal && (
+          <div className="ad-pay-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
             <div className="ad-pay-modal-header">
               <h3>Record Payment</h3>
               <button className="ad-pay-modal-close" onClick={() => setPayModal(null)}>{Ico.x(16)}</button>
@@ -1464,8 +1472,8 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </BaseModal>
     </div>
   );
 };

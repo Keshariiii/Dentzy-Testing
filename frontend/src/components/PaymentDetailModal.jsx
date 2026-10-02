@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
-
-
 
 export default function PaymentDetailModal({
   payment,
@@ -17,13 +16,19 @@ export default function PaymentDetailModal({
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Keep last payment in ref so Framer Motion exit animation has data to render
+  const lastPaymentRef = useRef(payment);
+  if (payment) {
+    lastPaymentRef.current = payment;
+  }
+  const displayPayment = payment || lastPaymentRef.current;
+
   // Amount inline editor state
-  const [currentAmount, setCurrentAmount] = useState(payment?.amount || 0);
+  const [currentAmount, setCurrentAmount] = useState(displayPayment?.amount || 0);
   const [isEditingAmount, setIsEditingAmount] = useState(false);
   const [amountInput, setAmountInput] = useState('');
   const [savingAmount, setSavingAmount] = useState(false);
   const [amountError, setAmountError] = useState('');
-
 
   useEffect(() => {
     if (payment) {
@@ -33,20 +38,12 @@ export default function PaymentDetailModal({
     }
   }, [payment]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !showConfirmDelete && !isEditingAmount) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showConfirmDelete, isEditingAmount, onClose]);
+  if (!displayPayment && !payment) return null;
 
-  if (!payment) return null;
-
-  const paymentId = payment._id || payment.id || payment.caseId;
-  const isPaid = (payment.paymentStatus || payment.status) === 'Paid';
-  const dentistName = payment.owner?.name || payment.dentistName || '—';
-  const clinicName = payment.owner?.clinicName || payment.clinicName || '';
+  const paymentId = displayPayment._id || displayPayment.id || displayPayment.caseId;
+  const isPaid = (displayPayment.paymentStatus || displayPayment.status) === 'Paid';
+  const dentistName = displayPayment.owner?.name || displayPayment.dentistName || '—';
+  const clinicName = displayPayment.owner?.clinicName || displayPayment.clinicName || '';
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
@@ -72,7 +69,7 @@ export default function PaymentDetailModal({
     setAmountError('');
     try {
       if (onUpdateAmount) {
-        await onUpdateAmount(payment, val);
+        await onUpdateAmount(displayPayment, val);
       }
       setCurrentAmount(val);
       setIsEditingAmount(false);
@@ -85,15 +82,22 @@ export default function PaymentDetailModal({
 
   return (
     <>
-      <div className="pdm-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <div className="pdm-modal" onClick={(e) => e.stopPropagation()}>
-          
+      <BaseModal
+        isOpen={Boolean(payment)}
+        onClose={onClose}
+        maxWidth="max-w-2xl"
+        className="pdm-modal-wrap"
+        closeOnEscape={!showConfirmDelete && !isEditingAmount}
+        raw={true}
+        id={`payment-${paymentId}`}
+      >
+        <div className="pdm-modal-content">
           {/* Header */}
           <div className="pdm-header">
             <div className="pdm-badge-wrap">
-              <span className="pdm-case-badge">{payment.caseId || 'Payment'}</span>
-              {payment.invoiceNumber && (
-                <span className="pdm-inv-badge">{payment.invoiceNumber}</span>
+              <span className="pdm-case-badge">{displayPayment.caseId || 'Payment'}</span>
+              {displayPayment.invoiceNumber && (
+                <span className="pdm-inv-badge">{displayPayment.invoiceNumber}</span>
               )}
             </div>
             <button className="pdm-close-btn" onClick={onClose} aria-label="Close modal">
@@ -182,12 +186,11 @@ export default function PaymentDetailModal({
                 )}
               </div>
             )}
-
           </div>
 
           {/* Patient & Clinic Details */}
           <div className="pdm-section">
-            <h2 className="pdm-patient-name">{payment.patientName || 'Patient'}</h2>
+            <h2 className="pdm-patient-name">{displayPayment.patientName || 'Patient'}</h2>
             <p className="pdm-clinic-sub">
               <span>{dentistName}</span>
               {clinicName && <span> · {clinicName}</span>}
@@ -199,9 +202,9 @@ export default function PaymentDetailModal({
             <div className="pdm-grid-item">
               <span className="pdm-grid-label">Payment Mode</span>
               <span className="pdm-grid-value">
-                {payment.paymentMode ? (
-                  <span className={`pdm-mode-pill pdm-mode--${payment.paymentMode.toLowerCase()}`}>
-                    {payment.paymentMode}
+                {displayPayment.paymentMode ? (
+                  <span className={`pdm-mode-pill pdm-mode--${displayPayment.paymentMode.toLowerCase()}`}>
+                    {displayPayment.paymentMode}
                   </span>
                 ) : (
                   <span className="pdm-text-muted">Pending Mode</span>
@@ -211,11 +214,11 @@ export default function PaymentDetailModal({
 
             <div className="pdm-grid-item">
               <span className="pdm-grid-label">
-                {payment.paymentMode === 'Cheque' ? 'Cheque Number' : payment.paymentMode === 'UPI' ? 'UPI UTR / Ref' : 'Reference'}
+                {displayPayment.paymentMode === 'Cheque' ? 'Cheque Number' : displayPayment.paymentMode === 'UPI' ? 'UPI UTR / Ref' : 'Reference'}
               </span>
               <span className="pdm-grid-value">
-                {payment.referenceNumber ? (
-                  <code>{payment.referenceNumber}</code>
+                {displayPayment.referenceNumber ? (
+                  <code>{displayPayment.referenceNumber}</code>
                 ) : (
                   <span className="pdm-text-muted">—</span>
                 )}
@@ -225,23 +228,23 @@ export default function PaymentDetailModal({
             <div className="pdm-grid-item">
               <span className="pdm-grid-label">Payment Date</span>
               <span className="pdm-grid-value">
-                {formatDate(payment.paidAt || (isPaid ? payment.updatedAt : null))}
+                {formatDate(displayPayment.paidAt || (isPaid ? displayPayment.updatedAt : null))}
               </span>
             </div>
 
             <div className="pdm-grid-item">
               <span className="pdm-grid-label">Invoice / Due Date</span>
               <span className="pdm-grid-value">
-                {formatDate(payment.dueDate || payment.createdAt)}
+                {formatDate(displayPayment.dueDate || displayPayment.createdAt)}
               </span>
             </div>
           </div>
 
           {/* Description or Notes */}
-          {(payment.description || payment.notes) && (
+          {(displayPayment.description || displayPayment.notes) && (
             <div className="pdm-notes-box">
               <span className="pdm-notes-label">Payment Notes</span>
-              <p className="pdm-notes-text">{payment.description || payment.notes}</p>
+              <p className="pdm-notes-text">{displayPayment.description || displayPayment.notes}</p>
             </div>
           )}
 
@@ -264,7 +267,7 @@ export default function PaymentDetailModal({
                   className="pdm-record-btn"
                   onClick={() => {
                     onClose();
-                    onRecordPayment({ ...payment, amount: currentAmount });
+                    onRecordPayment({ ...displayPayment, amount: currentAmount });
                   }}
                 >
                   {Ico.check(14)} Record Payment
@@ -275,15 +278,14 @@ export default function PaymentDetailModal({
               </button>
             </div>
           </div>
-
         </div>
-      </div>
+      </BaseModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog
         isOpen={showConfirmDelete}
         title="Delete Payment Record?"
-        message={`Are you sure you want to delete this payment record for case "${payment.caseId}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete this payment record for case "${displayPayment.caseId}"? This action cannot be undone.`}
         confirmText="Delete Record"
         cancelText="Cancel"
         type="danger"

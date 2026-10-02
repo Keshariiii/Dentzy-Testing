@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAuthUrl } from '../../api/client';
+import PasswordStrengthMeter from '../../components/ui/password-strength-meter';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css'; /* Shared mobile auth styles */
 
@@ -397,17 +398,7 @@ const MobileRegister = () => {
 
             {/* Strength bar */}
             {form.password && (
-              <div className="m-pw-strength-wrap">
-                <div className="m-pw-strength-bar">
-                  <div className="m-pw-strength-fill"
-                    style={{ '--pw-fill': strength.fill, background: strength.color }} />
-                </div>
-                {strength.label && (
-                  <span className="m-pw-strength-label" style={{ color: strength.color }}>
-                    {strength.label}
-                  </span>
-                )}
-              </div>
+              <PasswordStrengthMeter password={form.password} />
             )}
 
             {/* Rules list */}

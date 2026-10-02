@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BaseModal from '../components/ui/BaseModal';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 
 const STAGES = [
@@ -20,11 +21,18 @@ export default function StaffOrderModal({ order, onClose, onSave, saving }) {
   });
 
   return (
-    <div className="sd-modal-overlay" onClick={onClose}>
-      <div className="sd-modal" onClick={e => e.stopPropagation()}>
+    <BaseModal
+      isOpen={Boolean(order)}
+      onClose={onClose}
+      maxWidth="max-w-xl"
+      className="sd-modal-wrap"
+      raw={true}
+      id={`staff-order-${order.caseId}`}
+    >
+      <div className="sd-modal-content">
         <div className="sd-modal-header">
           <h3>Edit Order — {order.caseId}</h3>
-          <button className="sd-modal-close" onClick={onClose}>{Ico.x(16)}</button>
+          <button className="sd-modal-close" onClick={onClose} aria-label="Close">{Ico.x(16)}</button>
         </div>
         <div className="sd-modal-body">
           {/* Order summary strip */}
@@ -85,6 +93,6 @@ export default function StaffOrderModal({ order, onClose, onSave, saving }) {
           </button>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

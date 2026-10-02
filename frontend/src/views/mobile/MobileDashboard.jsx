@@ -17,6 +17,8 @@ import MobileHeader from '../../components/mobile/MobileHeader';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
+import BaseModal from '../../components/ui/BaseModal';
+import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
@@ -102,7 +104,7 @@ const MobileDashboard = () => {
   const { user, logout, authFetch, updateUserState, API_URL, DASH_URL } = useAuth();
   const { showToast } = useToast();
 
-  const [activeTab,   setActiveTab]   = useState('dashboard');
+  const [activeTab, setActiveTab] = useDashboardUrlState('tab', 'dashboard');
   const [search,      setSearch]      = useState('');
   const [stats,       setStats]       = useState(null);
   const [orders,      setOrders]      = useState([]);
@@ -814,42 +816,46 @@ const MobileDashboard = () => {
       </button>
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="m-modal-backdrop" onClick={() => setShowDeleteModal(false)}>
-          <div className="m-modal" onClick={e => e.stopPropagation()}>
-            <div className="m-modal-icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-            <h3 className="m-modal-title">Delete Account?</h3>
-            <p className="m-modal-body">
-              This will permanently delete your account and all associated data. Enter your password to confirm.
-            </p>
-            <input
-              type="password"
-              className="m-modal-input"
-              placeholder="Enter your password"
-              value={deleteConfirm}
-              onChange={e => setDeleteConfirm(e.target.value)}
-              autoFocus
-            />
-            {deleteMsg.text && (
-              <div className="m-msg m-msg--error">{deleteMsg.text}</div>
-            )}
-            <div className="m-modal-actions">
-              <button className="m-btn m-btn--ghost" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
-                Cancel
-              </button>
-              <button className="m-btn m-btn--danger" onClick={handleDeleteAccount}
-                disabled={deleting || !deleteConfirm}>
-                {deleting ? <span className="m-spinner-sm" /> : 'Delete Account'}
-              </button>
-            </div>
+      <BaseModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="m-delete-modal"
+      >
+        <div className="m-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
+          <div className="m-modal-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <h3 className="m-modal-title">Delete Account?</h3>
+          <p className="m-modal-body">
+            This will permanently delete your account and all associated data. Enter your password to confirm.
+          </p>
+          <input
+            type="password"
+            className="m-modal-input"
+            placeholder="Enter your password"
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+            autoFocus
+          />
+          {deleteMsg.text && (
+            <div className="m-msg m-msg--error">{deleteMsg.text}</div>
+          )}
+          <div className="m-modal-actions">
+            <button className="m-btn m-btn--ghost" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+              Cancel
+            </button>
+            <button className="m-btn m-btn--danger" onClick={handleDeleteAccount}
+              disabled={deleting || !deleteConfirm}>
+              {deleting ? <span className="m-spinner-sm" /> : 'Delete Account'}
+            </button>
           </div>
         </div>
-      )}
+      </BaseModal>
 
       <div className="m-bottom-spacer" />
     </div>

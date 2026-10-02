@@ -25,6 +25,21 @@
 }
 
 /* ── Panel ──────────────────────────────────────────────────────────────── */
+.ddm-panel-wrap {
+  max-width: 760px !important;
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.ddm-panel-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 88vh;
+  overflow: hidden;
+  position: relative;
+}
+
 .ddm-panel {
   background: #fff;
   border-radius: 18px;

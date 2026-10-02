@@ -20,6 +20,7 @@ import OrderDetailModal from '../../../components/OrderDetailModal';
 import { Skeleton, SkeletonGroup } from '../../../components/Skeleton';
 import { formatDate } from '../../../utils/format';
 import { PIPELINE_STAGES } from '../../../components/dashboard/shared/constants';
+import useDashboardUrlState from '../../../hooks/useDashboardUrlState';
 import './PipelinePage.css';
 
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -49,7 +50,7 @@ export default function PipelinePage() {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [filter, setFilter]             = useState('active');
+  const [filter, setFilter]             = useDashboardUrlState('tab', 'active');
 
   // Auth guard
   useEffect(() => {

@@ -12,6 +12,8 @@ import DentistDetailModal from '../../admin/DentistDetailModal';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import BaseModal from '../../components/ui/BaseModal';
+import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import { formatINR, formatDate } from '../../utils/format';
@@ -55,12 +57,12 @@ const MobileAdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
-  // Primary view: 'dentists' | 'staff' | 'settings'
-  const [adminView, setAdminView] = useState('dentists');
-  // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments'
-  const [dentistSubView, setDentistSubView] = useState(null);
-  // Staff sub-view: null (landing) | 'members' | 'attendance' | 'inventory' | 'metrics'
-  const [staffSubView, setStaffSubView] = useState(null);
+  // Primary view: 'dentists' | 'staff' | 'settings' (URL synced)
+  const [adminView, setAdminView] = useDashboardUrlState('view', 'dentists');
+  // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments' (URL synced)
+  const [dentistSubView, setDentistSubView] = useDashboardUrlState('sub', null);
+  // Staff sub-view: null (landing) | 'members' | 'attendance' | 'inventory' | 'metrics' (URL synced)
+  const [staffSubView, setStaffSubView] = useDashboardUrlState('staffSub', null);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -1571,9 +1573,15 @@ const MobileAdminDashboard = () => {
       {/* ─────────────────────────────────────────────────────────────
           RECORD PAYMENT MODAL (Mobile Bottom Sheet / Dialog)
           ───────────────────────────────────────────────────────────── */}
-      {payModal && (
-        <div className="ma-modal-overlay" onClick={() => setPayModal(null)}>
-          <div className="ma-modal-sheet" onClick={e => e.stopPropagation()}>
+      <BaseModal
+        isOpen={Boolean(payModal)}
+        onClose={() => setPayModal(null)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="ma-pay-modal"
+      >
+        {payModal && (
+          <div className="ma-modal-sheet" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
             <div className="ma-modal-header">
               <h3>Record Payment</h3>
               <button className="ma-modal-close" onClick={() => setPayModal(null)}>
@@ -1662,8 +1670,8 @@ const MobileAdminDashboard = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </BaseModal>
 
       {/* Toast */}
       {toast && (

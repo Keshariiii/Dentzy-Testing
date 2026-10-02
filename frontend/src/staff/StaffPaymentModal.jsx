@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BaseModal from '../components/ui/BaseModal';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 
 export default function StaffPaymentModal({ payment, onClose, onSave, saving }) {
@@ -9,11 +10,18 @@ export default function StaffPaymentModal({ payment, onClose, onSave, saving }) 
   });
 
   return (
-    <div className="sd-modal-overlay" onClick={onClose}>
-      <div className="sd-modal" onClick={e => e.stopPropagation()}>
+    <BaseModal
+      isOpen={Boolean(payment)}
+      onClose={onClose}
+      maxWidth="max-w-xl"
+      className="sd-modal-wrap"
+      raw={true}
+      id={`staff-pay-${payment.caseId}`}
+    >
+      <div className="sd-modal-content">
         <div className="sd-modal-header">
           <h3>Update Payment — {payment.caseId}</h3>
-          <button className="sd-modal-close" onClick={onClose}>{Ico.x(16)}</button>
+          <button className="sd-modal-close" onClick={onClose} aria-label="Close">{Ico.x(16)}</button>
         </div>
         <div className="sd-modal-body">
           {/* Payment summary strip */}
@@ -60,6 +68,6 @@ export default function StaffPaymentModal({ payment, onClose, onSave, saving }) 
           </button>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

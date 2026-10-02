@@ -1,0 +1,157 @@
+/**
+ * BaseModal.css — Dentzy Design System
+ * Glassmorphic, accessible, responsive modal styles.
+ */
+
+.dz-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Glassmorphic Backdrop */
+.dz-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 20, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+/* Scroll wrap for mobile friendly overflow */
+.dz-modal-scroll-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .dz-modal-scroll-wrap {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+}
+
+/* Modal Card Container */
+.dz-modal-container {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 1.25rem;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 20, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 3;
+}
+
+@media (max-width: 640px) {
+  .dz-modal-container {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: 92vh;
+  }
+}
+
+/* Header */
+.dz-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--dz-color-border-light, #f0f2f1);
+  background: #ffffff;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.dz-modal-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.dz-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dz-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dz-color-text-primary, #1e2824);
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.dz-modal-subtitle {
+  font-size: 0.85rem;
+  color: var(--dz-color-text-muted, #64748b);
+  margin: 0;
+}
+
+.dz-modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: #f8faf9;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.dz-modal-close-btn:hover {
+  background: #eef2f0;
+  border-color: #cbd5e1;
+  transform: scale(1.05);
+}
+
+.dz-modal-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* Body */
+.dz-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  color: var(--dz-color-text-body, #444444);
+}
+
+@media (max-width: 640px) {
+  .dz-modal-body {
+    padding: 1.25rem 1rem;
+  }
+}
+
+/* Footer */
+.dz-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--dz-color-border-light, #f0f2f1);
+  background: var(--dz-color-bg-surface-alt, #f8faf9);
+  flex-shrink: 0;
+}

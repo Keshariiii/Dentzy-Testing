@@ -520,6 +520,16 @@
   animation: fadeIn 0.2s ease;
 }
 
+.sd-modal-wrap {
+  max-width: 480px !important;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.sd-modal-content {
+  padding: 24px;
+}
+
 .sd-modal {
   background: #fff;
   border-radius: 16px;
