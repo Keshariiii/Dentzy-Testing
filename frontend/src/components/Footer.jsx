@@ -135,7 +135,7 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
             </li>
             <li>
               <Mail size={16} className="dz-footer__contact-icon" />
-              <a href="mailto:dentzyemail@gmail.com" className="dz-footer__contact-primary dz-footer__contact-link">dentzyemail@gmail.com</a>
+              <a href="mailto:support@dentzy.in" className="dz-footer__contact-primary dz-footer__contact-link">support@dentzy.in</a>
             </li>
             <li>
               <Clock size={16} className="dz-footer__contact-icon" />

@@ -364,7 +364,7 @@ const MobileHome = () => {
             </div>
             <div className="m-ci-item">
               <h4>Email</h4>
-              <p><a href="mailto:dentzyemail@gmail.com">dentzyemail@gmail.com</a></p>
+              <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
             </div>
             <div className="m-ci-item">
               <h4>Working Hours</h4>

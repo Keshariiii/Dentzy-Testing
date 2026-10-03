@@ -168,7 +168,7 @@ const ContactForm = () => {
                     </div>
                     <div className="info-item">
                         <h3>Email:</h3>
-                        <p>dentzyemail@gmail.com</p>
+                        <p>support@dentzy.in</p>
                     </div>
                     <div className="info-item">
                         <h3>Working Hours:</h3>

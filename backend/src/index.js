@@ -5,6 +5,7 @@ import admin from './routes/admin.js';
 import dashboard from './routes/dashboard.js';
 import contact from './routes/contact.js';
 import staff from './routes/staff.js';
+import { sendEmail } from './utils/email.js';
 
 const app = new Hono();
 
@@ -30,7 +31,7 @@ app.use('*', async (c, next) => {
           const host = new URL(origin).hostname;
           if (host === 'localhost' || host === '127.0.0.1' || /^192\.168\./.test(host) || /^10\./.test(host))
             return origin;
-        } catch {}
+        } catch { }
       }
       return null;
     },
@@ -58,7 +59,7 @@ app.get('/api/health', async (c) => {
   try {
     await c.env.DB.prepare('SELECT 1').first();
     dbOk = true;
-  } catch {}
+  } catch { }
   return c.json({ status: 'ok', db: dbOk ? 'connected' : 'error', time: new Date().toISOString() });
 });
 
@@ -71,6 +72,7 @@ app.route('/api/contact', contact);
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 app.get('/', (c) => c.text('Dentzy Backend is Running'));
+
 
 // ── Global error handler ─────────────────────────────────────────────────────
 app.onError((err, c) => {

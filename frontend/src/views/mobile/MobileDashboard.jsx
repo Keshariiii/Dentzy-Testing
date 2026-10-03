@@ -478,7 +478,7 @@ const MobileDashboard = () => {
             <a href="tel:+919503668112" className="m-support-link">
               {Icons.phone(13)} Call
             </a>
-            <a href="mailto:dentzyemail@gmail.com" className="m-support-link">
+            <a href="mailto:support@dentzy.in" className="m-support-link">
               {Icons.mail(13)} Email
             </a>
             <a href="https://wa.me/919503668112" target="_blank" rel="noreferrer" className="m-support-link m-support-link--wa">

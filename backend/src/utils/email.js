@@ -40,9 +40,10 @@ export function htmlToPlainText(html) {
  * Sends an email directly via Google's official Gmail SMTP (Port 465 TLS).
  * Uses multipart/alternative (plain text + HTML) for maximum inbox deliverability.
  */
-export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions' }) {
+export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail }) {
   const cleanUser = (user || '').trim();
   const cleanPass = (pass || '').replace(/\s+/g, '');
+  const cleanFromEmail = (fromEmail || user || '').trim();
   const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
   const toName = (typeof to === 'object' && to?.name) ? to.name : '';
 
@@ -101,7 +102,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     }
 
     // 6. MAIL FROM
-    await sendCommand(`MAIL FROM:<${cleanUser}>`);
+    await sendCommand(`MAIL FROM:<${cleanFromEmail}>`);
     const mailFromRes = await readLine();
     if (!mailFromRes.startsWith('250')) {
       throw new Error(`SMTP MAIL FROM failed: ${mailFromRes}`);
@@ -134,14 +135,14 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@gmail.com>`;
 
     const msg = [
-      `From: "${senderName}" <${cleanUser}>`,
+      `From: "${senderName}" <${cleanFromEmail}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
-      `Reply-To: "${senderName}" <${cleanUser}>`,
+      `Reply-To: "${senderName}" <${cleanFromEmail}>`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       `Date: ${new Date().toUTCString()}`,
       `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
-      `List-Unsubscribe: <mailto:${cleanUser}?subject=unsubscribe>`,
+      `List-Unsubscribe: <mailto:${cleanFromEmail}?subject=unsubscribe>`,
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       ``,
       `--${boundary}`,
@@ -187,14 +188,14 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
 /**
  * Send an email via Gmail SMTP (App Password authentication).
  */
-export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions' }) {
+export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail }) {
   if (!env.GMAIL_APP_PASSWORD) {
     return { success: false, error: 'No email provider configured (GMAIL_APP_PASSWORD missing)' };
   }
   return sendGmailSMTP({
-    user: env.GMAIL_USER || 'dentzyemail@gmail.com',
+    user: env.GMAIL_USER || 'support@dentzy.in',
     pass: env.GMAIL_APP_PASSWORD,
-    to, subject, htmlContent, textContent, senderName,
+    to, subject, htmlContent, textContent, senderName, fromEmail: fromEmail || 'support@dentzy.in',
   });
 }
 
@@ -280,6 +281,7 @@ https://dentzy-testing.pages.dev`;
     subject,
     htmlContent,
     textContent,
+    fromEmail: 'noreply@dentzy.in',
   });
 }
 
@@ -365,6 +367,7 @@ https://dentzy-testing.pages.dev`;
     subject,
     htmlContent,
     textContent,
+    fromEmail: 'noreply@dentzy.in',
   });
 }
 
@@ -372,7 +375,7 @@ https://dentzy-testing.pages.dev`;
  * Sends Admin Alert when someone submits Contact Us form.
  */
 export async function sendContactAdminNotification({ env, contact }) {
-  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'support@dentzy.in';
   const subject = `New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
 
   const htmlContent = `
@@ -465,7 +468,7 @@ export async function sendContactUserConfirmation({ env, contact }) {
  * Admin Alert — New User Registration.
  */
 export async function sendNewUserAdminAlert({ env, user }) {
-  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzyemail@gmail.com';
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'support@dentzy.in';
   const subject = `New Dentist Registration: ${user.name} (${user.email})`.replace(/[\r\n]/g, ' ');
   const htmlContent = `
 <!DOCTYPE html>
@@ -531,7 +534,7 @@ export async function sendRegistrationPendingEmail({ env, user }) {
 </html>
 `;
 
-  return sendEmail({ env, to: user.email, subject, htmlContent });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
@@ -570,7 +573,7 @@ export async function sendUserApprovedEmail({ env, user }) {
 </html>
 `;
 
-  return sendEmail({ env, to: user.email, subject, htmlContent });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
@@ -612,7 +615,7 @@ export async function sendUserRejectedEmail({ env, user, note }) {
 </html>
 `;
 
-  return sendEmail({ env, to: user.email, subject, htmlContent });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
