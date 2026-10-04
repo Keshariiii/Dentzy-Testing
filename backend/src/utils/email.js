@@ -230,16 +230,16 @@ export function renderDentzyEmailLayout({
     : '';
 
   const subheadingHtml = subheading
-    ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${escapeHtml(subheading)}</p>`
+    ? `<p class="dz-subheading" style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${escapeHtml(subheading)}</p>`
     : '';
 
   const ctaHtml = (ctaText && ctaUrl)
     ? `<tr>
         <td align="center" style="padding: 24px 0 16px 0;">
-          <table border="0" cellspacing="0" cellpadding="0">
+          <table border="0" cellspacing="0" cellpadding="0" class="dz-cta-table">
             <tr>
               <td align="center" style="border-radius: 50px; background-color: #1e5038; box-shadow: 0 4px 14px rgba(30, 80, 56, 0.25);">
-                <a href="${escapeHtml(ctaUrl)}" target="_blank" style="display: inline-block; padding: 13px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 50px; letter-spacing: 0.3px;">
+                <a href="${escapeHtml(ctaUrl)}" target="_blank" class="dz-cta-btn" style="display: inline-block; padding: 13px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 50px; letter-spacing: 0.3px;">
                   ${escapeHtml(ctaText)}
                 </a>
               </td>
@@ -262,31 +262,103 @@ export function renderDentzyEmailLayout({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <meta name="x-apple-disable-message-reformatting">
   <title>${escapeHtml(heading || 'Dentzy Notification')}</title>
+  <style>
+    /* Reset & Client Normalization */
+    body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    
+    /* Screen Size Responsive Optimizations (Mobile Devices <= 600px) */
+    @media only screen and (max-width: 600px) {
+      .dz-outer-wrapper {
+        padding: 12px 6px 20px 6px !important;
+      }
+      .dz-main-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
+      }
+      .dz-header-cell {
+        padding: 18px 16px 14px 16px !important;
+      }
+      .dz-brand-title {
+        font-size: 18px !important;
+      }
+      .dz-brand-sub {
+        font-size: 9px !important;
+      }
+      .dz-portal-badge {
+        font-size: 10px !important;
+      }
+      .dz-content-cell {
+        padding: 20px 16px 18px 16px !important;
+      }
+      .dz-heading {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+      }
+      .dz-subheading {
+        font-size: 12px !important;
+      }
+      .dz-footer-cell {
+        padding: 18px 14px !important;
+        font-size: 11px !important;
+      }
+      .dz-otp-code {
+        font-size: 26px !important;
+        letter-spacing: 5px !important;
+        padding-left: 5px !important;
+      }
+      .dz-otp-box {
+        padding: 16px 10px !important;
+        margin: 18px 0 16px 0 !important;
+      }
+      .dz-cta-btn {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+        padding: 14px 16px !important;
+        font-size: 14px !important;
+      }
+      .dz-cta-table {
+        width: 100% !important;
+      }
+      .dz-data-table td {
+        padding: 8px 10px !important;
+        font-size: 13px !important;
+      }
+      .dz-data-label {
+        width: 80px !important;
+      }
+    }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f0f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e2824; line-height: 1.6;">
   ${preheaderHtml}
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f0f5f2; padding: 32px 16px 40px 16px;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-outer-wrapper" style="background-color: #f0f5f2; padding: 32px 16px 40px 16px;">
     <tr>
       <td align="center">
         <!-- Main Card -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(30, 80, 56, 0.06); border: 1px solid #e2ece6;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-main-card" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(30, 80, 56, 0.06); border: 1px solid #e2ece6;">
           
           <!-- Brand Header -->
           <tr>
-            <td style="padding: 28px 36px 20px 36px; border-bottom: 1px solid #f1f5f3; background: linear-gradient(180deg, #f7faf8 0%, #ffffff 100%);">
+            <td class="dz-header-cell" style="padding: 28px 36px 20px 36px; border-bottom: 1px solid #f1f5f3; background: linear-gradient(180deg, #f7faf8 0%, #ffffff 100%);">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="left" style="vertical-align: middle;">
-                    <div style="font-size: 20px; font-weight: 800; letter-spacing: 0.8px; color: #1e5038; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <div class="dz-brand-title" style="font-size: 20px; font-weight: 800; letter-spacing: 0.8px; color: #1e5038; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                       DENTZY
                     </div>
-                    <div style="font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: #708c80; text-transform: uppercase; margin-top: 2px;">
+                    <div class="dz-brand-sub" style="font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: #708c80; text-transform: uppercase; margin-top: 2px;">
                       Namrata Dental Solutions
                     </div>
                   </td>
                   <td align="right" style="vertical-align: middle;">
-                    <span style="font-size: 11px; color: #8fa398; font-weight: 500;">Clinical Lab Portal</span>
+                    <span class="dz-portal-badge" style="font-size: 11px; color: #8fa398; font-weight: 500;">Clinical Lab Portal</span>
                   </td>
                 </tr>
               </table>
@@ -295,12 +367,12 @@ export function renderDentzyEmailLayout({
 
           <!-- Content Body -->
           <tr>
-            <td style="padding: 32px 36px 28px 36px;">
+            <td class="dz-content-cell" style="padding: 32px 36px 28px 36px;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 ${badgeHtml}
                 <tr>
                   <td align="left" style="padding-bottom: 18px;">
-                    <h1 style="margin: 0; color: #143525; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.35; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <h1 class="dz-heading" style="margin: 0; color: #143525; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.35; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                       ${escapeHtml(heading)}
                     </h1>
                     ${subheadingHtml}
@@ -319,7 +391,7 @@ export function renderDentzyEmailLayout({
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 24px 36px; background-color: #fafcfb; border-top: 1px solid #eef4f1; color: #788c82; font-size: 12px; line-height: 1.6; text-align: center;">
+            <td class="dz-footer-cell" style="padding: 24px 36px; background-color: #fafcfb; border-top: 1px solid #eef4f1; color: #788c82; font-size: 12px; line-height: 1.6; text-align: center;">
               <div style="margin-bottom: 8px; font-weight: 500; color: #4a5d54;">
                 Dentzy by Namrata Dental Solutions &bull; Vasai-Virar, Maharashtra
               </div>
@@ -352,9 +424,9 @@ export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp 
       Hello <strong>${escapeHtml(name)}</strong>,<br><br>
       Thank you for registering on the <strong>Dentzy Clinical Lab Portal</strong>. Please use the 6-digit verification code below to verify your email address and continue:
     </p>
-    <div style="background-color: #f0f7f3; border: 1.5px dashed #708c80; border-radius: 12px; padding: 22px; text-align: center; margin: 24px 0 20px 0;">
+    <div class="dz-otp-box" style="background-color: #f0f7f3; border: 1.5px dashed #708c80; border-radius: 12px; padding: 22px; text-align: center; margin: 24px 0 20px 0;">
       <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #4a5d54; font-weight: 600; margin-bottom: 8px;">Verification Code</div>
-      <div style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #1e5038; padding-left: 10px;">
+      <div class="dz-otp-code" style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #1e5038; padding-left: 10px;">
         ${otp}
       </div>
       <div style="margin-top: 10px; font-size: 12px; color: #708c80; font-weight: 500;">
@@ -389,9 +461,9 @@ export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
       Hello <strong>${escapeHtml(name)}</strong>,<br><br>
       We received a request to reset the password for your Dentzy portal account. Enter the verification code below to set a new password:
     </p>
-    <div style="background-color: #fef7ed; border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 22px; text-align: center; margin: 24px 0 20px 0;">
+    <div class="dz-otp-box" style="background-color: #fef7ed; border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 22px; text-align: center; margin: 24px 0 20px 0;">
       <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #b45309; font-weight: 600; margin-bottom: 8px;">Password Reset Code</div>
-      <div style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #b45309; padding-left: 10px;">
+      <div class="dz-otp-code" style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #b45309; padding-left: 10px;">
         ${otp}
       </div>
       <div style="margin-top: 10px; font-size: 12px; color: #92400e; font-weight: 500;">
@@ -420,29 +492,48 @@ export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
  * Sends Admin Alert when someone submits Contact Us form.
  */
 export async function sendContactAdminNotification({ env, contact }) {
-  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'support@dentzy.in';
-  const subject = `New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || 'dentzycore@gmail.com';
+  const subject = `[Testing Version] New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
 
   const bodyHtml = `
+    <!-- Testing Version Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 12px 16px; margin: 0 0 18px 0;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td style="font-size: 12px; font-weight: 700; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <span style="display: inline-block; background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 6px;">Notice</span>
+            Sent from testing version
+          </td>
+          <td align="right" style="font-size: 11px; color: #b45309; font-weight: 500;">
+            dentzy-testing.pages.dev
+          </td>
+        </tr>
+      </table>
+    </div>
+
     <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
-      A new inquiry has been submitted via the contact form on <strong style="color: #1e5038;">dentzy.in</strong>:
+      A new customer inquiry was submitted on the Dentzy testing portal:
     </p>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 16px 0; border: 1px solid #eef4f1; border-radius: 10px; overflow: hidden; font-size: 14px;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border: 1px solid #eef4f1; border-radius: 10px; overflow: hidden; font-size: 14px;">
       <tr style="background-color: #fbfdfc; border-bottom: 1px solid #eef4f1;">
-        <td style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Sender:</td>
+        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Sender:</td>
         <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(contact.name)}</td>
       </tr>
       <tr style="border-bottom: 1px solid #eef4f1;">
-        <td style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
+        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
         <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(contact.email)}" style="color: #1e5038; font-weight: 500; text-decoration: underline;">${escapeHtml(contact.email)}</a></td>
       </tr>
       <tr style="background-color: #fbfdfc; border-bottom: 1px solid #eef4f1;">
-        <td style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Phone:</td>
+        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Phone:</td>
         <td style="padding: 10px 14px; color: #1e2824;">${contact.phone ? `<a href="tel:${escapeHtml(contact.phone)}" style="color: #1e5038; text-decoration: none;">${escapeHtml(contact.phone)}</a>` : '<span style="color: #94a3b8;">Not provided</span>'}</td>
       </tr>
-      <tr>
-        <td style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Subject:</td>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Subject:</td>
         <td style="padding: 10px 14px; font-weight: 500; color: #1e2824;">${escapeHtml(contact.subject) || 'General Inquiry'}</td>
+      </tr>
+      <tr style="background-color: #fefce8;">
+        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing version (dentzy-testing.pages.dev)</td>
       </tr>
     </table>
     <div style="font-size: 13px; font-weight: 600; color: #4a5d54; margin: 18px 0 6px 0;">Message:</div>
@@ -450,15 +541,17 @@ export async function sendContactAdminNotification({ env, contact }) {
       ${contact.message ? escapeMultiline(contact.message) : '&mdash;'}
     </div>
     <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Received at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+      Sent from testing version &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
     </div>
   `;
 
   const htmlContent = renderDentzyEmailLayout({
-    preheader: `Inquiry from ${escapeHtml(contact.name)}: ${escapeHtml(contact.subject || 'General Inquiry')}`,
-    badge: 'Website Inquiry',
+    preheader: `[Sent from testing version] Inquiry from ${escapeHtml(contact.name)}: ${escapeHtml(contact.subject || 'General Inquiry')}`,
+    badge: 'Sent from testing version',
+    badgeColor: '#92400e',
+    badgeBg: '#fef3c7',
     heading: 'New Contact Form Submission',
-    subheading: 'Incoming customer message from website',
+    subheading: 'Sent from testing version (dentzy-testing.pages.dev)',
     bodyHtml,
     ctaText: `Reply to ${escapeHtml(contact.name)}`,
     ctaUrl: `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent('Re: ' + (contact.subject || 'Dentzy Dental Solutions inquiry'))}`,
