@@ -22,6 +22,19 @@ export const metadata = {
   description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
   applicationName: 'Dentzy',
   manifest: '/manifest.json',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'none',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       { url: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
@@ -69,18 +82,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={dmSans.variable}>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: 'Dentzy',
-              alternateName: ['Dentzy Dental Lab Solutions', 'Dentzy Portal'],
-              url: 'https://dentzy-testing.pages.dev',
-            }),
-          }}
-        />
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
       </head>
       <body>{process.env.NODE_ENV === 'development' ? <ReticleDev /> : null}
         <noscript>
