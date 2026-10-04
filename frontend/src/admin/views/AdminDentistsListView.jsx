@@ -219,59 +219,39 @@ export default function AdminDentistsListView({
                   )}
 
                   {/* Inline action buttons */}
-                  <div
-                    className={isMobile ? 'ma-card-actions' : 'ad-card-actions'}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {user.status === 'pending' && (
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-approve' : 'ad-card-action-btn ad-action-approve'}
-                        onClick={() => onApprove(uId, user.name)}
-                        title="Approve"
-                      >
-                        {Ico.check(14)} Accept
-                      </button>
-                    )}
-                    {user.status === 'pending' && (
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-reject' : 'ad-card-action-btn ad-action-reject'}
-                        onClick={() => onReject(uId, user.name)}
-                        title="Reject"
-                      >
-                        {Ico.x(14)} Reject
-                      </button>
-                    )}
-                    {user.status === 'approved' && (
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-reject' : 'ad-card-action-btn ad-action-reject'}
-                        onClick={() => onReject(uId, user.name)}
-                        title="Revoke Approval"
-                      >
-                        {Ico.x(14)} Reject
-                      </button>
-                    )}
-                    {user.status === 'rejected' && (
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-approve' : 'ad-card-action-btn ad-action-approve'}
-                        onClick={() => onApprove(uId, user.name)}
-                        title="Approve"
-                      >
-                        {Ico.check(14)} Accept
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className={isMobile ? 'ma-card-action-btn ma-action-delete' : 'ad-card-action-btn ad-action-delete'}
-                      onClick={() => onDelete(uId, user.name)}
-                      title="Delete Dentist"
+                  {(user.status === 'pending' || user.status === 'rejected') && (
+                    <div
+                      className={isMobile ? 'ma-card-actions' : 'ad-card-actions'}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {Ico.trash(14)}
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        className={isMobile ? 'ma-card-action-btn ma-action-approve' : 'ad-card-action-btn ad-action-approve'}
+                        onClick={() => onApprove(uId, user.name)}
+                        title="Approve"
+                      >
+                        {Ico.check(14)} Accept
+                      </button>
+                      {user.status === 'pending' && (
+                        <button
+                          type="button"
+                          className={isMobile ? 'ma-card-action-btn ma-action-reject' : 'ad-card-action-btn ad-action-reject'}
+                          onClick={() => onReject(uId, user.name)}
+                          title="Reject"
+                        >
+                          {Ico.x(14)} Reject
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={isMobile ? 'ma-card-action-btn ma-action-delete' : 'ad-card-action-btn ad-action-delete'}
+                        onClick={() => onDelete(uId, user.name)}
+                        title="Delete"
+                      >
+                        {Ico.trash(14)}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

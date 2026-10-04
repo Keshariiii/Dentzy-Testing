@@ -1039,31 +1039,21 @@ const AdminDashboard = () => {
                             </div>
 
                             {/* Inline action buttons based on status */}
-                            <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
-                              {user.status === 'pending' && (
+                            {(user.status === 'pending' || user.status === 'rejected') && (
+                              <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
                                 <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
                                   {Ico.check(14)} Accept
                                 </button>
-                              )}
-                              {user.status === 'pending' && (
-                                <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
-                                  {Ico.x(14)} Reject
+                                {user.status === 'pending' && (
+                                  <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
+                                    {Ico.x(14)} Reject
+                                  </button>
+                                )}
+                                <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete">
+                                  {Ico.trash(14)}
                                 </button>
-                              )}
-                              {user.status === 'approved' && (
-                                <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Revoke Approval">
-                                  {Ico.x(14)} Reject
-                                </button>
-                              )}
-                              {user.status === 'rejected' && (
-                                <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
-                                  {Ico.check(14)} Accept
-                                </button>
-                              )}
-                              <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete Dentist">
-                                {Ico.trash(14)}
-                              </button>
-                            </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
