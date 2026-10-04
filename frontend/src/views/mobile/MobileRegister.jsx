@@ -200,7 +200,22 @@ const MobileRegister = () => {
           <img src={dentzyLogo} alt="Dentzy" />
         </div>
         <div className="m-auth-card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>⏳</div>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: '#eef6f2',
+            margin: '0 auto 16px',
+            color: '#1e5038'
+          }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
           <h1 className="m-auth-title">Awaiting Approval</h1>
           <p className="m-auth-subtitle">
             Hi <strong>{form.name}</strong>, your registration is submitted!

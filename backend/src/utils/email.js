@@ -40,7 +40,7 @@ export function htmlToPlainText(html) {
  * Sends an email directly via Google's official Gmail SMTP (Port 465 TLS).
  * Uses multipart/alternative (plain text + HTML) for maximum inbox deliverability.
  */
-export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail }) {
+export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail, replyTo }) {
   const cleanUser = (user || '').trim();
   const cleanPass = (pass || '').replace(/\s+/g, '');
   const cleanFromEmail = (fromEmail || user || '').trim();
@@ -137,7 +137,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     const msg = [
       `From: "${senderName}" <${cleanFromEmail}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
-      `Reply-To: "${senderName}" <${cleanFromEmail}>`,
+      `Reply-To: ${replyTo ? (replyTo.includes('<') ? replyTo : `<${replyTo}>`) : `"${senderName}" <${cleanFromEmail}>`}`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       `Date: ${new Date().toUTCString()}`,
       `Message-ID: ${messageId}`,
@@ -188,14 +188,14 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
 /**
  * Send an email via Gmail SMTP (App Password authentication).
  */
-export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail }) {
+export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail, replyTo }) {
   if (!env.GMAIL_APP_PASSWORD) {
     return { success: false, error: 'No email provider configured (GMAIL_APP_PASSWORD missing)' };
   }
   return sendGmailSMTP({
     user: env.GMAIL_USER || 'support@dentzy.in',
     pass: env.GMAIL_APP_PASSWORD,
-    to, subject, htmlContent, textContent, senderName, fromEmail: fromEmail || 'support@dentzy.in',
+    to, subject, htmlContent, textContent, senderName, fromEmail: fromEmail || 'support@dentzy.in', replyTo,
   });
 }
 
@@ -426,6 +426,7 @@ export async function sendContactAdminNotification({ env, contact }) {
     to: targetEmail,
     subject,
     htmlContent,
+    replyTo: contact.email,
   });
 }
 

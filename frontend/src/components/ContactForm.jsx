@@ -168,7 +168,7 @@ const ContactForm = () => {
                     </div>
                     <div className="info-item">
                         <h3>Email:</h3>
-                        <p>support@dentzy.in</p>
+                        <p><a href="mailto:support@dentzy.in" style={{ color: 'inherit', textDecoration: 'none' }}>support@dentzy.in</a></p>
                     </div>
                     <div className="info-item">
                         <h3>Working Hours:</h3>
