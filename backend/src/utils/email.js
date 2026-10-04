@@ -192,10 +192,28 @@ export async function sendEmail({ env, to, subject, htmlContent, textContent, se
   if (!env.GMAIL_APP_PASSWORD) {
     return { success: false, error: 'No email provider configured (GMAIL_APP_PASSWORD missing)' };
   }
+  const formattedSubject = subject.startsWith('[Testing Website]')
+    ? subject
+    : (subject.startsWith('[Testing Version]')
+        ? subject.replace('[Testing Version]', '[Testing Website]')
+        : `[Testing Website] ${subject}`);
+
+  const formattedText = textContent
+    ? (textContent.includes('testing website') || textContent.includes('testing version')
+        ? textContent
+        : `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\n${textContent}`)
+    : (htmlContent ? htmlToPlainText(htmlContent) : '');
+
   return sendGmailSMTP({
     user: env.GMAIL_USER || 'support@dentzy.in',
     pass: env.GMAIL_APP_PASSWORD,
-    to, subject, htmlContent, textContent, senderName, fromEmail: fromEmail || 'support@dentzy.in', replyTo,
+    to,
+    subject: formattedSubject,
+    htmlContent,
+    textContent: formattedText,
+    senderName,
+    fromEmail: fromEmail || 'support@dentzy.in',
+    replyTo,
   });
 }
 
@@ -214,9 +232,36 @@ export function renderDentzyEmailLayout({
   ctaText = '',
   ctaUrl = '',
   noteHtml = '',
+  showTestingNotice = true,
 }) {
-  const preheaderHtml = preheader
-    ? `<div style="display:none;font-size:1px;color:#f0f5f2;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${escapeHtml(preheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
+  const formattedPreheader = preheader
+    ? (preheader.includes('testing website') || preheader.includes('testing version')
+        ? preheader
+        : `[Sent from testing website] ${preheader}`)
+    : '[Sent from testing website]';
+
+  const preheaderHtml = formattedPreheader
+    ? `<div style="display:none;font-size:1px;color:#f0f5f2;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${escapeHtml(formattedPreheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
+    : '';
+
+  const testingNoticeHtml = showTestingNotice
+    ? `<tr>
+        <td style="padding-bottom: 16px;">
+          <div style="background-color: #fffbeb; border-radius: 10px; padding: 12px 16px; margin: 0;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td style="font-size: 12px; font-weight: 700; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                  <span style="display: inline-block; background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 6px;">Notice</span>
+                  Sent from testing website
+                </td>
+                <td align="right" style="font-size: 11px; color: #b45309; font-weight: 500;">
+                  dentzy-testing.pages.dev
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>`
     : '';
 
   const badgeHtml = badge
@@ -368,6 +413,7 @@ export function renderDentzyEmailLayout({
           <tr>
             <td class="dz-content-cell" style="padding: 20px 0 24px 0; border: none;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                ${testingNoticeHtml}
                 ${badgeHtml}
                 <tr>
                   <td align="left" style="padding-bottom: 18px;">
@@ -398,7 +444,7 @@ export function renderDentzyEmailLayout({
                 Support: <a href="mailto:support@dentzy.in" style="color: #1e5038; text-decoration: none; font-weight: 600;">support@dentzy.in</a> &bull; Phone: <a href="tel:+919503668112" style="color: #1e5038; text-decoration: none;">+91 95036 68112</a>
               </div>
               <div style="font-size: 11px; color: #a4b5ad;">
-                &copy; ${new Date().getFullYear()} Dentzy Dental Solutions. All rights reserved. &bull; <a href="https://dentzy-testing.pages.dev" style="color: #708c80; text-decoration: underline;">dentzy.in</a>
+                Sent from testing website &bull; &copy; ${new Date().getFullYear()} Dentzy Dental Solutions. All rights reserved. &bull; <a href="https://dentzy-testing.pages.dev" style="color: #708c80; text-decoration: underline;">dentzy-testing.pages.dev</a>
               </div>
             </td>
           </tr>
@@ -415,8 +461,8 @@ export function renderDentzyEmailLayout({
  * Sends Registration Email Verification 6-Digit OTP.
  */
 export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy — Verify your email address`;
-  const textContent = `DENTZY - Email Verification\n\nHello ${name},\n\nThank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nIf you did not create an account on Dentzy, you can safely ignore this email.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
+  const subject = `[Testing Website] Dentzy — Verify your email address`;
+  const textContent = `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\nDENTZY - Email Verification\n\nHello ${name},\n\nThank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nIf you did not create an account on Dentzy, you can safely ignore this email.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -452,8 +498,8 @@ export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp 
  * Sends Password Reset 6-Digit OTP Email.
  */
 export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `Dentzy — Reset your password`;
-  const textContent = `DENTZY - Password Reset\n\nHello ${name},\n\nWe received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nIf you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
+  const subject = `[Testing Website] Dentzy — Reset your password`;
+  const textContent = `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\nDENTZY - Password Reset\n\nHello ${name},\n\nWe received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nIf you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -492,24 +538,9 @@ export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
  */
 export async function sendContactAdminNotification({ env, contact }) {
   const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || 'dentzycore@gmail.com';
-  const subject = `[Testing Version] New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
+  const subject = `[Testing Website] New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
 
   const bodyHtml = `
-    <!-- Testing Version Notice Banner -->
-    <div style="background-color: #fffbeb; border-radius: 10px; padding: 12px 16px; margin: 0 0 18px 0;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-          <td style="font-size: 12px; font-weight: 700; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <span style="display: inline-block; background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 6px;">Notice</span>
-            Sent from testing version
-          </td>
-          <td align="right" style="font-size: 11px; color: #b45309; font-weight: 500;">
-            dentzy-testing.pages.dev
-          </td>
-        </tr>
-      </table>
-    </div>
-
     <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
       A new customer inquiry was submitted on the Dentzy testing portal:
     </p>
@@ -532,7 +563,7 @@ export async function sendContactAdminNotification({ env, contact }) {
       </tr>
       <tr style="background-color: #fefce8;">
         <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing version (dentzy-testing.pages.dev)</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
       </tr>
     </table>
     <div style="font-size: 13px; font-weight: 600; color: #4a5d54; margin: 18px 0 6px 0;">Message:</div>
@@ -540,17 +571,17 @@ export async function sendContactAdminNotification({ env, contact }) {
       ${contact.message ? escapeMultiline(contact.message) : '&mdash;'}
     </div>
     <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing version &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
     </div>
   `;
 
   const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing version] Inquiry from ${escapeHtml(contact.name)}: ${escapeHtml(contact.subject || 'General Inquiry')}`,
-    badge: 'Sent from testing version',
-    badgeColor: '#92400e',
-    badgeBg: '#fef3c7',
+    preheader: `[Sent from testing website] Inquiry from ${escapeHtml(contact.name)}: ${escapeHtml(contact.subject || 'General Inquiry')}`,
+    badge: 'Customer Inquiry',
+    badgeColor: '#1e5038',
+    badgeBg: '#eef6f2',
     heading: 'New Contact Form Submission',
-    subheading: 'Sent from testing version (dentzy-testing.pages.dev)',
+    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
     bodyHtml,
     ctaText: `Reply to ${escapeHtml(contact.name)}`,
     ctaUrl: `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent('Re: ' + (contact.subject || 'Dentzy Dental Solutions inquiry'))}`,
@@ -569,7 +600,7 @@ export async function sendContactAdminNotification({ env, contact }) {
  * Sends User Acknowledgment Confirmation for Contact Us.
  */
 export async function sendContactUserConfirmation({ env, contact }) {
-  const subject = `Thank you for contacting Dentzy Dental Solutions`;
+  const subject = `[Testing Website] Thank you for contacting Dentzy Dental Solutions`;
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(contact.name)}</strong>,<br><br>
@@ -612,7 +643,7 @@ export async function sendContactUserConfirmation({ env, contact }) {
  */
 export async function sendNewUserAdminAlert({ env, user }) {
   const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'support@dentzy.in';
-  const subject = `New Dentist Registration: ${user.name} (${user.email})`.replace(/[\r\n]/g, ' ');
+  const subject = `[Testing Website] New Dentist Registration: ${user.name} (${user.email})`.replace(/[\r\n]/g, ' ');
 
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
@@ -651,7 +682,7 @@ export async function sendNewUserAdminAlert({ env, user }) {
  * User Confirmation — Registration Pending.
  */
 export async function sendRegistrationPendingEmail({ env, user }) {
-  const subject = `Welcome to Dentzy — Registration Received`;
+  const subject = `[Testing Website] Welcome to Dentzy — Registration Received`;
 
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -684,7 +715,7 @@ export async function sendRegistrationPendingEmail({ env, user }) {
  * User Notification — Account Approved.
  */
 export async function sendUserApprovedEmail({ env, user }) {
-  const subject = `Your Dentzy Account Has Been Approved`;
+  const subject = `[Testing Website] Your Dentzy Account Has Been Approved`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -727,7 +758,7 @@ export async function sendUserRejectedEmail({ env, user, note }) {
       </div>`
     : '';
 
-  const subject = `Dentzy — Account Registration Update`;
+  const subject = `[Testing Website] Dentzy — Account Registration Update`;
 
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -762,7 +793,7 @@ export async function sendUserRejectedEmail({ env, user, note }) {
 export async function sendPaymentReminderEmail({ env, dentist, order, payment }) {
   const amount = payment?.amount || 0;
   const amountStr = amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : 'Amount to be confirmed';
-  const subject = `Dentzy: Payment Reminder for Case ${escapeHtml(order.caseId)}`.replace(/[\r\n]/g, ' ');
+  const subject = `[Testing Website] Dentzy: Payment Reminder for Case ${escapeHtml(order.caseId)}`.replace(/[\r\n]/g, ' ');
 
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
@@ -815,7 +846,7 @@ export async function sendPaymentReminderEmail({ env, dentist, order, payment })
  * Staff Welcome — Registration Confirmation Email.
  */
 export async function sendStaffWelcomeEmail({ env, staffMember }) {
-  const subject = `Welcome to Dentzy Staff Portal — You have been registered`;
+  const subject = `[Testing Website] Welcome to Dentzy Staff Portal — You have been registered`;
 
   const bodyHtml = `
     <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
