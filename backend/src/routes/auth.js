@@ -434,8 +434,12 @@ auth.delete('/profile', verifyUser(), validate(deleteAccountSchema), async (c) =
     const isMatch = await comparePassword(password, full.password);
     if (!isMatch) return c.json({ message: 'Incorrect password. Account deletion cancelled.' }, 401);
 
-    // D1 FK CASCADE handles lab_orders and payments deletion automatically
-    await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
+    // ponytail: D1 FK cascades are unreliable, delete children explicitly via batch
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM lab_orders WHERE ownerId = ?').bind(user.id),
+      c.env.DB.prepare('DELETE FROM payments WHERE ownerId = ?').bind(user.id),
+      c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
+    ]);
 
     auditLog('ACCOUNT_DELETED', { userId: user.id });
     return c.json({ message: 'Your account and all associated data have been permanently deleted.' });

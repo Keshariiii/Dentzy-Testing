@@ -215,16 +215,17 @@ admin.patch('/users/:id/reject', verifyAdmin(), validate(rejectUserSchema), asyn
 admin.delete('/users/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
-    // FK CASCADE handles orders & payments
-    // ponytail: D1 FK cascades are unreliable, delete children explicitly via batch
-    const results = await c.env.DB.batch([
+    const user = await c.env.DB.prepare('SELECT id, name, email FROM users WHERE id = ?').bind(id).first();
+    if (!user) return c.json({ message: 'User not found.' }, 404);
+
+    // Delete dependent records first to satisfy FK constraints, then delete user
+    await c.env.DB.batch([
       c.env.DB.prepare('DELETE FROM lab_orders WHERE ownerId = ?').bind(id),
       c.env.DB.prepare('DELETE FROM payments WHERE ownerId = ?').bind(id),
       c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id),
     ]);
-    if (!results[2].meta.changes) return c.json({ message: 'User not found.' }, 404);
 
-    auditLog('USER_DELETED_BY_ADMIN', { userId: id, adminUsername: c.get('admin').username });
+    auditLog('USER_DELETED_BY_ADMIN', { userId: id, name: user.name, email: user.email, adminUsername: c.get('admin').username });
     return c.json({ message: 'User deleted successfully.' });
   } catch (error) {
     logger.error('Delete user error', { error: error.message });
@@ -660,19 +661,25 @@ admin.patch('/staff/:id/status', verifyAdmin(), async (c) => {
 
 // DELETE /api/admin/staff/:id -- delete staff account
 admin.delete('/staff/:id', verifyAdmin(), async (c) => {
-  const { id } = c.req.param();
-  const row = await c.env.DB.prepare(
-    'SELECT id, username FROM staff WHERE id = ?'
-  ).bind(id).first();
-  if (!row) return c.json({ message: 'Staff not found.' }, 404);
+  try {
+    const id = c.req.param('id');
+    const row = await c.env.DB.prepare(
+      'SELECT id, username FROM staff WHERE id = ?'
+    ).bind(id).first();
+    if (!row) return c.json({ message: 'Staff not found.' }, 404);
 
-  // ponytail: clean up attendance records too
-  await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM staff_attendance WHERE staff_id = ?').bind(id),
-    c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id),
-  ]);
-  auditLog('STAFF_DELETED', { staffId: id, username: row.username });
-  return c.json({ message: 'Staff account deleted.' });
+    // ponytail: clean up assigned orders, attendance records, and staff account
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE lab_orders SET assigned_staff_id = NULL WHERE assigned_staff_id = ?').bind(id),
+      c.env.DB.prepare('DELETE FROM staff_attendance WHERE staff_id = ?').bind(id),
+      c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id),
+    ]);
+    auditLog('STAFF_DELETED', { staffId: id, username: row.username });
+    return c.json({ message: 'Staff account deleted.' });
+  } catch (err) {
+    logger.error('Failed to delete staff', { error: err.message });
+    return c.json({ message: 'Failed to delete staff account.' }, 500);
+  }
 });
 
 // ── Staff Attendance (Admin marks manually) ─────────────────────────────────
