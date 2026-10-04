@@ -19,11 +19,19 @@ export const ToastProvider = ({ children }) => {
       {children}
       <Toaster 
         position="top-center" 
-        richColors 
         theme="light" 
         expand={false}
         swipeDirections={['up', 'right', 'left']}
         className="dz-sonner-toaster"
+        toastOptions={{
+          classNames: {
+            toast: 'dz-toast-base',
+            success: 'dz-toast-success',
+            error: 'dz-toast-error',
+            info: 'dz-toast-info',
+            warning: 'dz-toast-warning'
+          }
+        }}
       />
     </ToastContext.Provider>
   );
