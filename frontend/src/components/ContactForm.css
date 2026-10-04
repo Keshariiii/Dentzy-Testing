@@ -12,7 +12,7 @@
 }
 
 .form-bar {
-    background-color: var(--color-primary);
+    background-color: #1e5038;
     padding: 15px;
     border-radius: 50px;
     display: flex;
@@ -20,7 +20,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 50px;
-    box-shadow: 0 8px 30px rgba(112, 140, 128, 0.25);
+    box-shadow: 0 8px 32px rgba(30, 80, 56, 0.25);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 

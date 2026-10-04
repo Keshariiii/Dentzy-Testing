@@ -30,7 +30,7 @@
   --dz-color-black:           #000000;
 
   /* ── Color: Backgrounds & Surfaces ───────────────────────────── */
-  --dz-color-bg-page:         #f4f7f5;   /* Main page background      */
+  --dz-color-bg-page:         #f0f5f2;   /* Main page background      */
   --dz-color-bg-surface:      #ffffff;   /* Card / elevated surfaces  */
   --dz-color-bg-surface-alt:  #f8faf9;   /* Alternate surface         */
   --dz-color-bg-overlay:      rgba(0, 0, 0, 0.45); /* Modal overlay   */
@@ -142,6 +142,12 @@
   --dz-z-modal:      500;
   --dz-z-toast:      600;
   --dz-z-tooltip:    700;
+
+  /* ── Glassmorphism & Mint ─────────────────────────────────────── */
+  --dz-color-mint:            #f0f5f2;   /* Soft Mint surface          */
+  --dz-glass-bg:              rgba(255, 255, 255, 0.75);
+  --dz-glass-border:          rgba(112, 140, 128, 0.18);
+  --dz-glass-shadow:          0 8px 32px rgba(30, 80, 56, 0.08);
 
   /* ── Layout ──────────────────────────────────────────────────── */
   --dz-sidebar-width:       260px;

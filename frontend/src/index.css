@@ -91,7 +91,7 @@ img {
 .btn {
   display: inline-block;
   padding: 12px 24px;
-  background-color: var(--color-primary);
+  background-color: #1e5038;
   color: white;
   border: none;
   border-radius: 50px;
@@ -102,16 +102,19 @@ img {
 }
 
 .btn:hover {
-  background-color: var(--color-primary-dark);
+  background-color: #174430;
   transform: translateY(-2px);
-  box-shadow: var(--dz-shadow-md, 0 6px 18px rgba(0, 0, 0, 0.08));
+  box-shadow: 0 8px 24px rgba(30, 80, 56, 0.15);
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .section-padding {
   padding: var(--gap-section) 0;
 }
 
-/* Animations */
 /* Animations */
 .animate-on-scroll {
   opacity: 0;
@@ -250,4 +253,56 @@ img {
 .dz-sonner-toaster .dz-toast-warning {
   background: #d97706;
   color: white;
+}
+
+/* ── Global Micro-Animation Utilities ────────────────────────────────── */
+@keyframes dz-fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dz-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.dz-animate-fade-in-up {
+  animation: dz-fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dz-animate-scale-in {
+  animation: dz-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Glassmorphic utility class ──────────────────────────────────────── */
+.dz-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(112, 140, 128, 0.12);
+}
+
+/* ── Premium Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(112, 140, 128, 0.25);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(112, 140, 128, 0.4);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(112, 140, 128, 0.25) transparent;
 }

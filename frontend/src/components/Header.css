@@ -14,8 +14,10 @@
 }
 
 .header.scrolled {
-    background-color: var(--color-white);
-    box-shadow: 0 4px 20px rgba(112, 140, 128, 0.12);
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: 0 4px 24px rgba(30, 80, 56, 0.08);
     padding: 15px 0;
 }
 

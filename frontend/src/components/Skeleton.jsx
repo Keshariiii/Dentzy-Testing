@@ -1,5 +1,5 @@
 /**
- * Skeleton — Reusable skeleton loader components with pulse animation.
+ * Skeleton — Reusable skeleton loader components with shimmer wave animation.
  *
  * Usage:
  *   import { Skeleton, CardSkeleton, OrderSkeleton, TableRowSkeleton } from '../components/Skeleton';
@@ -7,19 +7,18 @@
  */
 import React from 'react';
 
-// ── Inline styles (no external CSS dependency) ───────────────────────────────
+// ── Shimmer wave keyframes ──────────────────────────────────────────────────
 
-const pulseKeyframes = `
-@keyframes skeleton-pulse {
-  0%   { opacity: 1; }
-  50%  { opacity: 0.4; }
-  100% { opacity: 1; }
+const shimmerKeyframes = `
+@keyframes dz-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }`;
 
 const baseStyle = {
-  background: 'linear-gradient(90deg, #e2e8f0 25%, #edf2f7 50%, #e2e8f0 75%)',
+  background: 'linear-gradient(90deg, #e8ede9 25%, #f0f5f2 37%, #e8ede9 63%)',
   backgroundSize: '200% 100%',
-  animation: 'skeleton-pulse 1.5s ease-in-out infinite',
+  animation: 'dz-shimmer 1.8s ease-in-out infinite',
   borderRadius: '8px',
 };
 
@@ -42,6 +41,7 @@ export const CardSkeleton = ({ style = {} }) => (
     borderRadius: '16px',
     padding: '20px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    border: '1px solid #f0f2f1',
     ...style,
   }}>
     <Skeleton width="40%" height="14px" style={{ marginBottom: '12px' }} />
@@ -70,6 +70,7 @@ export const OrderSkeleton = ({ count = 3 }) => (
         borderRadius: '14px',
         padding: '16px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        border: '1px solid #f0f2f1',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
@@ -116,7 +117,7 @@ export const TableRowSkeleton = ({ columns = 5, rows = 5 }) => (
 // ── Style injection (runs once) ─────────────────────────────────────────────
 
 const StyleInjector = () => (
-  <style dangerouslySetInnerHTML={{ __html: pulseKeyframes }} />
+  <style dangerouslySetInnerHTML={{ __html: shimmerKeyframes }} />
 );
 
 // ── Wrapper that auto-injects keyframes ──────────────────────────────────────

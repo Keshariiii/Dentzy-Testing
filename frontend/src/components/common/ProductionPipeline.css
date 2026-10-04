@@ -7,16 +7,20 @@
 /* ── Single pipeline card ─────────────────────────────────────────── */
 .pp-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 22px 26px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid rgba(112, 140, 128, 0.1);
   min-width: 0;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .pp-card--single { width: 100%; }
 
-.pp-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.pp-card:hover {
+  box-shadow: 0 8px 28px rgba(30, 80, 56, 0.08);
+  border-color: rgba(112, 140, 128, 0.2);
+}
 
 /* ── Header ───────────────────────────────────────────────────────── */
 .pp-header {
@@ -124,9 +128,9 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #e4ebe7;
-  background: #f7faf8;
+  background: #f0f5f2;
   color: #c5d8ce;
-  transition: all 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Past: solid green with white check */

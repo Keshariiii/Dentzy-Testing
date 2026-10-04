@@ -1,23 +1,26 @@
 /* ================================================================
-   MobileBottomNav — iOS/Android-style fixed bottom tab bar
+   MobileBottomNav — Floating glassmorphic dock
    ================================================================ */
 
 .m-bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
   z-index: 200;
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  height: 64px;
+  height: 60px;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(112, 140, 128, 0.12);
+  border-radius: 22px;
+  box-shadow:
+    0 8px 32px rgba(30, 80, 56, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .m-bnav-item {
@@ -31,44 +34,56 @@
   background: none;
   cursor: pointer;
   padding: 6px 0;
-  color: var(--dz-color-text-light);
+  color: #94a3b8;
   transition: color 0.2s;
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
-  min-height: 44px; /* #30 — Touch target minimum */
+  min-height: 44px;
 }
 
 .m-bnav-item--active {
-  color: var(--dz-color-primary);
+  color: var(--dz-color-primary-accent, #1e5038);
 }
 
 .m-bnav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px; /* #30 — Touch target minimum */
-  border-radius: 16px;
-  transition: background 0.25s, transform 0.15s;
+  width: 42px;
+  height: 36px;
+  border-radius: 12px;
+  transition: background 0.25s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .m-bnav-item--active .m-bnav-icon {
-  background: var(--dz-color-primary-muted);
-  transform: scale(1.05);
+  background: rgba(112, 140, 128, 0.12);
+  transform: scale(1.1);
 }
 
 .m-bnav-item:active .m-bnav-icon {
-  transform: scale(0.9);
+  transform: scale(0.88);
 }
 
 .m-bnav-label {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   line-height: 1;
 }
 
 .m-bnav-item--active .m-bnav-label {
   font-weight: 700;
-  color: var(--dz-color-primary-dark);
+  color: var(--dz-color-primary-accent, #1e5038);
+}
+
+/* Active glow pip */
+.m-bnav-item--active::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dz-color-primary-accent, #1e5038);
+  margin-top: 1px;
+  box-shadow: 0 0 6px rgba(30, 80, 56, 0.4);
 }

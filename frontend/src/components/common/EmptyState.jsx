@@ -84,56 +84,23 @@ const illustrations = {
 
 export default function EmptyState({ variant = 'generic', message = 'Nothing here yet', subtext, action, onAction }) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '32px 16px',
-      textAlign: 'center',
-      gap: '12px',
-      opacity: 0.9,
-    }}>
-      <div style={{ marginBottom: '4px' }}>
+    <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-3">
+      <div className="mb-1 animate-[float_4s_ease-in-out_infinite]">
         {illustrations[variant] || illustrations.generic}
       </div>
-      <p style={{
-        fontSize: '0.92rem',
-        fontWeight: 700,
-        color: 'var(--dz-color-charcoal, #1e2824)',
-        margin: 0,
-      }}>
+      <p className="text-sm font-bold text-[#1e2824] m-0">
         {message}
       </p>
       {subtext && (
-        <p style={{
-          fontSize: '0.78rem',
-          color: 'var(--dz-color-text-muted, #64748b)',
-          margin: 0,
-          maxWidth: '280px',
-          lineHeight: 1.5,
-        }}>
+        <p className="text-xs text-gray-400 m-0 max-w-[280px] leading-relaxed">
           {subtext}
         </p>
       )}
       {action && onAction && (
         <button
           onClick={onAction}
-          style={{
-            marginTop: '4px',
-            padding: '8px 20px',
-            background: 'var(--dz-color-primary, #708c80)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '50px',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            transition: 'transform 0.15s, box-shadow 0.2s',
-          }}
-          onMouseEnter={e => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; }}
-          onMouseLeave={e => { e.target.style.transform = 'none'; e.target.style.boxShadow = 'none'; }}
+          className="mt-1 px-5 py-2 bg-[#1e5038] text-white border-none rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95"
+          style={{ fontFamily: 'inherit' }}
         >
           {action}
         </button>

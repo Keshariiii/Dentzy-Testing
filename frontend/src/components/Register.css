@@ -68,13 +68,37 @@
 /* ---- Right Panel ---- */
 .auth-right {
   width: 45%;
-  background-color: #f0f2f1;
+  background-color: #f0f5f2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.875rem);
   position: relative;
+  overflow: hidden;
+}
+
+/* Subtle dot grid background pattern */
+.auth-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(112, 140, 128, 0.2) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+  animation: auth-dots-breathe 6s ease-in-out infinite;
+}
+
+@keyframes auth-dots-breathe {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.6; }
+}
+
+.auth-right > * {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-header-logo {
@@ -90,12 +114,15 @@
 
 /* ---- Card ---- */
 .auth-card {
-  background: #ffffff;
-  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
   padding: 44px 40px 38px;
   width: 100%;
   max-width: 360px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.09);
+  box-shadow: 0 8px 40px rgba(30, 80, 56, 0.06), 0 0 0 1px rgba(112, 140, 128, 0.08);
+  border: 1px solid rgba(112, 140, 128, 0.12);
   animation: auth-card-enter 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 

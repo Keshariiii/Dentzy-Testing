@@ -11,7 +11,7 @@
   height: 100vh;
   overflow: hidden;
   font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
-  background: var(--dz-color-bg-page, #f4f7f5);
+  background: #f0f5f2;
   color: var(--dz-color-text-primary, #1e2824);
 }
 
@@ -30,8 +30,10 @@
   gap: 20px;
   padding: 0 28px;
   height: 60px;
-  background: var(--dz-color-bg-surface, #ffffff);
-  border-bottom: 1px solid var(--dz-color-border-light, #e4ebe7);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(112, 140, 128, 0.1);
   flex-shrink: 0;
   z-index: 100;
 }
@@ -99,9 +101,9 @@
 }
 
 .ud-search-input:focus {
-  border-color: #7aa08d;
+  border-color: #708c80;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.12);
 }
 
 .ud-search-input::placeholder { color: #bcc8c2; }
@@ -171,7 +173,7 @@
 .ud-sidebar {
   width: 210px;
   min-width: 210px;
-  background: var(--dz-color-primary-accent);
+  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -205,7 +207,7 @@
   gap: 10px;
   padding: 10px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   background: transparent;
   color: rgba(255,255,255,0.65);
   font-size: 0.84rem;
@@ -220,10 +222,10 @@
 .ud-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
 
 .ud-nav-item.active {
-  background: #ffffff;
-  color: var(--dz-color-primary-accent);
+  background: rgba(255,255,255,0.95);
+  color: #1e5038;
   font-weight: 700;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .ud-nav-icon {

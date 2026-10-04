@@ -1,19 +1,21 @@
 'use client';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useBackNavigation } from '../../hooks/useBackNavigation';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import './BaseModal.css';
 
 /**
  * BaseModal — 21st.dev Premium Modal Architecture
  * 
  * Features:
- * - Traps browser popstate via useBackNavigation (fixes mobile back-swipe & hardware back button)
- * - Smooth Framer Motion spring physics & glassmorphism backdrop
- * - Accessible ARIA attributes & keyboard focus trap
- * - Fully responsive with bottom-sheet feel on mobile and centered card on desktop
+ * - PC: Centered spring scale-up dialog with glassmorphism backdrop
+ * - Mobile: Bottom drawer with native drag-to-dismiss swipe gesture
+ * - Traps browser popstate via useBackNavigation
+ * - Accessible ARIA attributes & keyboard handling
+ * - Tactile swipe pill handle on mobile
  */
 export default function BaseModal({
   isOpen,
@@ -30,9 +32,11 @@ export default function BaseModal({
   closeOnBackdrop = true,
   closeOnEscape = true,
   preventScroll = true,
+  swipeable = true,
   id = 'modal',
-  raw = false, // When true, renders children directly inside modal wrapper without standard header
+  raw = false,
 }) {
+  const isMobile = useIsMobile();
   const { requestClose } = useBackNavigation({
     isOpen,
     onClose,
@@ -46,6 +50,29 @@ export default function BaseModal({
       requestClose();
     }
   };
+
+  const handleDragEnd = (_, info) => {
+    // Dismiss if dragged down > 120px or with velocity > 500
+    if (info.offset.y > 120 || info.velocity.y > 500) {
+      requestClose();
+    }
+  };
+
+  // Mobile bottom-sheet variants
+  const mobileVariants = {
+    hidden: { y: '100%', opacity: 0.5 },
+    visible: { y: 0, opacity: 1 },
+    exit: { y: '100%', opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
+  };
+
+  // Desktop centered scale variants
+  const desktopVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: 16 },
+    visible: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.95, y: 12 },
+  };
+
+  const useMobileSheet = isMobile && swipeable;
 
   return (
     <AnimatePresence>
@@ -67,15 +94,46 @@ export default function BaseModal({
           />
 
           {/* Centering / Alignment Container */}
-          <div className="dz-modal-scroll-wrap" onClick={handleBackdropClick}>
+          <div
+            className={cn(
+              'dz-modal-scroll-wrap',
+              useMobileSheet && 'dz-modal-mobile-wrap',
+            )}
+            onClick={handleBackdropClick}
+          >
             <motion.div
-              className={cn('dz-modal-container', maxWidth, className)}
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 340, mass: 0.8 }}
+              className={cn(
+                'dz-modal-container',
+                maxWidth,
+                useMobileSheet && 'dz-modal-mobile-sheet',
+                className,
+              )}
+              variants={useMobileSheet ? mobileVariants : desktopVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={
+                useMobileSheet
+                  ? { type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }
+                  : { type: 'spring', damping: 28, stiffness: 340, mass: 0.8 }
+              }
+              // Mobile drag-to-dismiss
+              {...(useMobileSheet ? {
+                drag: 'y',
+                dragConstraints: { top: 0, bottom: 0 },
+                dragElastic: { top: 0, bottom: 0.6 },
+                onDragEnd: handleDragEnd,
+                dragListener: true,
+              } : {})}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Mobile swipe pill handle */}
+              {useMobileSheet && (
+                <div className="dz-modal-swipe-handle" aria-hidden="true">
+                  <div className="dz-modal-swipe-pill" />
+                </div>
+              )}
+
               {raw ? (
                 children
               ) : (
@@ -90,7 +148,7 @@ export default function BaseModal({
                         </div>
                         {subtitle && <p className="dz-modal-subtitle">{subtitle}</p>}
                       </div>
-                      {showCloseButton && (
+                      {showCloseButton && !useMobileSheet && (
                         <button
                           type="button"
                           className="dz-modal-close-btn"

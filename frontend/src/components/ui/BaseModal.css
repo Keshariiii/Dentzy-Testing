@@ -1,6 +1,7 @@
 /**
  * BaseModal.css — Dentzy Design System
  * Glassmorphic, accessible, responsive modal styles.
+ * PC: centered card. Mobile: bottom sheet with swipe handle.
  */
 
 .dz-modal-root {
@@ -17,13 +18,13 @@
 .dz-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 20, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(15, 23, 20, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1;
 }
 
-/* Scroll wrap for mobile friendly overflow */
+/* Scroll wrap for desktop centered */
 .dz-modal-scroll-wrap {
   position: fixed;
   inset: 0;
@@ -36,11 +37,10 @@
   padding: 1rem;
 }
 
-@media (max-width: 640px) {
-  .dz-modal-scroll-wrap {
-    padding: 0.75rem;
-    align-items: flex-end;
-  }
+/* Mobile scroll wrap — anchored to bottom */
+.dz-modal-mobile-wrap {
+  align-items: flex-end;
+  padding: 0;
 }
 
 /* Modal Card Container */
@@ -58,12 +58,42 @@
   z-index: 3;
 }
 
-@media (max-width: 640px) {
-  .dz-modal-container {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    max-height: 92vh;
-  }
+/* Mobile bottom sheet card */
+.dz-modal-mobile-sheet {
+  border-radius: 1.5rem 1.5rem 0 0;
+  max-height: 92vh;
+  max-height: 92dvh;
+  touch-action: none;
+  /* Safe area padding for notched devices */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Swipe handle for mobile */
+.dz-modal-swipe-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 4px;
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.dz-modal-swipe-handle:active {
+  cursor: grabbing;
+}
+
+.dz-modal-swipe-pill {
+  width: 36px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #cbd5e1;
+  transition: background 0.15s, width 0.15s;
+}
+
+.dz-modal-swipe-handle:hover .dz-modal-swipe-pill,
+.dz-modal-swipe-handle:active .dz-modal-swipe-pill {
+  background: #94a3b8;
+  width: 44px;
 }
 
 /* Header */
@@ -76,6 +106,10 @@
   background: #ffffff;
   gap: 1rem;
   flex-shrink: 0;
+}
+
+.dz-modal-mobile-sheet .dz-modal-header {
+  padding-top: 0.75rem;
 }
 
 .dz-modal-header-text {
@@ -136,12 +170,11 @@
   overflow-y: auto;
   flex: 1 1 auto;
   color: var(--dz-color-text-body, #444444);
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 640px) {
-  .dz-modal-body {
-    padding: 1.25rem 1rem;
-  }
+.dz-modal-mobile-sheet .dz-modal-body {
+  padding: 1.25rem 1rem;
 }
 
 /* Footer */
@@ -154,4 +187,8 @@
   border-top: 1px solid var(--dz-color-border-light, #f0f2f1);
   background: var(--dz-color-bg-surface-alt, #f8faf9);
   flex-shrink: 0;
+}
+
+.dz-modal-mobile-sheet .dz-modal-footer {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }

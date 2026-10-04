@@ -23,9 +23,9 @@ export function DentistWelcomeBanner({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-[14px] p-4 sm:p-5 mb-5',
-        'bg-gradient-to-br from-primary-muted/30 via-surface to-primary-muted/15',
-        'border border-primary/20 shadow-xs',
+        'relative overflow-hidden rounded-2xl p-4 sm:p-5 mb-5',
+        'bg-white/70 backdrop-blur-md',
+        'border border-[#708c80]/15 shadow-sm',
         className,
       )}
     >

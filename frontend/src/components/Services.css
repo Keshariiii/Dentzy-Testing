@@ -1,5 +1,5 @@
 .services {
-    background-color: var(--dz-color-bg-surface-alt, #f8faf9);
+    background-color: #f0f5f2;
 }
 
 .services-grid {
@@ -10,22 +10,22 @@
 }
 
 .service-card {
-    background: var(--dz-color-bg-surface, #fff);
-    border-radius: var(--dz-radius-lg, 14px);
+    background: #fff;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: var(--dz-shadow-sm, 0 4px 20px rgba(0, 0, 0, 0.06));
+    box-shadow: 0 2px 12px rgba(30, 80, 56, 0.04);
     transition:
         transform  0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         box-shadow 0.38s ease,
         border-color 0.25s ease;
-    border: 1px solid var(--dz-color-primary-muted);
+    border: 1px solid rgba(112, 140, 128, 0.12);
     will-change: transform;
 }
 
 .service-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: var(--dz-shadow-lg, 0 20px 40px rgba(0, 0, 0, 0.10));
-    border-color: var(--dz-color-primary);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 48px rgba(30, 80, 56, 0.1);
+    border-color: rgba(112, 140, 128, 0.25);
 }
 
 .service-image {
