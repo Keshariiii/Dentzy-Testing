@@ -145,4 +145,45 @@ describe('sendEmail - Configuration check', () => {
   });
 });
 
+import {
+  sendRegistrationOtpEmail,
+  sendOtpEmail,
+  sendContactAdminNotification,
+  sendContactUserConfirmation,
+  sendNewUserAdminAlert,
+  sendRegistrationPendingEmail,
+  sendUserApprovedEmail,
+  sendUserRejectedEmail,
+  sendPaymentReminderEmail,
+  sendStaffWelcomeEmail
+} from '../src/utils/email.js';
+
+describe('All Email Templates - Contact Us Rich Table Structure', () => {
+  it('all template functions fail gracefully when no email provider configured', async () => {
+    const emptyEnv = {};
+    const res1 = await sendRegistrationOtpEmail({ env: emptyEnv, to: 'user@test.com', otp: '123456' });
+    const res2 = await sendOtpEmail({ env: emptyEnv, to: 'user@test.com', otp: '123456' });
+    const res3 = await sendContactAdminNotification({ env: emptyEnv, contact: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res4 = await sendContactUserConfirmation({ env: emptyEnv, contact: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res5 = await sendNewUserAdminAlert({ env: emptyEnv, user: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res6 = await sendRegistrationPendingEmail({ env: emptyEnv, user: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res7 = await sendUserApprovedEmail({ env: emptyEnv, user: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res8 = await sendUserRejectedEmail({ env: emptyEnv, user: { name: 'Dr. Test', email: 'test@test.com' } });
+    const res9 = await sendPaymentReminderEmail({ env: emptyEnv, dentist: { name: 'Dr. Test', email: 'test@test.com' }, order: { caseId: 'CASE-1' } });
+    const res10 = await sendStaffWelcomeEmail({ env: emptyEnv, staffMember: { displayName: 'Staff', email: 'staff@test.com' } });
+
+    assert.equal(res1.success, false);
+    assert.equal(res2.success, false);
+    assert.equal(res3.success, false);
+    assert.equal(res4.success, false);
+    assert.equal(res5.success, false);
+    assert.equal(res6.success, false);
+    assert.equal(res7.success, false);
+    assert.equal(res8.success, false);
+    assert.equal(res9.success, false);
+    assert.equal(res10.success, false);
+  });
+});
+
+
 
