@@ -272,11 +272,6 @@ export function renderDentzyEmailLayout({
         <!-- Main Card -->
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(30, 80, 56, 0.06); border: 1px solid #e2ece6;">
           
-          <!-- Top Accent Bar -->
-          <tr>
-            <td style="height: 4px; background: linear-gradient(90deg, #1e5038 0%, #2e7d56 50%, #708c80 100%); line-height: 4px; font-size: 1px;">&nbsp;</td>
-          </tr>
-
           <!-- Brand Header -->
           <tr>
             <td style="padding: 28px 36px 20px 36px; border-bottom: 1px solid #f1f5f3; background: linear-gradient(180deg, #f7faf8 0%, #ffffff 100%);">
