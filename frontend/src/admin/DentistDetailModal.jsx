@@ -10,6 +10,7 @@ import BaseModal from '../components/ui/BaseModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
+import { useToast } from '../context/ToastContext';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -57,9 +58,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const [stageLoading, setStageLoading] = useState(null);
   const [showForm, setShowForm]       = useState(false);
   const [submitting, setSubmitting]   = useState(false);
-  const [toast, setToast]             = useState(null);
   const [confirmConfig, setConfirmConfig] = useState(null);
-  const toastTimer                    = useRef(null);
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '', amount: '',
@@ -89,12 +89,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   useEffect(() => { load(); }, [load]);
 
 
-  /* ── Toast helper ────────────────────────────────────────────────────── */
-  const showToast = (msg, type = 'success') => {
-    clearTimeout(toastTimer.current);
-    setToast({ msg, type });
-    toastTimer.current = setTimeout(() => setToast(null), 3500);
-  };
+
 
   /* ── Update order stage ──────────────────────────────────────────────── */
   const handleStageChange = async (orderId, newStage) => {
@@ -385,13 +380,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
           )}
         </div>
 
-        {/* Toast */}
-        {toast && (
-          <div className={`ddm-toast ${toast.type === 'error' ? 'ddm-toast--error' : 'ddm-toast--success'}`} role="alert">
-            {toast.type === 'error' ? Ico.x(13) : Ico.check(13)}
-            <span>{toast.msg}</span>
-          </div>
-        )}
+
         </div>
       </BaseModal>
 

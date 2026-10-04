@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStaffAuth } from './StaffAuthContext';
+import { useToast } from '../context/ToastContext';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
@@ -42,14 +43,7 @@ const StaffDashboard = () => {
   const [orderFilter, setOrderFilter] = useState('all'); // 'all' | 'mine'
   const [orderSearch, setOrderSearch] = useState('');
   const [updatingStage, setUpdatingStage] = useState(null);
-  const [toast, setToast] = useState(null);
-  const toastTimer = useRef(null);
-
-  const showToast = (msg, type = 'success') => {
-    clearTimeout(toastTimer.current);
-    setToast({ msg, type });
-    toastTimer.current = setTimeout(() => setToast(null), 3500);
-  };
+  const { showToast } = useToast();
 
   const fetchOrders = useCallback(async () => {
     setLoadingOrders(true);
@@ -392,12 +386,7 @@ const StaffDashboard = () => {
         ))}
       </nav>
 
-      {/* ── Toast ───────────────────────────────────────────────────── */}
-      {toast && (
-        <div className={`sd-toast sd-toast--${toast.type}`}>
-          {toast.msg}
-        </div>
-      )}
+
 
       {/* ── ORDERS VIEW ─────────────────────────────────────────────── */}
       {activeView === 'orders' && (

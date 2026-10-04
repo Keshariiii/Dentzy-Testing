@@ -17,6 +17,7 @@ import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import { formatINR, formatDate } from '../../utils/format';
+import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
 
 import { Icons as Ico } from '../../components/common/DashboardIcons';
@@ -113,13 +114,12 @@ const MobileAdminDashboard = () => {
 
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
-  const [toast, setToast]                 = useState(null);
   const [liveNotifs, setLiveNotifs]       = useState([]);
+  const { showToast } = useToast();
   const [confirmConfig, setConfirmConfig] = useState(null);
   const [error, setError]                 = useState(null);
 
   const sseRef        = useRef(null);
-  const toastTimerRef = useRef(null);
 
   const todayStr = new Date().toLocaleDateString('en-IN', {
     weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
@@ -173,12 +173,12 @@ const MobileAdminDashboard = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setToast({ msg: 'Notice bar updated successfully.', type: 'success' });
+        showToast('Notice bar updated successfully.', 'success');
       } else {
-        setToast({ msg: data.message || 'Failed to update notice bar.', type: 'error' });
+        showToast(data.message || 'Failed to update notice bar.', 'error');
       }
     } catch {
-      setToast({ msg: 'Network error.', type: 'error' });
+      showToast('Network error.', 'error');
     }
     setNoticeSaving(false);
   };
@@ -345,12 +345,7 @@ const MobileAdminDashboard = () => {
     };
   }, [admin?.username, ADMIN_API]);
 
-  /* -- Toast helper ------------------------------------------------------ */
-  const showToast = (msg, type = 'success') => {
-    clearTimeout(toastTimerRef.current);
-    setToast({ msg, type });
-    toastTimerRef.current = setTimeout(() => setToast(null), 3500);
-  };
+  /* -- Toast helper (using context) -------------------------------------- */
 
   /* -- User Actions ------------------------------------------------------ */
   const handleApprove = async (userId, userName) => {
@@ -1673,13 +1668,7 @@ const MobileAdminDashboard = () => {
         )}
       </BaseModal>
 
-      {/* Toast */}
-      {toast && (
-        <div className={`ma-toast ${toast.type === 'error' ? 'ma-toast--error' : 'ma-toast--success'}`} role="alert">
-          {toast.type === 'error' ? Ico.x(14) : Ico.check(14)}
-          <span>{toast.msg}</span>
-        </div>
-      )}
+
 
       {/* Dentist Detail Modal */}
       {selectedUserId && (

@@ -17,6 +17,7 @@ import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
+import { useToast } from '../context/ToastContext';
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -47,7 +48,7 @@ const AdminDashboard = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [sortOrder, setSortOrder] = useState('desc');
   const [search, setSearch] = useState('');
-  const [toast, setToast] = useState(null);
+
   const [liveNotifs, setLiveNotifs] = useState([]);
   const [visiblePw, setVisiblePw] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -82,7 +83,7 @@ const AdminDashboard = () => {
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [staffSearch, setStaffSearch] = useState('');
   const sseRef = useRef(null);
-  const toastTimerRef = useRef(null);
+
   const prevAdminViewRef = useRef('dentists');
 
   useEffect(() => {
@@ -301,11 +302,7 @@ const AdminDashboard = () => {
     };
   }, [admin?.username, ADMIN_API]);
 
-  const showToast = (msg, type = 'success') => {
-    clearTimeout(toastTimerRef.current);
-    setToast({ msg, type });
-    toastTimerRef.current = setTimeout(() => setToast(null), 3500);
-  };
+  const { showToast } = useToast();
 
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
@@ -1357,13 +1354,7 @@ const AdminDashboard = () => {
 
       </div>{/* /ad-body */}
 
-      {/* Toast */}
-      {toast && (
-        <div className={`ad-toast ${toast.type === 'error' ? 'ad-toast-error' : 'ad-toast-success'}`} role="alert">
-          {toast.type === 'error' ? Ico.x(14) : Ico.check(14)}
-          <span>{toast.msg}</span>
-        </div>
-      )}
+
 
       {/* Dentist Detail Modal */}
       {selectedUserId && (
