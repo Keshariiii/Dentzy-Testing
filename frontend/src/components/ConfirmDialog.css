@@ -1,5 +1,10 @@
 /* ConfirmDialog.css — Dentzy Design System */
 
+.dz-modal-root:has(#confirm-dialog),
+.dz-modal-root:has(.cd-panel-modal) {
+  z-index: 10005;
+}
+
 .cd-panel-modal {
   max-width: 420px;
   background: #ffffff;

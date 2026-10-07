@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import './DentistDetailModal.css';
 import BaseModal from '../components/ui/BaseModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
@@ -48,7 +49,7 @@ const PipelineBar = ({ stage }) => {
 };
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
-const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
+const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const { authFetch, ADMIN_API, admin } = useAdminAuth();
 
   const [user, setUser]               = useState(null);
@@ -57,6 +58,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
   const [stageLoading, setStageLoading] = useState(null);
   const [showForm, setShowForm]       = useState(false);
   const [submitting, setSubmitting]   = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [deleting, setDeleting]       = useState(false);
   const { showToast } = useToast();
 
   const [form, setForm] = useState({
@@ -152,16 +155,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
   };
 
   /* ── Delete dentist account ────────────────────────────────────────────── */
-  const handleDeleteDentist = async () => {
-    const uName = user?.name || 'this dentist';
-    if (!window.confirm(`Are you sure you want to permanently delete "${uName}"? All associated lab orders and payments will be deleted. This cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
     try {
       const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
         showToast('Dentist account deleted.');
+        setShowConfirmDelete(false);
         if (onDeleteUser) onDeleteUser();
         onClose();
       } else {
@@ -169,6 +170,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
       }
     } catch {
       showToast('Network error', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -362,7 +365,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
                 <button
                   type="button"
                   className="ddm-delete-user-btn"
-                  onClick={handleDeleteDentist}
+                  onClick={() => setShowConfirmDelete(true)}
                 >
                   {Ico.trash(14)} Delete Dentist Account
                 </button>
@@ -374,6 +377,19 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
 
         </div>
       </BaseModal>
+
+      {/* Delete Dentist Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDelete}
+        title="Delete Dentist Account?"
+        message={`Are you sure you want to permanently delete Dr. ${user?.name || 'this dentist'}? All associated lab orders and payments will be deleted. This cannot be undone.`}
+        confirmText="Delete Dentist"
+        cancelText="Cancel"
+        type="danger"
+        loading={deleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowConfirmDelete(false)}
+      />
     </>
   );
 };
