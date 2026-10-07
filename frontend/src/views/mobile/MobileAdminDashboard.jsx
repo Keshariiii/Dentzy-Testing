@@ -245,8 +245,16 @@ const MobileAdminDashboard = () => {
     fetchUsers();
     fetchAllOrders();
     fetchPayments();
+    fetchStaff();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.username]);
+
+  // Re-fetch staff when view switches to staff
+  useEffect(() => {
+    if (!admin?.username || adminView !== 'staff') return;
+    fetchStaff();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminView]);
 
   // Re-fetch users on tab or sort change
   useEffect(() => {
@@ -840,7 +848,7 @@ const MobileAdminDashboard = () => {
                           {Ico.check(14)} Accept
                         </button>
                       )}
-                      <button className="ma-card-action-btn ma-action-delete" onClick={() => handleDelete(uId, user.name)}>
+                      <button className="ma-card-action-btn ma-action-delete" onClick={(e) => { e.stopPropagation(); handleDelete(uId, user.name); }}>
                         {Ico.trash(14)}
                       </button>
                     </div>
@@ -1243,7 +1251,10 @@ const MobileAdminDashboard = () => {
                 label={card.label}
                 desc={card.desc}
                 icon={card.iconFn()}
-                onClick={() => setStaffSubView(card.key)}
+                onClick={() => {
+                  setStaffSubView(card.key);
+                  if (card.key === 'members') fetchStaff();
+                }}
               />
             ))}
           </div>
@@ -1692,10 +1703,6 @@ const MobileAdminDashboard = () => {
         <DentistDetailModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
-          onDelete={(uId, uName) => {
-            setSelectedUserId(null);
-            handleDelete(uId, uName);
-          }}
           onDeleteUser={() => {
             fetchUsers();
             fetchStats();

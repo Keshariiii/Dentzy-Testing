@@ -194,6 +194,15 @@ const AdminDashboard = () => {
     setLoadingUsers(false);
   }, [ADMIN_API, activeTab, sortOrder]);
 
+  const fetchStaff = useCallback(async () => {
+    setLoadingStaff(true);
+    try {
+      const res = await authFetchRef.current(`${ADMIN_API}/staff`);
+      if (res.ok) { const d = await res.json(); setStaffList(d.staff || []); }
+    } catch {}
+    setLoadingStaff(false);
+  }, [ADMIN_API]);
+
   // Fire once when admin is confirmed (uses primitive string, not object reference)
   useEffect(() => {
     if (!admin?.username) return;
@@ -201,8 +210,16 @@ const AdminDashboard = () => {
     fetchUsers();
     fetchAllOrders();
     fetchPayments();
+    fetchStaff();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin?.username]);
+
+  // Re-fetch staff when view switches to staff
+  useEffect(() => {
+    if (!admin?.username || adminView !== 'staff') return;
+    fetchStaff();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminView]);
 
   // Re-fetch when tab or sort changes
   useEffect(() => {
@@ -500,16 +517,6 @@ const AdminDashboard = () => {
       throw new Error(data.message || 'Failed to update payment amount.');
     }
   };
-
-
-  const fetchStaff = useCallback(async () => {
-    setLoadingStaff(true);
-    try {
-      const res = await authFetch(`${ADMIN_API}/staff`);
-      if (res.ok) { const d = await res.json(); setStaffList(d.staff || []); }
-    } catch {}
-    setLoadingStaff(false);
-  }, [authFetch, ADMIN_API]);
 
   const filteredUsers = (users || []).filter(u =>
     (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
@@ -1060,7 +1067,7 @@ const AdminDashboard = () => {
                                   {Ico.check(14)} Accept
                                 </button>
                               )}
-                              <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete Dentist">
+                              <button className="ad-card-action-btn ad-action-delete" onClick={(e) => { e.stopPropagation(); handleDelete(uId, user.name); }} title="Delete Dentist">
                                 {Ico.trash(14)}
                               </button>
                             </div>
@@ -1378,10 +1385,6 @@ const AdminDashboard = () => {
         <DentistDetailModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
-          onDelete={(uId, uName) => {
-            setSelectedUserId(null);
-            handleDelete(uId, uName);
-          }}
           onDeleteUser={() => {
             fetchUsers();
             fetchStats();

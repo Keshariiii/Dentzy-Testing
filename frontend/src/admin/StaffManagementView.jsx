@@ -33,6 +33,11 @@ const StaffManagementView = ({
   const setSubView = onSubViewChange || setInternalSubView;
   const [activeDesignation, setActiveDesignation] = useState(null);
 
+  // Ponytail: ensure staff list is fetched whenever StaffManagementView mounts or subView is members
+  useEffect(() => {
+    fetchStaff?.();
+  }, [fetchStaff]);
+
   // ── Create Staff Modal ──────────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState({ displayName: '', username: '', password: '', email: '', designation: 'Lab Assistant' });

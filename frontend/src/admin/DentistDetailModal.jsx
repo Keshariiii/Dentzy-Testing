@@ -150,6 +150,28 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
       }
     } catch { showToast('Network error', 'error'); }
   };
+
+  /* ── Delete dentist account ────────────────────────────────────────────── */
+  const handleDeleteDentist = async () => {
+    const uName = user?.name || 'this dentist';
+    if (!window.confirm(`Are you sure you want to permanently delete "${uName}"? All associated lab orders and payments will be deleted. This cannot be undone.`)) {
+      return;
+    }
+    try {
+      const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Dentist account deleted.');
+        if (onDeleteUser) onDeleteUser();
+        onClose();
+      } else {
+        showToast(data.message || 'Failed to delete dentist', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+    }
+  };
+
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
     <>
@@ -340,15 +362,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
                 <button
                   type="button"
                   className="ddm-delete-user-btn"
-                  onClick={() => {
-                    const uName = user?.name || 'this dentist';
-                    onClose();
-                    if (onDelete) {
-                      onDelete(userId, uName);
-                    } else if (onDeleteUser) {
-                      onDeleteUser(userId, uName);
-                    }
-                  }}
+                  onClick={handleDeleteDentist}
                 >
                   {Ico.trash(14)} Delete Dentist Account
                 </button>
