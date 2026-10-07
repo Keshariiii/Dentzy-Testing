@@ -138,27 +138,17 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
   };
   /* ── Delete order ─────────────────────────────────────────────────────── */
   const handleDeleteOrder = async (orderId, caseId) => {
-    setConfirmConfig({
-      title: 'Delete Order',
-      message: `Are you sure you want to delete order ${caseId}? This cannot be undone.`,
-      type: 'danger',
-      confirmText: 'Delete',
-      onConfirm: async () => {
-        setConfirmConfig(prev => ({ ...prev, loading: true }));
-        try {
-          const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
-          const data = await res.json();
-          if (res.ok) {
-            setOrders(prev => prev.filter(o => (o._id || o.id) !== orderId));
-            showToast('Order deleted successfully.');
-          } else {
-            showToast(data.message || 'Failed to delete order', 'error');
-          }
-        } catch { showToast('Network error', 'error'); }
-        setConfirmConfig(null);
-      },
-      onCancel: () => setConfirmConfig(null)
-    });
+    if (!window.confirm(`Are you sure you want to delete order ${caseId}? This cannot be undone.`)) return;
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => (o._id || o.id) !== orderId));
+        showToast('Order deleted successfully.');
+      } else {
+        showToast(data.message || 'Failed to delete order', 'error');
+      }
+    } catch { showToast('Network error', 'error'); }
   };
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
@@ -168,7 +158,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
         onClose={onClose}
         maxWidth="max-w-3xl"
         className="ddm-panel-wrap"
-        closeOnEscape={!confirmConfig}
+        closeOnEscape={true}
         raw={true}
         id={`dentist-${userId}`}
       >
