@@ -7,7 +7,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
 import './DentistDetailModal.css';
 import BaseModal from '../components/ui/BaseModal';
-import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
@@ -49,7 +48,7 @@ const PipelineBar = ({ stage }) => {
 };
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
-const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
+const DentistDetailModal = ({ userId, onClose, onDeleteUser, onDelete }) => {
   const { authFetch, ADMIN_API, admin } = useAdminAuth();
 
   const [user, setUser]               = useState(null);
@@ -58,7 +57,6 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const [stageLoading, setStageLoading] = useState(null);
   const [showForm, setShowForm]       = useState(false);
   const [submitting, setSubmitting]   = useState(false);
-  const [confirmConfig, setConfirmConfig] = useState(null);
   const { showToast } = useToast();
 
   const [form, setForm] = useState({
@@ -349,30 +347,19 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
               {/* ── Delete Dentist Account ────────────────────────────── */}
               <div className="ddm-danger-zone">
-                <button className="ddm-delete-user-btn" onClick={() => {
-                  setConfirmConfig({
-                    title: 'Delete Dentist Account',
-                    message: `Are you sure you want to permanently delete Dr. ${user?.name || 'this dentist'}? All associated lab orders and records will be deleted. This cannot be undone.`,
-                    type: 'danger',
-                    confirmText: 'Delete Account',
-                    onConfirm: async () => {
-                      setConfirmConfig(prev => ({ ...prev, loading: true }));
-                      try {
-                        const res = await authFetch(`${ADMIN_API}/users/${userId}`, { method: 'DELETE' });
-                        const data = await res.json();
-                        if (res.ok) {
-                          showToast('Dentist account deleted.');
-                          onDeleteUser?.();
-                          onClose();
-                        } else {
-                          showToast(data.message || 'Failed to delete', 'error');
-                        }
-                      } catch { showToast('Network error', 'error'); }
-                      setConfirmConfig(null);
-                    },
-                    onCancel: () => setConfirmConfig(null)
-                  });
-                }}>
+                <button
+                  type="button"
+                  className="ddm-delete-user-btn"
+                  onClick={() => {
+                    const uName = user?.name || 'this dentist';
+                    onClose();
+                    if (onDelete) {
+                      onDelete(userId, uName);
+                    } else if (onDeleteUser) {
+                      onDeleteUser(userId, uName);
+                    }
+                  }}
+                >
                   {Ico.trash(14)} Delete Dentist Account
                 </button>
               </div>
@@ -383,11 +370,6 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
         </div>
       </BaseModal>
-
-      <ConfirmDialog
-        isOpen={!!confirmConfig}
-        {...confirmConfig}
-      />
     </>
   );
 };

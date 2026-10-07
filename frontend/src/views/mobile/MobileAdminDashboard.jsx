@@ -819,21 +819,31 @@ const MobileAdminDashboard = () => {
                     )}
 
                     {/* Inline action buttons based on status */}
-                    {(user.status === 'pending' || user.status === 'rejected') && (
-                      <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
+                    <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
+                      {user.status === 'pending' && (
                         <button className="ma-card-action-btn ma-action-approve" onClick={() => handleApprove(uId, user.name)}>
                           {Ico.check(14)} Accept
                         </button>
-                        {user.status === 'pending' && (
-                          <button className="ma-card-action-btn ma-action-reject" onClick={() => handleReject(uId, user.name)}>
-                            {Ico.x(14)} Reject
-                          </button>
-                        )}
-                        <button className="ma-card-action-btn ma-action-delete" onClick={() => handleDelete(uId, user.name)}>
-                          {Ico.trash(14)}
+                      )}
+                      {user.status === 'pending' && (
+                        <button className="ma-card-action-btn ma-action-reject" onClick={() => handleReject(uId, user.name)}>
+                          {Ico.x(14)} Reject
                         </button>
-                      </div>
-                    )}
+                      )}
+                      {user.status === 'approved' && (
+                        <button className="ma-card-action-btn ma-action-reject" onClick={() => handleReject(uId, user.name)} title="Revoke Approval">
+                          {Ico.x(14)} Reject
+                        </button>
+                      )}
+                      {user.status === 'rejected' && (
+                        <button className="ma-card-action-btn ma-action-approve" onClick={() => handleApprove(uId, user.name)}>
+                          {Ico.check(14)} Accept
+                        </button>
+                      )}
+                      <button className="ma-card-action-btn ma-action-delete" onClick={() => handleDelete(uId, user.name)}>
+                        {Ico.trash(14)}
+                      </button>
+                    </div>
                   </div>
                   );
                 })}
@@ -1682,6 +1692,10 @@ const MobileAdminDashboard = () => {
         <DentistDetailModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+          onDelete={(uId, uName) => {
+            setSelectedUserId(null);
+            handleDelete(uId, uName);
+          }}
           onDeleteUser={() => {
             fetchUsers();
             fetchStats();

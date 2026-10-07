@@ -108,8 +108,14 @@ const StaffManagementView = ({
         try {
           const res = await authFetch(`${ADMIN_API}/staff/${staff.id}`, { method: 'DELETE' });
           const data = await res.json();
-          if (res.ok) { showToast(data.message || 'Staff deleted.'); fetchStaff(); }
-          else showToast(data.message || 'Failed', 'error');
+          if (res.ok) {
+            showToast(data.message || 'Staff deleted.');
+            if (attendanceStaff?.id === staff.id) setAttendanceStaff(null);
+            if (editStaff?.id === staff.id) setEditStaff(null);
+            fetchStaff();
+          } else {
+            showToast(data.message || 'Failed', 'error');
+          }
         } catch { showToast('Network error', 'error'); }
         setConfirmConfig(null);
       },
