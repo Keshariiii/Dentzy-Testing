@@ -193,6 +193,62 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
   }
 });
 
+// POST /api/staff/orders — staff (receptionist, admin roles) creates order for dentist
+staff.post('/orders', verifyStaff(), async (c) => {
+  try {
+    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount } = await c.req.json();
+    if (!dentistId) return c.json({ message: 'Dentist is required.' }, 400);
+    if (!patientName || !patientName.trim()) return c.json({ message: 'Patient name is required.' }, 400);
+
+    const dentist = await c.env.DB.prepare("SELECT id, name, email, status FROM users WHERE id = ?").bind(dentistId).first();
+    if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
+    if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
+
+    const validServices = ['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other'];
+    const safeService = validServices.includes(serviceType) ? serviceType : 'Other';
+    const validPriorities = ['Low', 'Normal', 'High', 'Urgent'];
+    const safePriority = validPriorities.includes(priority) ? priority : 'Normal';
+
+    const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const random = Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase();
+    const caseId = `DZ-${datePart}-${random}`;
+    const id = newId();
+    const ts = now();
+    const staffUser = c.get('staff');
+
+    await c.env.DB.prepare(
+      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, ?, ?, ?)`
+    ).bind(id, dentistId, patientName.trim(), caseId, safeService, dueDate || null, notes || '', safePriority, staffUser.username || 'staff', ts, ts).run();
+
+    const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
+
+    const paymentId = newId();
+    const numAmount = typeof amount === 'number' ? amount : Number(amount) || 0;
+    await c.env.DB.prepare(
+      `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, 'INR', 'Pending', ?, ?, '', ?, ?)`
+    ).bind(paymentId, dentistId, patientName.trim(), caseId, `INV-${caseId}`, numAmount, ts, dueDate || null, ts, ts).run();
+
+    auditLog('STAFF_ORDER_CREATED', { orderId: id, caseId, dentistId, staffUsername: staffUser.username });
+
+    return c.json({
+      message: 'Order created successfully.',
+      order: {
+        ...order,
+        _id: order.id,
+        amount: numAmount,
+        paymentAmount: numAmount,
+        paymentStatus: 'Pending',
+        owner: { _id: dentist.id, name: dentist.name, email: dentist.email },
+      },
+    }, 201);
+  } catch (err) {
+    logger.error('Staff create order error', { error: err.message });
+    return c.json({ message: 'Failed to create order.' }, 500);
+  }
+});
+
 // ── Staff Inventory ──────────────────────────────────────────────────────────
 
 // GET /api/staff/inventory — list all inventory items

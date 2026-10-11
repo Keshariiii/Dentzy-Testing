@@ -889,20 +889,6 @@ const MobileAdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Search Bar */}
-              <div className="ma-search-wrap">
-                <div className="ma-search-bar">
-                  {Ico.search(14)}
-                  <input type="text" className="ma-search-input" placeholder="Search patient, case ID..."
-                    value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
-                  {orderSearch && (
-                    <button className="ma-search-clear" onClick={() => setOrderSearch('')}>
-                      {Ico.x(12)}
-                    </button>
-                  )}
-                </div>
-              </div>
-
               {/* Filter Status Chips */}
               <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -106,29 +106,6 @@ export default function AdminOrdersListView({
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className={isMobile ? 'ma-search-wrap' : 'ad-search-wrap'} style={{ marginBottom: '12px' }}>
-        <div className={isMobile ? 'ma-search-bar' : 'ad-search-bar'}>
-          {Ico.search(14)}
-          <input
-            type="text"
-            className={isMobile ? 'ma-search-input' : 'ad-search-input'}
-            placeholder="Search patient, case ID, dentist..."
-            value={orderSearch}
-            onChange={(e) => setOrderSearch(e.target.value)}
-          />
-          {orderSearch && (
-            <button
-              className={isMobile ? 'ma-search-clear' : 'ad-search-clear'}
-              onClick={() => setOrderSearch('')}
-              aria-label="Clear search"
-            >
-              {Ico.x(12)}
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Filter Status Selector */}
       <div className={isMobile ? 'ma-tabs-wrap' : 'ad-controls'} style={{ padding: isMobile ? '0 16px' : '0', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -12,6 +12,7 @@ import { useToast } from '../context/ToastContext';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
+import CreateOrderModal from '../components/common/CreateOrderModal';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import './StaffDashboard.css';
 
@@ -41,8 +42,9 @@ const StaffDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderFilter, setOrderFilter] = useState('all'); // 'all' | 'mine'
-  const [orderSearch, setOrderSearch] = useState('');
   const [updatingStage, setUpdatingStage] = useState(null);
+  const [showCreateOrder, setShowCreateOrder] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
   const { showToast } = useToast();
 
   const fetchOrders = useCallback(async () => {
@@ -225,6 +227,28 @@ const StaffDashboard = () => {
     setEditPaymentSaving(false);
   };
 
+  const handleCreateOrderSubmit = async (payload) => {
+    setCreatingOrder(true);
+    try {
+      const res = await authFetch(`${STAFF_API}/orders`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Order created successfully.');
+        setShowCreateOrder(false);
+        fetchOrders();
+        if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+      } else {
+        showToast(data.message || 'Failed to create order', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+    }
+    setCreatingOrder(false);
+  };
+
   // ── Settings ────────────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState({ displayName: '', email: '', phone: '', dob: '' });
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
@@ -307,13 +331,7 @@ const StaffDashboard = () => {
   };
 
   // ── Helpers ─────────────────────────────────────────────────────────────
-  const filteredOrders = orders.filter(o => {
-    if (!orderSearch) return true;
-    const q = orderSearch.toLowerCase();
-    return (o.patientName || '').toLowerCase().includes(q) ||
-           (o.caseId || '').toLowerCase().includes(q) ||
-           (o.owner?.name || '').toLowerCase().includes(q);
-  });
+  const filteredOrders = orders;
 
   const filteredDentists = dentists.filter(d => {
     if (!dentistSearch) return true;
@@ -400,11 +418,14 @@ const StaffDashboard = () => {
                 <button className={`sd-filter-btn ${orderFilter === 'mine' ? 'sd-filter-btn--active' : ''}`}
                   onClick={() => setOrderFilter('mine')}>My Cases</button>
               </div>
-              <div className="sd-search-wrap">
-                {Ico.search(14)}
-                <input type="text" className="sd-search" placeholder="Search orders..."
-                  value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
-              </div>
+              <button
+                type="button"
+                className="sd-btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setShowCreateOrder(true)}
+              >
+                {Ico.plus(14)} New Order
+              </button>
             </div>
           </div>
 
@@ -638,6 +659,14 @@ const StaffDashboard = () => {
                     </div>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  className="sd-btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  onClick={() => setShowCreateOrder(true)}
+                >
+                  {Ico.plus(14)} New Order
+                </button>
               </div>
 
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
@@ -915,6 +944,17 @@ const StaffDashboard = () => {
           onClose={() => setEditPaymentModal(null)}
           onSave={handleEditPaymentSubmit}
           saving={editPaymentSaving}
+        />
+      )}
+
+      {showCreateOrder && (
+        <CreateOrderModal
+          isOpen={showCreateOrder}
+          onClose={() => setShowCreateOrder(false)}
+          dentist={selectedDentist}
+          dentistList={dentists}
+          onSubmitOrder={handleCreateOrderSubmit}
+          isSubmitting={creatingOrder}
         />
       )}
 

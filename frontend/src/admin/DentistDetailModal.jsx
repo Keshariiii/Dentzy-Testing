@@ -11,6 +11,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
+import CreateOrderModal from '../components/common/CreateOrderModal';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -62,9 +63,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const [deleting, setDeleting]       = useState(false);
   const { showToast } = useToast();
 
-  const [form, setForm] = useState({
-    patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '', amount: '',
-  });
+
 
   /* ── Load dentist profile + orders ──────────────────────────────────────── */
   const authFetchRef = useRef(authFetch);
@@ -117,20 +116,16 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   };
 
   /* ── Create new order ────────────────────────────────────────────────── */
-  const handleSubmitOrder = async (e) => {
-    e.preventDefault();
-    if (!form.patientName.trim()) { showToast('Patient name is required', 'error'); return; }
+  const handleSubmitOrder = async (payload) => {
     setSubmitting(true);
     try {
-      const payload = { ...form, dentistId: userId, amount: form.amount !== '' ? Number(form.amount) : 0 };
-      const res  = await authFetch(`${ADMIN_API}/orders`, {
+      const res = await authFetch(`${ADMIN_API}/orders`, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
         setOrders(prev => [data.order, ...prev]);
-        setForm({ patientName: '', serviceType: 'Crown', priority: 'Normal', dueDate: '', notes: '', amount: '' });
         setShowForm(false);
         showToast('Order created successfully.');
       } else {
@@ -230,77 +225,20 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                 <div className="ddm-section-header">
                   <span className="ddm-section-title">Lab Orders ({orders.length})</span>
                   {user.status === 'approved' && (
-                    <button className="ddm-new-order-btn" onClick={() => setShowForm(v => !v)}>
-                      {showForm ? Ico.x(13) : Ico.plus(13)}
-                      {showForm ? 'Cancel' : 'New Order'}
+                    <button className="ddm-new-order-btn" onClick={() => setShowForm(true)}>
+                      {Ico.plus(13)} New Order
                     </button>
                   )}
                 </div>
 
-                {/* New order form */}
-                {showForm && (
-                  <form className="ddm-order-form" onSubmit={handleSubmitOrder}>
-                    <div className="ddm-form-row">
-                      <div className="ddm-form-field">
-                        <label className="ddm-form-label">Patient Name *</label>
-                        <input className="ddm-form-input"
-                          value={form.patientName}
-                          onChange={e => setForm(f => ({ ...f, patientName: e.target.value }))}
-                          placeholder="Enter patient name" required />
-                      </div>
-                      <div className="ddm-form-field">
-                        <label className="ddm-form-label">Service Type</label>
-                        <select className="ddm-form-select"
-                          value={form.serviceType}
-                          onChange={e => setForm(f => ({ ...f, serviceType: e.target.value }))}>
-                          {['Crown','Bridge','Denture','Implant','Veneer','Retainer','Other'].map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="ddm-form-row">
-                      <div className="ddm-form-field">
-                        <label className="ddm-form-label">Priority</label>
-                        <select className="ddm-form-select"
-                          value={form.priority}
-                          onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
-                          {['Low','Normal','High','Urgent'].map(p => (
-                            <option key={p} value={p}>{p}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="ddm-form-field">
-                        <label className="ddm-form-label">Due Date</label>
-                        <input type="date" className="ddm-form-input"
-                          value={form.dueDate}
-                          onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
-                      </div>
-                    </div>
-                    <div className="ddm-form-row">
-                      <div className="ddm-form-field">
-                        <label className="ddm-form-label">Amount (₹)</label>
-                        <input type="number" className="ddm-form-input"
-                          min="0" step="any" placeholder="0"
-                          value={form.amount}
-                          onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
-                      </div>
-                    </div>
-                    <div className="ddm-form-field ddm-form-field--full">
-                      <label className="ddm-form-label">Notes</label>
-                      <textarea className="ddm-form-textarea"
-                        value={form.notes}
-                        onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                        placeholder="Optional notes…" rows={3} />
-                    </div>
-                    <div className="ddm-form-actions">
-                      <button type="button" className="ddm-form-cancel" onClick={() => setShowForm(false)}>Cancel</button>
-                      <button type="submit" className="ddm-form-submit" disabled={submitting}>
-                        {submitting ? <span className="ddm-btn-spinner" /> : <>Create Order</>}
-                      </button>
-                    </div>
-                  </form>
-                )}
+                {/* Create Order Modal */}
+                <CreateOrderModal
+                  isOpen={showForm}
+                  onClose={() => setShowForm(false)}
+                  dentist={user}
+                  onSubmitOrder={handleSubmitOrder}
+                  isSubmitting={submitting}
+                />
 
                 {/* Orders list */}
                 {orders.length === 0 ? (
