@@ -23,6 +23,7 @@ import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -370,9 +371,16 @@ const MobileDashboard = () => {
 
         {/* Stat Cards */}
         {error && !stats ? (
-          <div className="m-error-banner">
+          <div className="m-error-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>{error}</span>
-            <button onClick={fetchStats}>Retry</button>
+            <TwentyFirstIconButton
+              icon={Icons.refresh ? Icons.refresh(16) : null}
+              title="Retry"
+              ariaLabel="Retry"
+              onClick={fetchStats}
+              size="md"
+              variant="secondary"
+            />
           </div>
         ) : stats ? (
           <div className="m-stats-row">
@@ -522,9 +530,16 @@ const MobileDashboard = () => {
       </div>
 
       {error && (
-        <div className="m-error-banner">
+        <div className="m-error-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>{error}</span>
-          <button onClick={fetchOrders}>Retry</button>
+          <TwentyFirstIconButton
+            icon={Icons.refresh ? Icons.refresh(16) : null}
+            title="Retry"
+            ariaLabel="Retry"
+            onClick={fetchOrders}
+            size="md"
+            variant="secondary"
+          />
         </div>
       )}
 
@@ -591,9 +606,16 @@ const MobileDashboard = () => {
           <strong>Payment Modes:</strong> Direct UPI (mobile / UPI ID), Cash, or Cheque. Status is updated once verified by lab administration.
         </div>
         {error && (
-          <div className="m-error-banner">
+          <div className="m-error-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>{error}</span>
-            <button onClick={fetchPayments}>Retry</button>
+            <TwentyFirstIconButton
+              icon={Icons.refresh ? Icons.refresh(16) : null}
+              title="Retry"
+              ariaLabel="Retry"
+              onClick={fetchPayments}
+              size="md"
+              variant="secondary"
+            />
           </div>
         )}
         {loading ? (
@@ -677,10 +699,14 @@ const MobileDashboard = () => {
             <span className="m-settings-email">{user?.email}</span>
           </div>
           {!isEditingProfile && (
-            <button className="m-settings-edit-btn"
-              onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}>
-              Edit
-            </button>
+            <TwentyFirstIconButton
+              icon={Icons.pencil(15)}
+              title="Edit Profile"
+              ariaLabel="Edit Profile"
+              onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
+              size="md"
+              variant="soft"
+            />
           )}
         </div>
 

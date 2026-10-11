@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   IndianRupee,
 } from 'lucide-react';
+import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
+import { Icons as Ico } from './DashboardIcons';
 import './CreateOrderModal.css';
 
 /**
@@ -348,23 +350,27 @@ export default function CreateOrderModal({
                 <span className="com-clasp-title">Additional Clasps</span>
                 <span className="com-clasp-desc">+₹100 per clasp added</span>
               </div>
-              <div className="com-clasp-counter">
-                <button
-                  type="button"
-                  className="com-clasp-step"
+              <div className="com-clasp-counter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TwentyFirstIconButton
+                  icon={Ico.minus(14)}
+                  title="Decrease Clasps"
+                  ariaLabel="Decrease Clasps"
                   onClick={() => setClaspCount(c => Math.max(0, c - 1))}
                   disabled={claspCount <= 0}
-                >
-                  -
-                </button>
-                <span className="com-clasp-num">{claspCount}</span>
-                <button
-                  type="button"
-                  className="com-clasp-step"
+                  size="sm"
+                  rounded="full"
+                  variant="secondary"
+                />
+                <span className="com-clasp-num" style={{ minWidth: '24px', textAlign: 'center', fontWeight: 700 }}>{claspCount}</span>
+                <TwentyFirstIconButton
+                  icon={Ico.plus(14)}
+                  title="Increase Clasps"
+                  ariaLabel="Increase Clasps"
                   onClick={() => setClaspCount(c => c + 1)}
-                >
-                  +
-                </button>
+                  size="sm"
+                  rounded="full"
+                  variant="secondary"
+                />
               </div>
             </div>
           )}

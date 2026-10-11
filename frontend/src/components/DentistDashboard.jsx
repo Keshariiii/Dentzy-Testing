@@ -21,6 +21,7 @@ import { Icon, Icons } from './common/DashboardIcons';
 import { TICKER_MESSAGES } from './dashboard/shared/constants';
 import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
+import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 
 /* =============================================================================
    NAV ITEMS
@@ -616,14 +617,15 @@ const DentistDashboard = () => {
             <span className="ud-settings-card-email">{user?.email}</span>
           </div>
           {!isEditingProfile && (
-            <button
-              type="button"
+            <TwentyFirstIconButton
               id="edit-profile-btn"
-              className="ud-settings-edit-btn"
+              icon={Icons.pencil(15)}
+              title="Edit Profile"
+              ariaLabel="Edit Profile"
               onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
-            >
-              Edit
-            </button>
+              size="sm"
+              variant="soft"
+            />
           )}
         </div>
 

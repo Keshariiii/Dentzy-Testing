@@ -23,6 +23,7 @@ import './MobileAdminDashboard.css';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
@@ -828,18 +829,33 @@ const MobileAdminDashboard = () => {
 
                     {/* Inline action buttons based on status */}
                     {(user.status === 'pending' || user.status === 'rejected') && (
-                      <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
-                        <button className="ma-card-action-btn ma-action-approve" onClick={() => handleApprove(uId, user.name)}>
-                          {Ico.check(14)} Accept
-                        </button>
+                      <div className="ma-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <TwentyFirstIconButton
+                          icon={Ico.check(16)}
+                          title="Approve Dentist"
+                          ariaLabel="Approve Dentist"
+                          onClick={() => handleApprove(uId, user.name)}
+                          size="lg"
+                          variant="success"
+                        />
                         {user.status === 'pending' && (
-                          <button className="ma-card-action-btn ma-action-reject" onClick={() => handleReject(uId, user.name)}>
-                            {Ico.x(14)} Reject
-                          </button>
+                          <TwentyFirstIconButton
+                            icon={Ico.x(16)}
+                            title="Reject Dentist"
+                            ariaLabel="Reject Dentist"
+                            onClick={() => handleReject(uId, user.name)}
+                            size="lg"
+                            variant="danger"
+                          />
                         )}
-                        <button className="ma-card-action-btn ma-action-delete" onClick={() => handleDelete(uId, user.name)}>
-                          {Ico.trash(14)}
-                        </button>
+                        <TwentyFirstIconButton
+                          icon={Ico.trash(16)}
+                          title="Delete Dentist"
+                          ariaLabel="Delete Dentist"
+                          onClick={() => handleDelete(uId, user.name)}
+                          size="lg"
+                          variant="danger"
+                        />
                       </div>
                     )}
                   </div>
@@ -1101,25 +1117,37 @@ const MobileAdminDashboard = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="ma-card-actions" onClick={e => e.stopPropagation()}>
+                        <div className="ma-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           {p.paymentStatus === 'Paid' ? (
-                            <button className="ma-card-action-btn ma-action-revert"
+                            <TwentyFirstIconButton
+                              icon={Ico.history(16)}
+                              title="Mark Pending"
+                              ariaLabel="Mark Pending"
                               onClick={() => handleRevertPayment(p._id)}
-                              disabled={actionLoading === p._id + '_payment'}>
-                              {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
-                            </button>
+                              disabled={actionLoading === p._id + '_payment'}
+                              size="lg"
+                              variant="secondary"
+                            />
                           ) : (
-                            <button className="ma-card-action-btn ma-action-pay"
-                              onClick={() => openRecordPayment(p)}>
-                              {Ico.check(13)} Record Payment
-                            </button>
+                            <TwentyFirstIconButton
+                              icon={Ico.creditCard(16)}
+                              title="Record Payment"
+                              ariaLabel="Record Payment"
+                              onClick={() => openRecordPayment(p)}
+                              size="lg"
+                              variant="success"
+                            />
                           )}
                           {p.paymentStatus !== 'Paid' && (
-                            <button className="ma-card-action-btn ma-action-remind"
+                            <TwentyFirstIconButton
+                              icon={Ico.bell(16)}
+                              title="Send Payment Reminder"
+                              ariaLabel="Send Payment Reminder"
                               onClick={() => handleSendReminder(p._id)}
-                              disabled={actionLoading === p._id + '_remind'}>
-                              {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
-                            </button>
+                              disabled={actionLoading === p._id + '_remind'}
+                              size="lg"
+                              variant="soft"
+                            />
                           )}
                         </div>
                       </div>
@@ -1410,18 +1438,15 @@ const MobileAdminDashboard = () => {
                       maxLength={250}
                       style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.84rem', outline: 'none' }}
                     />
-                    <button
+                    <TwentyFirstIconButton
+                      icon={Ico.plus(18)}
+                      title="Add Message"
+                      ariaLabel="Add Message"
                       disabled={!noticeNewMsg.trim()}
                       onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
-                      style={{
-                        padding: '10px 16px', borderRadius: '10px', border: 'none',
-                        background: noticeNewMsg.trim() ? '#1e5038' : '#d4ddd8', color: '#fff',
-                        fontWeight: 700, fontSize: '0.82rem', cursor: noticeNewMsg.trim() ? 'pointer' : 'default',
-                        whiteSpace: 'nowrap', flexShrink: 0,
-                      }}
-                    >
-                      + Add
-                    </button>
+                      variant="primary"
+                      size="lg"
+                    />
                   </div>
 
                   {/* Draggable Reorderable List (21st.dev) */}

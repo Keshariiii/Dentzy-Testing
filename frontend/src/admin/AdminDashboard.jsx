@@ -14,6 +14,7 @@ import { formatINR } from '../utils/format';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
+import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -744,7 +745,14 @@ const AdminDashboard = () => {
                       ) : 'Payments & Billing'}
                     </p>
                   </div>
-                  <button onClick={() => fetchPaymentsRef.current?.()} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
+                  <TwentyFirstIconButton
+                    icon={Ico.refresh(15)}
+                    title="Refresh Payments"
+                    ariaLabel="Refresh Payments"
+                    onClick={() => fetchPaymentsRef.current?.()}
+                    size="sm"
+                    variant="soft"
+                  />
                 </div>
 
 
@@ -798,22 +806,39 @@ const AdminDashboard = () => {
                                   ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
                                 </td>
                                 <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                                  {p.paymentStatus === 'Paid' ? (
-                                    <button onClick={() => handleRevertPayment(p._id)} disabled={actionLoading === p._id + '_payment'}
-                                      style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2ece6', background: '#fff', cursor: 'pointer', marginRight: '4px', color: '#92400e' }}>
-                                      {actionLoading === p._id + '_payment' ? '...' : 'Mark Pending'}
-                                    </button>
-                                  ) : (
-                                    <button onClick={() => openRecordPayment(p)} style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', marginRight: '4px', fontWeight: 600 }}>
-                                      Record Payment
-                                    </button>
-                                  )}
-                                  {p.paymentStatus !== 'Paid' && (
-                                    <button onClick={() => handleSendReminder(p._id)} disabled={actionLoading === p._id + '_remind'}
-                                      style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer', color: '#92400e' }}>
-                                      {actionLoading === p._id + '_remind' ? '...' : 'Remind'}
-                                    </button>
-                                  )}
+                                  <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                                    {p.paymentStatus === 'Paid' ? (
+                                      <TwentyFirstIconButton
+                                        icon={Ico.history(14)}
+                                        title="Mark Pending"
+                                        ariaLabel="Mark Pending"
+                                        onClick={() => handleRevertPayment(p._id)}
+                                        disabled={actionLoading === p._id + '_payment'}
+                                        size="sm"
+                                        variant="secondary"
+                                      />
+                                    ) : (
+                                      <TwentyFirstIconButton
+                                        icon={Ico.creditCard(14)}
+                                        title="Record Payment"
+                                        ariaLabel="Record Payment"
+                                        onClick={() => openRecordPayment(p)}
+                                        size="sm"
+                                        variant="success"
+                                      />
+                                    )}
+                                    {p.paymentStatus !== 'Paid' && (
+                                      <TwentyFirstIconButton
+                                        icon={Ico.bell(14)}
+                                        title="Send Payment Reminder"
+                                        ariaLabel="Send Payment Reminder"
+                                        onClick={() => handleSendReminder(p._id)}
+                                        disabled={actionLoading === p._id + '_remind'}
+                                        size="sm"
+                                        variant="soft"
+                                      />
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                             ))}
@@ -879,7 +904,14 @@ const AdminDashboard = () => {
                       ) : 'Lab Orders'}
                     </p>
                   </div>
-                  <button onClick={fetchAllOrders} style={{ fontSize: '0.78rem', color: '#1e5038', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>↻ Refresh</button>
+                  <TwentyFirstIconButton
+                    icon={Ico.refresh(15)}
+                    title="Refresh Orders"
+                    ariaLabel="Refresh Orders"
+                    onClick={fetchAllOrders}
+                    size="sm"
+                    variant="soft"
+                  />
                 </div>
                 <div className="ad-content">
                   {loadingOrders ? (
@@ -1047,18 +1079,33 @@ const AdminDashboard = () => {
 
                             {/* Inline action buttons based on status */}
                             {(user.status === 'pending' || user.status === 'rejected') && (
-                              <div className="ad-card-actions" onClick={e => e.stopPropagation()}>
-                                <button className="ad-card-action-btn ad-action-approve" onClick={() => handleApprove(uId, user.name)} title="Approve">
-                                  {Ico.check(14)} Accept
-                                </button>
+                              <div className="ad-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <TwentyFirstIconButton
+                                  icon={Ico.check(14)}
+                                  title="Approve Dentist"
+                                  ariaLabel="Approve Dentist"
+                                  onClick={() => handleApprove(uId, user.name)}
+                                  size="sm"
+                                  variant="success"
+                                />
                                 {user.status === 'pending' && (
-                                  <button className="ad-card-action-btn ad-action-reject" onClick={() => handleReject(uId, user.name)} title="Reject">
-                                    {Ico.x(14)} Reject
-                                  </button>
+                                  <TwentyFirstIconButton
+                                    icon={Ico.x(14)}
+                                    title="Reject Dentist"
+                                    ariaLabel="Reject Dentist"
+                                    onClick={() => handleReject(uId, user.name)}
+                                    size="sm"
+                                    variant="danger"
+                                  />
                                 )}
-                                <button className="ad-card-action-btn ad-action-delete" onClick={() => handleDelete(uId, user.name)} title="Delete">
-                                  {Ico.trash(14)}
-                                </button>
+                                <TwentyFirstIconButton
+                                  icon={Ico.trash(14)}
+                                  title="Delete Dentist"
+                                  ariaLabel="Delete Dentist"
+                                  onClick={() => handleDelete(uId, user.name)}
+                                  size="sm"
+                                  variant="danger"
+                                />
                               </div>
                             )}
                           </div>
@@ -1230,13 +1277,15 @@ const AdminDashboard = () => {
                             maxLength={250}
                             style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
                           />
-                          <button
+                          <TwentyFirstIconButton
+                            icon={Ico.plus(18)}
+                            title="Add Message"
+                            ariaLabel="Add Message"
                             disabled={!noticeNewMsg.trim()}
                             onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
-                            style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: noticeNewMsg.trim() ? '#1e5038' : '#d4ddd8', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: noticeNewMsg.trim() ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
-                          >
-                            + Add Message
-                          </button>
+                            variant="primary"
+                            size="lg"
+                          />
                         </div>
 
                         {/* Draggable Reorderable List (21st.dev) */}

@@ -7,6 +7,7 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented-tabs';
+import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { Trash2 } from 'lucide-react';
 
 const DESIGNATIONS = [
@@ -353,14 +354,33 @@ const StaffManagementView = ({
                 <input type="text" className="ad-search" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               {activeDesignation && (
-                <button onClick={() => setActiveDesignation(null)} style={{ ...btnSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {Ico.arrowLeft ? Ico.arrowLeft(14) : '<'} All Designations
-                </button>
+                <TwentyFirstIconButton
+                  icon={Ico.arrowLeft ? Ico.arrowLeft(16) : null}
+                  title="All Designations"
+                  ariaLabel="All Designations"
+                  onClick={() => setActiveDesignation(null)}
+                  variant="secondary"
+                  size="md"
+                />
               )}
-              <button onClick={fetchStaff} style={btnSecondary}>Refresh</button>
-              <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>+ Add Staff</button>
+              <TwentyFirstIconButton
+                icon={Ico.refresh ? Ico.refresh(16) : null}
+                title="Refresh Staff"
+                ariaLabel="Refresh Staff"
+                onClick={fetchStaff}
+                variant="secondary"
+                size="md"
+              />
+              <TwentyFirstIconButton
+                icon={Ico.userPlus ? Ico.userPlus(18) : (Ico.plus ? Ico.plus(18) : null)}
+                title="Add Staff"
+                ariaLabel="Add Staff"
+                onClick={() => setShowCreateModal(true)}
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 
@@ -444,38 +464,37 @@ const StaffManagementView = ({
                         </div>
                       </div>
                     </div>
-                    <div className="ad-staff-card-actions">
+                    <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <span style={{
                         padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
                         background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
                         color: s.status === 'active' ? '#16a34a' : '#dc2626',
+                        marginRight: '4px',
                       }}>{s.status}</span>
-                      <button onClick={() => openEditModal(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
-                        Edit
-                      </button>
-                      <button onClick={() => handleToggleStatus(s)} style={{ ...btnSecondary, fontSize: '0.72rem', padding: '4px 10px' }}>
-                        {s.status === 'active' ? 'Deactivate' : 'Activate'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteStaff(s)}
+                      <TwentyFirstIconButton
+                        icon={Ico.pencil(14)}
+                        title="Edit Staff"
+                        ariaLabel={`Edit ${s.displayName}`}
+                        onClick={() => openEditModal(s)}
+                        size="sm"
+                        variant="soft"
+                      />
+                      <TwentyFirstIconButton
+                        icon={Ico.power(14)}
+                        title={s.status === 'active' ? 'Deactivate Staff' : 'Activate Staff'}
+                        ariaLabel={s.status === 'active' ? 'Deactivate' : 'Activate'}
+                        onClick={() => handleToggleStatus(s)}
+                        size="sm"
+                        variant={s.status === 'active' ? 'secondary' : 'success'}
+                      />
+                      <TwentyFirstIconButton
+                        icon={Ico.trash(14)}
                         title="Delete Staff"
-                        aria-label={`Delete ${s.displayName}`}
-                        style={{
-                          ...btnSecondary,
-                          background: '#fef2f2',
-                          color: '#dc2626',
-                          fontSize: '0.72rem',
-                          padding: '4px 10px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '5px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <Trash2 size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
-                        <span>Delete</span>
-                      </button>
+                        ariaLabel={`Delete ${s.displayName}`}
+                        onClick={() => handleDeleteStaff(s)}
+                        size="sm"
+                        variant="danger"
+                      />
                     </div>
                   </div>
                 ))}
@@ -494,10 +513,15 @@ const StaffManagementView = ({
 
           {selectedStaffForHistory ? (
             <div>
-              <button onClick={() => { setSelectedStaffForHistory(null); setAttendanceHistory([]); }}
-                style={{ ...btnSecondary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {Ico.arrowLeft ? Ico.arrowLeft(14) : '<'} Back to Staff List
-              </button>
+              <TwentyFirstIconButton
+                icon={Ico.arrowLeft ? Ico.arrowLeft(16) : null}
+                title="Back to Staff List"
+                ariaLabel="Back to Staff List"
+                onClick={() => { setSelectedStaffForHistory(null); setAttendanceHistory([]); }}
+                variant="secondary"
+                size="md"
+                style={{ marginBottom: '16px' }}
+              />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h4 style={{ margin: 0, color: '#1a3028' }}>{selectedStaffForHistory.displayName} - Attendance History</h4>
                 <input type="month" value={attendanceMonth} onChange={e => setAttendanceMonth(e.target.value)}
@@ -537,10 +561,23 @@ const StaffManagementView = ({
                       <div style={{ fontSize: '0.75rem', color: '#708c80' }}>@{s.username}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => { setAttendanceStaff(s); setAttendanceDate(new Date().toISOString().slice(0, 10)); setAttendanceStatus('Present'); }}
-                      style={btnPrimary}>Mark</button>
-                    <button onClick={() => setSelectedStaffForHistory(s)} style={btnSecondary}>History</button>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <TwentyFirstIconButton
+                      icon={Ico.calendar(14)}
+                      title="Mark Attendance"
+                      ariaLabel="Mark Attendance"
+                      onClick={() => { setAttendanceStaff(s); setAttendanceDate(new Date().toISOString().slice(0, 10)); setAttendanceStatus('Present'); }}
+                      variant="primary"
+                      size="sm"
+                    />
+                    <TwentyFirstIconButton
+                      icon={Ico.history(14)}
+                      title="View Attendance History"
+                      ariaLabel="View Attendance History"
+                      onClick={() => setSelectedStaffForHistory(s)}
+                      variant="secondary"
+                      size="sm"
+                    />
                   </div>
                 </div>
               ))}
@@ -554,9 +591,23 @@ const StaffManagementView = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Inventory</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={fetchInventory} style={btnSecondary}>Refresh</button>
-              <button onClick={() => setShowAddItem(true)} style={btnPrimary}>+ Add Item</button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <TwentyFirstIconButton
+                icon={Ico.refresh ? Ico.refresh(16) : null}
+                title="Refresh Inventory"
+                ariaLabel="Refresh Inventory"
+                onClick={fetchInventory}
+                variant="secondary"
+                size="md"
+              />
+              <TwentyFirstIconButton
+                icon={Ico.plus ? Ico.plus(18) : null}
+                title="Add Item"
+                ariaLabel="Add Item"
+                onClick={() => setShowAddItem(true)}
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 
@@ -580,30 +631,33 @@ const StaffManagementView = ({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button onClick={() => handleUpdateStock(item, -1)}
-                      style={{ ...btnSecondary, width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>-</button>
+                    <TwentyFirstIconButton
+                      icon={Ico.minus ? Ico.minus(14) : null}
+                      title="Decrease Stock"
+                      ariaLabel="Decrease Stock"
+                      onClick={() => handleUpdateStock(item, -1)}
+                      variant="secondary"
+                      size="sm"
+                      rounded="full"
+                    />
                     <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e5038', minWidth: '28px', textAlign: 'center' }}>{item.quantity}</span>
-                    <button onClick={() => handleUpdateStock(item, 1)}
-                      style={{ ...btnSecondary, width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>+</button>
-                    <button
-                      onClick={() => handleDeleteItem(item)}
+                    <TwentyFirstIconButton
+                      icon={Ico.plus ? Ico.plus(14) : null}
+                      title="Increase Stock"
+                      ariaLabel="Increase Stock"
+                      onClick={() => handleUpdateStock(item, 1)}
+                      variant="secondary"
+                      size="sm"
+                      rounded="full"
+                    />
+                    <TwentyFirstIconButton
+                      icon={Ico.trash ? Ico.trash(14) : null}
                       title="Delete Item"
-                      aria-label={`Delete ${item.item_name}`}
-                      style={{
-                        ...btnSecondary,
-                        background: '#fef2f2',
-                        color: '#dc2626',
-                        width: '32px',
-                        height: '32px',
-                        padding: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Trash2 size={15} strokeWidth={2.2} style={{ flexShrink: 0 }} />
-                    </button>
+                      ariaLabel={`Delete ${item.item_name}`}
+                      onClick={() => handleDeleteItem(item)}
+                      variant="danger"
+                      size="sm"
+                    />
                   </div>
                 </div>
               ))}

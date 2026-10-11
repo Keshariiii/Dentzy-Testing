@@ -5,6 +5,8 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { getAuthUrl } from '../api/client';
 import PasswordStrengthMeter from './ui/password-strength-meter';
+import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
+import { Icons as Ico } from './common/DashboardIcons';
 import './Register.css';
 
 const API = () => getAuthUrl();
@@ -390,13 +392,14 @@ const ForgotPassword = () => {
               </button>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
-                <button
-                  type="button"
+                <TwentyFirstIconButton
+                  icon={Ico.arrowLeft(16)}
+                  title="Change Email / Back"
+                  ariaLabel="Change Email"
                   onClick={() => { setStep(1); setError(''); }}
-                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
-                >
-                  ← Change Email
-                </button>
+                  size="sm"
+                  variant="secondary"
+                />
 
                 <button
                   type="button"

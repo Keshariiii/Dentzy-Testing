@@ -67,6 +67,13 @@ export const Icons = {
   edit:       (s = 15, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>} />,
   pencil:     (s = 15, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>} />,
   grip:       (s = 16) => <Icon size={s} strokeWidth={2} d={<><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></>} />,
+  refresh:    (s = 16, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></>} />,
+  minus:      (s = 16, c = "currentColor") => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+  arrowRight: (s = 18, sw = 2) => <Icon size={s} strokeWidth={sw} d={<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>} />,
+  creditCard: (s = 16, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></>} />,
+  userPlus:   (s = 16, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></>} />,
+  history:    (s = 16, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M3 12a9 9 0 102.64-6.36L3 8"/><polyline points="3 3 3 8 8 8"/><polyline points="12 7 12 12 15 15"/></>} />,
+  power:      (s = 16, sw = 1.8) => <Icon size={s} strokeWidth={sw} d={<><path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></>} />,
 };
 
 export const Ico = Icons;

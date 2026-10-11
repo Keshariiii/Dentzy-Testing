@@ -8,6 +8,8 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext';
 import { getAuthUrl } from '../../api/client';
 import PasswordStrengthMeter from '../../components/ui/password-strength-meter';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { Icons as Ico } from '../../components/common/DashboardIcons';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css'; /* Shared mobile auth styles */
 
@@ -290,13 +292,14 @@ const MobileRegister = () => {
             </button>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.82rem' }}>
-              <button
-                type="button"
+              <TwentyFirstIconButton
+                icon={Ico.arrowLeft(16)}
+                title="Change Email / Back"
+                ariaLabel="Change Email"
                 onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
-              >
-                ← Change Email
-              </button>
+                size="md"
+                variant="secondary"
+              />
               <button
                 type="button"
                 disabled={resendCooldown > 0 || loading}
@@ -443,9 +446,15 @@ const MobileRegister = () => {
                 autoComplete="off"
                 style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontSize: '0.9rem', fontFamily: 'inherit', boxSizing: 'border-box' }}
               />
-              <button type="button" className="m-captcha-refresh" onClick={fetchCaptcha} disabled={captchaLoading}>
-                ↻
-              </button>
+              <TwentyFirstIconButton
+                icon={Ico.refresh(16)}
+                title="Refresh Captcha"
+                ariaLabel="Refresh Captcha"
+                onClick={fetchCaptcha}
+                disabled={captchaLoading}
+                size="md"
+                variant="secondary"
+              />
             </div>
           </div>
 

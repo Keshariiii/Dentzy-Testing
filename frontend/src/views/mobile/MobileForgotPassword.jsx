@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 import { getAuthUrl } from '../../api/client';
 const dentzyLogo = '/dentzy-logo-v2.png';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { Icons as Ico } from '../../components/common/DashboardIcons';
 import './MobileLogin.css';
 
 const API_URL = getAuthUrl();
@@ -303,13 +305,14 @@ const MobileForgotPassword = () => {
               </button>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', fontSize: '0.8rem' }}>
-                <button
-                  type="button"
+                <TwentyFirstIconButton
+                  icon={Ico.arrowLeft(16)}
+                  title="Change Email / Back"
+                  ariaLabel="Change Email"
                   onClick={() => { setStep(1); setError(''); }}
-                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
-                >
-                  ← Change Email
-                </button>
+                  size="md"
+                  variant="secondary"
+                />
 
                 <button
                   type="button"

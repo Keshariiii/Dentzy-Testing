@@ -12,6 +12,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
 import CreateOrderModal from '../components/common/CreateOrderModal';
+import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -225,9 +226,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                 <div className="ddm-section-header">
                   <span className="ddm-section-title">Lab Orders ({orders.length})</span>
                   {user.status === 'approved' && (
-                    <button className="ddm-new-order-btn" onClick={() => setShowForm(true)}>
-                      {Ico.plus(13)} New Order
-                    </button>
+                    <TwentyFirstIconButton
+                      icon={Ico.plus(16)}
+                      title="New Order"
+                      ariaLabel="New Order"
+                      onClick={() => setShowForm(true)}
+                      size="sm"
+                      variant="primary"
+                    />
                   )}
                 </div>
 
@@ -257,14 +263,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                             <span className="ddm-order-caseid">{order.caseId}</span>
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                               <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
-                              <button 
-                                className="ddm-close" 
-                                style={{ position: 'relative', top: 'auto', right: 'auto', padding: '2px', background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer' }}
-                                onClick={() => handleDeleteOrder(oId, order.caseId)}
+                              <TwentyFirstIconButton
+                                icon={Ico.trash(14)}
                                 title="Delete Order"
-                              >
-                                {Ico.trash(14)}
-                              </button>
+                                ariaLabel="Delete Order"
+                                onClick={() => handleDeleteOrder(oId, order.caseId)}
+                                size="sm"
+                                variant="danger"
+                              />
                             </div>
                           </div>
                           <div className="ddm-order-patient">{order.patientName}</div>

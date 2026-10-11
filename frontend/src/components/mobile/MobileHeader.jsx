@@ -6,6 +6,7 @@
  */
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ChevronLeft, LogIn } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHeader.css';
@@ -29,17 +30,15 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
     <header className={`m-header ${transparent ? 'm-header--transparent' : ''}`}>
       <div className="m-header__left">
         {showBack ? (
-          <button className="m-header__back" onClick={() => router.push(-1)} aria-label="Go back">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+          <button className="m-header__back" onClick={() => router.push(-1)} aria-label="Go back" title="Go back">
+            <ChevronLeft size={22} />
           </button>
         ) : onLogoClick ? (
           <button
             type="button"
             onClick={onLogoClick}
             aria-label="Settings"
+            title="Settings"
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
             <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />
@@ -59,17 +58,12 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
         {rightElement ? (
           rightElement
         ) : user ? (
-          <button className="m-header__avatar" onClick={handleAvatarClick} aria-label="Profile">
+          <button className="m-header__avatar" onClick={handleAvatarClick} aria-label="Profile" title="Profile">
             {initials}
           </button>
         ) : showLogin ? (
-          <button className="m-header__login-btn" onClick={() => router.push('/login')} aria-label="Login">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
+          <button className="m-header__login-btn" onClick={() => router.push('/login')} aria-label="Login" title="Login">
+            <LogIn size={20} />
           </button>
         ) : null}
       </div>

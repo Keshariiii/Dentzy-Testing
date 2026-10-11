@@ -7,6 +7,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { ShieldCheck, Clock, Layers, Headphones, ArrowRight, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
+import { TwentyFirstIconButton } from '../../components/ui/twentyfirst-icon-button';
 import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
 import MobileHeader from '../../components/mobile/MobileHeader';
@@ -45,14 +47,13 @@ const PRODUCTS = [
 
 const WHY_ITEMS = [
   { title: 'Quality Guarantee', desc: '1-year warranty on all restorations',
-    d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+    Icon: ShieldCheck },
   { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush',
-    d: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2', isComplex: true,
-    svg: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></> },
+    Icon: Clock },
   { title: 'Digital Workflow', desc: 'STL uploads for digital impressions',
-    d: 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z' },
+    Icon: Layers },
   { title: 'Dedicated Support', desc: 'Mon-Sat, 9 AM - 6 PM IST',
-    d: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' },
+    Icon: Headphones },
 ];
 
 /* ============================================================
@@ -124,9 +125,17 @@ const MobileHome = () => {
               <span className="m-hero__line2">FOR PATIENTS WELFARE</span>
             </h1>
             {!user && (
-              <button className="m-hero__cta" onClick={() => router.push('/login')}>
-                Get Started
-              </button>
+              <div style={{ marginTop: '20px' }}>
+                <TwentyFirstIconButton
+                  icon={<ArrowRight size={22} />}
+                  title="Get Started"
+                  ariaLabel="Get Started"
+                  variant="primary"
+                  size="lg"
+                  rounded="full"
+                  onClick={() => router.push('/login')}
+                />
+              </div>
             )}
           </div>
         </section>
@@ -306,10 +315,7 @@ const MobileHome = () => {
             {WHY_ITEMS.map((w, i) => (
               <div key={i} className="m-why-card">
                 <span className="m-why-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    {w.svg || <path d={w.d} />}
-                  </svg>
+                  <w.Icon size={20} color="var(--dz-color-primary, #1e5038)" />
                 </span>
                 <h4>{w.title}</h4>
                 <p>{w.desc}</p>
@@ -345,9 +351,17 @@ const MobileHome = () => {
               value={formData.subject} onChange={handleChange} />
             <textarea name="message" placeholder="Message *" className="m-cf-input m-cf-textarea" rows="4"
               value={formData.message} onChange={handleChange} />
-            <button type="submit" className="m-cf-submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send Message'}
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+              <TwentyFirstIconButton
+                type="submit"
+                icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                title={isSubmitting ? 'Sending...' : 'Send Message'}
+                ariaLabel="Send Message"
+                variant="primary"
+                size="lg"
+                disabled={isSubmitting}
+              />
+            </div>
             {statusMessage.text && (
               <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>{statusMessage.text}</div>
             )}
@@ -355,19 +369,19 @@ const MobileHome = () => {
 
           <div className="m-contact-info-grid">
             <div className="m-ci-item">
-              <h4>Address</h4>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={15} /> Address</h4>
               <p>Vasai - Palghar 401202</p>
             </div>
             <div className="m-ci-item">
-              <h4>Phone</h4>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={15} /> Phone</h4>
               <p><a href="tel:+919503668112">+91-9503668112</a></p>
             </div>
             <div className="m-ci-item">
-              <h4>Email</h4>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Mail size={15} /> Email</h4>
               <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
             </div>
             <div className="m-ci-item">
-              <h4>Working Hours</h4>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={15} /> Working Hours</h4>
               <p>Mon-Sat, 9 AM - 6 PM</p>
             </div>
           </div>

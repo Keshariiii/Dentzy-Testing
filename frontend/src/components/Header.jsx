@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
 import './Header.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { useAuth } from '../context/AuthContext';
@@ -76,10 +78,8 @@ const Header = () => {
           <img src={dentzyLogo} alt="Dentzy Logo" className="logo-img" />
         </a>
 
-        <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle Menu">
-          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
-          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
-          <span className={`bar ${menuOpen ? 'open' : ''}`}></span>
+        <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle Menu" title="Toggle Menu" style={{ display: undefined, alignItems: 'center', justifyContent: 'center' }}>
+          {menuOpen ? <X size={22} color="var(--dz-color-primary, #1e5038)" /> : <Menu size={22} color="var(--dz-color-primary, #1e5038)" />}
         </button>
 
         <nav className={`nav ${menuOpen ? 'open' : ''}`}>
@@ -89,18 +89,31 @@ const Header = () => {
           <a href="#contact" onClick={(e) => scrollToSection(e, 'contact')} className={activeSection === 'contact' ? 'active' : ''}>Contact us</a>
 
           {user ? (
-            <div className="nav-user-info">
-              <span className="nav-username"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{user.name}</span>
-              <button
+            <div className="nav-user-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span className="nav-username" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <User size={14} />
+                {user.name}
+              </span>
+              <TwentyFirstIconButton
                 id="logout-btn"
-                className="btn-sm nav-logout"
+                icon={<LogOut size={16} />}
+                title="Logout"
+                ariaLabel="Logout"
+                variant="ghost"
+                size="sm"
                 onClick={() => { logout(); router.push('/'); }}
-              >
-                Logout
-              </button>
+              />
             </div>
           ) : (
-            <Link href="/login" id="nav-get-started-btn" className="btn-sm desktop-only">Get Started</Link>
+            <Link href="/login" id="nav-get-started-btn" className="desktop-only" aria-label="Get Started" title="Get Started" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <TwentyFirstIconButton
+                icon={<LogIn size={16} />}
+                title="Get Started"
+                ariaLabel="Get Started"
+                variant="primary"
+                size="sm"
+              />
+            </Link>
           )}
         </nav>
       </div>

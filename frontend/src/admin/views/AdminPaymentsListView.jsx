@@ -2,6 +2,7 @@
 import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { formatINR, formatDate } from '../../utils/format';
 
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
@@ -267,25 +268,17 @@ export default function AdminPaymentsListView({
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {!isPaid && onRecordPayment && (
-                        <button
-                          type="button"
-                          className="ma-btn ma-btn--sm ma-btn--primary"
+                        <TwentyFirstIconButton
+                          icon={Ico.creditCard(14)}
+                          title="Record Payment"
+                          ariaLabel="Record Payment"
                           onClick={(e) => {
                             e.stopPropagation();
                             onRecordPayment(p);
                           }}
-                          style={{
-                            fontSize: '0.8rem',
-                            padding: '4px 10px',
-                            borderRadius: '6px',
-                            background: 'var(--dz-color-primary-accent)',
-                            color: '#fff',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Record Pay
-                        </button>
+                          size="sm"
+                          variant="success"
+                        />
                       )}
                       {onDeletePayment && (
                         <button

@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { MapPin, Phone, Mail, Clock, Send, Loader2 } from 'lucide-react';
+import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
 import { getContactUrl } from '../api/client';
 import './ContactForm.css';
 
@@ -159,30 +161,32 @@ const ContactForm = () => {
 
                 <div className="contact-info-row">
                     <div className="info-item">
-                        <h3>Address:</h3>
-                        <p>[Vasai -Palghar 401202]</p>
+                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> Address:</h3>
+                        <p>Vasai - Palghar 401202</p>
                     </div>
                     <div className="info-item">
-                        <h3>Phone:</h3>
-                        <p>+91- 9503668112</p>
+                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={16} /> Phone:</h3>
+                        <p><a href="tel:+919503668112" style={{ color: 'inherit', textDecoration: 'none' }}>+91 95036 68112</a></p>
                     </div>
                     <div className="info-item">
-                        <h3>Email:</h3>
+                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Mail size={16} /> Email:</h3>
                         <p><a href="mailto:support@dentzy.in" style={{ color: 'inherit', textDecoration: 'none' }}>support@dentzy.in</a></p>
                     </div>
                     <div className="info-item">
-                        <h3>Working Hours:</h3>
-                        <p>Mon-Sat, 9 AM-6 PM</p>
+                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> Working Hours:</h3>
+                        <p>Mon-Sat, 9 AM - 6 PM</p>
                     </div>
-                    <div className="action-item">
-                        <button 
-                            className="send-msg-btn" 
+                    <div className="action-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <TwentyFirstIconButton 
+                            type="button"
+                            icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />} 
+                            title={isSubmitting ? 'Sending...' : 'Send Message'}
+                            ariaLabel="Send Message"
+                            variant="primary"
+                            size="lg"
                             onClick={handleSubmit} 
                             disabled={isSubmitting}
-                            style={{ opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
-                        >
-                            {isSubmitting ? 'Sending...' : 'Send Message'}
-                        </button>
+                        />
                         {statusMessage.text && (
                             <p style={{ marginTop: '10px', color: statusMessage.type === 'error' ? 'red' : 'green', fontWeight: 'bold' }}>
                                 {statusMessage.text}

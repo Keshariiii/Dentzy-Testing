@@ -14,6 +14,7 @@ import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
+import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -418,14 +419,14 @@ const StaffDashboard = () => {
                 <button className={`sd-filter-btn ${orderFilter === 'mine' ? 'sd-filter-btn--active' : ''}`}
                   onClick={() => setOrderFilter('mine')}>My Cases</button>
               </div>
-              <button
-                type="button"
-                className="sd-btn-primary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              <TwentyFirstIconButton
+                icon={Ico.plus(18)}
+                title="New Order"
+                ariaLabel="New Order"
                 onClick={() => setShowCreateOrder(true)}
-              >
-                {Ico.plus(14)} New Order
-              </button>
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 
@@ -486,9 +487,23 @@ const StaffDashboard = () => {
         <main className="sd-main">
           <div className="sd-section-header">
             <h2 className="sd-section-title">Inventory</h2>
-            <div className="sd-controls">
-              <button onClick={fetchInventory} className="sd-btn-secondary">Refresh</button>
-              <button onClick={() => setShowAddItem(true)} className="sd-btn-primary">+ Add Item</button>
+            <div className="sd-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <TwentyFirstIconButton
+                icon={Ico.refresh(16)}
+                title="Refresh Inventory"
+                ariaLabel="Refresh Inventory"
+                onClick={fetchInventory}
+                variant="secondary"
+                size="md"
+              />
+              <TwentyFirstIconButton
+                icon={Ico.plus(18)}
+                title="Add Item"
+                ariaLabel="Add Item"
+                onClick={() => setShowAddItem(true)}
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 
@@ -511,10 +526,26 @@ const StaffDashboard = () => {
                       <span className="sd-inv-low">LOW STOCK</span>
                     )}
                   </div>
-                  <div className="sd-inv-controls">
-                    <button className="sd-inv-btn" onClick={() => handleUpdateStock(item, -1)}>-</button>
-                    <span className="sd-inv-qty">{item.quantity}</span>
-                    <button className="sd-inv-btn" onClick={() => handleUpdateStock(item, 1)}>+</button>
+                  <div className="sd-inv-controls" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <TwentyFirstIconButton
+                      icon={Ico.minus(14)}
+                      title="Decrease Stock"
+                      ariaLabel="Decrease Stock"
+                      onClick={() => handleUpdateStock(item, -1)}
+                      variant="secondary"
+                      size="sm"
+                      rounded="full"
+                    />
+                    <span className="sd-inv-qty" style={{ minWidth: '28px', textAlign: 'center' }}>{item.quantity}</span>
+                    <TwentyFirstIconButton
+                      icon={Ico.plus(14)}
+                      title="Increase Stock"
+                      ariaLabel="Increase Stock"
+                      onClick={() => handleUpdateStock(item, 1)}
+                      variant="secondary"
+                      size="sm"
+                      rounded="full"
+                    />
                   </div>
                 </div>
               ))}
@@ -571,7 +602,14 @@ const StaffDashboard = () => {
         <main className="sd-main">
           <div className="sd-section-header">
             <h2 className="sd-section-title">My Performance</h2>
-            <button onClick={fetchMyMetrics} className="sd-btn-secondary">Refresh</button>
+            <TwentyFirstIconButton
+              icon={Ico.refresh(16)}
+              title="Refresh Performance"
+              ariaLabel="Refresh Performance"
+              onClick={fetchMyMetrics}
+              variant="secondary"
+              size="md"
+            />
           </div>
 
           {loadingMetrics ? (
@@ -612,7 +650,14 @@ const StaffDashboard = () => {
                     <input type="text" className="sd-search" placeholder="Search dentists..."
                       value={dentistSearch} onChange={e => setDentistSearch(e.target.value)} />
                   </div>
-                  <button onClick={fetchDentists} className="sd-btn-secondary">Refresh</button>
+                  <TwentyFirstIconButton
+                    icon={Ico.refresh(16)}
+                    title="Refresh Dentists"
+                    ariaLabel="Refresh Dentists"
+                    onClick={fetchDentists}
+                    variant="secondary"
+                    size="md"
+                  />
                 </div>
               </div>
 
@@ -649,9 +694,14 @@ const StaffDashboard = () => {
             <div>
               <div className="sd-section-header" style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button onClick={() => { setSelectedDentist(null); setDentistOrders([]); }} className="sd-btn-secondary">
-                    Back
-                  </button>
+                  <TwentyFirstIconButton
+                    icon={Ico.arrowLeft(16)}
+                    title="Back to Dentists List"
+                    ariaLabel="Back to Dentists List"
+                    onClick={() => { setSelectedDentist(null); setDentistOrders([]); }}
+                    variant="secondary"
+                    size="md"
+                  />
                   <div>
                     <h2 className="sd-section-title" style={{ margin: 0 }}>{selectedDentist.name}</h2>
                     <div style={{ fontSize: '0.78rem', color: '#708c80' }}>
@@ -659,14 +709,14 @@ const StaffDashboard = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="sd-btn-primary"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                <TwentyFirstIconButton
+                  icon={Ico.plus(18)}
+                  title="New Order for Dentist"
+                  ariaLabel="New Order for Dentist"
                   onClick={() => setShowCreateOrder(true)}
-                >
-                  {Ico.plus(14)} New Order
-                </button>
+                  variant="primary"
+                  size="md"
+                />
               </div>
 
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
@@ -702,12 +752,24 @@ const StaffDashboard = () => {
                           {order.dueDate && <span className="sd-meta-item">Due: {order.dueDate.slice(0, 10)}</span>}
                           <span className="sd-meta-item">Payment: {order.paymentStatus || 'Pending'}</span>
                         </div>
-                        <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                          <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                            onClick={() => setEditOrderModal(order)}>Edit Order</button>
+                        <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <TwentyFirstIconButton
+                            icon={Ico.pencil(14)}
+                            title="Edit Order"
+                            ariaLabel="Edit Order"
+                            onClick={() => setEditOrderModal(order)}
+                            size="sm"
+                            variant="soft"
+                          />
                           {order.paymentId && (
-                            <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                              onClick={() => setEditPaymentModal(order)}>Update Payment</button>
+                            <TwentyFirstIconButton
+                              icon={Ico.creditCard(14)}
+                              title="Update Payment"
+                              ariaLabel="Update Payment"
+                              onClick={() => setEditPaymentModal(order)}
+                              size="sm"
+                              variant="success"
+                            />
                           )}
                         </div>
                       </div>
@@ -737,8 +799,14 @@ const StaffDashboard = () => {
                         </div>
                         {order.paymentId && (
                           <div style={{ marginTop: '8px' }}>
-                            <button className="sd-btn-secondary" style={{ fontSize: '0.78rem' }}
-                              onClick={() => setEditPaymentModal(order)}>Update Payment</button>
+                            <TwentyFirstIconButton
+                              icon={Ico.creditCard(14)}
+                              title="Update Payment"
+                              ariaLabel="Update Payment"
+                              onClick={() => setEditPaymentModal(order)}
+                              size="sm"
+                              variant="success"
+                            />
                           </div>
                         )}
                       </div>
@@ -765,13 +833,14 @@ const StaffDashboard = () => {
                 <span className="sd-settings-card-email">{staff?.email || staff?.username}</span>
               </div>
               {!isEditingProfile && (
-                <button
-                  type="button"
-                  className="sd-btn-secondary"
+                <TwentyFirstIconButton
+                  icon={Ico.pencil(15)}
+                  title="Edit Profile"
+                  ariaLabel="Edit Profile"
                   onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
-                >
-                  Edit
-                </button>
+                  size="sm"
+                  variant="soft"
+                />
               )}
             </div>
 

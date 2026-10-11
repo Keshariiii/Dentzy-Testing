@@ -4,6 +4,7 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 
 const DENTIST_TABS = [
   { key: 'all', label: 'All' },
@@ -223,33 +224,34 @@ export default function AdminDentistsListView({
                     <div
                       className={isMobile ? 'ma-card-actions' : 'ad-card-actions'}
                       onClick={(e) => e.stopPropagation()}
+                      style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
                     >
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-approve' : 'ad-card-action-btn ad-action-approve'}
+                      <TwentyFirstIconButton
+                        icon={Ico.check(14)}
+                        title="Approve Dentist"
+                        ariaLabel="Approve Dentist"
                         onClick={() => onApprove(uId, user.name)}
-                        title="Approve"
-                      >
-                        {Ico.check(14)} Accept
-                      </button>
+                        size={isMobile ? 'lg' : 'sm'}
+                        variant="success"
+                      />
                       {user.status === 'pending' && (
-                        <button
-                          type="button"
-                          className={isMobile ? 'ma-card-action-btn ma-action-reject' : 'ad-card-action-btn ad-action-reject'}
+                        <TwentyFirstIconButton
+                          icon={Ico.x(14)}
+                          title="Reject Dentist"
+                          ariaLabel="Reject Dentist"
                           onClick={() => onReject(uId, user.name)}
-                          title="Reject"
-                        >
-                          {Ico.x(14)} Reject
-                        </button>
+                          size={isMobile ? 'lg' : 'sm'}
+                          variant="danger"
+                        />
                       )}
-                      <button
-                        type="button"
-                        className={isMobile ? 'ma-card-action-btn ma-action-delete' : 'ad-card-action-btn ad-action-delete'}
+                      <TwentyFirstIconButton
+                        icon={Ico.trash(14)}
+                        title="Delete Dentist"
+                        ariaLabel="Delete Dentist"
                         onClick={() => onDelete(uId, user.name)}
-                        title="Delete"
-                      >
-                        {Ico.trash(14)}
-                      </button>
+                        size={isMobile ? 'lg' : 'sm'}
+                        variant="danger"
+                      />
                     </div>
                   )}
                 </div>
