@@ -5,8 +5,6 @@ import ToothChart from './ToothChart';
 import {
   FileText,
   Calendar,
-  Sparkles,
-  RotateCcw,
   Check,
   AlertCircle,
   X,
@@ -61,19 +59,19 @@ export default function CreateOrderModal({
   isSubmitting = false,
 }) {
   const [selectedDentistId, setSelectedDentistId] = useState(dentist?._id || dentist?.id || '');
-  const [patientName, setPatientName]             = useState('');
-  const [activeCategory, setActiveCategory]       = useState('Ceramic');
+  const [patientName, setPatientName] = useState('');
+  const [activeCategory, setActiveCategory] = useState('Ceramic');
   const [selectedProductId, setSelectedProductId] = useState('pfm');
-  const [restorationType, setRestorationType]     = useState('Crown');
-  const [selectedTeeth, setSelectedTeeth]         = useState([]);
-  const [selectedArches, setSelectedArches]       = useState(['Upper']); // For set / arch metrics
-  const [claspCount, setClaspCount]               = useState(0); // For teeth addition
-  const [priority, setPriority]                   = useState('Normal');
-  const [dueDate, setDueDate]                     = useState('');
-  const [notes, setNotes]                         = useState('');
+  const [restorationType, setRestorationType] = useState('Crown');
+  const [selectedTeeth, setSelectedTeeth] = useState([]);
+  const [selectedArches, setSelectedArches] = useState(['Upper']); // For set / arch metrics
+  const [claspCount, setClaspCount] = useState(0); // For teeth addition
+  const [priority, setPriority] = useState('Normal');
+  const [dueDate, setDueDate] = useState('');
+  const [notes, setNotes] = useState('');
 
   // Auto price detector state with manual override latch
-  const [manualAmount, setManualAmount]           = useState('');
+  const [manualAmount, setManualAmount] = useState('');
   const [isPriceOverridden, setIsPriceOverridden] = useState(false);
 
   // Sync dentist when prop changes
@@ -95,6 +93,8 @@ export default function CreateOrderModal({
     if (firstInCat) {
       setSelectedProductId(firstInCat.id);
       setRestorationType(firstInCat.serviceType);
+      setIsPriceOverridden(false);
+      setManualAmount('');
     }
   };
 
@@ -105,6 +105,8 @@ export default function CreateOrderModal({
     if (prod) {
       setActiveCategory(prod.category);
       setRestorationType(prod.serviceType);
+      setIsPriceOverridden(false);
+      setManualAmount('');
     }
   };
 
@@ -139,11 +141,6 @@ export default function CreateOrderModal({
     const val = e.target.value;
     setManualAmount(val);
     setIsPriceOverridden(true);
-  };
-
-  const handleResetToAuto = () => {
-    setIsPriceOverridden(false);
-    setManualAmount('');
   };
 
   const toggleArch = (arch) => {
@@ -372,31 +369,12 @@ export default function CreateOrderModal({
             </div>
           )}
 
-          {/* 5. Auto Price Detector + Manual Editable Override */}
+          {/* 5. Order Amount */}
           <div className="com-price-section">
             <div className="com-price-header">
               <label className="com-label" style={{ marginBottom: 0 }}>
                 Order Amount (₹)
               </label>
-              <div className="com-price-status-wrap">
-                {isPriceOverridden ? (
-                  <div className="com-override-badge">
-                    <span>Custom (Auto: ₹{autoAmount.toLocaleString('en-IN')})</span>
-                    <button
-                      type="button"
-                      className="com-reset-btn"
-                      onClick={handleResetToAuto}
-                      title="Reset to rate card calculated price"
-                    >
-                      <RotateCcw size={11} /> Reset
-                    </button>
-                  </div>
-                ) : (
-                  <div className="com-auto-badge">
-                    <Sparkles size={12} /> Auto-Calculated
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="com-input-with-icon">
@@ -412,10 +390,10 @@ export default function CreateOrderModal({
                 required
               />
             </div>
+
             <p className="com-price-hint">
               Catalog: {currentProduct.name} @ ₹{currentProduct.price.toLocaleString('en-IN')}/{currentProduct.metric}.
               {currentProduct.metric === 'unit' && ` (${selectedTeeth.length || 1} unit(s))`}
-              {isPriceOverridden && ' Amount manually edited.'}
             </p>
           </div>
 
