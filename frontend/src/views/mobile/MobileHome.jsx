@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { ShieldCheck, Clock, Layers, Headphones, ArrowRight, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
+import { ShieldCheck, Clock, Layers, Headphones, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
 import { TwentyFirstIconButton } from '../../components/ui/twentyfirst-icon-button';
 import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
@@ -124,19 +124,6 @@ const MobileHome = () => {
               <span className="m-hero__line1">CRAF<span className="m-hero__accent">T</span>ED WITH CARE</span>
               <span className="m-hero__line2">FOR PATIENTS WELFARE</span>
             </h1>
-            {!user && (
-              <div style={{ marginTop: '20px' }}>
-                <TwentyFirstIconButton
-                  icon={<ArrowRight size={22} />}
-                  title="Get Started"
-                  ariaLabel="Get Started"
-                  variant="primary"
-                  size="lg"
-                  rounded="full"
-                  onClick={() => router.push('/login')}
-                />
-              </div>
-            )}
           </div>
         </section>
 
