@@ -24,6 +24,7 @@ import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../../components/ui/status-badge';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -58,17 +59,7 @@ const Ticker = () => (
 /* ============================================================
    STATUS PILL
 ============================================================ */
-const StatusPill = ({ status }) => {
-  const map = {
-    'Pending':     'm-pill--amber',
-    'In Progress': 'm-pill--blue',
-    'Completed':   'm-pill--green',
-    'Cancelled':   'm-pill--red',
-    'Paid':        'm-pill--green',
-    'Overdue':     'm-pill--red',
-  };
-  return <span className={`m-pill ${map[status] || 'm-pill--gray'}`}>{status}</span>;
-};
+const StatusPill = ({ status }) => <StatusBadge status={status} size="sm" />;
 
 const PriorityBadge = ({ priority }) => {
   const cls = priority?.toLowerCase() === 'rush' ? 'm-priority--rush' : 'm-priority--standard';

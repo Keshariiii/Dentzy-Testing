@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
+import { StatusBadge } from './ui/status-badge';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 import { PIPELINE_STAGES } from './dashboard/shared/constants';
@@ -109,9 +110,7 @@ export default function OrderDetailModal({
           <div className="odm-header">
             <div className="odm-case-badge-wrap">
               <span className="odm-case-badge">{displayOrder.caseId || 'Order Details'}</span>
-              <span className={`odm-status-pill odm-status--${(displayOrder.status || 'pending').toLowerCase()}`}>
-                {displayOrder.status || 'Pending'}
-              </span>
+              <StatusBadge status={displayOrder.status || 'Pending'} size="sm" />
             </div>
             <button className="odm-close-btn" onClick={onClose} aria-label="Close modal">
               {Ico.x(16)}

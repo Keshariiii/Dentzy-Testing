@@ -63,16 +63,7 @@ const TickerBanner = () => (
 
 /* Pipeline component now imported from common/ProductionPipeline */
 
-/* =============================================================================
-   STATUS BADGE
-============================================================================= */
-const StatusBadge = ({ status }) => {
-  const map = {
-    'Pending': 'badge-pending', 'In Progress': 'badge-progress', 'Completed': 'badge-completed',
-    'Cancelled': 'badge-cancelled', 'Paid': 'badge-paid', 'Overdue': 'badge-overdue',
-  };
-  return <span className={`ud-badge ${map[status] || 'badge-pending'}`}>{status}</span>;
-};
+import { StatusBadge } from './ui/status-badge';
 
 
 
@@ -1033,13 +1024,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment }) => (
               <td className="ud-amount">{p.amount > 0 ? `₹${p.amount.toLocaleString('en-IN')}` : '—'}</td>
               <td>{formatDate(p.dueDate)}</td>
               <td>
-                <span style={{
-                  padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                  background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
-                  color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                }}>
-                  {p.paymentStatus || 'Pending'}
-                </span>
+                <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
               </td>
               <td>
                 {p.paymentStatus === 'Paid' && p.paymentMode ? (

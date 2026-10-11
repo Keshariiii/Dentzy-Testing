@@ -24,6 +24,7 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../../components/ui/status-badge';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
@@ -944,14 +945,9 @@ const MobileAdminDashboard = () => {
                           <span className="ma-case-badge">{o.caseId}</span>
                         </div>
 
-                        <div className="ma-card-meta-row">
-                          <span className={`ma-pill ma-pill--status-${(o.status || 'pending').toLowerCase().replace(/\s+/g, '-')}`}>
-                            {o.status}
-                          </span>
-                          <span className={`ma-pill ma-pill--pay-${(o.paymentStatus || 'pending').toLowerCase()}`}>
-                            {o.paymentStatus || 'Pending'}
-                            {o.paymentStatus === 'Paid' && o.paymentMode ? ` · ${o.paymentMode}` : ''}
-                          </span>
+                        <div className="ma-card-meta-row" style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <StatusBadge status={o.status || 'Pending'} size="sm" />
+                          <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" label={o.paymentStatus === 'Paid' && o.paymentMode ? `Paid · ${o.paymentMode}` : (o.paymentStatus || 'Pending')} />
                           {o.amount > 0 && (
                             <span className="ma-card-amount">{formatINR(o.amount)}</span>
                           )}
@@ -1103,9 +1099,7 @@ const MobileAdminDashboard = () => {
                         </div>
 
                         <div className="ma-card-meta-row">
-                          <span className={`ma-pill ma-pill--pay-${(p.paymentStatus || 'pending').toLowerCase()}`}>
-                            {p.paymentStatus || 'Pending'}
-                          </span>
+                          <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
                           {p.paymentStatus === 'Paid' && p.paymentMode && (
                             <span className={`ma-pay-mode-tag ma-mode--${(p.paymentMode || '').toLowerCase()}`}>
                               {p.paymentMode}

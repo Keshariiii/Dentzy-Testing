@@ -15,6 +15,7 @@ import StaffPaymentModal from './StaffPaymentModal';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../components/ui/status-badge';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -451,9 +452,7 @@ const StaffDashboard = () => {
                         <span className="sd-order-caseid">{order.caseId || 'N/A'}</span>
                         <span className="sd-order-patient">{order.patientName || 'Unknown'}</span>
                       </div>
-                      <span className={`sd-order-status sd-order-status--${(order.status || '').toLowerCase().replace(/\s/g, '-')}`}>
-                        {order.status}
-                      </span>
+                      <StatusBadge status={order.status} size="sm" />
                     </div>
                     <div className="sd-order-meta">
                       {order.owner?.name && <span className="sd-meta-item">{Ico.usersS(13)} {order.owner.name}</span>}
@@ -743,9 +742,7 @@ const StaffDashboard = () => {
                             <span className="sd-order-caseid">{order.caseId}</span>
                             <span className="sd-order-patient">{order.patientName}</span>
                           </div>
-                          <span className={`sd-order-status sd-order-status--${(order.status || '').toLowerCase().replace(/\s/g, '-')}`}>
-                            {order.status}
-                          </span>
+                          <StatusBadge status={order.status} size="sm" />
                         </div>
                         <div className="sd-order-meta">
                           <span className="sd-meta-item">Stage: {order.stage || 'received'}</span>
@@ -788,9 +785,7 @@ const StaffDashboard = () => {
                             <span className="sd-order-caseid">{order.caseId}</span>
                             <span className="sd-order-patient">{order.patientName}</span>
                           </div>
-                          <span className={`sd-order-status sd-order-status--${(order.paymentStatus || 'pending').toLowerCase()}`}>
-                            {order.paymentStatus || 'Pending'}
-                          </span>
+                          <StatusBadge status={order.paymentStatus || 'Pending'} size="sm" />
                         </div>
                         <div className="sd-order-meta">
                           <span className="sd-meta-item">Amount: {order.paymentAmount > 0 ? `INR ${order.paymentAmount.toLocaleString('en-IN')}` : 'N/A'}</span>

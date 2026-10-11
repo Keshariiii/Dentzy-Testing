@@ -3,6 +3,7 @@ import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../../components/ui/status-badge';
 import { formatINR, formatDate } from '../../utils/format';
 
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
@@ -230,9 +231,7 @@ export default function AdminPaymentsListView({
                         <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--dz-color-charcoal)' }}>
                           {p.patientName || 'Unnamed Patient'}
                         </span>
-                        <span className={`pdm-status-pill ${isPaid ? 'pdm-status--paid' : 'pdm-status--pending'}`}>
-                          {isPaid ? 'Paid' : 'Pending'}
-                        </span>
+                        <StatusBadge status={isPaid ? 'Paid' : 'Pending'} size="sm" />
                       </div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--dz-color-text-muted)', marginTop: '2px' }}>
                         {dentistName} {clinicName && `· ${clinicName}`}

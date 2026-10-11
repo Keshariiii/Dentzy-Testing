@@ -1,126 +1,345 @@
 'use client';
 import React from 'react';
+import {
+  CircleCheck,
+  CircleDashed,
+  CircleX,
+  Clock5,
+  ScanSearch,
+  TriangleAlert,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-const VARIANT_CONFIGS = {
+/**
+ * STATUS_CONFIG
+ * Maps normalized status strings to 21st.dev status badge visual styling:
+ * - Lucide icons with strokeWidth={3}
+ * - Curated soft background pills (rounded-xl)
+ * - Exact high-contrast status colors
+ */
+const STATUS_CONFIG = {
   pending: {
     label: 'Pending',
-    className: 'bg-amber-50 text-amber-700 border-amber-200/80',
-    dotClass: 'bg-amber-500',
-    glowClass: 'shadow-[0_0_6px_rgba(245,158,11,0.3)]',
+    Icon: TriangleAlert,
+    bgClass: 'bg-orange-50',
+    textClass: 'text-[#EAA65D]',
+    bgHex: '#fff7ed',
+    textHex: '#EAA65D',
   },
-  approved: {
-    label: 'Approved',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-    dotClass: 'bg-emerald-500',
-    glowClass: '',
-  },
-  paid: {
-    label: 'Paid',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-    dotClass: 'bg-emerald-500',
-    glowClass: '',
-  },
-  completed: {
-    label: 'Completed',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-    dotClass: 'bg-emerald-500',
-    glowClass: '',
-  },
-  'in progress': {
-    label: 'In Progress',
-    className: 'bg-blue-50 text-blue-700 border-blue-200/80',
-    dotClass: 'bg-blue-500',
-    glowClass: 'shadow-[0_0_6px_rgba(59,130,246,0.3)]',
-  },
-  production: {
-    label: 'Milling',
-    className: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
-    dotClass: 'bg-indigo-500',
-    glowClass: 'shadow-[0_0_6px_rgba(99,102,241,0.3)]',
-  },
-  design: {
-    label: 'CAD Design',
-    className: 'bg-sky-50 text-sky-700 border-sky-200/80',
-    dotClass: 'bg-sky-500',
-    glowClass: 'shadow-[0_0_6px_rgba(14,165,233,0.3)]',
-  },
-  qc: {
-    label: 'QC Check',
-    className: 'bg-purple-50 text-purple-700 border-purple-200/80',
-    dotClass: 'bg-purple-500',
-    glowClass: '',
-  },
-  dispatched: {
-    label: 'Dispatch',
-    className: 'bg-teal-50 text-teal-700 border-teal-200/80',
-    dotClass: 'bg-teal-500',
-    glowClass: '',
+  failed: {
+    label: 'Failed',
+    Icon: CircleX,
+    bgClass: 'bg-rose-50',
+    textClass: 'text-[#D57463]',
+    bgHex: '#fff1f2',
+    textHex: '#D57463',
   },
   rejected: {
     label: 'Rejected',
-    className: 'bg-rose-50 text-rose-700 border-rose-200/80',
-    dotClass: 'bg-rose-500',
-    glowClass: '',
+    Icon: CircleX,
+    bgClass: 'bg-rose-50',
+    textClass: 'text-[#D57463]',
+    bgHex: '#fff1f2',
+    textHex: '#D57463',
   },
   cancelled: {
     label: 'Cancelled',
-    className: 'bg-rose-50 text-rose-700 border-rose-200/80',
-    dotClass: 'bg-rose-500',
-    glowClass: '',
+    Icon: CircleX,
+    bgClass: 'bg-rose-50',
+    textClass: 'text-[#D57463]',
+    bgHex: '#fff1f2',
+    textHex: '#D57463',
+  },
+  success: {
+    label: 'Success',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  approved: {
+    label: 'Approved',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  completed: {
+    label: 'Completed',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  paid: {
+    label: 'Paid',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  delivered: {
+    label: 'Delivered',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  active: {
+    label: 'Active',
+    Icon: CircleCheck,
+    bgClass: 'bg-emerald-50',
+    textClass: 'text-[#57BC6C]',
+    bgHex: '#ecfdf5',
+    textHex: '#57BC6C',
+  },
+  'in progress': {
+    label: 'In progress',
+    Icon: CircleDashed,
+    bgClass: 'bg-sky-100',
+    textClass: 'text-[#008AF5]',
+    bgHex: '#e0f2fe',
+    textHex: '#008AF5',
+  },
+  'in-progress': {
+    label: 'In progress',
+    Icon: CircleDashed,
+    bgClass: 'bg-sky-100',
+    textClass: 'text-[#008AF5]',
+    bgHex: '#e0f2fe',
+    textHex: '#008AF5',
+  },
+  production: {
+    label: 'In production',
+    Icon: CircleDashed,
+    bgClass: 'bg-sky-100',
+    textClass: 'text-[#008AF5]',
+    bgHex: '#e0f2fe',
+    textHex: '#008AF5',
+  },
+  milling: {
+    label: 'Milling',
+    Icon: CircleDashed,
+    bgClass: 'bg-sky-100',
+    textClass: 'text-[#008AF5]',
+    bgHex: '#e0f2fe',
+    textHex: '#008AF5',
+  },
+  design: {
+    label: 'CAD Design',
+    Icon: CircleDashed,
+    bgClass: 'bg-sky-100',
+    textClass: 'text-[#008AF5]',
+    bgHex: '#e0f2fe',
+    textHex: '#008AF5',
+  },
+  'in review': {
+    label: 'In review',
+    Icon: ScanSearch,
+    bgClass: 'bg-yellow-50',
+    textClass: 'text-[#F0B13D]',
+    bgHex: '#fefce8',
+    textHex: '#F0B13D',
+  },
+  'in-review': {
+    label: 'In review',
+    Icon: ScanSearch,
+    bgClass: 'bg-yellow-50',
+    textClass: 'text-[#F0B13D]',
+    bgHex: '#fefce8',
+    textHex: '#F0B13D',
+  },
+  qc: {
+    label: 'QC Check',
+    Icon: ScanSearch,
+    bgClass: 'bg-yellow-50',
+    textClass: 'text-[#F0B13D]',
+    bgHex: '#fefce8',
+    textHex: '#F0B13D',
+  },
+  expired: {
+    label: 'Expired',
+    Icon: Clock5,
+    bgClass: 'bg-zinc-100',
+    textClass: 'text-[#777777]',
+    bgHex: '#f4f4f5',
+    textHex: '#777777',
   },
   overdue: {
     label: 'Overdue',
-    className: 'bg-red-50 text-red-700 border-red-200/80',
-    dotClass: 'bg-red-500',
-    glowClass: 'shadow-[0_0_6px_rgba(239,68,68,0.3)]',
+    Icon: Clock5,
+    bgClass: 'bg-zinc-100',
+    textClass: 'text-[#777777]',
+    bgHex: '#f4f4f5',
+    textHex: '#777777',
+  },
+  inactive: {
+    label: 'Inactive',
+    Icon: Clock5,
+    bgClass: 'bg-zinc-100',
+    textClass: 'text-[#777777]',
+    bgHex: '#f4f4f5',
+    textHex: '#777777',
+  },
+  submitted: {
+    label: 'Submitted',
+    Icon: Clock5,
+    bgClass: 'bg-violet-50',
+    textClass: 'text-[#6C3CF0]',
+    bgHex: '#f5f3ff',
+    textHex: '#6C3CF0',
+  },
+  submited: {
+    label: 'Submitted',
+    Icon: Clock5,
+    bgClass: 'bg-violet-50',
+    textClass: 'text-[#6C3CF0]',
+    bgHex: '#f5f3ff',
+    textHex: '#6C3CF0',
+  },
+  new: {
+    label: 'New',
+    Icon: Clock5,
+    bgClass: 'bg-violet-50',
+    textClass: 'text-[#6C3CF0]',
+    bgHex: '#f5f3ff',
+    textHex: '#6C3CF0',
   },
 };
 
+/**
+ * StatusBadge Component
+ * Universal 21st.dev status pill badge with Lucide strokeWidth=3 icons.
+ *
+ * @param {object} props
+ * @param {string} [props.status] - Status identifier (e.g. "Pending", "Success", "In progress", "Approved", "Paid")
+ * @param {string} [props.label] - Optional display label override
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - Sizing option
+ * @param {boolean} [props.fixedWidth=false] - If true, enforces w-40 (like StatusDemo)
+ * @param {string} [props.className] - Additional class names
+ * @param {React.ReactNode} [props.children] - Fallback content if status not passed
+ */
 export function StatusBadge({
   status,
+  label,
   size = 'md',
-  showDot = true,
-  pulse = false,
+  fixedWidth = false,
   className = '',
   children,
+  ...props
 }) {
-  const normKey = (status || children || '').toString().toLowerCase().trim();
-  const config = VARIANT_CONFIGS[normKey] || {
-    label: status || children || 'Unknown',
-    className: 'bg-gray-50 text-gray-700 border-gray-200',
-    dotClass: 'bg-gray-400',
-    glowClass: '',
+  const rawKey = (status || children || '').toString().toLowerCase().trim();
+  const config = STATUS_CONFIG[rawKey] || {
+    label: label || status || children || 'Unknown',
+    Icon: Clock5,
+    bgClass: 'bg-zinc-100',
+    textClass: 'text-[#777777]',
+    bgHex: '#f4f4f5',
+    textHex: '#777777',
   };
 
-  const isPulse = pulse || normKey === 'pending' || normKey === 'in progress' || normKey === 'production' || normKey === 'design';
+  const displayText = label || (children ? children : config.label);
+  const IconComponent = config.Icon;
+
+  // Responsive padding & height
+  const sizeStyles = {
+    sm: 'h-[26px] px-2.5 text-[11px] rounded-lg',
+    md: 'h-[32px] px-3.5 text-xs sm:text-[13px] rounded-xl',
+    lg: 'h-[35px] px-4 text-sm rounded-xl',
+  }[size] || 'h-[32px] px-3.5 text-xs rounded-xl';
 
   return (
-    <span
+    <div
       className={cn(
-        'inline-flex items-center gap-1.5 font-medium border rounded-full transition-all duration-200',
-        size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs',
-        config.className,
-        isPulse && config.glowClass,
+        'inline-flex items-center justify-center font-semibold transition-all duration-150',
+        fixedWidth ? 'w-40 h-[35px] rounded-xl' : sizeStyles,
+        config.bgClass,
         className,
       )}
+      style={{
+        backgroundColor: config.bgHex,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      {...props}
     >
-      {showDot && (
-        <span className="relative flex h-1.5 w-1.5">
-          {isPulse && (
-            <span
-              className={cn(
-                'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75',
-                config.dotClass,
-              )}
-            />
-          )}
-          <span className={cn('relative inline-flex rounded-full h-1.5 w-1.5', config.dotClass)} />
-        </span>
-      )}
-      <span>{children || config.label}</span>
-    </span>
+      <span
+        className={cn('inline-flex items-center font-semibold whitespace-nowrap', config.textClass)}
+        style={{ color: config.textHex, display: 'inline-flex', alignItems: 'center' }}
+      >
+        <IconComponent
+          className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5"
+          style={{ width: size === 'sm' ? 12 : 15, height: size === 'sm' ? 12 : 15, marginRight: 6, flexShrink: 0 }}
+          strokeWidth={3}
+        />
+        <span>{displayText}</span>
+      </span>
+    </div>
   );
 }
+
+/**
+ * StatusDemo Component — Direct demo showcase provided by 21st.dev
+ */
+export const StatusDemo = () => {
+  return (
+    <div className="flex flex-col items-center justify-center gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="w-40 h-[35px] flex items-center justify-center bg-orange-50 rounded-xl">
+          <h1 className="flex items-center text-[#EAA65D] font-semibold">
+            <TriangleAlert className="w-4 h-4 mr-2" strokeWidth={3} />
+            Pending
+          </h1>
+        </div>
+        <div className="w-40 h-[35px] flex items-center justify-center bg-rose-50 rounded-xl">
+          <h1 className="flex items-center text-[#D57463] font-semibold">
+            <CircleX className="w-4 h-4 mr-2" strokeWidth={3} />
+            Failed
+          </h1>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="w-40 h-[35px] flex items-center justify-center bg-emerald-50 rounded-xl">
+          <h1 className="flex items-center text-[#57BC6C] font-semibold">
+            <CircleCheck className="w-4 h-4 mr-2" strokeWidth={3} />
+            Success
+          </h1>
+        </div>
+        <div className="w-40 h-[35px] flex items-center justify-center bg-sky-100 rounded-xl">
+          <h1 className="flex items-center text-[#008AF5] font-semibold">
+            <CircleDashed className="w-4 h-4 mr-2" strokeWidth={3} />
+            In progress
+          </h1>
+        </div>
+        <div className="w-40 h-[35px] flex items-center justify-center bg-yellow-50 rounded-xl">
+          <h1 className="flex items-center text-[#F0B13D] font-semibold">
+            <ScanSearch className="w-4 h-4 mr-2" strokeWidth={3} />
+            In review
+          </h1>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="w-40 h-[35px] flex items-center justify-center bg-zinc-100 rounded-xl">
+          <h1 className="flex items-center text-[#777777] font-semibold">
+            <Clock5 className="w-4 h-4 mr-2" strokeWidth={3} />
+            Expired
+          </h1>
+        </div>
+        <div className="w-40 h-[35px] flex items-center justify-center bg-violet-50 rounded-xl">
+          <h1 className="flex items-center text-[#6C3CF0] font-semibold">
+            <Clock5 className="w-4 h-4 mr-2" strokeWidth={3} />
+            Submited
+          </h1>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default StatusBadge;

@@ -13,6 +13,7 @@ import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../components/ui/status-badge';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -208,7 +209,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                 <div className="ddm-profile-info">
                   <div className="ddm-profile-name-row">
                     <h2 className="ddm-profile-name">{user?.name || 'Dentist'}</h2>
-                    <span className={`ddm-status-badge ${STATUS_CLS[user?.status] || ''}`}>{user?.status}</span>
+                    <StatusBadge status={user?.status} size="sm" />
                   </div>
                   <div className="ddm-profile-meta">
                     {user.email     && <span className="ddm-meta-item">{Ico.mail(13)} {user.email}</span>}

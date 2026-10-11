@@ -3,6 +3,7 @@ import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
+import { StatusBadge } from '../../components/ui/status-badge';
 
 const ORDER_STAGES = [
   'received',
@@ -158,9 +159,7 @@ export default function AdminOrdersListView({
                       <span className="odm-case-badge" style={{ fontWeight: 700, fontSize: '0.85rem' }}>
                         {order.caseId || 'Order'}
                       </span>
-                      <span className={`odm-status-pill odm-status--${(order.status || 'pending').toLowerCase()}`}>
-                        {order.status || 'Pending'}
-                      </span>
+                      <StatusBadge status={order.status || 'Pending'} size="sm" />
                       {order.priority && order.priority !== 'Normal' && (
                         <span className={`odm-priority-pill odm-priority--${order.priority.toLowerCase()}`}>
                           {order.priority}

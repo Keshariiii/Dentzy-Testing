@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
+import { StatusBadge } from './ui/status-badge';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 
@@ -109,9 +110,7 @@ export default function PaymentDetailModal({
           <div className="pdm-amount-card">
             <div className="pdm-amount-top">
               <span className="pdm-amount-lbl">Payment Amount</span>
-              <span className={`pdm-status-pill ${isPaid ? 'pdm-status--paid' : 'pdm-status--pending'}`}>
-                {isPaid ? 'Paid' : 'Pending'}
-              </span>
+              <StatusBadge status={isPaid ? 'Paid' : 'Pending'} size="sm" />
             </div>
 
             {isEditingAmount ? (

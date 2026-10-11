@@ -3,6 +3,7 @@ import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
+import { StatusBadge } from '../../components/ui/status-badge';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 
@@ -170,12 +171,7 @@ export default function AdminDentistsListView({
                     <div className={isMobile ? 'ma-uc-info' : 'ad-user-info'}>
                       <div className={isMobile ? 'ma-uc-name' : 'ad-user-name'} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{user?.name || 'Unnamed Dentist'}</span>
-                        <TwentyFirstBadge
-                          variant={user.status === 'approved' ? 'approved' : user.status === 'rejected' ? 'rejected' : 'pending'}
-                          pulse={user.status === 'pending'}
-                        >
-                          {user.status}
-                        </TwentyFirstBadge>
+                        <StatusBadge status={user.status} size="sm" />
                       </div>
                       <div className={isMobile ? 'ma-uc-email' : 'ad-user-email'}>{user?.email || '—'}</div>
                       {user.clinicName && (
