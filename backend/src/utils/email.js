@@ -43,7 +43,7 @@ export function htmlToPlainText(html) {
 export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail, replyTo }) {
   const cleanUser = (user || '').trim();
   const cleanPass = (pass || '').replace(/\s+/g, '');
-  const cleanFromEmail = (fromEmail || user || '').trim();
+  const senderAddress = fromEmail ? fromEmail.trim() : cleanUser;
   const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
   const toName = (typeof to === 'object' && to?.name) ? to.name : '';
 
@@ -80,7 +80,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     }
 
     // 2. EHLO with valid host
-    await sendCommand('EHLO dentzy-testing.pages.dev');
+    await sendCommand('EHLO smtp.gmail.com');
     while (true) {
       const line = await readLine();
       if (line.startsWith('250 ') || !line.startsWith('250-')) break;
@@ -102,7 +102,7 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     }
 
     // 6. MAIL FROM
-    await sendCommand(`MAIL FROM:<${cleanFromEmail}>`);
+    await sendCommand(`MAIL FROM:<${senderAddress}>`);
     const mailFromRes = await readLine();
     if (!mailFromRes.startsWith('250')) {
       throw new Error(`SMTP MAIL FROM failed: ${mailFromRes}`);
@@ -132,17 +132,19 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
     const rawHtmlB64 = btoa(unescape(encodeURIComponent(htmlContent)));
     const wrappedHtmlB64 = rawHtmlB64.match(/.{1,76}/g)?.join('\r\n') || rawHtmlB64;
 
-    const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@gmail.com>`;
+    const replyToHeader = replyTo ? `Reply-To: "${senderName}" <${replyTo.trim()}>\r\n` : `Reply-To: "${senderName}" <${senderAddress}>\r\n`;
 
     const msg = [
-      `From: "${senderName}" <${cleanFromEmail}>`,
+      `From: "${senderName}" <${senderAddress}>`,
       `To: ${toName ? `"${toName}" ` : ''}<${toAddress}>`,
-      `Reply-To: ${replyTo ? (replyTo.includes('<') ? replyTo : `<${replyTo}>`) : `"${senderName}" <${cleanFromEmail}>`}`,
+      replyToHeader.trim(),
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       `Date: ${new Date().toUTCString()}`,
-      `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
-      `List-Unsubscribe: <mailto:${cleanFromEmail}?subject=unsubscribe>`,
+      `Auto-Submitted: auto-generated`,
+      `X-Auto-Response-Suppress: All`,
+      `X-Priority: 1 (Highest)`,
+      `Importance: High`,
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       ``,
       `--${boundary}`,
@@ -186,40 +188,82 @@ export async function sendGmailSMTP({ user, pass, to, subject, htmlContent, text
 }
 
 /**
- * Send an email via Gmail SMTP (App Password authentication).
+ * Brevo (Sendinblue) REST API fallback — used when Gmail SMTP fails.
  */
-export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail, replyTo }) {
-  if (!env.GMAIL_APP_PASSWORD) {
-    return { success: false, error: 'No email provider configured (GMAIL_APP_PASSWORD missing)' };
+async function sendBrevoEmail({ apiKey, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', senderEmail = 'dentzyemail@gmail.com' }) {
+  const toAddress = typeof to === 'string' ? to : (Array.isArray(to) ? (to[0]?.email || to[0]) : to.email);
+  const toName = (typeof to === 'object' && to?.name) ? to.name : '';
+  const plain = textContent || htmlToPlainText(htmlContent);
+
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: toAddress, ...(toName ? { name: toName } : {}) }],
+        replyTo: { name: senderName, email: senderEmail },
+        subject,
+        htmlContent,
+        textContent: plain,
+      }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`Brevo ${res.status}: ${errBody}`);
+    }
+    logger.info('Brevo email delivered successfully', { to: toAddress });
+    return { success: true };
+  } catch (err) {
+    logger.error('Brevo email error', { error: err.message });
+    return { success: false, error: err.message };
   }
-  const formattedSubject = subject.startsWith('[Testing Website]')
-    ? subject
-    : (subject.startsWith('[Testing Version]')
-        ? subject.replace('[Testing Version]', '[Testing Website]')
-        : `[Testing Website] ${subject}`);
-
-  const formattedText = textContent
-    ? (textContent.includes('testing website') || textContent.includes('testing version')
-        ? textContent
-        : `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\n${textContent}`)
-    : (htmlContent ? htmlToPlainText(htmlContent) : '');
-
-  return sendGmailSMTP({
-    user: env.GMAIL_USER || 'support@dentzy.in',
-    pass: env.GMAIL_APP_PASSWORD,
-    to,
-    subject: formattedSubject,
-    htmlContent,
-    textContent: formattedText,
-    senderName,
-    fromEmail: fromEmail || 'support@dentzy.in',
-    replyTo,
-  });
 }
 
 /**
- * Unified 21st.dev Email Layout Generator for Dentzy.
- * Impeccable typography, mobile-responsive, anti-spam optimized, cross-client compatible.
+ * Send an email via Gmail SMTP, falling back to Brevo REST API on failure.
+ * Automatically ensures "Sent from testing app or website" notice and dentzy-testing.pages.dev link.
+ */
+export async function sendEmail({ env, to, subject, htmlContent, textContent, senderName = 'Dentzy Dental Solutions', fromEmail = 'noreply@dentzy.in', replyTo }) {
+  // Ensure "Sent from testing app or website" notice and support contacts are included in every outbound email
+  const appNoticeHtml = '<div style="font-size: 11px; color: #64748b; text-align: center; margin-top: 16px; padding-top: 10px; border-top: 1px solid #eef4f1;">Support: +91 95036 68112 &bull; <a href="mailto:support@dentzy.in" style="color: #1e5038; text-decoration: none;">support@dentzy.in</a><br><span style="color: #b45309; font-weight: 600;">Sent from testing app or website</span> &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038; font-weight: bold; text-decoration: underline;">dentzy-testing.pages.dev</a></div>';
+  
+  let finalHtml = htmlContent || '';
+  if (finalHtml && !finalHtml.includes('dentzy-testing.pages.dev')) {
+    finalHtml = finalHtml.includes('</body>')
+      ? finalHtml.replace('</body>', `${appNoticeHtml}</body>`)
+      : `${finalHtml}${appNoticeHtml}`;
+  }
+
+  let finalText = textContent;
+  if (finalText && !finalText.includes('dentzy-testing.pages.dev')) {
+    finalText += '\n\nSupport: +91 95036 68112 | Email: support@dentzy.in\nSent from testing app or website: https://dentzy-testing.pages.dev';
+  }
+
+  // Try Gmail SMTP first
+  if (env && env.GMAIL_APP_PASSWORD) {
+    const result = await sendGmailSMTP({
+      user: env.GMAIL_USER || 'dentzycore@gmail.com',
+      pass: env.GMAIL_APP_PASSWORD,
+      to, subject, htmlContent: finalHtml, textContent: finalText, senderName, fromEmail, replyTo
+    });
+    if (result.success) return result;
+    logger.warn('Gmail SMTP failed, trying Brevo fallback', { error: result.error });
+  }
+  // Brevo fallback
+  if (env && env.BREVO_API_KEY) {
+    return sendBrevoEmail({
+      apiKey: env.BREVO_API_KEY,
+      to, subject, htmlContent: finalHtml, textContent: finalText, senderName,
+      senderEmail: fromEmail || env.BREVO_SENDER_EMAIL || env.GMAIL_USER || 'dentzycore@gmail.com',
+    });
+  }
+  return { success: false, error: 'No email provider configured: GMAIL_APP_PASSWORD missing' };
+}
+
+/**
+ * Standard Email Layout Generator for Dentzy Testing Environment.
+ * Used for custom email flows and test validation suite.
  */
 export function renderDentzyEmailLayout({
   preheader = '',
@@ -235,7 +279,7 @@ export function renderDentzyEmailLayout({
   showTestingNotice = true,
 }) {
   const formattedPreheader = preheader
-    ? (preheader.includes('testing website') || preheader.includes('testing version')
+    ? (preheader.includes('Sent from testing website') || preheader.includes('Sent from testing app')
         ? preheader
         : `[Sent from testing website] ${preheader}`)
     : '[Sent from testing website]';
@@ -247,15 +291,15 @@ export function renderDentzyEmailLayout({
   const testingNoticeHtml = showTestingNotice
     ? `<tr>
         <td style="padding-bottom: 16px;">
-          <div style="background-color: #fffbeb; border-radius: 10px; padding: 12px 16px; margin: 0;">
+          <div style="background-color: #fffbeb; border-radius: 10px; padding: 12px 16px; margin: 0; border: 1px solid #fde68a;">
             <table width="100%" border="0" cellspacing="0" cellpadding="0">
               <tr>
                 <td style="font-size: 12px; font-weight: 700; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                   <span style="display: inline-block; background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 6px;">Notice</span>
                   Sent from testing website
                 </td>
-                <td align="right" style="font-size: 11px; color: #b45309; font-weight: 500;">
-                  dentzy-testing.pages.dev
+                <td align="right" style="font-size: 11px; color: #b45309; font-weight: 600;">
+                  <a href="https://dentzy-testing.pages.dev" style="color: #b45309; text-decoration: underline;">dentzy-testing.pages.dev</a>
                 </td>
               </tr>
             </table>
@@ -275,16 +319,16 @@ export function renderDentzyEmailLayout({
     : '';
 
   const subheadingHtml = subheading
-    ? `<p class="dz-subheading" style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${escapeHtml(subheading)}</p>`
+    ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${escapeHtml(subheading)}</p>`
     : '';
 
   const ctaHtml = (ctaText && ctaUrl)
     ? `<tr>
         <td align="center" style="padding: 24px 0 16px 0;">
-          <table border="0" cellspacing="0" cellpadding="0" class="dz-cta-table">
+          <table border="0" cellspacing="0" cellpadding="0">
             <tr>
               <td align="center" style="border-radius: 50px; background-color: #1e5038; box-shadow: 0 4px 14px rgba(30, 80, 56, 0.25);">
-                <a href="${escapeHtml(ctaUrl)}" target="_blank" class="dz-cta-btn" style="display: inline-block; padding: 13px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 50px; letter-spacing: 0.3px;">
+                <a href="${escapeHtml(ctaUrl)}" target="_blank" style="display: inline-block; padding: 13px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 50px; letter-spacing: 0.3px;">
                   ${escapeHtml(ctaText)}
                 </a>
               </td>
@@ -307,102 +351,25 @@ export function renderDentzyEmailLayout({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-  <meta name="x-apple-disable-message-reformatting">
   <title>${escapeHtml(heading || 'Dentzy Notification')}</title>
-  <style>
-    /* Reset & Client Normalization */
-    body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-    
-    /* Screen Size Responsive Optimizations (Mobile Devices <= 600px) */
-    @media only screen and (max-width: 600px) {
-      .dz-outer-wrapper {
-        padding: 12px 6px 20px 6px !important;
-      }
-      .dz-main-card {
-        width: 100% !important;
-        max-width: 100% !important;
-      }
-      .dz-header-cell {
-        padding: 16px 0 12px 0 !important;
-      }
-      .dz-brand-title {
-        font-size: 18px !important;
-      }
-      .dz-brand-sub {
-        font-size: 9px !important;
-      }
-      .dz-portal-badge {
-        font-size: 10px !important;
-      }
-      .dz-content-cell {
-        padding: 16px 0 18px 0 !important;
-      }
-      .dz-heading {
-        font-size: 18px !important;
-        line-height: 1.3 !important;
-      }
-      .dz-subheading {
-        font-size: 12px !important;
-      }
-      .dz-footer-cell {
-        padding: 18px 0 !important;
-        font-size: 11px !important;
-      }
-      .dz-otp-code {
-        font-size: 26px !important;
-        letter-spacing: 5px !important;
-        padding-left: 5px !important;
-      }
-      .dz-otp-box {
-        padding: 16px 10px !important;
-        margin: 18px 0 16px 0 !important;
-      }
-      .dz-cta-btn {
-        display: block !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        text-align: center !important;
-        padding: 14px 16px !important;
-        font-size: 14px !important;
-      }
-      .dz-cta-table {
-        width: 100% !important;
-      }
-      .dz-data-table td {
-        padding: 8px 10px !important;
-        font-size: 13px !important;
-      }
-      .dz-data-label {
-        width: 80px !important;
-      }
-    }
-  </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e2824; line-height: 1.6;">
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e2824; line-height: 1.6;">
   ${preheaderHtml}
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-outer-wrapper" style="background-color: #ffffff; padding: 24px 16px 36px 16px;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; padding: 24px 16px 36px 16px;">
     <tr>
       <td align="center">
-        <!-- Main Content Area (Clean & Borderless) -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-main-card" style="max-width: 580px; background-color: #ffffff; border: none;">
-          
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #ffffff; border: none;">
           <!-- Brand Header -->
           <tr>
-            <td class="dz-header-cell" style="padding: 20px 0 16px 0; border: none; background-color: #ffffff;">
+            <td style="padding: 20px 0 16px 0; border: none; background-color: #ffffff;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="left" style="vertical-align: middle;">
-                    <div class="dz-brand-title" style="font-size: 20px; font-weight: 800; letter-spacing: 0.8px; color: #1e5038; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                      DENTZY
-                    </div>
-                    <div class="dz-brand-sub" style="font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: #708c80; text-transform: uppercase; margin-top: 2px;">
-                      Namrata Dental Solutions
-                    </div>
+                    <div style="font-size: 20px; font-weight: 800; letter-spacing: 0.8px; color: #1e5038;">DENTZY</div>
+                    <div style="font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: #708c80; text-transform: uppercase; margin-top: 2px;">Namrata Dental Solutions</div>
                   </td>
                   <td align="right" style="vertical-align: middle;">
-                    <span class="dz-portal-badge" style="font-size: 11px; color: #8fa398; font-weight: 500;">Clinical Lab Portal</span>
+                    <span style="font-size: 11px; color: #8fa398; font-weight: 500;">Clinical Lab Portal (Testing)</span>
                   </td>
                 </tr>
               </table>
@@ -411,13 +378,13 @@ export function renderDentzyEmailLayout({
 
           <!-- Content Body -->
           <tr>
-            <td class="dz-content-cell" style="padding: 20px 0 24px 0; border: none;">
+            <td style="padding: 20px 0 24px 0; border: none;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 ${testingNoticeHtml}
                 ${badgeHtml}
                 <tr>
                   <td align="left" style="padding-bottom: 18px;">
-                    <h1 class="dz-heading" style="margin: 0; color: #143525; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.35; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <h1 style="margin: 0; color: #143525; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.35;">
                       ${escapeHtml(heading)}
                     </h1>
                     ${subheadingHtml}
@@ -436,7 +403,7 @@ export function renderDentzyEmailLayout({
 
           <!-- Footer -->
           <tr>
-            <td class="dz-footer-cell" style="padding: 24px 0 16px 0; background-color: #ffffff; border: none; color: #788c82; font-size: 12px; line-height: 1.6; text-align: center;">
+            <td style="padding: 24px 0 16px 0; background-color: #ffffff; border: none; color: #788c82; font-size: 12px; line-height: 1.6; text-align: center;">
               <div style="margin-bottom: 8px; font-weight: 500; color: #4a5d54;">
                 Dentzy by Namrata Dental Solutions &bull; Vasai-Virar, Maharashtra
               </div>
@@ -448,7 +415,6 @@ export function renderDentzyEmailLayout({
               </div>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
@@ -459,609 +425,630 @@ export function renderDentzyEmailLayout({
 
 /**
  * Sends Registration Email Verification 6-Digit OTP.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendRegistrationOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `[Testing Website] Dentzy — Verify your email address`;
-  const textContent = `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\nDENTZY - Email Verification\n\nHello ${name},\n\nThank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nEnvironment: Sent from testing website (https://dentzy-testing.pages.dev)\n\nIf you did not create an account on Dentzy, you can safely ignore this email.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
+  const subject = `Dentzy [Testing]: ${otp} is your verification code`;
+  const textContent = `DENTZY - Email Verification (Testing App)
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${escapeHtml(name)}</strong>,<br><br>
-      Thank you for registering on the <strong>Dentzy Clinical Lab Portal</strong>. Please use the verification code below to verify your email address:
-    </p>
+Hello ${name},
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Recipient:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(to)}" style="color: #1e5038; font-weight: 500; text-decoration: underline;">${escapeHtml(to)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Purpose:</td>
-        <td style="padding: 10px 14px; color: #1e2824;">Clinical Lab Portal Registration Verification</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
+Thank you for registering on the Dentzy Clinical Lab Portal (Testing Environment). Please use the verification code below to confirm your email address:
 
-    <div class="dz-otp-box" style="background-color: #f0f7f3; border-radius: 12px; padding: 22px; text-align: center; margin: 20px 0 18px 0;">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #4a5d54; font-weight: 600; margin-bottom: 8px;">Verification Code</div>
-      <div class="dz-otp-code" style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #1e5038; padding-left: 10px;">
-        ${otp}
-      </div>
-      <div style="margin-top: 10px; font-size: 12px; color: #708c80; font-weight: 500;">
-        Expires in 5 minutes &bull; Do not share this code
-      </div>
-    </div>
+Verification Code: ${otp}
+(Valid for 5 minutes)
 
-    <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0;">
-      If you did not request this verification, you can safely ignore this email.
-    </p>
+If you did not create an account on Dentzy, you can safely ignore this email.
 
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
+Sent from testing app or website: https://dentzy-testing.pages.dev
+Dentzy Dental Solutions Team
+Support: +91 95036 68112 | support@dentzy.in`;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Your Dentzy verification code is ${otp} (valid for 5 minutes)`,
-    badge: 'Email Verification',
-    badgeColor: '#1e5038',
-    badgeBg: '#eef6f2',
-    heading: 'Verify Your Email Address',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Open Registration Portal →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/register',
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Email Verification</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e2824;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f7f5; padding: 30px 15px;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="500" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2ece6;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 30px 30px 20px 30px; background: linear-gradient(180deg, #f0f7f3 0%, #ffffff 100%);">
+              <h2 style="margin: 0; color: #1e5038; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">DENTZY</h2>
+              <p style="margin: 4px 0 0 0; color: #6b8a7a; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">by Namrata Dental Solutions</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 20px 35px 30px 35px;">
+              <!-- Testing Environment Notice Banner -->
+              <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+                <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+                Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+              </div>
+
+              <h3 style="margin: 0 0 12px 0; color: #1e2824; font-size: 18px; font-weight: 700;">Verify Your Email Address</h3>
+              <p style="margin: 0 0 20px 0; color: #4a5d54; font-size: 14px; line-height: 1.6;">
+                Hello <strong>${escapeHtml(name)}</strong>,<br>
+                Thank you for registering on the Dentzy Clinical Lab Portal. Please use the verification code below to confirm your email address:
+              </p>
+              
+              <!-- OTP Box -->
+              <div style="background-color: #f0f7f3; border: 2px dashed #9bc4b0; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
+                <div style="font-family: monospace, Courier; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1e5038;">
+                  ${otp}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #6b8a7a; font-weight: 600;">
+                  ⏱ Valid for 5 minutes
+                </div>
+              </div>
+
+              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                If you did not create an account on Dentzy, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #fafcfb; border-top: 1px solid #eef4f1; color: #94a3b8; font-size: 12px;">
+              <div style="margin-bottom: 8px; color: #b45309; font-weight: 600;">
+                Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038; font-weight: bold; text-decoration: underline;">dentzy-testing.pages.dev</a>
+              </div>
+              &copy; ${new Date().getFullYear()} Dentzy Dental Solutions &bull; +91 95036 68112 &bull; <a href="mailto:support@dentzy.in" style="color: #6b8a7a; text-decoration: none;">support@dentzy.in</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  return sendEmail({
+    env,
+    to,
+    subject,
+    htmlContent,
+    textContent,
+    fromEmail: 'noreply@dentzy.in',
   });
-
-  return sendEmail({ env, to, subject, htmlContent, textContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
  * Sends Password Reset 6-Digit OTP Email.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendOtpEmail({ env, to, name = 'Dentist', otp }) {
-  const subject = `[Testing Website] Dentzy — Reset your password`;
-  const textContent = `[Notice: Sent from testing website (dentzy-testing.pages.dev)]\n\nDENTZY - Password Reset\n\nHello ${name},\n\nWe received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:\n\nVerification Code: ${otp}\n(Valid for 5 minutes)\n\nEnvironment: Sent from testing website (https://dentzy-testing.pages.dev)\n\nIf you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.\n\nDentzy Dental Solutions Team\nhttps://dentzy-testing.pages.dev`;
+  const subject = `Dentzy [Testing]: ${otp} is your password reset code`;
+  const textContent = `DENTZY - Password Reset (Testing App)
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
-      Hello <strong>${escapeHtml(name)}</strong>,<br><br>
-      We received a request to reset the password for your Dentzy portal account. Enter the verification code below to set a new password:
-    </p>
+Hello ${name},
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Account:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(to)}" style="color: #1e5038; font-weight: 500; text-decoration: underline;">${escapeHtml(to)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Request:</td>
-        <td style="padding: 10px 14px; color: #1e2824;">Password Reset Request</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
+We received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:
 
-    <div class="dz-otp-box" style="background-color: #fef7ed; border-radius: 12px; padding: 22px; text-align: center; margin: 20px 0 18px 0;">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #b45309; font-weight: 600; margin-bottom: 8px;">Password Reset Code</div>
-      <div class="dz-otp-code" style="font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #b45309; padding-left: 10px;">
-        ${otp}
-      </div>
-      <div style="margin-top: 10px; font-size: 12px; color: #92400e; font-weight: 500;">
-        Expires in 5 minutes &bull; Keep this code secure
-      </div>
-    </div>
+Verification Code: ${otp}
+(Valid for 5 minutes)
 
-    <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0;">
-      If you did not request a password reset, you can safely ignore this email. Your account remains secure.
-    </p>
+If you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.
 
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
+Sent from testing app or website: https://dentzy-testing.pages.dev
+Dentzy Dental Solutions Team
+Support: +91 95036 68112 | support@dentzy.in`;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Your Dentzy password reset code is ${otp} (valid for 5 minutes)`,
-    badge: 'Security Alert',
-    badgeColor: '#b45309',
-    badgeBg: '#fef3c7',
-    heading: 'Reset Your Password',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Reset Password →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/forgot-password',
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Password Reset OTP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e2824;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f7f5; padding: 30px 15px;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="500" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2ece6;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 30px 30px 20px 30px; background: linear-gradient(180deg, #f0f7f3 0%, #ffffff 100%);">
+              <h2 style="margin: 0; color: #1e5038; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">DENTZY</h2>
+              <p style="margin: 4px 0 0 0; color: #6b8a7a; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">by Namrata Dental Solutions</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 20px 35px 30px 35px;">
+              <!-- Testing Environment Notice Banner -->
+              <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+                <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+                Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+              </div>
+
+              <h3 style="margin: 0 0 12px 0; color: #1e2824; font-size: 18px; font-weight: 700;">Password Reset Request</h3>
+              <p style="margin: 0 0 20px 0; color: #4a5d54; font-size: 14px; line-height: 1.6;">
+                Hello <strong>${escapeHtml(name)}</strong>,<br>
+                We received a request to reset the password for your Dentzy portal account. Use the verification code below to proceed:
+              </p>
+              
+              <!-- OTP Box -->
+              <div style="background-color: #f0f7f3; border: 2px dashed #9bc4b0; border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
+                <div style="font-family: monospace, Courier; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #1e5038;">
+                  ${otp}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #6b8a7a; font-weight: 600;">
+                  ⏱ Valid for 5 minutes
+                </div>
+              </div>
+
+              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                If you did not request this password reset, you can safely ignore this email. Your password will remain unchanged.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 30px; background-color: #fafcfb; border-top: 1px solid #eef4f1; color: #94a3b8; font-size: 12px;">
+              <div style="margin-bottom: 8px; color: #b45309; font-weight: 600;">
+                Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038; font-weight: bold; text-decoration: underline;">dentzy-testing.pages.dev</a>
+              </div>
+              &copy; ${new Date().getFullYear()} Dentzy Dental Solutions &bull; +91 95036 68112 &bull; <a href="mailto:support@dentzy.in" style="color: #6b8a7a; text-decoration: none;">support@dentzy.in</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  return sendEmail({
+    env,
+    to,
+    subject,
+    htmlContent,
+    textContent,
+    fromEmail: 'noreply@dentzy.in',
   });
-
-  return sendEmail({ env, to, subject, htmlContent, textContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
  * Sends Admin Alert when someone submits Contact Us form.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendContactAdminNotification({ env, contact }) {
-  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || 'dentzycore@gmail.com';
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzycore@gmail.com';
   const subject = `[Testing Website] New Contact Inquiry: ${escapeHtml(contact.name)} (${escapeHtml(contact.subject) || 'General'})`.replace(/[\r\n]/g, ' ');
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
-      A new customer inquiry was submitted on the Dentzy testing portal:
-    </p>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Sender:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(contact.name)}</td>
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
+
+    <h2 style="color: #1e5038; margin-top: 0;">New Contact Form Submission</h2>
+    <p style="color: #64748b; font-size: 14px;">A new inquiry was submitted on the Dentzy testing website:</p>
+    
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Name:</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.name)}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Email:</td>
+        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(contact.email)}" style="color: #1e5038;">${escapeHtml(contact.email)}</a></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Phone:</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.phone) || 'Not provided'}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Subject:</td>
+        <td style="padding: 8px 0;">${escapeHtml(contact.subject) || 'General Inquiry'}</td>
       </tr>
       <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(contact.email)}" style="color: #1e5038; font-weight: 500; text-decoration: underline;">${escapeHtml(contact.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Phone:</td>
-        <td style="padding: 10px 14px; color: #1e2824;">${contact.phone ? `<a href="tel:${escapeHtml(contact.phone)}" style="color: #1e5038; text-decoration: none;">${escapeHtml(contact.phone)}</a>` : '<span style="color: #94a3b8;">Not provided</span>'}</td>
+        <td style="padding: 12px 0 4px 0; font-weight: bold; color: #4a5d54;" colspan="2">Message:</td>
       </tr>
       <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Subject:</td>
-        <td style="padding: 10px 14px; font-weight: 500; color: #1e2824;">${escapeHtml(contact.subject) || 'General Inquiry'}</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
+        <td colspan="2" style="background: #f8faf9; border-radius: 8px; padding: 15px; border: 1px solid #e2ece6; line-height: 1.6;">
+          ${contact.message ? escapeMultiline(contact.message) : '—'}
+        </td>
       </tr>
     </table>
-    <div style="font-size: 13px; font-weight: 600; color: #4a5d54; margin: 18px 0 6px 0;">Message:</div>
-    <div style="background-color: #f8faf9; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.6; color: #1e2824;">
-      ${contact.message ? escapeMultiline(contact.message) : '&mdash;'}
-    </div>
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Inquiry from ${escapeHtml(contact.name)}: ${escapeHtml(contact.subject || 'General Inquiry')}`,
-    badge: 'Customer Inquiry',
-    badgeColor: '#1e5038',
-    badgeBg: '#eef6f2',
-    heading: 'New Contact Form Submission',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: `Reply to ${escapeHtml(contact.name)}`,
-    ctaUrl: `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent('Re: ' + (contact.subject || 'Dentzy Dental Solutions inquiry'))}`,
-  });
+    <div style="font-size: 12px; color: #94a3b8; margin-top: 20px; text-align: center;">
+      Submitted at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)<br>
+      <span style="color: #b45309; font-weight: 600;">Sent from testing app or website: <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
   return sendEmail({
     env,
     to: targetEmail,
     subject,
     htmlContent,
-    replyTo: contact.email,
+    fromEmail: 'noreply@dentzy.in',
   });
 }
 
 /**
  * Sends User Acknowledgment Confirmation for Contact Us.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendContactUserConfirmation({ env, contact }) {
   const subject = `[Testing Website] Thank you for contacting Dentzy Dental Solutions`;
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
+
+    <h2 style="color: #1e5038; margin-top: 0;">Thank You for Reaching Out</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(contact.name)}</strong>,<br><br>
-      Thank you for reaching out to <strong>Dentzy Dental Solutions</strong>. We have successfully received your inquiry:
+      We have received your message regarding <strong>"${escapeHtml(contact.subject) || 'your inquiry'}"</strong>. Our team is reviewing your request and will get back to you shortly.
     </p>
-
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Sender:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(contact.name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(contact.email)}" style="color: #1e5038; font-weight: 500; text-decoration: underline;">${escapeHtml(contact.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Subject:</td>
-        <td style="padding: 10px 14px; font-weight: 500; color: #1e2824;">${escapeHtml(contact.subject) || 'General Inquiry'}</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
-
-    <div style="font-size: 13px; font-weight: 600; color: #4a5d54; margin: 18px 0 6px 0;">Your Inquiry:</div>
-    <div style="background-color: #f8faf9; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.6; color: #1e2824; margin-bottom: 20px;">
-      ${contact.message ? escapeMultiline(contact.message) : '&mdash;'}
+    
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>Need immediate lab assistance?</strong><br>
+      Feel free to reach our team directly at +91 95036 68112 or <a href="mailto:support@dentzy.in" style="color: #1e5038; font-weight: bold;">support@dentzy.in</a>.
     </div>
 
-    <div style="background-color: #f0f7f3; border-radius: 12px; padding: 18px; margin: 20px 0;">
-      <div style="font-size: 13px; font-weight: 700; color: #1e5038; margin-bottom: 4px;">Need urgent lab support?</div>
-      <div style="font-size: 13px; color: #4a5d54; line-height: 1.5;">
-        You can reach our lab desk directly at <a href="tel:+919503668112" style="color: #1e5038; font-weight: 600; text-decoration: none;">+91 95036 68112</a> (Mon&ndash;Sat, 9 AM &ndash; 6 PM).
-      </div>
-    </div>
-
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
-
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] We have received your inquiry regarding "${escapeHtml(contact.subject || 'your message')}"`,
-    badge: 'Inquiry Received',
-    badgeColor: '#1e5038',
-    badgeBg: '#eef6f2',
-    heading: 'Thank You for Reaching Out',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Visit Dentzy Portal',
-    ctaUrl: 'https://dentzy-testing.pages.dev',
-  });
+    <p style="color: #64748b; font-size: 13px;">
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </p>
+  </div>
+</body>
+</html>
+`;
 
   return sendEmail({
     env,
     to: contact.email,
     subject,
     htmlContent,
+    fromEmail: 'support@dentzy.in',
   });
 }
 
 /**
  * Admin Alert — New User Registration.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendNewUserAdminAlert({ env, user }) {
-  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'support@dentzy.in';
+  const targetEmail = env.ADMIN_NOTIFICATION_EMAIL || env.GMAIL_USER || 'dentzycore@gmail.com';
   const subject = `[Testing Website] New Dentist Registration: ${user.name} (${user.email})`.replace(/[\r\n]/g, ' ');
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 25px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #64748b; font-size: 13px;">
-      A new dentist has registered on the Dentzy Portal and is awaiting your approval:
-    </p>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Name:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(user.name)}</td>
+    <h2 style="color: #1e5038; margin-top: 0;">New Dentist Registration</h2>
+    <p style="color: #64748b; font-size: 14px;">A new dentist has registered on the Dentzy testing portal and is awaiting your approval:</p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 100px; color: #4a5d54;">Name:</td>
+        <td style="padding: 8px 0;">${escapeHtml(user.name)}</td>
       </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038; font-weight: 500;">${escapeHtml(user.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Registered:</td>
-        <td style="padding: 10px 14px; color: #64748b;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Email:</td>
+        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038;">${escapeHtml(user.email)}</a></td>
       </tr>
     </table>
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/admin/dashboard" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;">Review in Admin Panel &rarr;</a>
     </div>
-  `;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] New dentist registration: Dr. ${user.name} (${user.email}) is awaiting approval`,
-    badge: 'Account Approval Required',
-    badgeColor: '#b45309',
-    badgeBg: '#fef3c7',
-    heading: 'New Dentist Registration',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Review in Admin Panel →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/admin/dashboard',
-  });
+    <div style="font-size: 12px; color: #94a3b8; margin-top: 20px; text-align: center;">
+      Registered at ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)<br>
+      <span style="color: #b45309; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
-  return sendEmail({ env, to: targetEmail, subject, htmlContent });
+  return sendEmail({ env, to: targetEmail, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
  * User Confirmation — Registration Pending.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendRegistrationPendingEmail({ env, user }) {
   const subject = `[Testing Website] Welcome to Dentzy — Registration Received`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+    <h2 style="color: #1e5038; margin-top: 0;">Welcome to Dentzy!</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
-      Thank you for registering on the <strong>Dentzy Clinical Lab Portal</strong>. Your account has been received and is currently under review by our administration team:
+      Thank you for registering on the Dentzy Clinical Lab Portal. Your account is currently <strong>under review</strong> by our admin team.
     </p>
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Dentist:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(user.name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038; font-weight: 500;">${escapeHtml(user.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Status:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #b45309;">Pending Administration Approval</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
-
-    <div style="background-color: #fffbeb; border-radius: 12px; padding: 18px; margin: 20px 0;">
-      <div style="font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 6px;">What happens next?</div>
-      <div style="font-size: 13px; color: #78350f; line-height: 1.5;">
-        Our team verifies each clinic account to maintain high laboratory standards. You will receive an email as soon as your account is approved and ready for case submissions.
-      </div>
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #92400e;">
+      <strong>⏳ What happens next?</strong><br>
+      Our team will review your registration and approve your account. You will receive an email notification once your account is activated.
     </div>
-    <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0;">
-      If you have questions in the meantime, contact us at <a href="mailto:support@dentzy.in" style="color: #1e5038; font-weight: 500;">support@dentzy.in</a>.
+
+    <p style="color: #64748b; font-size: 13px;">
+      If you have any questions, feel free to reach us at +91 95036 68112 or <a href="mailto:support@dentzy.in" style="color: #1e5038; font-weight: bold;">support@dentzy.in</a>.<br><br>
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
     </p>
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
+  </div>
+</body>
+</html>
+`;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Welcome Dr. ${user.name} — Registration received and under review`,
-    badge: 'Registration Received',
-    heading: 'Welcome to Dentzy!',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Visit Dentzy Portal',
-    ctaUrl: 'https://dentzy-testing.pages.dev',
-  });
-
-  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'support@dentzy.in' });
 }
 
 /**
  * User Notification — Account Approved.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendUserApprovedEmail({ env, user }) {
-  const subject = `[Testing Website] Your Dentzy Account Has Been Approved`;
+  const subject = `[Testing Website] Your Dentzy Account Has Been Approved!`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
 
-  const bodyHtml = `
-    <p style="margin: 0 0 18px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="display: inline-block; background: #dcfce7; border-radius: 50%; width: 60px; height: 60px; line-height: 60px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <h2 style="color: #1e5038; margin-top: 0; text-align: center;">Account Approved!</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
-      Great news! Your Dentzy clinical portal account has been approved and activated. You can now log in and access full laboratory workflow features:
+      Great news! Your Dentzy account has been approved. You can now log in to the portal and start managing your dental lab orders.
     </p>
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Dentist:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(user.name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038; font-weight: 500;">${escapeHtml(user.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Status:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #15803d;">Active &amp; Verified</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
-
-    <div style="background-color: #f0f7f3; border-radius: 12px; padding: 20px; margin: 20px 0;">
-      <div style="font-size: 13px; font-weight: 700; color: #1e5038; margin-bottom: 10px;">Available on your portal:</div>
-      <table border="0" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #2d3b34; line-height: 1.6;">
-        <tr><td style="padding: 3px 8px 3px 0; color: #16a34a; font-weight: bold;">&bull;</td><td>Submit new digital cases and prescription specifications</td></tr>
-        <tr><td style="padding: 3px 8px 3px 0; color: #16a34a; font-weight: bold;">&bull;</td><td>Track real-time fabrication stages in the production pipeline</td></tr>
-        <tr><td style="padding: 3px 8px 3px 0; color: #16a34a; font-weight: bold;">&bull;</td><td>Manage clinic invoices, case histories, and receipts</td></tr>
-      </table>
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/login" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 15px;">Log In to Portal &rarr;</a>
     </div>
 
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>What you can do now:</strong><br>
+      &bull; View and track your lab orders<br>
+      &bull; Monitor order progress in real time<br>
+      &bull; Manage your profile and clinic details
     </div>
-  `;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Congratulations Dr. ${user.name}! Your Dentzy account is active`,
-    badge: 'Account Approved',
-    badgeColor: '#15803d',
-    badgeBg: '#dcfce7',
-    heading: 'Your Account is Active!',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Log In to Portal →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/login',
-  });
+    <p style="color: #64748b; font-size: 13px;">
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </p>
+  </div>
+</body>
+</html>
+`;
 
-  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'support@dentzy.in' });
 }
 
 /**
  * User Notification — Account Rejected.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendUserRejectedEmail({ env, user, note }) {
   const reasonBlock = note
-    ? `<div style="background-color: #fef2f2; border-radius: 12px; padding: 18px; margin: 20px 0;">
-        <div style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">Reason Provided:</div>
-        <div style="font-size: 13px; color: #7f1d1d; line-height: 1.5;">${escapeMultiline(note)}</div>
+    ? `<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #991b1b;">
+        <strong>Reason provided:</strong><br>${escapeMultiline(note)}
       </div>`
     : '';
 
   const subject = `[Testing Website] Dentzy — Account Registration Update`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+    <h2 style="color: #1e2824; margin-top: 0;">Account Registration Update</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(user.name)}</strong>,<br><br>
-      Thank you for your interest in the Dentzy Clinical Lab Portal. After reviewing your registration, our administration is unable to approve your application at this time:
+      We appreciate your interest in Dentzy. After reviewing your registration, we are unable to approve your account at this time.
     </p>
-
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 110px; color: #4a5d54;">Dentist:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(user.name)}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Email:</td>
-        <td style="padding: 10px 14px;"><a href="mailto:${escapeHtml(user.email)}" style="color: #1e5038; font-weight: 500;">${escapeHtml(user.email)}</a></td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Review Status:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #991b1b;">Not Approved</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
-      </tr>
-    </table>
 
     ${reasonBlock}
-    <p style="margin: 0 0 16px 0; color: #4a5d54; font-size: 13px; line-height: 1.6;">
-      If you believe this was an error or would like to provide additional documentation, please contact our support team directly.
+
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
+      If you believe this was a mistake or would like more information, please don't hesitate to contact our team.
     </p>
-    <div style="background-color: #f0f7f3; border-radius: 10px; padding: 14px 18px; font-size: 13px; color: #1e5038;">
-      Reach us at <a href="mailto:support@dentzy.in" style="color: #1e5038; font-weight: 600;">support@dentzy.in</a> or call <a href="tel:+919503668112" style="color: #1e5038; font-weight: 600; text-decoration: none;">+91 95036 68112</a>.
+
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
+      <strong>Need help?</strong><br>
+      Reach us at +91 95036 68112 or <a href="mailto:support@dentzy.in" style="color: #1e5038; font-weight: bold;">support@dentzy.in</a>.
     </div>
 
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
+    <p style="color: #64748b; font-size: 13px;">
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </p>
+  </div>
+</body>
+</html>
+`;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Dentzy — Update regarding your account registration`,
-    badge: 'Application Update',
-    badgeColor: '#991b1b',
-    badgeBg: '#fef2f2',
-    heading: 'Account Registration Update',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Contact Support',
-    ctaUrl: 'mailto:support@dentzy.in',
-  });
-
-  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
+  return sendEmail({ env, to: user.email, subject, htmlContent, fromEmail: 'support@dentzy.in' });
 }
 
 /**
  * Admin-triggered Payment Reminder Email to Dentist.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendPaymentReminderEmail({ env, dentist, order, payment }) {
   const amount = payment?.amount || 0;
   const amountStr = amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : 'Amount to be confirmed';
   const subject = `[Testing Website] Dentzy: Payment Reminder for Case ${escapeHtml(order.caseId)}`.replace(/[\r\n]/g, ' ');
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 520px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
+
+    <h2 style="color: #1e5038; margin-top: 0;">Payment Reminder</h2>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(dentist.name)}</strong>,<br><br>
-      This is a friendly reminder regarding an outstanding balance for your dental laboratory case on the Dentzy portal:
+      This is a friendly reminder regarding an outstanding payment on the Dentzy portal.
     </p>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 120px; color: #4a5d54;">Case ID:</td>
-        <td style="padding: 10px 14px;"><code style="background-color: #f0f7f3; color: #1e5038; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-family: monospace;">${escapeHtml(order.caseId)}</code></td>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Case ID:</td>
+        <td style="padding: 8px 0;"><code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">${escapeHtml(order.caseId)}</code></td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Patient:</td>
+        <td style="padding: 8px 0;">${escapeHtml(order.patientName)}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Service:</td>
+        <td style="padding: 8px 0;">${escapeHtml(order.serviceType || 'Other')}</td>
       </tr>
       <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Patient:</td>
-        <td style="padding: 10px 14px; font-weight: 500; color: #1e2824;">${escapeHtml(order.patientName)}</td>
-      </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Service:</td>
-        <td style="padding: 10px 14px; color: #1e2824;">${escapeHtml(order.serviceType || 'Other')}</td>
-      </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 12px 14px; font-weight: 700; color: #4a5d54;">Amount Due:</td>
-        <td style="padding: 12px 14px; font-weight: 800; font-size: 16px; color: #dc2626;">${amountStr}</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Amount Due:</td>
+        <td style="padding: 8px 0; font-weight: 700; color: #dc2626;">${amountStr}</td>
       </tr>
     </table>
-    <div style="background-color: #f8faf9; border-radius: 12px; padding: 18px; margin: 20px 0;">
-      <div style="font-weight: 700; color: #1e5038; font-size: 13px; margin-bottom: 8px;">Accepted Payment Methods:</div>
-      <table border="0" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #4a5d54; line-height: 1.6;">
-        <tr><td style="padding: 2px 8px 2px 0; color: #1e5038; font-weight: bold;">&bull;</td><td><strong>Direct UPI:</strong> Transfer to lab bank account via UPI ID. Contact lab desk for QR details.</td></tr>
-        <tr><td style="padding: 2px 8px 2px 0; color: #1e5038; font-weight: bold;">&bull;</td><td><strong>Cash / Cheque:</strong> Cash at lab or cheque in favour of <em>Dentzy Dental Solutions</em>.</td></tr>
-      </table>
-    </div>
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
-    </div>
-  `;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Payment Reminder for Case ${order.caseId} — Amount Due: ${amountStr}`,
-    badge: 'Payment Reminder',
-    badgeColor: '#b45309',
-    badgeBg: '#fef3c7',
-    heading: 'Outstanding Invoice Reminder',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'View Case in Portal →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/dashboard/pipeline',
-  });
+    <div style="background: #f8faf9; border: 1px solid #d1fae5; border-radius: 8px; padding: 16px; margin: 20px 0; font-size: 13px; color: #1e2824;">
+      <strong style="color: #1e5038; font-size: 14px;">Accepted Payment Methods:</strong>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.6; color: #4a5d54;">
+        <li><strong>Direct UPI:</strong> Transfer to lab bank account via UPI ID or mobile number. Contact lab administration for UPI/QR details.</li>
+        <li><strong>Cash:</strong> Cash payments accepted directly at the lab.</li>
+        <li><strong>Cheque:</strong> Cheque in favour of <strong>Dentzy Dental Solutions</strong>.</li>
+      </ul>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #64748b;">
+        Once payment is made, please share the transaction reference / receipt with lab administration at +91 95036 68112 or support@dentzy.in.
+      </p>
+    </div>
 
-  return sendEmail({ env, to: dentist.email, subject, htmlContent });
+    <p style="color: #64748b; font-size: 13px;">
+      If you have already submitted payment, please disregard this reminder.<br><br>
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </p>
+  </div>
+</body>
+</html>
+`;
+
+  return sendEmail({ env, to: dentist.email, subject, htmlContent, fromEmail: 'noreply@dentzy.in' });
 }
 
 /**
- * Staff Welcome — Registration Confirmation Email.
+ * Staff Welcome Email — sent when admin registers a new staff member.
+ * Copied from Project D (main app) with testing environment notice and link.
  */
 export async function sendStaffWelcomeEmail({ env, staffMember }) {
   const subject = `[Testing Website] Welcome to Dentzy Staff Portal — You have been registered`;
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #f4f7f5; padding: 20px; color: #1e2824;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #e2ece6; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <!-- Testing Notice Banner -->
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; text-align: center;">
+      <span style="background-color: #f59e0b; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-right: 6px;">Notice</span>
+      Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #92400e; font-weight: 700; text-decoration: underline;">dentzy-testing.pages.dev</a>
+    </div>
 
-  const bodyHtml = `
-    <p style="margin: 0 0 16px 0; color: #2d3b34; font-size: 14px; line-height: 1.6;">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="margin: 0; color: #1e5038; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">DENTZY</h2>
+      <p style="margin: 4px 0 0 0; color: #6b8a7a; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">by Namrata Dental Solutions</p>
+    </div>
+    <h3 style="color: #1e5038; margin-top: 0; text-align: center;">Welcome to the Team!</h3>
+    <p style="color: #4a5d54; font-size: 14px; line-height: 1.6;">
       Hello <strong>${escapeHtml(staffMember.displayName)}</strong>,<br><br>
-      You have been registered as a staff team member on the <strong>Dentzy Clinical Lab Portal</strong>. Here are your credentials:
+      You have been registered as a staff member on the Dentzy Clinical Lab Portal. Here are your details:
     </p>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="dz-data-table" style="margin: 16px 0; border-radius: 10px; overflow: hidden; font-size: 14px;">
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; width: 120px; color: #4a5d54;">Employee ID:</td>
-        <td style="padding: 10px 14px;"><code style="background-color: #f0f7f3; color: #1e5038; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-family: monospace;">${escapeHtml(staffMember.employeeId)}</code></td>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; width: 120px; color: #4a5d54;">Employee ID:</td>
+        <td style="padding: 8px 0;"><code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${escapeHtml(staffMember.employeeId)}</code></td>
       </tr>
-      <tr>
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Designation:</td>
-        <td style="padding: 10px 14px; font-weight: 600; color: #1e2824;">${escapeHtml(staffMember.designation)}</td>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Designation:</td>
+        <td style="padding: 8px 0;"><strong>${escapeHtml(staffMember.designation)}</strong></td>
       </tr>
-      <tr style="background-color: #fbfdfc;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #4a5d54;">Username:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #1e5038;">${escapeHtml(staffMember.username)}</td>
-      </tr>
-      <tr style="background-color: #fefce8;">
-        <td class="dz-data-label" style="padding: 10px 14px; font-weight: 600; color: #854d0e;">Environment:</td>
-        <td style="padding: 10px 14px; font-weight: 700; color: #92400e; font-size: 13px;">Sent from testing website (dentzy-testing.pages.dev)</td>
+      <tr style="border-bottom: 1px solid #eef4f1;">
+        <td style="padding: 8px 0; font-weight: bold; color: #4a5d54;">Username:</td>
+        <td style="padding: 8px 0;">${escapeHtml(staffMember.username)}</td>
       </tr>
     </table>
-    <div style="background-color: #f0f7f3; border-radius: 12px; padding: 16px; margin: 20px 0; font-size: 13px; color: #1e5038; line-height: 1.5;">
+
+    <div style="background: #f0f7f3; border-radius: 8px; padding: 15px; margin: 20px 0; font-size: 13px; color: #1e5038;">
       <strong>Getting Started:</strong><br>
-      Log in to the Staff Portal using your username above and the temporary password provided by your lab administrator.
+      Log in to the Staff Portal using your username and the password provided by your administrator.
     </div>
-    <div style="font-size: 12px; color: #94a3b8; margin-top: 16px; text-align: right;">
-      Sent from testing website &bull; ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://dentzy-testing.pages.dev/login" style="display: inline-block; background: #1e5038; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 15px;">Log In to Portal</a>
     </div>
-  `;
 
-  const htmlContent = renderDentzyEmailLayout({
-    preheader: `[Sent from testing website] Welcome to Dentzy Staff Team — Employee ID: ${staffMember.employeeId}`,
-    badge: 'Staff Onboarding',
-    heading: 'Welcome to the Team!',
-    subheading: 'Sent from testing website (dentzy-testing.pages.dev)',
-    bodyHtml,
-    ctaText: 'Log In to Staff Portal →',
-    ctaUrl: 'https://dentzy-testing.pages.dev/login',
-  });
+    <p style="color: #64748b; font-size: 13px;">
+      Best regards,<br><strong>Dentzy Dental Solutions Team</strong><br>
+      <span style="color: #b45309; font-size: 11px; font-weight: 600;">Sent from testing app or website &bull; <a href="https://dentzy-testing.pages.dev" style="color: #1e5038;">dentzy-testing.pages.dev</a></span>
+    </p>
+  </div>
+</body>
+</html>
+`;
 
-  return sendEmail({ env, to: staffMember.email, subject, htmlContent });
+  return sendEmail({ env, to: staffMember.email, subject, htmlContent, fromEmail: 'support@dentzy.in' });
 }
-
