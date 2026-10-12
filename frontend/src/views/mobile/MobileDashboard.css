@@ -1449,3 +1449,76 @@
 .m-error-banner { margin: 0 16px 16px; padding: 12px; background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border-radius: 12px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
 .m-error-banner span { flex: 1; }
 .m-error-banner button { background: none; border: none; color: var(--dz-color-error-text); font-weight: bold; cursor: pointer; padding: 4px 8px; }
+
+/* ── Mobile Table ("Chart") View ────────────────────────────────── */
+.m-table-wrap {
+    background: #ffffff;
+    border-radius: 14px;
+    overflow-x: auto;
+    border: 1px solid #eef2f0;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 12px;
+}
+
+.m-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    background: #ffffff;
+    font-size: 0.82rem;
+}
+
+.m-table th {
+    background: #f7faf8;
+    color: var(--dz-color-primary-dark, #1e5038);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 11px 14px;
+    text-align: left;
+    border-bottom: 1px solid #eef2f0;
+    white-space: nowrap;
+}
+
+.m-table td {
+    padding: 12px 14px;
+    color: #1a1a1a;
+    border-bottom: 1px solid #f5f7f6;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.m-table tr:last-child td {
+    border-bottom: none;
+}
+
+.m-table tr:hover,
+.m-table tr:active {
+    background: #fbfcfb;
+}
+
+.m-table-code {
+    background: #eef3f0;
+    color: #1e5038;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: var(--dz-font-family-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.m-table-priority {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.m-table-priority--low    { background: #f0f4f2; color: #6a8a7c; }
+.m-table-priority--normal { background: #dbeafe; color: #1e40af; }
+.m-table-priority--high   { background: #fef9c3; color: #854d0e; }
+.m-table-priority--urgent,
+.m-table-priority--rush   { background: #fecaca; color: #dc2626; }
