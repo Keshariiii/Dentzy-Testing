@@ -99,13 +99,13 @@ export default function PrintableInvoice({
     const lines = [
       `*DENTZY DENTAL LABORATORY*`,
       `*Official Invoice / Statement*`,
-      `📄 Statement No: ${docNumber}`,
-      `📅 Date: ${docDate}`,
-      `👨‍⚕️ Billed To: Dr. ${doctorName}${clinicName ? ` (${clinicName})` : ''}`,
-      `💰 Total Amount: ${formatINR(totalPaid)}`,
-      `✅ Status: ${isPaid ? 'PAID' : 'PENDING'}`,
-      paymentMode ? `💳 Mode: ${paymentMode}` : '',
-      referenceNumber ? `🔖 Ref / UTR: ${referenceNumber}` : '',
+      `Statement No: ${docNumber}`,
+      `Date: ${docDate}`,
+      `Billed To: Dr. ${doctorName}${clinicName ? ` (${clinicName})` : ''}`,
+      `Total Amount: ${formatINR(totalPaid)}`,
+      `Status: ${isPaid ? 'PAID' : 'PENDING'}`,
+      paymentMode ? `Mode: ${paymentMode}` : '',
+      referenceNumber ? `Ref / UTR: ${referenceNumber}` : '',
       ``,
       `Authorized Signatory: Tanish Dinesh Poojari (Founder, Dentzy Lab)`,
       `Tel / WhatsApp: +91 9503668112 | support@dentzy.in`,
@@ -281,13 +281,13 @@ export default function PrintableInvoice({
             </svg>
             Share on WhatsApp
           </button>
-          <button type="button" onClick={handlePrint} className="pi-btn-print">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 6 2 18 2 18 9"/>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-              <rect x="6" y="14" width="12" height="8"/>
+          <button type="button" onClick={handlePrint} className="pi-btn-print" title="Download PDF or Print Invoice">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Print Statement
+            Download PDF / Print
           </button>
         </div>
         {paperContent}
@@ -317,13 +317,13 @@ export default function PrintableInvoice({
               </svg>
               Share WhatsApp
             </button>
-            <button type="button" onClick={handlePrint} className="pi-btn-print">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 6 2 18 2 18 9"/>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
+            <button type="button" onClick={handlePrint} className="pi-btn-print" title="Download PDF or Print Invoice">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Print
+              Download PDF / Print
             </button>
             {onClose && (
               <button type="button" onClick={onClose} className="pi-btn-close" aria-label="Close invoice">

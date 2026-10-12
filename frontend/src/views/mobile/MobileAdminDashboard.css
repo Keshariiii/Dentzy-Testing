@@ -524,8 +524,8 @@
 .ma-action-reject { background: #fbf8f2; color: #785b28; border-color: #ede5d8; }
 .ma-action-reject:active { background: #785b28; color: #fff; }
 
-.ma-action-delete { background: #fef2f2; color: var(--dz-color-error); border-color: #fecaca; padding: 7px 10px; }
-.ma-action-delete:active { background: var(--dz-color-error); color: #fff; }
+.ma-action-delete { background: #fef2f2; color: #EF4444; border-color: rgba(239, 68, 68, 0.35); padding: 7px 10px; }
+.ma-action-delete:active { background: #EF4444; color: #fff; }
 
 /* ── Refresh Button ────────────────────────────── */
 .ma-refresh-btn {

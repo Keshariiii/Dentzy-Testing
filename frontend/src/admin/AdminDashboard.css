@@ -988,12 +988,12 @@
 .ad-action-reject:hover { background: #785b28; color: #fff; }
 
 .ad-action-delete {
-  background: #fbf3f3;
-  color: #7a3838;
-  border-color: #eddada;
+  background: #fef2f2;
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.35);
   padding: 5px 7px;
 }
-.ad-action-delete:hover { background: #7a3838; color: #fff; }
+.ad-action-delete:hover { background: #EF4444; color: #fff; }
 
 /* =============================================================================
    PAYMENTS VIEW — Metrics, Filters, Mode Tags, Record Payment Modal

@@ -8,7 +8,7 @@ import './ConfirmDialog.css';
 const ICON_MAP = {
   primary: { Icon: Info, bgClass: 'cd-icon-primary', color: '#1e5038' },
   warning: { Icon: AlertTriangle, bgClass: 'cd-icon-warning', color: '#d97706' },
-  danger: { Icon: Trash2, bgClass: 'cd-icon-danger', color: '#dc2626' },
+  danger: { Icon: Trash2, bgClass: 'cd-icon-danger', color: '#EF4444' },
 };
 
 export default function ConfirmDialog({
@@ -43,7 +43,7 @@ export default function ConfirmDialog({
       isOpen={isOpen}
       onClose={onCancel}
       maxWidth="max-w-md"
-      className="cd-panel-modal"
+      className={`cd-panel-modal cd-panel-${type}`}
       raw={true}
       id="confirm-dialog"
     >

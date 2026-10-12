@@ -157,6 +157,7 @@ dashboard.get('/payments', async (c) => {
        COALESCE(p.status, 'Pending') as paymentStatus,
        COALESCE(p.paymentMode, '') as paymentMode,
        COALESCE(p.referenceNumber, '') as referenceNumber,
+       COALESCE(p.batchId, '') as batchId,
        COALESCE(p.amount, 0) as amount, p.invoiceNumber, p.paidAt
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ?`;

@@ -393,7 +393,8 @@ staff.get('/users/:id', verifyStaff(), async (c) => {
 
     const { results: orders } = await c.env.DB.prepare(
       `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus,
-       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber, p.paidAt, p.id as paymentId
+       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber,
+       COALESCE(p.batchId, '') as batchId, p.paidAt, p.id as paymentId
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ? ORDER BY o.createdAt DESC`
     ).bind(id).all();
@@ -524,9 +525,9 @@ staff.post('/payments/batch', verifyStaff(), async (c) => {
           if (!payment) {
             const pid = newId();
             await c.env.DB.prepare(
-              `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, createdAt, updatedAt)
-               VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-            ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, order.amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, ts, ts).run();
+              `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, batchId, createdAt, updatedAt)
+               VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, order.amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, batchId, ts, ts).run();
             updatedCount++;
             continue;
           }
@@ -534,8 +535,8 @@ staff.post('/payments/batch', verifyStaff(), async (c) => {
       }
 
       if (payment) {
-        const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'updatedAt = ?'];
-        const binds = [status, modeVal, refVal, paidAtVal, descVal, ts, payment.id];
+        const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'batchId = ?', 'updatedAt = ?'];
+        const binds = [status, modeVal, refVal, paidAtVal, descVal, batchId, ts, payment.id];
         await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
         updatedCount++;
       }

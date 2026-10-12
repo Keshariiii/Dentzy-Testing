@@ -6,6 +6,7 @@ import { StatusBadge } from './ui/status-badge';
 import PrintableInvoice from './common/PrintableInvoice';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
+import { apiFetch } from '../api/client';
 
 export default function PaymentDetailModal({
   payment,
@@ -18,6 +19,8 @@ export default function PaymentDetailModal({
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [batchStatement, setBatchStatement] = useState(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(false);
 
   // Keep last payment in ref so Framer Motion exit animation has data to render
   const lastPaymentRef = useRef(payment);
@@ -60,6 +63,21 @@ export default function PaymentDetailModal({
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleOpenInvoice = async () => {
+    if (displayPayment?.batchId) {
+      setLoadingInvoice(true);
+      try {
+        const data = await apiFetch(`/api/payments/batch/${displayPayment.batchId}`);
+        setBatchStatement(data);
+      } catch (err) {
+        console.error('Failed to load batch statement', err);
+      } finally {
+        setLoadingInvoice(false);
+      }
+    }
+    setShowInvoice(true);
   };
 
   const handleSaveAmount = async () => {
@@ -241,6 +259,38 @@ export default function PaymentDetailModal({
             </div>
           </div>
 
+          {/* Consolidated Batch Settlement Indicator */}
+          {displayPayment.batchId && (
+            <div style={{
+              background: '#e8f2ec',
+              border: '1px solid #c2dcd0',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              marginTop: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.82rem',
+            }}>
+              <div>
+                <span style={{ fontWeight: 700, color: '#1e5038', display: 'block' }}>Consolidated Batch Settlement</span>
+                <span style={{ fontSize: '0.74rem', color: '#4a7060' }}>
+                  Settled in batch: <code>{displayPayment.batchId}</code>
+                </span>
+              </div>
+              <span style={{
+                background: '#78937E',
+                color: '#fff',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '3px 9px',
+                borderRadius: '6px',
+              }}>
+                Batch Statement
+              </span>
+            </div>
+          )}
+
           {/* Description or Notes */}
           {(displayPayment.description || displayPayment.notes) && (
             <div className="pdm-notes-box">
@@ -281,7 +331,8 @@ export default function PaymentDetailModal({
               <button
                 type="button"
                 className="pdm-invoice-btn"
-                onClick={() => setShowInvoice(true)}
+                onClick={handleOpenInvoice}
+                disabled={loadingInvoice}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -293,8 +344,9 @@ export default function PaymentDetailModal({
                   color: '#1e5038',
                   fontWeight: 700,
                   fontSize: '0.82rem',
-                  cursor: 'pointer',
+                  cursor: loadingInvoice ? 'wait' : 'pointer',
                   minHeight: '38px',
+                  opacity: loadingInvoice ? 0.7 : 1,
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -303,7 +355,7 @@ export default function PaymentDetailModal({
                   <line x1="16" y1="13" x2="8" y2="13"/>
                   <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
-                View Invoice
+                {loadingInvoice ? 'Loading Statement...' : (displayPayment?.batchId ? 'View Batch Statement' : 'View Invoice')}
               </button>
               {isAdmin && !isPaid && onRecordPayment && (
                 <button
@@ -328,8 +380,12 @@ export default function PaymentDetailModal({
       {/* Official Printable Invoice / Receipt Modal */}
       {showInvoice && (
         <PrintableInvoice
-          payment={{ ...displayPayment, amount: currentAmount }}
-          onClose={() => setShowInvoice(false)}
+          payment={batchStatement ? null : { ...displayPayment, amount: currentAmount }}
+          statement={batchStatement}
+          onClose={() => {
+            setShowInvoice(false);
+            setBatchStatement(null);
+          }}
         />
       )}
 

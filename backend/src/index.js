@@ -6,6 +6,7 @@ import dashboard from './routes/dashboard.js';
 import contact from './routes/contact.js';
 import staff from './routes/staff.js';
 import { sendEmail } from './utils/email.js';
+import { verifyAnyAuth } from './middleware/auth.js';
 
 const app = new Hono();
 
@@ -69,6 +70,59 @@ app.route('/api/admin', admin);
 app.route('/api/staff', staff);
 app.route('/api/dashboard', dashboard);
 app.route('/api/contact', contact);
+
+// ── Batch Invoice (Admin, Staff, or owning Dentist) ───────────────────────────
+app.get('/api/payments/batch/:batchId', verifyAnyAuth(), async (c) => {
+  const batchId = c.req.param('batchId');
+  const role = c.get('role');
+  const user = c.get('user');
+
+  const { results: batchPayments } = await c.env.DB.prepare(
+    `SELECT p.*, o.serviceType, o.teeth, o.dueDate, u.name as dentistName, u.clinicName, u.phone as dentistPhone, u.address as dentistAddress
+     FROM payments p
+     LEFT JOIN lab_orders o ON p.caseId = o.caseId AND p.ownerId = o.ownerId
+     LEFT JOIN users u ON p.ownerId = u.id
+     WHERE p.batchId = ?`
+  ).bind(batchId).all();
+
+  if (!batchPayments || batchPayments.length === 0) {
+    return c.json({ message: 'Batch invoice not found.' }, 404);
+  }
+
+  // Authorization check: if authenticated as dentist, ensure dentist owns the records
+  if (role === 'user' && batchPayments[0].ownerId !== user.id) {
+    return c.json({ message: 'Forbidden' }, 403);
+  }
+
+  const first = batchPayments[0];
+  const items = batchPayments.map(p => ({
+    caseId: p.caseId,
+    patientName: p.patientName,
+    service: p.serviceType || 'Dental Prosthetics',
+    teeth: p.teeth || '1 unit',
+    amount: Number(p.amount) || 0,
+    dueDate: p.dueDate,
+  }));
+  const totalAmount = items.reduce((s, it) => s + it.amount, 0);
+
+  return c.json({
+    batchId,
+    statementNumber: batchId,
+    status: first.status,
+    paymentMode: first.paymentMode || '',
+    referenceNumber: first.referenceNumber || '',
+    paidAt: first.paidAt || null,
+    notes: first.description || '',
+    dentist: {
+      name: first.dentistName || 'Registered Practitioner',
+      clinicName: first.clinicName || '',
+      phone: first.dentistPhone || '',
+      address: first.dentistAddress || 'Maharashtra, India',
+    },
+    items,
+    totalAmount,
+  });
+});
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 app.get('/', (c) => c.text('Dentzy Backend is Running'));

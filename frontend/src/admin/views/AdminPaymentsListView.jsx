@@ -17,6 +17,8 @@ export default function AdminPaymentsListView({
   setPayFilterStatus,
   payFilterMode,
   setPayFilterMode,
+  payFilterMonth = 'all',
+  setPayFilterMonth,
   paySearch,
   setPaySearch,
   onSelectPayment,
@@ -194,6 +196,37 @@ export default function AdminPaymentsListView({
             ))}
           </select>
         </div>
+
+        {setPayFilterMonth && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="month"
+              value={payFilterMonth === 'all' ? '' : payFilterMonth}
+              onChange={(e) => setPayFilterMonth(e.target.value || 'all')}
+              className={isMobile ? 'ma-sort-select' : 'ad-sort-select'}
+              style={{ fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}
+              aria-label="Filter by month"
+            />
+            {payFilterMonth !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setPayFilterMonth('all')}
+                style={{
+                  background: '#f0f4f2',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '0.75rem',
+                  color: '#4a7060',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                All Months
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Payments List */}

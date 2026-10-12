@@ -14,6 +14,7 @@ import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import BaseModal from '../components/ui/BaseModal';
+import PrintableInvoice from '../components/common/PrintableInvoice';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
@@ -172,6 +173,7 @@ const StaffDashboard = () => {
 
   // Batch Payment state for Staff
   const [selectedStaffPaymentIds, setSelectedStaffPaymentIds] = useState([]);
+  const [staffPayMonth, setStaffPayMonth] = useState('all');
   const [batchPayModalOpen, setBatchPayModalOpen] = useState(false);
   const [batchPayForm, setBatchPayForm] = useState({
     status: 'Paid',
@@ -181,6 +183,22 @@ const StaffDashboard = () => {
   });
   const [batchPaySaving, setBatchPaySaving] = useState(false);
   const [batchPayError, setBatchPayError] = useState('');
+  const [batchStatementModal, setBatchStatementModal] = useState(null);
+  const [singleInvoiceModal, setSingleInvoiceModal] = useState(null);
+
+  const handleViewStaffInvoice = async (order) => {
+    if (order.batchId) {
+      try {
+        const res = await authFetch(`/api/payments/batch/${order.batchId}`);
+        if (res.ok) {
+          const stmtData = await res.json();
+          setBatchStatementModal(stmtData);
+          return;
+        }
+      } catch {}
+    }
+    setSingleInvoiceModal(order);
+  };
 
   const fetchDentists = useCallback(async () => {
     setLoadingDentists(true);
@@ -243,6 +261,19 @@ const StaffDashboard = () => {
     setEditPaymentSaving(false);
   };
 
+  const filteredStaffDentistOrders = React.useMemo(() => {
+    return dentistOrders.filter(o => {
+      const hasPay = o.paymentAmount > 0 || o.paymentStatus;
+      if (!hasPay) return false;
+      if (staffPayMonth !== 'all') {
+        const oDate = o.createdAt || o.invoiceDate || '';
+        const oMonth = oDate.slice(0, 7);
+        if (oMonth && oMonth !== staffPayMonth) return false;
+      }
+      return true;
+    });
+  }, [dentistOrders, staffPayMonth]);
+
   const toggleStaffPaymentSelect = (orderId) => {
     setSelectedStaffPaymentIds(prev =>
       prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId]
@@ -250,10 +281,18 @@ const StaffDashboard = () => {
   };
 
   const toggleSelectAllStaffPayments = () => {
-    const paymentOrders = dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus);
-    const allIds = paymentOrders.map(o => o._id || o.id || o.caseId);
-    const allSelected = allIds.length > 0 && allIds.every(id => selectedStaffPaymentIds.includes(id));
-    setSelectedStaffPaymentIds(allSelected ? [] : allIds);
+    const currentIds = filteredStaffDentistOrders.map(o => o._id || o.id || o.caseId);
+    const allSelected = currentIds.length > 0 && currentIds.every(id => selectedStaffPaymentIds.includes(id));
+    if (allSelected) {
+      setSelectedStaffPaymentIds(prev => prev.filter(id => !currentIds.includes(id)));
+    } else {
+      setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...currentIds])));
+    }
+  };
+
+  const handleSelectStaffMonthOrders = () => {
+    const monthIds = filteredStaffDentistOrders.map(o => o._id || o.id || o.caseId);
+    setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...monthIds])));
   };
 
   const handleBatchStaffPaymentSubmit = async () => {
@@ -295,6 +334,16 @@ const StaffDashboard = () => {
         setBatchPayModalOpen(false);
         fetchOrders();
         if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+
+        if (batchPayForm.status === 'Paid' && data.batchId) {
+          try {
+            const stmtRes = await authFetch(`/api/payments/batch/${data.batchId}`);
+            if (stmtRes.ok) {
+              const stmtData = await stmtRes.json();
+              setBatchStatementModal(stmtData);
+            }
+          } catch {}
+        }
       } else {
         setBatchPayError(data.message || 'Failed to update payments.');
       }
@@ -775,7 +824,7 @@ const StaffDashboard = () => {
                     icon={Ico.arrowLeft(16)}
                     title="Back to Dentists List"
                     ariaLabel="Back to Dentists List"
-                    onClick={() => { setSelectedDentist(null); setDentistOrders([]); setSelectedStaffPaymentIds([]); }}
+                    onClick={() => { setSelectedDentist(null); setDentistOrders([]); setSelectedStaffPaymentIds([]); setStaffPayMonth('all'); }}
                     variant="secondary"
                     size="md"
                   />
@@ -800,7 +849,7 @@ const StaffDashboard = () => {
                 {['orders', 'payments'].map(tab => (
                   <button key={tab}
                     className={`sd-filter-btn ${dentistSubTab === tab ? 'sd-filter-btn--active' : ''}`}
-                    onClick={() => { setDentistSubTab(tab); setSelectedStaffPaymentIds([]); }}>
+                    onClick={() => { setDentistSubTab(tab); setSelectedStaffPaymentIds([]); setStaffPayMonth('all'); }}>
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 ))}
@@ -856,6 +905,87 @@ const StaffDashboard = () => {
                   <div className="sd-empty"><p>No payment records for this dentist.</p></div>
                 ) : (
                   <div>
+                    {/* Month Filter Controls */}
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap' }}>
+                      <label htmlFor="staff-month-filter" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a7060' }}>
+                        Filter Month:
+                      </label>
+                      <input
+                        id="staff-month-filter"
+                        type="month"
+                        value={staffPayMonth === 'all' ? '' : staffPayMonth}
+                        onChange={e => setStaffPayMonth(e.target.value || 'all')}
+                        style={{
+                          border: '1px solid #c2dcd0',
+                          borderRadius: '8px',
+                          padding: '4px 8px',
+                          fontSize: '0.82rem',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          minHeight: '36px',
+                        }}
+                      />
+                      {staffPayMonth !== 'all' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setStaffPayMonth('all')}
+                            style={{
+                              background: '#f0f4f2',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '6px 10px',
+                              fontSize: '0.78rem',
+                              color: '#4a7060',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                            }}
+                          >
+                            All Months
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSelectStaffMonthOrders}
+                            style={{
+                              background: '#e8f2ec',
+                              border: '1px solid #78937E',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.78rem',
+                              color: '#1e5038',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                            }}
+                            title="Add all orders from this month to payment selection"
+                          >
+                            + Select {staffPayMonth} Orders ({filteredStaffDentistOrders.length})
+                          </button>
+                        </>
+                      )}
+                      {selectedStaffPaymentIds.length > 0 && (
+                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#78937E', background: '#eff5f1', padding: '3px 10px', borderRadius: '6px' }}>
+                            {selectedStaffPaymentIds.length} orders selected across months
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaffPaymentIds([])}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#c53030',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                            }}
+                          >
+                            Clear Selection
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Multi-select Header Bar */}
                     <div style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -872,8 +1002,8 @@ const StaffDashboard = () => {
                         <input
                           type="checkbox"
                           checked={
-                            dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length > 0 &&
-                            dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).every(o =>
+                            filteredStaffDentistOrders.length > 0 &&
+                            filteredStaffDentistOrders.every(o =>
                               selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)
                             )
                           }
@@ -881,7 +1011,7 @@ const StaffDashboard = () => {
                           style={{ width: '16px', height: '16px', accentColor: '#78937E', cursor: 'pointer' }}
                         />
                         <span>
-                          Select All ({dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length})
+                          Select All ({filteredStaffDentistOrders.length})
                         </span>
                       </label>
                       {selectedStaffPaymentIds.length > 0 && (
@@ -891,8 +1021,11 @@ const StaffDashboard = () => {
                       )}
                     </div>
 
-                    <div className="sd-order-grid">
-                      {dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).map(order => {
+                    {filteredStaffDentistOrders.length === 0 ? (
+                      <div className="sd-empty"><p>No payment records for {staffPayMonth}.</p></div>
+                    ) : (
+                      <div className="sd-order-grid">
+                        {filteredStaffDentistOrders.map(order => {
                         const oid = order._id || order.id || order.caseId;
                         const isSelected = selectedStaffPaymentIds.includes(oid);
                         return (
@@ -934,7 +1067,7 @@ const StaffDashboard = () => {
                               {order.paidAt && <span className="sd-meta-item">Paid: {new Date(order.paidAt).toLocaleDateString('en-IN')}</span>}
                             </div>
                             {order.paymentId && (
-                              <div style={{ marginTop: '8px' }}>
+                              <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <TwentyFirstIconButton
                                   icon={Ico.creditCard(14)}
                                   title="Update Payment"
@@ -943,14 +1076,25 @@ const StaffDashboard = () => {
                                   size="sm"
                                   variant="success"
                                 />
+                                {order.paymentStatus === 'Paid' && (
+                                  <TwentyFirstIconButton
+                                    icon={Ico.fileText(14)}
+                                    title="View / Print Invoice"
+                                    ariaLabel="View / Print Invoice"
+                                    onClick={() => handleViewStaffInvoice(order)}
+                                    size="sm"
+                                    variant="soft"
+                                  />
+                                )}
                               </div>
                             )}
                           </div>
                         );
                       })}
                     </div>
+                  )}
 
-                    {/* Floating Batch Settlement Bar */}
+                  {/* Floating Batch Settlement Bar */}
                     {selectedStaffPaymentIds.length > 0 && (
                       <div style={{
                         position: 'fixed',
@@ -1291,6 +1435,20 @@ const StaffDashboard = () => {
           </div>
         </div>
       </BaseModal>
+
+      {/* ── Printable Invoice / Batch Statement Modal ── */}
+      {batchStatementModal && (
+        <PrintableInvoice
+          statement={batchStatementModal}
+          onClose={() => setBatchStatementModal(null)}
+        />
+      )}
+      {singleInvoiceModal && (
+        <PrintableInvoice
+          order={singleInvoiceModal}
+          onClose={() => setSingleInvoiceModal(null)}
+        />
+      )}
 
       {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
       <TwentyFirstBottomNav

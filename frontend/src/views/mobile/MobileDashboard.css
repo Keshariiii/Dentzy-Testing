@@ -1168,10 +1168,10 @@
 }
 
 .m-settings-delete-outline-btn {
-    border: 1.5px solid rgba(220, 38, 38, 0.4);
+    border: 1.5px solid rgba(239, 68, 68, 0.4);
     border-radius: 8px;
     background: none;
-    color: #dc2626;
+    color: #EF4444;
     font-size: 0.72rem;
     font-weight: 700;
     padding: 5px 12px;
@@ -1274,8 +1274,14 @@
 }
 
 .m-btn--danger {
-    background: var(--dz-color-error-bg);
-    color: #dc2626;
+    background: #EF4444;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.32);
+}
+
+.m-btn--danger:active {
+    background: #dc2626;
 }
 
 /* ── Messages ───────────────────────────────── */
@@ -1362,7 +1368,14 @@
 .m-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: radial-gradient(
+        ellipse 65% 55% at 50% 50%,
+        rgba(239, 68, 68, 0.18) 0%,
+        rgba(30, 16, 18, 0.6) 45%,
+        rgba(12, 18, 15, 0.85) 100%
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     z-index: 500;
     display: flex;
     align-items: flex-end;
@@ -1372,11 +1385,19 @@
 }
 
 .m-modal {
-    background: #fff;
+    background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #ffffff 48%,
+        #fff9f9 78%,
+        #fff2f2 100%
+    );
+    border: 1px solid rgba(239, 68, 68, 0.22);
     border-radius: 20px;
     padding: 24px 20px;
     width: 100%;
     max-width: 400px;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12), 0 14px 40px -8px rgba(239, 68, 68, 0.22), 0 25px 50px -12px rgba(15, 23, 20, 0.35);
     animation: m-slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

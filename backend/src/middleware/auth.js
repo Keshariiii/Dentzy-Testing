@@ -72,3 +72,41 @@ export const verifyStaff = () => async (c, next) => {
     return c.json({ message: 'Invalid or expired staff token.' }, 401);
   }
 };
+
+export const verifyAnyAuth = () => async (c, next) => {
+  const adminToken = extractToken(c, 'dentzy_admin_jwt');
+  if (adminToken && c.env.ADMIN_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(adminToken, c.env.ADMIN_JWT_SECRET);
+      if (payload.role === 'admin') {
+        c.set('role', 'admin');
+        c.set('admin', payload);
+        return next();
+      }
+    } catch {}
+  }
+
+  const staffToken = extractToken(c, 'dentzy_staff_jwt');
+  if (staffToken && c.env.STAFF_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(staffToken, c.env.STAFF_JWT_SECRET);
+      if (payload.role === 'staff') {
+        c.set('role', 'staff');
+        c.set('staff', payload);
+        return next();
+      }
+    } catch {}
+  }
+
+  const userToken = extractToken(c, 'dentzy_jwt');
+  if (userToken && c.env.JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(userToken, c.env.JWT_SECRET);
+      c.set('role', 'user');
+      c.set('user', payload);
+      return next();
+    } catch {}
+  }
+
+  return c.json({ message: 'Access denied. Please log in.' }, 401);
+};

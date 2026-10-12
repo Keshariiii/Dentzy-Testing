@@ -944,8 +944,8 @@
 .ud-settings-delete-outline-btn {
   padding: 6px 16px;
   background: transparent;
-  color: #c0392b;
-  border: 1.5px solid #f5c6c6;
+  color: #EF4444;
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
   border-radius: 50px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -955,12 +955,12 @@
   flex-shrink: 0;
 }
 
-.ud-settings-delete-outline-btn:hover { background: #fff0f0; border-color: #c0392b; }
+.ud-settings-delete-outline-btn:hover { background: #fff5f5; border-color: #EF4444; }
 
 /* Filled delete button (in modal) */
 .ud-settings-delete-btn {
   padding: 10px 22px;
-  background: #c0392b;
+  background: #EF4444;
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -972,21 +972,30 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.32);
 }
 
 .ud-settings-delete-btn:hover:not(:disabled) {
-  background: #922b21;
+  background: #dc2626;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(192, 57, 43, 0.35);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.42);
 }
 
 .ud-settings-delete-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* â”€â”€ Delete confirmation modal â”€â”€ */
+/* ── Delete confirmation modal ── */
+.dz-modal-root:has(#delete-modal) .dz-modal-backdrop,
 .ud-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10, 20, 16, 0.5);
+  background: radial-gradient(
+    ellipse 65% 55% at 50% 50%,
+    rgba(239, 68, 68, 0.18) 0%,
+    rgba(30, 16, 18, 0.6) 45%,
+    rgba(12, 18, 15, 0.85) 100%
+  ) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -996,8 +1005,16 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+.dz-modal-container:has(#delete-confirm-password),
 .ud-modal {
-  background: #fff;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ffffff 48%,
+    #fff9f9 78%,
+    #fff2f2 100%
+  ) !important;
+  border: 1px solid rgba(239, 68, 68, 0.22) !important;
   border-radius: 20px;
   padding: 32px 28px 24px;
   max-width: 400px;
@@ -1005,7 +1022,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12), 0 14px 40px -8px rgba(239, 68, 68, 0.22), 0 25px 50px -12px rgba(15, 23, 20, 0.35);
   animation: slideUp 0.2s ease;
 }
 

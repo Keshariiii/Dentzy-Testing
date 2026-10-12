@@ -13,6 +13,7 @@ import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import BaseModal from '../../components/ui/BaseModal';
+import PrintableInvoice from '../../components/common/PrintableInvoice';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
@@ -105,6 +106,7 @@ const MobileAdminDashboard = () => {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [payFilterStatus, setPayFilterStatus] = useState('all');
   const [payFilterMode, setPayFilterMode]     = useState('all');
+  const [payFilterMonth, setPayFilterMonth]   = useState('all');
   const [paySearch, setPaySearch]             = useState('');
   const [drillDentistPayments, setDrillDentistPayments] = useState(null); // { _id, name, clinicName }
 
@@ -120,6 +122,7 @@ const MobileAdminDashboard = () => {
   const [batchPayForm, setBatchPayForm] = useState({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
   const [batchPaySaving, setBatchPaySaving] = useState(false);
   const [batchPayError, setBatchPayError] = useState('');
+  const [batchStatementModal, setBatchStatementModal] = useState(null);
 
   // Detail modals
   const [selectedOrder, setSelectedOrder]     = useState(null);
@@ -460,9 +463,18 @@ const MobileAdminDashboard = () => {
   };
 
   const toggleSelectAllPayments = () => {
-    const allIds = filteredPaymentsForDrill.map(p => p._id);
-    const allSelected = allIds.length > 0 && allIds.every(id => selectedPaymentIds.includes(id));
-    setSelectedPaymentIds(allSelected ? [] : allIds);
+    const targetIds = filteredPaymentsForDrill.map(p => p._id);
+    const allAreSelected = targetIds.length > 0 && targetIds.every(id => selectedPaymentIds.includes(id));
+    if (allAreSelected) {
+      setSelectedPaymentIds(prev => prev.filter(id => !targetIds.includes(id)));
+    } else {
+      setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...targetIds])));
+    }
+  };
+
+  const handleSelectMonthOrders = () => {
+    const monthIds = filteredPaymentsForDrill.map(p => p._id);
+    setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...monthIds])));
   };
 
   const handleBatchRecordPayment = async () => {
@@ -497,6 +509,16 @@ const MobileAdminDashboard = () => {
         setBatchPayModalOpen(false);
         fetchAllOrders();
         fetchPayments();
+
+        if (batchPayForm.status === 'Paid' && data.batchId) {
+          try {
+            const stmtRes = await authFetch(`/api/payments/batch/${data.batchId}`);
+            if (stmtRes.ok) {
+              const stmtData = await stmtRes.json();
+              setBatchStatementModal(stmtData);
+            }
+          } catch {}
+        }
       } else {
         setBatchPayError(data.message || 'Failed to update payments.');
       }
@@ -688,9 +710,14 @@ const MobileAdminDashboard = () => {
       if (id !== drillDentistPayments._id) return false;
       if (payFilterStatus !== 'all' && p.paymentStatus !== payFilterStatus) return false;
       if (payFilterMode !== 'all' && p.paymentMode !== payFilterMode) return false;
+      if (payFilterMonth !== 'all') {
+        const pDate = p.createdAt || p.invoiceDate || '';
+        const pMonth = pDate.slice(0, 7);
+        if (pMonth && pMonth !== payFilterMonth) return false;
+      }
       return true;
     });
-  }, [paymentData.payments, drillDentistPayments, payFilterStatus, payFilterMode]);
+  }, [paymentData.payments, drillDentistPayments, payFilterStatus, payFilterMode, payFilterMonth]);
 
   /* ============================================================
      RENDER
@@ -1109,7 +1136,7 @@ const MobileAdminDashboard = () => {
               {/* Back Arrow Bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
                 <button
-                  onClick={() => { setDrillDentistPayments(null); setSelectedPaymentIds([]); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }}
+                  onClick={() => { setDrillDentistPayments(null); setSelectedPaymentIds([]); setPayFilterStatus('all'); setPayFilterMode('all'); setPayFilterMonth('all'); setPaySearch(''); }}
                   aria-label="Back"
                   title="Back"
                   style={{
@@ -1150,7 +1177,7 @@ const MobileAdminDashboard = () => {
                       style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#4a7060',
-                        userSelect: 'none', minHeight: '36px'
+                        userSelect: 'none', minHeight: '44px'
                       }}
                       onClick={toggleSelectAllPayments}
                     >
@@ -1164,6 +1191,93 @@ const MobileAdminDashboard = () => {
                     </label>
                   )}
                 </div>
+              </div>
+
+              {/* Native Month Selector Filter (Mobile) */}
+              <div style={{ padding: '0 16px', marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label htmlFor="ma-month-picker" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a7060' }}>
+                  Month:
+                </label>
+                <input
+                  id="ma-month-picker"
+                  type="month"
+                  value={payFilterMonth === 'all' ? '' : payFilterMonth}
+                  onChange={e => setPayFilterMonth(e.target.value || 'all')}
+                  style={{
+                    border: '1px solid #c2dcd0',
+                    borderRadius: '8px',
+                    padding: '6px 10px',
+                    fontSize: '0.84rem',
+                    color: '#1a3028',
+                    background: '#fff',
+                    cursor: 'pointer',
+                    minHeight: '44px',
+                  }}
+                />
+                {payFilterMonth !== 'all' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setPayFilterMonth('all')}
+                      style={{
+                        background: '#f0f4f2',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        fontSize: '0.78rem',
+                        color: '#4a7060',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        minHeight: '44px',
+                      }}
+                    >
+                      All Months
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSelectMonthOrders}
+                      style={{
+                        background: '#e8f2ec',
+                        border: '1px solid #78937E',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        fontSize: '0.8rem',
+                        color: '#1e5038',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        minHeight: '44px',
+                      }}
+                      title="Add all orders from this month to payment selection"
+                    >
+                      + Select {payFilterMonth} Orders ({filteredPaymentsForDrill.length})
+                    </button>
+                  </>
+                )}
+                {selectedPaymentIds.length > 0 && (
+                  <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1e5038' }}>
+                      {selectedPaymentIds.length} orders selected
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentIds([])}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#c53030',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        minHeight: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                )}
               </div>
 
               <main className="ma-main">
@@ -2048,6 +2162,14 @@ const MobileAdminDashboard = () => {
         isOpen={!!confirmConfig}
         {...confirmConfig}
       />
+
+      {/* Consolidated Batch Invoice Statement Modal */}
+      {batchStatementModal && (
+        <PrintableInvoice
+          statement={batchStatementModal}
+          onClose={() => setBatchStatementModal(null)}
+        />
+      )}
     </div>
   );
 };

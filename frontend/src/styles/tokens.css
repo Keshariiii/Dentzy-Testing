@@ -68,6 +68,8 @@
   --dz-color-error-bg:        #fbf3f3;   /* Soft neutral rose tint    */
   --dz-color-error-text:      #7a3838;   /* Muted deep brick text     */
   --dz-color-error-border:    #eddada;   /* Soft rose-stone border    */
+  --dz-color-danger:          #EF4444;   /* Global delete/destructive action red */
+  --dz-color-danger-hover:    #dc2626;   /* Destructive hover red     */
 
   --dz-color-info:            #334155;   /* Neutral slate gray        */
   --dz-color-info-bg:         #f1f5f8;   /* Cool soft neutral slate   */

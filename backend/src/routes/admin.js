@@ -246,6 +246,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
                COALESCE(p.paymentMode, '') as paymentMode,
                COALESCE(p.referenceNumber, '') as referenceNumber,
                COALESCE(p.amount, 0) as paymentAmount,
+               p.batchId,
                p.paidAt
                FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
                LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
@@ -268,6 +269,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
       paymentMode: r.paymentMode,
       referenceNumber: r.referenceNumber,
       paymentAmount: r.paymentAmount,
+      batchId: r.batchId || '',
       paidAt: r.paidAt,
       owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
     }));
@@ -468,6 +470,7 @@ admin.get('/payments', verifyAdmin(), async (c) => {
        COALESCE(p.paymentMode, '') as paymentMode,
        COALESCE(p.referenceNumber, '') as referenceNumber,
        COALESCE(p.amount, 0) as amount,
+       COALESCE(p.batchId, '') as batchId,
        p.invoiceNumber, p.paidAt
        FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id
        LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId WHERE 1=1`;
@@ -587,9 +590,9 @@ admin.post('/payments/batch', verifyAdmin(), async (c) => {
             // Insert new payment record for this order
             const pid = newId();
             await c.env.DB.prepare(
-              `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, createdAt, updatedAt)
-               VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-            ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, order.amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, ts, ts).run();
+              `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, batchId, createdAt, updatedAt)
+               VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, order.amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, batchId, ts, ts).run();
             updatedCount++;
             continue;
           }
@@ -597,8 +600,8 @@ admin.post('/payments/batch', verifyAdmin(), async (c) => {
       }
 
       if (payment) {
-        const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'updatedAt = ?'];
-        const binds = [status, modeVal, refVal, paidAtVal, descVal, ts, payment.id];
+        const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'batchId = ?', 'updatedAt = ?'];
+        const binds = [status, modeVal, refVal, paidAtVal, descVal, batchId, ts, payment.id];
         await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
         updatedCount++;
       }

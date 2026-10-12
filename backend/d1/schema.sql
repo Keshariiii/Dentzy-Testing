@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS payments (
     paymentMode TEXT DEFAULT '',
     referenceNumber TEXT DEFAULT '',
     paidAt TEXT DEFAULT NULL,
+    batchId TEXT DEFAULT NULL,
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
     FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
@@ -63,6 +64,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_ownerId ON payments(ownerId);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_payments_mode ON payments(paymentMode);
 CREATE INDEX IF NOT EXISTS idx_payments_ref ON payments(referenceNumber);
+CREATE INDEX IF NOT EXISTS idx_payments_batchId ON payments(batchId);
 
 CREATE TABLE IF NOT EXISTS contacts (
     id TEXT PRIMARY KEY,
