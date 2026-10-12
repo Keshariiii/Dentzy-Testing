@@ -8,6 +8,7 @@ import { useAdminAuth } from './AdminAuthContext';
 import './DentistDetailModal.css';
 import BaseModal from '../components/ui/BaseModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
@@ -63,6 +64,9 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const [submitting, setSubmitting]   = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting]       = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [deletingOrder, setDeletingOrder] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const { showToast } = useToast();
 
 
@@ -137,18 +141,29 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
     setSubmitting(false);
   };
   /* ── Delete order ─────────────────────────────────────────────────────── */
-  const handleDeleteOrder = async (orderId, caseId) => {
-    if (!window.confirm(`Are you sure you want to delete order ${caseId}? This cannot be undone.`)) return;
+  const handleDeleteOrderClick = (order) => {
+    setOrderToDelete(order);
+  };
+
+  const handleConfirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    const oId = orderToDelete._id || orderToDelete.id;
+    setDeletingOrder(true);
     try {
-      const res = await authFetch(`${ADMIN_API}/orders/${orderId}`, { method: 'DELETE' });
+      const res = await authFetch(`${ADMIN_API}/orders/${oId}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
-        setOrders(prev => prev.filter(o => (o._id || o.id) !== orderId));
+        setOrders(prev => prev.filter(o => (o._id || o.id) !== oId));
         showToast('Order deleted successfully.');
+        setOrderToDelete(null);
       } else {
         showToast(data.message || 'Failed to delete order', 'error');
       }
-    } catch { showToast('Network error', 'error'); }
+    } catch {
+      showToast('Network error', 'error');
+    } finally {
+      setDeletingOrder(false);
+    }
   };
 
   /* ── Delete dentist account ────────────────────────────────────────────── */
@@ -258,17 +273,22 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                     {orders.map(order => {
                       const oId = order._id || order.id;
                       return (
-                      <div key={oId} className="ddm-order-card">
+                      <div
+                        key={oId}
+                        className="ddm-order-card"
+                        onClick={() => setSelectedOrder(order)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div className="ddm-order-top">
                           <div className="ddm-order-id-row">
                             <span className="ddm-order-caseid">{order.caseId}</span>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                               <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
                               <TwentyFirstIconButton
                                 icon={Ico.trash(14)}
                                 title="Delete Order"
                                 ariaLabel="Delete Order"
-                                onClick={() => handleDeleteOrder(oId, order.caseId)}
+                                onClick={() => handleDeleteOrderClick(order)}
                                 size="sm"
                                 variant="danger"
                               />
@@ -285,7 +305,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
                         <PipelineBar stage={order.stage} />
 
-                        <div className="ddm-order-stage-row">
+                        <div className="ddm-order-stage-row" onClick={e => e.stopPropagation()}>
                           <label className="ddm-stage-label">Update Stage:</label>
                           <select
                             className="ddm-stage-select"
@@ -322,6 +342,43 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
 
         </div>
       </BaseModal>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          isAdmin={true}
+          onDelete={async (id) => {
+            try {
+              const res = await authFetch(`${ADMIN_API}/orders/${id}`, { method: 'DELETE' });
+              const data = await res.json();
+              if (res.ok) {
+                setOrders(prev => prev.filter(o => (o._id || o.id) !== id));
+                showToast('Order deleted successfully.');
+                setSelectedOrder(null);
+              } else {
+                showToast(data.message || 'Failed to delete order', 'error');
+              }
+            } catch {
+              showToast('Network error', 'error');
+            }
+          }}
+        />
+      )}
+
+      {/* Delete Order Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(orderToDelete)}
+        title="Delete Order?"
+        message={`Are you sure you want to delete order "${orderToDelete?.caseId}" for ${orderToDelete?.patientName || 'this patient'}? This action cannot be undone.`}
+        confirmText="Delete Order"
+        cancelText="Cancel"
+        type="danger"
+        loading={deletingOrder}
+        onConfirm={handleConfirmDeleteOrder}
+        onCancel={() => setOrderToDelete(null)}
+      />
 
       {/* Delete Dentist Confirmation Dialog */}
       <ConfirmDialog

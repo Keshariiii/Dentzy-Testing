@@ -37,7 +37,7 @@ export default function BaseModal({
   raw = false,
 }) {
   const isMobile = useIsMobile();
-  const { requestClose } = useBackNavigation({
+  const { requestClose, stackDepth } = useBackNavigation({
     isOpen,
     onClose,
     closeOnEscape,
@@ -82,6 +82,7 @@ export default function BaseModal({
           role="dialog" 
           aria-modal="true" 
           aria-labelledby={title ? `${id}-title` : undefined}
+          style={{ zIndex: 9999 + ((stackDepth || 0) * 10) }}
         >
           {/* Glassmorphic Backdrop */}
           <motion.div
