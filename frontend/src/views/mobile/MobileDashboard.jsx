@@ -27,6 +27,7 @@ import ProductionPipeline from '../../components/common/ProductionPipeline';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
+import { AnimatedBadge } from '../../components/ui/be-ui-animated-badge';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -914,7 +915,25 @@ const MobileDashboard = () => {
   ============================================================ */
   return (
     <div className="m-app-shell">
-      <MobileHeader title={null} onAvatarClick={() => setActiveTab('settings')}>
+      <MobileHeader
+        title={null}
+        onAvatarClick={() => setActiveTab('settings')}
+        rightElement={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AnimatedBadge status="success" size="sm" pulse className="text-[10px] h-5 px-1.5">
+              Live
+            </AnimatedBadge>
+            <button
+              className="m-header__avatar"
+              onClick={() => setActiveTab('settings')}
+              aria-label="Profile"
+              title="Profile"
+            >
+              {initials}
+            </button>
+          </div>
+        }
+      >
         <div className="m-header-search-bar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -948,12 +967,37 @@ const MobileDashboard = () => {
 
       {/* -- 21st.dev: Floating Bottom Navigation -- */}
       <TwentyFirstBottomNav
-        items={DENTIST_NAV_ITEMS.map(item => ({
-          ...item,
-          badge: item.key === 'orders' && stats?.orders?.pending > 0 ? stats.orders.pending : undefined,
-          badgeStatus: 'warning',
-          badgePulse: Boolean(stats?.orders?.pending > 0),
-        }))}
+        items={DENTIST_NAV_ITEMS.map(item => {
+          let badge = undefined;
+          let badgeStatus = 'success';
+          let badgePulse = false;
+
+          if (item.key === 'orders') {
+            const pending = stats?.orders?.pending || 0;
+            const total = stats?.orders?.total || orders.length;
+            if (pending > 0) {
+              badge = pending;
+              badgeStatus = 'warning';
+              badgePulse = true;
+            } else if (total > 0) {
+              badge = total;
+              badgeStatus = 'success';
+            }
+          } else if (item.key === 'payments') {
+            const pendingPayments = payments.filter(p => p.paymentStatus !== 'Paid').length;
+            if (pendingPayments > 0) {
+              badge = pendingPayments;
+              badgeStatus = 'warning';
+            }
+          }
+
+          return {
+            ...item,
+            badge,
+            badgeStatus,
+            badgePulse,
+          };
+        })}
         activeKey={activeTab}
         onChange={setActiveTab}
         layoutId="dentist-nav-pill"

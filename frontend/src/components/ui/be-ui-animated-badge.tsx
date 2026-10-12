@@ -86,14 +86,12 @@ export interface AnimatedBadgeProps
 }
 
 const STATUS_CLASS: Record<AnimatedBadgeStatus, string> = {
-  neutral: "border-border bg-card text-muted-foreground",
-  info: "border-primary/30 bg-primary/10 text-primary",
-  success:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  warning:
-    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  danger: "border-destructive/30 bg-destructive/10 text-destructive",
-  loading: "border-primary/30 bg-primary/10 text-primary",
+  neutral: "border-slate-200 bg-slate-100/90 text-slate-700",
+  info: "border-blue-400/30 bg-blue-50 text-blue-700",
+  success: "border-emerald-500/30 bg-emerald-50 text-emerald-700",
+  warning: "border-amber-500/30 bg-amber-50 text-amber-700",
+  danger: "border-rose-500/30 bg-rose-50 text-rose-700",
+  loading: "border-[#1e5038]/30 bg-[#1e5038]/10 text-[#1e5038]",
 };
 
 const SIZE_CLASS: Record<AnimatedBadgeSize, string> = {

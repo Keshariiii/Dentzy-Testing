@@ -64,14 +64,14 @@ export function TwentyFirstBottomNav({
             <span className="relative z-10 flex items-center justify-center mb-0.5">
               {item.icon(isActive)}
               {hasBadge && (
-                <span className="absolute -top-1.5 -right-3.5 pointer-events-none">
+                <span className="absolute -top-2 -right-4 pointer-events-none z-20">
                   <AnimatedBadge
                     status={item.badgeStatus || 'warning'}
                     size="sm"
-                    showIcon={Boolean(item.badgeIcon)}
+                    showIcon={item.badgeIcon !== undefined ? Boolean(item.badgeIcon) : true}
                     pulse={Boolean(item.badgePulse)}
                     contentKey={item.badge}
-                    className="h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none shadow-sm rounded-full"
+                    className="h-5 min-w-[20px] px-1.5 text-[10px] font-bold leading-none shadow-sm rounded-full"
                   >
                     {item.badge}
                   </AnimatedBadge>

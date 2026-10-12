@@ -16,6 +16,7 @@ import CreateOrderModal from '../components/common/CreateOrderModal';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
+import { AnimatedBadge } from '../components/ui/be-ui-animated-badge';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -380,6 +381,9 @@ const StaffDashboard = () => {
           <span className="sd-header-title">Staff Portal</span>
         </button>
         <div className="sd-header-right">
+          <AnimatedBadge status="success" size="sm" pulse>
+            Staff Online
+          </AnimatedBadge>
           <span className="sd-header-name">{staffName}</span>
           <button
             type="button"
@@ -400,8 +404,15 @@ const StaffDashboard = () => {
         {NAV_ITEMS.map(item => (
           <button key={item.key}
             className={`sd-nav-btn ${activeView === item.key ? 'sd-nav-btn--active' : ''}`}
-            onClick={() => setActiveView(item.key)}>
-            {item.label}
+            onClick={() => setActiveView(item.key)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>{item.label}</span>
+            {item.key === 'orders' && orders.length > 0 && (
+              <AnimatedBadge status="info" size="sm" className="text-[10px] h-4.5 px-1.5 pointer-events-none">
+                {orders.length}
+              </AnimatedBadge>
+            )}
           </button>
         ))}
       </nav>

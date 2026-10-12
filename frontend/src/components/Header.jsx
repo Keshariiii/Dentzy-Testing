@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
 import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
+import { AnimatedBadge } from './ui/be-ui-animated-badge';
 import './Header.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { useAuth } from '../context/AuthContext';
@@ -90,6 +91,9 @@ const Header = () => {
 
           {user ? (
             <div className="nav-user-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <AnimatedBadge status="success" size="sm" pulse>
+                Portal Live
+              </AnimatedBadge>
               <span className="nav-username" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <User size={14} />
                 {user.name}
@@ -105,15 +109,20 @@ const Header = () => {
               />
             </div>
           ) : (
-            <Link href="/login" id="nav-get-started-btn" className="desktop-only" aria-label="Get Started" title="Get Started" style={{ display: 'inline-flex', alignItems: 'center' }}>
-              <TwentyFirstIconButton
-                icon={<LogIn size={16} />}
-                title="Get Started"
-                ariaLabel="Get Started"
-                variant="primary"
-                size="sm"
-              />
-            </Link>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+              <AnimatedBadge status="info" size="sm">
+                Lab Online
+              </AnimatedBadge>
+              <Link href="/login" id="nav-get-started-btn" className="desktop-only" aria-label="Get Started" title="Get Started" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <TwentyFirstIconButton
+                  icon={<LogIn size={16} />}
+                  title="Get Started"
+                  ariaLabel="Get Started"
+                  variant="primary"
+                  size="sm"
+                />
+              </Link>
+            </div>
           )}
         </nav>
       </div>
