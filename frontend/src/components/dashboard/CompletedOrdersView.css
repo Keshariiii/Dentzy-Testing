@@ -1,0 +1,337 @@
+/* =============================================================================
+   CompletedOrdersView.css — 21st.dev UI for Completed Lab Orders
+   Adheres strictly to rules.md:
+   - Zero emojis (SVG icons only)
+   - No colored accent lines (elevation shadows only)
+   - Dentzy official palette (#1e5038, #174230, #e8f5ee, #16a34a, #dcfce7)
+   - Mobile parity: 44px+ touch targets, 96px bottom padding
+============================================================================= */
+
+.cov-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: covFadeIn 0.2s ease-out;
+}
+
+@keyframes covFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header Banner */
+.cov-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.cov-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cov-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cov-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cov-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.cov-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e8f5ee;
+  color: #1e5038;
+}
+
+.cov-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Search bar */
+.cov-search-wrap {
+  position: relative;
+  min-width: 260px;
+  flex: 1;
+  max-width: 360px;
+}
+
+.cov-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.cov-search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 2.25rem 0 2.4rem;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cov-search-input:focus {
+  border-color: #1e5038;
+  box-shadow: 0 0 0 3px rgba(30, 80, 56, 0.12);
+  background: #ffffff;
+}
+
+.cov-search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.cov-search-clear:hover {
+  color: #111827;
+  background: #f3f4f6;
+}
+
+/* Table Card (Desktop) */
+.cov-table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.cov-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.cov-table th {
+  padding: 0.875rem 1.25rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background: #fcfdfd;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.cov-table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f8faf9;
+  color: #374151;
+  transition: background-color 0.15s ease;
+}
+
+.cov-row {
+  cursor: pointer;
+}
+
+.cov-row:hover td {
+  background-color: #f7faf8;
+}
+
+.cov-case-code {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e5038;
+  background: #e8f5ee;
+  border-radius: 6px;
+}
+
+.cov-patient-name {
+  font-weight: 600;
+  color: #111827;
+  display: block;
+}
+
+.cov-service-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.cov-action-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e5038;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  background: #f0f7f3;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cov-row:hover .cov-action-cta {
+  background: #1e5038;
+  color: #ffffff;
+}
+
+/* Mobile Cards List */
+.cov-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.cov-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 44px;
+}
+
+.cov-card:active {
+  transform: scale(0.985);
+}
+
+.cov-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cov-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cov-card-patient {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.cov-card-service {
+  font-size: 0.825rem;
+  color: #4b5563;
+}
+
+.cov-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f3f4f6;
+  font-size: 0.775rem;
+  color: #6b7280;
+}
+
+.cov-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  color: #1e5038;
+}
+
+/* Loading skeleton */
+.cov-skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.cov-skeleton-line {
+  height: 48px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: covShimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes covShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Safe bottom spacing for mobile floating nav */
+.cov-bottom-spacer {
+  height: 96px;
+}
+
+/* Responsive breakpoint */
+@media (max-width: 768px) {
+  .cov-table-card {
+    display: none;
+  }
+  .cov-mobile-list {
+    display: flex;
+  }
+  .cov-header {
+    padding: 1rem;
+  }
+  .cov-search-wrap {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .cov-title {
+    font-size: 1.15rem;
+  }
+}

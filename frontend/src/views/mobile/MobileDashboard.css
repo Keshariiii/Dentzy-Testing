@@ -214,6 +214,16 @@
     gap: 8px;
 }
 
+.m-stat-card--clickable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.m-stat-card--clickable:active {
+    transform: scale(0.97);
+}
+
 .m-stat-skeleton {
     background: linear-gradient(90deg, #f1f5f9 25%, var(--dz-color-border) 50%, #f1f5f9 75%);
     background-size: 200% 100%;

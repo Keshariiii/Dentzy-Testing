@@ -24,6 +24,7 @@ import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate } from '../../utils/format';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
+import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
 
@@ -200,7 +201,7 @@ const MobileDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      if (activeTab === 'orders' || activeTab === 'dashboard') fetchOrders();
+      if (activeTab === 'orders' || activeTab === 'dashboard' || activeTab === 'completed-orders') fetchOrders();
       if (activeTab === 'payments') fetchPayments();
     }
   }, [user, activeTab, fetchOrders, fetchPayments]);
@@ -376,7 +377,13 @@ const MobileDashboard = () => {
           </div>
         ) : stats ? (
           <div className="m-stats-row">
-            <div className="m-stat-card m-stat--primary">
+            <div
+              className="m-stat-card m-stat--primary m-stat-card--clickable"
+              onClick={() => setActiveTab('orders')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('orders'); } }}
+            >
               <div className="m-stat-top">
                 <span className="m-stat-num">{stats.orders.total}</span>
                 <span className="m-stat-icon">{Icons.orders(22)}</span>
@@ -387,7 +394,13 @@ const MobileDashboard = () => {
                 <span className="m-tag m-tag--blue">{stats.orders.inProgress} Active</span>
               </div>
             </div>
-            <div className="m-stat-card m-stat--success">
+            <div
+              className="m-stat-card m-stat--success m-stat-card--clickable"
+              onClick={() => setActiveTab('completed-orders')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('completed-orders'); } }}
+            >
               <div className="m-stat-top">
                 <span className="m-stat-num">{stats.orders.completed}</span>
                 <span className="m-stat-icon">{Icons.checkCircle(22)}</span>
@@ -891,6 +904,15 @@ const MobileDashboard = () => {
     switch (activeTab) {
       case 'dashboard': return renderOverview();
       case 'orders':    return renderOrders();
+      case 'completed-orders': return (
+        <CompletedOrdersView
+          orders={orders}
+          loading={loading}
+          onSelectOrder={setSelectedOrder}
+          onBack={() => setActiveTab('dashboard')}
+          isMobile={true}
+        />
+      );
       case 'payments':  return renderPayments();
       case 'settings':  return renderSettings();
       default:          return renderOverview();

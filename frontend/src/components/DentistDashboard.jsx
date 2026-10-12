@@ -13,6 +13,7 @@ import BaseModal from './ui/BaseModal';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import EmptyState from './common/EmptyState';
 import ProductionPipeline from './common/ProductionPipeline';
+import CompletedOrdersView from './dashboard/CompletedOrdersView';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* =============================================================================
@@ -172,7 +173,7 @@ const DentistDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      if (activeTab === 'orders' || activeTab === 'dashboard') fetchOrders();
+      if (activeTab === 'orders' || activeTab === 'dashboard' || activeTab === 'completed-orders') fetchOrders();
       if (activeTab === 'payments') fetchPayments();
     }
   }, [user, activeTab, fetchOrders, fetchPayments]);
@@ -329,7 +330,14 @@ const DentistDashboard = () => {
         {/* Stat Cards */}
         {stats ? (
           <div className="ud-stats-grid">
-            <div className="ud-stat-card ud-stat-card--green" title="Total lab orders submitted — includes pending, in-progress, and completed cases">
+            <div
+              className="ud-stat-card ud-stat-card--green ud-stat-card--clickable"
+              title="Total lab orders submitted — click to view all orders"
+              onClick={() => setActiveTab('orders')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('orders'); } }}
+            >
               <div className="ud-stat-icon-wrap ud-icon-blue">{Icons.orders(22)}</div>
               <div className="ud-stat-info">
                 <span className="ud-stat-num">{stats.orders.total}</span>
@@ -341,15 +349,20 @@ const DentistDashboard = () => {
               </div>
             </div>
 
-            <div className="ud-stat-card ud-stat-card--emerald" title="Cases that have passed QC and been dispatched to your clinic">
+            <div
+              className="ud-stat-card ud-stat-card--emerald ud-stat-card--clickable"
+              title="Cases that have passed QC and been dispatched — click to view completed cases"
+              onClick={() => setActiveTab('completed-orders')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('completed-orders'); } }}
+            >
               <div className="ud-stat-icon-wrap ud-icon-green">{Icons.checkCircle(22)}</div>
               <div className="ud-stat-info">
                 <span className="ud-stat-num">{stats.orders.completed}</span>
                 <span className="ud-stat-lbl">Completed</span>
               </div>
             </div>
-
-
           </div>
         ) : (
           <div className="ud-stats-skeleton">
@@ -915,6 +928,14 @@ const DentistDashboard = () => {
   const renderContent = () => {
     if (activeTab === 'dashboard') return renderDashboard();
     if (activeTab === 'orders')   return renderOrders();
+    if (activeTab === 'completed-orders') return (
+      <CompletedOrdersView
+        orders={orders}
+        loading={loading}
+        onSelectOrder={setSelectedOrder}
+        onBack={() => setActiveTab('dashboard')}
+      />
+    );
     if (activeTab === 'settings') return renderSettings();
     if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} />;
     return null;
