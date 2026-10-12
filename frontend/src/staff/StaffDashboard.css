@@ -818,4 +818,28 @@
   .sd-settings-info-value { text-align: left; }
   .sd-settings-action-row { flex-direction: column; align-items: flex-start; gap: 10px; }
   .sd-field-row { grid-template-columns: 1fr; }
+  .sd-order-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+  }
+  .sd-order-header {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f8faf9;
+  }
+  .sd-order-meta {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .sd-order-grid {
+    gap: 10px;
+  }
+  .sd-inv-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+  }
 }

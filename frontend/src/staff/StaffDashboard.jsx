@@ -679,6 +679,9 @@ const StaffDashboard = () => {
                           <span className="sd-order-caseid">{d.name || 'Unnamed'}</span>
                           <span className="sd-order-patient">{d.clinicName || ''}</span>
                         </div>
+                        <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                          {Ico.chevronRight(16)}
+                        </span>
                       </div>
                       <div className="sd-order-meta">
                         {d.email && <span className="sd-meta-item">{d.email}</span>}

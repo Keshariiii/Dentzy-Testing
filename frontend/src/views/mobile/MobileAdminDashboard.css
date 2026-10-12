@@ -314,9 +314,17 @@
 
 .ma-user-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ma-user-card:active {
+  transform: scale(0.985);
 }
 
 /* User card color accents removed for minimalism */
@@ -549,13 +557,20 @@
 
 .ma-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ma-card:active {
+  transform: scale(0.985);
 }
 
 .ma-card-top {
@@ -563,14 +578,16 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f8faf9;
 }
 
 .ma-card-title {
-  font-size: 1rem; /* #58 — Increased for hierarchy */
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--dz-color-charcoal);
   display: block;
-  text-transform: capitalize; /* #51 — Capitalize names */
+  text-transform: capitalize;
 }
 
 .ma-card-sub {
@@ -906,4 +923,12 @@
 .ma-modal-btn-confirm:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ── Mobile Staff Cards ─────────────────────────────────────────── */
+.ad-staff-card {
+  padding: 12px 14px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #f1f5f9 !important;
 }

@@ -598,6 +598,12 @@
   .ddm-form-row { grid-template-columns: 1fr; }
 
   .ddm-pipeline-label { font-size: 0.52rem; }
+
+  .ddm-order-card {
+    padding: 12px 14px;
+    gap: 8px;
+    border-radius: 12px;
+  }
 }
 
 /* ── Danger Zone — Delete Dentist Account ─────────────────────────── */

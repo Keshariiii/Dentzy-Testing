@@ -728,6 +728,90 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
+/* ── 21st.dev Compact Table-Cards ────────────────────────────── */
+.m-compact-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 11px 13px;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 44px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m-compact-card:active {
+    transform: scale(0.985);
+}
+
+.m-compact-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f8faf9;
+}
+
+.m-compact-card__main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.m-compact-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+}
+
+.m-compact-card__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m-compact-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.m-compact-card__tag {
+    font-weight: 600;
+    color: #1e5038;
+    background: #f0f7f3;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+}
+
+.m-compact-card__arrow {
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.m-compact-card:hover .m-compact-card__arrow {
+    color: #1e5038;
+    transform: translateX(2px);
+}
+
 .m-order-card__top {
     display: flex;
     align-items: center;

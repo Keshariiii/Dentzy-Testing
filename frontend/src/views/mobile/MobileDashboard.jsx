@@ -561,30 +561,35 @@ const MobileDashboard = () => {
       ) : (
         <>
           <div className="m-count-label">{orders.length} order{orders.length !== 1 ? 's' : ''}</div>
-          <div className="m-cards-list">
+          <div className="m-cards-list" style={{ gap: '9px' }}>
             {orders.map((o) => (
-              <div key={o._id} className="m-order-card" onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
-                <div className="m-order-card__top">
+              <div
+                key={o._id}
+                className="m-compact-card"
+                onClick={() => setSelectedOrder(o)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && setSelectedOrder(o)}
+              >
+                <div className="m-compact-card__top">
                   <span className="m-order-id">{o.caseId}</span>
-                  <StatusPill status={o.status} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <PriorityBadge priority={o.priority} />
+                    <StatusPill status={o.status} />
+                  </div>
                 </div>
-                <div className="m-order-card__body">
-                  <div className="m-order-row">
-                    <span className="m-order-field">Patient</span>
-                    <span className="m-order-value">{o.patientName}</span>
+                <div className="m-compact-card__main">
+                  <div className="m-compact-card__info">
+                    <span className="m-compact-card__title">{o.patientName}</span>
+                    <div className="m-compact-card__meta">
+                      <span className="m-compact-card__tag">{o.serviceType || 'Standard'}</span>
+                      <span>&bull;</span>
+                      <span>Due {formatDate(o.dueDate)}</span>
+                    </div>
                   </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Service</span>
-                    <span className="m-order-value">{o.serviceType}</span>
-                  </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Priority</span>
-                    <span className="m-order-value"><PriorityBadge priority={o.priority} /></span>
-                  </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Due Date</span>
-                    <span className="m-order-value">{formatDate(o.dueDate)}</span>
-                  </div>
+                  <span className="m-compact-card__arrow">
+                    {Icons.chevronRight(16)}
+                  </span>
                 </div>
               </div>
             ))}
@@ -634,51 +639,48 @@ const MobileDashboard = () => {
             subtext="Payment records will appear here once orders are created."
           />
         ) : (
-          <div className="m-cards-list">
-            {data.map((p) => (
-              <div key={p._id} className="m-order-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
-                <div className="m-order-card__top">
-                  <span className="m-order-id">{p.caseId}</span>
-                  <span style={{
-                    padding: '3px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600,
-                    background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
-                    color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                  }}>
-                    {p.paymentStatus || 'Pending'}
-                  </span>
-                </div>
-                <div className="m-order-card__body">
-                  <div className="m-order-row">
-                    <span className="m-order-field">Patient</span>
-                    <span className="m-order-value">{p.patientName}</span>
+          <div className="m-cards-list" style={{ gap: '9px' }}>
+            {data.map((p) => {
+              const isPaid = p.paymentStatus === 'Paid';
+              return (
+                <div
+                  key={p._id}
+                  className="m-compact-card"
+                  onClick={() => setSelectedPayment(p)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedPayment(p)}
+                >
+                  <div className="m-compact-card__top">
+                    <span className="m-order-id">{p.caseId}</span>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
+                      background: isPaid ? '#dcfce7' : '#fef9c3',
+                      color: isPaid ? '#16a34a' : '#92400e',
+                    }}>
+                      {p.paymentStatus || 'Pending'}
+                    </span>
                   </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Service</span>
-                    <span className="m-order-value">{p.serviceType || '—'}</span>
-                  </div>
-                  <div className="m-order-row">
-                    <span className="m-order-field">Amount</span>
-                    <span className="m-order-value m-order-amount">{p.amount > 0 ? formatINR(p.amount) : '—'}</span>
-                  </div>
-                  {p.paymentStatus === 'Paid' && p.paymentMode && (
-                    <div className="m-order-row">
-                      <span className="m-order-field">Mode</span>
-                      <span className="m-order-value">{modeBadge(p.paymentMode)}</span>
+                  <div className="m-compact-card__main">
+                    <div className="m-compact-card__info">
+                      <span className="m-compact-card__title">{p.patientName}</span>
+                      <div className="m-compact-card__meta">
+                        <strong style={{ color: '#1e5038', fontWeight: 700 }}>
+                          {p.amount > 0 ? formatINR(p.amount) : '—'}
+                        </strong>
+                        <span>&bull;</span>
+                        <span className="m-compact-card__tag">{p.serviceType || 'Lab Case'}</span>
+                        <span>&bull;</span>
+                        <span>{formatDate(p.dueDate || p.createdAt)}</span>
+                      </div>
                     </div>
-                  )}
-                  {p.paymentStatus === 'Paid' && p.referenceNumber && (
-                    <div className="m-order-row">
-                      <span className="m-order-field">Ref #</span>
-                      <span className="m-order-value" style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{p.referenceNumber}</span>
-                    </div>
-                  )}
-                  <div className="m-order-row">
-                    <span className="m-order-field">Due Date</span>
-                    <span className="m-order-value">{formatDate(p.dueDate)}</span>
+                    <span className="m-compact-card__arrow">
+                      {Icons.chevronRight(16)}
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         <div className="m-bottom-spacer" />
