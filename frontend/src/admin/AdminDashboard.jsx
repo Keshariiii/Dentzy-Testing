@@ -38,8 +38,20 @@ const AdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   const [activeTab, setActiveTab] = useState('all');
-  const [adminView, setAdminView] = useDashboardUrlState('view', 'dentists'); // 'dentists' | 'staff' | 'settings'
-  const [dentistSubView, setDentistSubView] = useDashboardUrlState('sub', 'users'); // 'users' | 'orders' | 'payments'
+  const [rawAdminView, setAdminView] = useDashboardUrlState('view', 'dentists'); // 'dentists' | 'staff' | 'settings'
+  const [rawDentistSubView, setDentistSubView] = useDashboardUrlState('sub', 'users'); // 'users' | 'orders' | 'payments'
+
+  // Normalize view states so unexpected or legacy query params (e.g. view=users) never cause a blank page
+  const adminView = (rawAdminView === 'staff' || rawAdminView === 'settings') ? rawAdminView : 'dentists';
+  const dentistSubView = rawAdminView === 'users' ? 'users' : (['orders', 'payments'].includes(rawDentistSubView) ? rawDentistSubView : 'users');
+
+  // Clean up legacy or corrupted query params in URL without polluting history stack
+  useEffect(() => {
+    if (rawAdminView === 'users') {
+      setAdminView('dentists', { replace: true });
+      setDentistSubView('users', { replace: true });
+    }
+  }, [rawAdminView, setAdminView, setDentistSubView]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
@@ -731,7 +743,7 @@ const AdminDashboard = () => {
                           setPayFilterStatus('all');
                           setPayFilterMode('all');
                         } else {
-                          setAdminView('users');
+                          setDentistSubView('users');
                         }
                       }}
                       title={drillDentistPayments ? "Back to All Payments" : "Back to Dentists"}
@@ -890,7 +902,7 @@ const AdminDashboard = () => {
                         if (drillDentistOrders) {
                           setDrillDentistOrders(null);
                         } else {
-                          setAdminView('users');
+                          setDentistSubView('users');
                         }
                       }}
                       title={drillDentistOrders ? "Back to All Lab Orders" : "Back to Dentists"}
@@ -993,7 +1005,7 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-            ) : adminView === 'dentists' && dentistSubView === 'users' ? (
+            ) : adminView === 'dentists' ? (
               /* ── User Management View ────────────────────────────────── */
               <div>
 

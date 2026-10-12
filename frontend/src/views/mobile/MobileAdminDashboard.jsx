@@ -61,11 +61,23 @@ const MobileAdminDashboard = () => {
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
   // Primary view: 'dentists' | 'staff' | 'settings' (URL synced)
-  const [adminView, setAdminView] = useDashboardUrlState('view', 'dentists');
+  const [rawAdminView, setAdminView] = useDashboardUrlState('view', 'dentists');
   // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments' (URL synced)
-  const [dentistSubView, setDentistSubView] = useDashboardUrlState('sub', null);
+  const [rawDentistSubView, setDentistSubView] = useDashboardUrlState('sub', null);
   // Staff sub-view: null (landing) | 'members' | 'attendance' | 'inventory' | 'metrics' (URL synced)
   const [staffSubView, setStaffSubView] = useDashboardUrlState('staffSub', null);
+
+  // Normalize view states so unexpected or legacy query params (e.g. view=users) never cause a blank page
+  const adminView = (rawAdminView === 'staff' || rawAdminView === 'settings') ? rawAdminView : 'dentists';
+  const dentistSubView = rawAdminView === 'users' ? 'users' : (['users', 'orders', 'payments'].includes(rawDentistSubView) ? rawDentistSubView : null);
+
+  // Clean up legacy or corrupted query params in URL without polluting history stack
+  useEffect(() => {
+    if (rawAdminView === 'users') {
+      setAdminView('dentists', { replace: true });
+      setDentistSubView('users', { replace: true });
+    }
+  }, [rawAdminView, setAdminView, setDentistSubView]);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
