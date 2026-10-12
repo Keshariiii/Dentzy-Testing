@@ -905,13 +905,15 @@ const MobileDashboard = () => {
       case 'dashboard': return renderOverview();
       case 'orders':    return renderOrders();
       case 'completed-orders': return (
-        <CompletedOrdersView
-          orders={orders}
-          loading={loading}
-          onSelectOrder={setSelectedOrder}
-          onBack={() => setActiveTab('dashboard')}
-          isMobile={true}
-        />
+        <div className="m-tab-content">
+          <CompletedOrdersView
+            orders={orders}
+            loading={loading}
+            onSelectOrder={setSelectedOrder}
+            onBack={() => setActiveTab('dashboard')}
+            isMobile={true}
+          />
+        </div>
       );
       case 'payments':  return renderPayments();
       case 'settings':  return renderSettings();

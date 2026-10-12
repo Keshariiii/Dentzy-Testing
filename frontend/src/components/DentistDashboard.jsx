@@ -929,12 +929,14 @@ const DentistDashboard = () => {
     if (activeTab === 'dashboard') return renderDashboard();
     if (activeTab === 'orders')   return renderOrders();
     if (activeTab === 'completed-orders') return (
-      <CompletedOrdersView
-        orders={orders}
-        loading={loading}
-        onSelectOrder={setSelectedOrder}
-        onBack={() => setActiveTab('dashboard')}
-      />
+      <div className="ud-content-inner">
+        <CompletedOrdersView
+          orders={orders}
+          loading={loading}
+          onSelectOrder={setSelectedOrder}
+          onBack={() => setActiveTab('dashboard')}
+        />
+      </div>
     );
     if (activeTab === 'settings') return renderSettings();
     if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} />;
