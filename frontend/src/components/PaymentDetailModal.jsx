@@ -3,6 +3,7 @@ import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
 import { StatusBadge } from './ui/status-badge';
+import PrintableInvoice from './common/PrintableInvoice';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 
@@ -16,6 +17,7 @@ export default function PaymentDetailModal({
 }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   // Keep last payment in ref so Framer Motion exit animation has data to render
   const lastPaymentRef = useRef(payment);
@@ -260,6 +262,33 @@ export default function PaymentDetailModal({
             )}
 
             <div className="pdm-footer-right">
+              <button
+                type="button"
+                className="pdm-invoice-btn"
+                onClick={() => setShowInvoice(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  background: '#f0f7f3',
+                  border: '1px solid #c2dcd0',
+                  color: '#1e5038',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  minHeight: '38px',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                View Invoice
+              </button>
               {isAdmin && !isPaid && onRecordPayment && (
                 <button
                   type="button"
@@ -279,6 +308,14 @@ export default function PaymentDetailModal({
           </div>
         </div>
       </BaseModal>
+
+      {/* Official Printable Invoice / Receipt Modal */}
+      {showInvoice && (
+        <PrintableInvoice
+          payment={{ ...displayPayment, amount: currentAmount }}
+          onClose={() => setShowInvoice(false)}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <ConfirmDialog

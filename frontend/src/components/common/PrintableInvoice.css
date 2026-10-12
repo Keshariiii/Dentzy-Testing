@@ -1,0 +1,565 @@
+/**
+ * PrintableInvoice.css — Official Dentzy Dental Laboratory Invoice & Statement
+ * Supports high-fidelity screen preview and pixel-perfect A4 printing (@media print).
+ */
+
+.pi-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.pi-modal-shell {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 820px;
+  width: 100%;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: piFadeIn 0.2s ease-out;
+}
+
+@keyframes piFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Top Modal Control Bar (Screen Only) ───────────────────────────── */
+.pi-screen-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #1a3028;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.pi-screen-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2ece6;
+}
+
+.pi-screen-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pi-btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #1e5038;
+  color: #ffffff;
+  border: 1px solid #708c80;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 38px;
+  transition: all 0.15s ease;
+}
+
+.pi-btn-print:hover {
+  background: #256345;
+}
+
+.pi-btn-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 38px;
+  transition: all 0.15s ease;
+}
+
+.pi-btn-share:hover {
+  background: #1eb956;
+}
+
+.pi-btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  color: #a3bfb1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pi-btn-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* ── Scrollable Document Container ─────────────────────────────────── */
+.pi-scroll-body {
+  overflow-y: auto;
+  padding: 24px;
+  background: #f8faf9;
+  flex: 1;
+}
+
+/* ── Printable Paper (A4 Form Factor) ─────────────────────────────── */
+.pi-paper {
+  background: #ffffff;
+  border: 1px solid #e2ece6;
+  border-radius: 12px;
+  padding: 36px 40px;
+  color: #1a3028;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45;
+}
+
+/* ── Header: Lab Details & Letterhead ──────────────────────────────── */
+.pi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #1e5038;
+  gap: 20px;
+}
+
+.pi-brand-block {
+  flex: 1;
+}
+
+.pi-brand-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1e5038;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.pi-brand-subtitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a7060;
+  margin: 0 0 6px;
+}
+
+.pi-brand-meta {
+  font-size: 0.76rem;
+  color: #556b60;
+  line-height: 1.4;
+}
+
+.pi-brand-meta strong {
+  color: #1a3028;
+}
+
+.pi-header-badge-col {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pi-doc-type-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #eef6f2;
+  border: 1.5px solid #1e5038;
+  color: #1e5038;
+  font-size: 0.85rem;
+  font-weight: 800;
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.pi-doc-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a3028;
+  font-family: monospace;
+}
+
+.pi-doc-date {
+  font-size: 0.78rem;
+  color: #708c80;
+  margin-top: 2px;
+}
+
+/* ── Bill To & Status Section ──────────────────────────────────────── */
+.pi-meta-section {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid #eef2ef;
+}
+
+.pi-billed-to {
+  font-size: 0.82rem;
+}
+
+.pi-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #708c80;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.pi-doctor-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a3028;
+  margin-bottom: 2px;
+}
+
+.pi-clinic-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a7060;
+}
+
+.pi-doctor-sub {
+  font-size: 0.76rem;
+  color: #708c80;
+  margin-top: 2px;
+}
+
+.pi-payment-details-box {
+  background: #f8faf9;
+  border: 1px solid #e2ece6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+}
+
+.pi-pay-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.pi-pay-row:last-child {
+  margin-bottom: 0;
+}
+
+.pi-pay-lbl {
+  color: #708c80;
+  font-weight: 500;
+}
+
+.pi-pay-val {
+  font-weight: 700;
+  color: #1a3028;
+}
+
+/* ── Itemized Cases Table ──────────────────────────────────────────── */
+.pi-table-wrap {
+  margin: 20px 0;
+  overflow-x: auto;
+}
+
+.pi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.pi-table th {
+  background: #edf5f0;
+  color: #1e5038;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid #b7d6c5;
+}
+
+.pi-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef2ef;
+  color: #2d453b;
+}
+
+.pi-table tr:last-child td {
+  border-bottom: 2px solid #1e5038;
+}
+
+.pi-col-num {
+  width: 36px;
+  color: #708c80;
+  font-weight: 600;
+}
+
+.pi-col-case {
+  font-family: monospace;
+  font-weight: 700;
+  color: #1e5038;
+}
+
+.pi-col-amount {
+  text-align: right;
+  font-weight: 700;
+  color: #1a3028;
+}
+
+/* ── Totals & Summary Block ────────────────────────────────────────── */
+.pi-summary-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2ece6;
+}
+
+.pi-stamp-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pi-paid-stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #16a34a;
+  border-radius: 8px;
+  padding: 6px 14px;
+  color: #16a34a;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transform: rotate(-3deg);
+  background: rgba(22, 163, 74, 0.04);
+}
+
+.pi-stamp-word {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.pi-stamp-sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+
+.pi-totals-box {
+  width: 280px;
+  font-size: 0.85rem;
+}
+
+.pi-total-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  color: #556b60;
+}
+
+.pi-total-line--final {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 2px solid #1a3028;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e5038;
+}
+
+/* ── Footer: Signature Block & Terms ───────────────────────────────── */
+.pi-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 28px;
+  gap: 24px;
+}
+
+.pi-terms-block {
+  max-width: 420px;
+  font-size: 0.74rem;
+  color: #708c80;
+  line-height: 1.45;
+}
+
+.pi-terms-block strong {
+  color: #2d453b;
+}
+
+.pi-signatory-block {
+  text-align: center;
+  min-width: 220px;
+}
+
+.pi-signature-wrap {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.pi-signature-img {
+  max-height: 64px;
+  max-width: 170px;
+  object-fit: contain;
+  display: block;
+}
+
+.pi-signatory-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a3028;
+}
+
+.pi-signatory-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #1e5038;
+}
+
+.pi-signatory-lab {
+  font-size: 0.68rem;
+  color: #708c80;
+}
+
+/* ====================================================================
+   PRINT STYLES (@media print)
+   ==================================================================== */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .pi-backdrop {
+    position: static !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .pi-modal-shell {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .pi-screen-bar {
+    display: none !important;
+  }
+
+  .pi-scroll-body {
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  #printable-invoice-root,
+  #printable-invoice-root * {
+    visibility: visible !important;
+  }
+
+  #printable-invoice-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm 15mm;
+  }
+}
+
+/* ── Mobile View Adjustments ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pi-backdrop {
+    padding: 8px;
+  }
+
+  .pi-paper {
+    padding: 20px 16px;
+  }
+
+  .pi-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pi-header-badge-col {
+    text-align: left;
+  }
+
+  .pi-meta-section {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pi-summary-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pi-totals-box {
+    width: 100%;
+  }
+
+  .pi-footer {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .pi-signatory-block {
+    text-align: left;
+    width: 100%;
+  }
+
+  .pi-signature-wrap {
+    justify-content: flex-start;
+  }
+}
