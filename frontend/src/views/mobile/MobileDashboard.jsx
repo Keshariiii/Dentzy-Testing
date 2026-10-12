@@ -27,7 +27,6 @@ import ProductionPipeline from '../../components/common/ProductionPipeline';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
-import { AnimatedBadge } from '../../components/ui/be-ui-animated-badge';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -562,39 +561,38 @@ const MobileDashboard = () => {
       ) : (
         <>
           <div className="m-count-label">{orders.length} order{orders.length !== 1 ? 's' : ''}</div>
-          <div className="m-table-wrap">
-            <table className="m-table">
-              <thead>
-                <tr>
-                  <th>Patient Name</th>
-                  <th>Case ID</th>
-                  <th>Service</th>
-                  <th>Priority</th>
-                  <th>Due Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr
-                    key={o._id}
-                    onClick={() => setSelectedOrder(o)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td><strong>{o.patientName}</strong></td>
-                    <td><code className="m-table-code">{o.caseId}</code></td>
-                    <td>{o.serviceType || 'Standard'}</td>
-                    <td>
-                      <span className={`m-table-priority m-table-priority--${(o.priority || 'normal').toLowerCase()}`}>
-                        {o.priority || 'Normal'}
-                      </span>
-                    </td>
-                    <td>{formatDate(o.dueDate)}</td>
-                    <td><StatusBadge status={o.status} size="sm" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="m-cards-list" style={{ gap: '9px' }}>
+            {orders.map((o) => (
+              <div
+                key={o._id}
+                className="m-compact-card"
+                onClick={() => setSelectedOrder(o)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && setSelectedOrder(o)}
+              >
+                <div className="m-compact-card__top">
+                  <span className="m-order-id">{o.caseId}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <PriorityBadge priority={o.priority} />
+                    <StatusPill status={o.status} />
+                  </div>
+                </div>
+                <div className="m-compact-card__main">
+                  <div className="m-compact-card__info">
+                    <span className="m-compact-card__title">{o.patientName}</span>
+                    <div className="m-compact-card__meta">
+                      <span className="m-compact-card__tag">{o.serviceType || 'Standard'}</span>
+                      <span>&bull;</span>
+                      <span>Due {formatDate(o.dueDate)}</span>
+                    </div>
+                  </div>
+                  <span className="m-compact-card__arrow">
+                    {Icons.chevronRight(16)}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -641,33 +639,48 @@ const MobileDashboard = () => {
             subtext="Payment records will appear here once orders are created."
           />
         ) : (
-          <div className="m-table-wrap">
-            <table className="m-table">
-              <thead>
-                <tr>
-                  <th>Patient Name</th>
-                  <th>Case ID</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((p) => (
-                  <tr
-                    key={p._id}
-                    onClick={() => setSelectedPayment(p)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td><strong>{p.patientName}</strong></td>
-                    <td><code className="m-table-code">{p.caseId}</code></td>
-                    <td><strong style={{ color: '#1e5038' }}>{p.amount > 0 ? formatINR(p.amount) : '—'}</strong></td>
-                    <td><StatusBadge status={p.paymentStatus || 'Pending'} size="sm" /></td>
-                    <td>{formatDate(p.dueDate || p.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="m-cards-list" style={{ gap: '9px' }}>
+            {data.map((p) => {
+              const isPaid = p.paymentStatus === 'Paid';
+              return (
+                <div
+                  key={p._id}
+                  className="m-compact-card"
+                  onClick={() => setSelectedPayment(p)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedPayment(p)}
+                >
+                  <div className="m-compact-card__top">
+                    <span className="m-order-id">{p.caseId}</span>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
+                      background: isPaid ? '#dcfce7' : '#fef9c3',
+                      color: isPaid ? '#16a34a' : '#92400e',
+                    }}>
+                      {p.paymentStatus || 'Pending'}
+                    </span>
+                  </div>
+                  <div className="m-compact-card__main">
+                    <div className="m-compact-card__info">
+                      <span className="m-compact-card__title">{p.patientName}</span>
+                      <div className="m-compact-card__meta">
+                        <strong style={{ color: '#1e5038', fontWeight: 700 }}>
+                          {p.amount > 0 ? formatINR(p.amount) : '—'}
+                        </strong>
+                        <span>&bull;</span>
+                        <span className="m-compact-card__tag">{p.serviceType || 'Lab Case'}</span>
+                        <span>&bull;</span>
+                        <span>{formatDate(p.dueDate || p.createdAt)}</span>
+                      </div>
+                    </div>
+                    <span className="m-compact-card__arrow">
+                      {Icons.chevronRight(16)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
         <div className="m-bottom-spacer" />
@@ -915,25 +928,7 @@ const MobileDashboard = () => {
   ============================================================ */
   return (
     <div className="m-app-shell">
-      <MobileHeader
-        title={null}
-        onAvatarClick={() => setActiveTab('settings')}
-        rightElement={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AnimatedBadge status="success" size="sm" pulse className="text-[10px] h-5 px-1.5">
-              Live
-            </AnimatedBadge>
-            <button
-              className="m-header__avatar"
-              onClick={() => setActiveTab('settings')}
-              aria-label="Profile"
-              title="Profile"
-            >
-              {initials}
-            </button>
-          </div>
-        }
-      >
+      <MobileHeader title={null} onAvatarClick={() => setActiveTab('settings')}>
         <div className="m-header-search-bar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -967,37 +962,7 @@ const MobileDashboard = () => {
 
       {/* -- 21st.dev: Floating Bottom Navigation -- */}
       <TwentyFirstBottomNav
-        items={DENTIST_NAV_ITEMS.map(item => {
-          let badge = undefined;
-          let badgeStatus = 'success';
-          let badgePulse = false;
-
-          if (item.key === 'orders') {
-            const pending = stats?.orders?.pending || 0;
-            const total = stats?.orders?.total || orders.length;
-            if (pending > 0) {
-              badge = pending;
-              badgeStatus = 'warning';
-              badgePulse = true;
-            } else if (total > 0) {
-              badge = total;
-              badgeStatus = 'success';
-            }
-          } else if (item.key === 'payments') {
-            const pendingPayments = payments.filter(p => p.paymentStatus !== 'Paid').length;
-            if (pendingPayments > 0) {
-              badge = pendingPayments;
-              badgeStatus = 'warning';
-            }
-          }
-
-          return {
-            ...item,
-            badge,
-            badgeStatus,
-            badgePulse,
-          };
-        })}
+        items={DENTIST_NAV_ITEMS}
         activeKey={activeTab}
         onChange={setActiveTab}
         layoutId="dentist-nav-pill"

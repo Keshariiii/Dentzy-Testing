@@ -24,7 +24,6 @@ import { TICKER_MESSAGES } from './dashboard/shared/constants';
 import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
-import { AnimatedBadge } from './ui/be-ui-animated-badge';
 
 /* =============================================================================
    NAV ITEMS
@@ -965,23 +964,17 @@ const DentistDashboard = () => {
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <AnimatedBadge status="success" size="sm" pulse>
-            Live Portal
-          </AnimatedBadge>
-
-          <div
-            className="ud-header-user"
-            onClick={() => setActiveTab('settings')}
-            title="Account Settings"
-            role="button"
-            tabIndex={0}
-          >
-            <div className="ud-user-details">
-              <span className="ud-user-name">{userName}</span>
-            </div>
-            <div className="ud-user-avatar">{initials}</div>
+        <div
+          className="ud-header-user"
+          onClick={() => setActiveTab('settings')}
+          title="Account Settings"
+          role="button"
+          tabIndex={0}
+        >
+          <div className="ud-user-details">
+            <span className="ud-user-name">{userName}</span>
           </div>
+          <div className="ud-user-avatar">{initials}</div>
         </div>
       </header>
 
@@ -991,29 +984,15 @@ const DentistDashboard = () => {
         {/* Sidebar */}
         <aside className={`ud-sidebar ${sidebarOpen ? 'ud-sidebar--open' : ''}`}>
           <nav className="ud-nav">
-            {NAV_ITEMS.map(item => {
-              const pendingCount = item.key === 'orders' ? (stats?.orders?.pending ?? 0) : 0;
-              const totalCount = item.key === 'orders' ? (stats?.orders?.total ?? orders.length) : 0;
-              return (
-                <button key={item.key} id={`nav-${item.key}`}
-                  className={`ud-nav-item ${activeTab === item.key ? 'active' : ''}`}
-                  onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
-                >
-                  <span className="ud-nav-icon">{item.icon(16)}</span>
-                  <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-                  {item.key === 'orders' && totalCount > 0 && (
-                    <AnimatedBadge
-                      status={pendingCount > 0 ? 'warning' : 'success'}
-                      size="sm"
-                      pulse={pendingCount > 0}
-                      className="text-[10px] h-5 px-2"
-                    >
-                      {pendingCount > 0 ? `${pendingCount} new` : `${totalCount}`}
-                    </AnimatedBadge>
-                  )}
-                </button>
-              );
-            })}
+            {NAV_ITEMS.map(item => (
+              <button key={item.key} id={`nav-${item.key}`}
+                className={`ud-nav-item ${activeTab === item.key ? 'active' : ''}`}
+                onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
+              >
+                <span className="ud-nav-icon">{item.icon(16)}</span>
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           <button id="user-logout-btn" className="ud-logout" onClick={handleLogout}>

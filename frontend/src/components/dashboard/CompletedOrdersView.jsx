@@ -161,6 +161,38 @@ export default function CompletedOrdersView({
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards View */}
+          <div className="cov-mobile-list">
+            {filteredOrders.map((o) => (
+              <div
+                key={o._id}
+                className="cov-card"
+                onClick={() => onSelectOrder?.(o)}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => e.key === 'Enter' && onSelectOrder?.(o)}
+              >
+                <div className="cov-card-top">
+                  <span className="cov-case-code">{o.caseId}</span>
+                  <StatusBadge status="completed" size="sm" />
+                </div>
+                <div className="cov-card-main">
+                  <div className="cov-card-info">
+                    <span className="cov-card-patient">{o.patientName}</span>
+                    <span className="cov-card-meta">
+                      <span className="cov-card-service">{o.serviceType || 'Standard'}</span>
+                      <span className="cov-card-dot">&bull;</span>
+                      <span className="cov-card-date">{formatDate(o.completedDate || o.dueDate || o.updatedAt)}</span>
+                    </span>
+                  </div>
+                  <span className="cov-card-arrow">
+                    {Icons.chevronRight(16)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </>
       )}
 
