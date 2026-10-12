@@ -962,7 +962,12 @@ const MobileDashboard = () => {
 
       {/* -- 21st.dev: Floating Bottom Navigation -- */}
       <TwentyFirstBottomNav
-        items={DENTIST_NAV_ITEMS}
+        items={DENTIST_NAV_ITEMS.map(item => ({
+          ...item,
+          badge: item.key === 'orders' && stats?.orders?.pending > 0 ? stats.orders.pending : undefined,
+          badgeStatus: 'warning',
+          badgePulse: Boolean(stats?.orders?.pending > 0),
+        }))}
         activeKey={activeTab}
         onChange={setActiveTab}
         layoutId="dentist-nav-pill"

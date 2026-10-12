@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { AnimatedBadge } from './be-ui-animated-badge';
 
 /**
  * TwentyFirstBottomNav — 21st.dev
@@ -10,7 +11,7 @@ import { cn } from '../../lib/utils';
  * Designed for mobile viewports (< 768px). Uses pure SVG icons with zero emojis.
  *
  * @param {object} props
- * @param {Array<{ key: string, label: string, icon: (active: boolean) => React.ReactNode, badge?: number | string }>} props.items
+ * @param {Array<{ key: string, label: string, icon: (active: boolean) => React.ReactNode, badge?: number | string, badgeStatus?: string, badgePulse?: boolean, badgeIcon?: boolean }>} props.items
  * @param {string} props.activeKey
  * @param {(key: string) => void} props.onChange
  * @param {string} [props.className]
@@ -63,8 +64,17 @@ export function TwentyFirstBottomNav({
             <span className="relative z-10 flex items-center justify-center mb-0.5">
               {item.icon(isActive)}
               {hasBadge && (
-                <span className="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center shadow-sm pointer-events-none">
-                  {item.badge}
+                <span className="absolute -top-1.5 -right-3.5 pointer-events-none">
+                  <AnimatedBadge
+                    status={item.badgeStatus || 'warning'}
+                    size="sm"
+                    showIcon={Boolean(item.badgeIcon)}
+                    pulse={Boolean(item.badgePulse)}
+                    contentKey={item.badge}
+                    className="h-4 min-w-[16px] px-1 text-[9px] font-bold leading-none shadow-sm rounded-full"
+                  >
+                    {item.badge}
+                  </AnimatedBadge>
                 </span>
               )}
             </span>

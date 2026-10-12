@@ -1027,7 +1027,11 @@ const StaffDashboard = () => {
 
       {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
       <TwentyFirstBottomNav
-        items={NAV_ITEMS}
+        items={NAV_ITEMS.map(item => ({
+          ...item,
+          badge: item.key === 'orders' && orders.length > 0 ? orders.length : undefined,
+          badgeStatus: 'info',
+        }))}
         activeKey={activeView}
         onChange={setActiveView}
       />
