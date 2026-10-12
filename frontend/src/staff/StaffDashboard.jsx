@@ -13,9 +13,11 @@ import { Icons as Ico } from '../components/common/DashboardIcons';
 import StaffOrderModal from './StaffOrderModal';
 import StaffPaymentModal from './StaffPaymentModal';
 import CreateOrderModal from '../components/common/CreateOrderModal';
+import BaseModal from '../components/ui/BaseModal';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
+import { formatINR } from '../utils/format';
 import './StaffDashboard.css';
 
 const STAGES = [
@@ -168,6 +170,18 @@ const StaffDashboard = () => {
   const [editPaymentModal, setEditPaymentModal] = useState(null);
   const [editPaymentSaving, setEditPaymentSaving] = useState(false);
 
+  // Batch Payment state for Staff
+  const [selectedStaffPaymentIds, setSelectedStaffPaymentIds] = useState([]);
+  const [batchPayModalOpen, setBatchPayModalOpen] = useState(false);
+  const [batchPayForm, setBatchPayForm] = useState({
+    status: 'Paid',
+    paymentMode: 'Cash',
+    referenceNumber: '',
+    notes: '',
+  });
+  const [batchPaySaving, setBatchPaySaving] = useState(false);
+  const [batchPayError, setBatchPayError] = useState('');
+
   const fetchDentists = useCallback(async () => {
     setLoadingDentists(true);
     try {
@@ -227,6 +241,67 @@ const StaffDashboard = () => {
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
     setEditPaymentSaving(false);
+  };
+
+  const toggleStaffPaymentSelect = (orderId) => {
+    setSelectedStaffPaymentIds(prev =>
+      prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAllStaffPayments = () => {
+    const paymentOrders = dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus);
+    const allIds = paymentOrders.map(o => o._id || o.id || o.caseId);
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedStaffPaymentIds.includes(id));
+    setSelectedStaffPaymentIds(allSelected ? [] : allIds);
+  };
+
+  const handleBatchStaffPaymentSubmit = async () => {
+    if (selectedStaffPaymentIds.length === 0) return;
+    setBatchPayError('');
+    if (batchPayForm.status === 'Paid') {
+      if (batchPayForm.paymentMode === 'Cheque' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 3)) {
+        setBatchPayError('Cheque number is required (min 3 characters).');
+        return;
+      }
+      if (batchPayForm.paymentMode === 'UPI' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 4)) {
+        setBatchPayError('UPI transaction ID / UTR is required (min 4 characters).');
+        return;
+      }
+    }
+    setBatchPaySaving(true);
+    try {
+      const selectedOrders = dentistOrders.filter(o =>
+        selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)
+      );
+      const orderIds = selectedOrders.map(o => o._id || o.id || o.caseId);
+      const paymentIds = selectedOrders.map(o => o.paymentId).filter(Boolean);
+
+      const res = await authFetch(`${STAFF_API}/payments/batch`, {
+        method: 'POST',
+        body: JSON.stringify({
+          orderIds,
+          paymentIds,
+          status: batchPayForm.status,
+          paymentMode: batchPayForm.status === 'Paid' ? batchPayForm.paymentMode : '',
+          referenceNumber: batchPayForm.status === 'Paid' ? batchPayForm.referenceNumber.trim() : '',
+          notes: batchPayForm.notes.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || `Payment updated for ${data.updatedCount || selectedStaffPaymentIds.length} orders.`);
+        setSelectedStaffPaymentIds([]);
+        setBatchPayModalOpen(false);
+        fetchOrders();
+        if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+      } else {
+        setBatchPayError(data.message || 'Failed to update payments.');
+      }
+    } catch {
+      setBatchPayError('Network error.');
+    }
+    setBatchPaySaving(false);
   };
 
   const handleCreateOrderSubmit = async (payload) => {
@@ -700,7 +775,7 @@ const StaffDashboard = () => {
                     icon={Ico.arrowLeft(16)}
                     title="Back to Dentists List"
                     ariaLabel="Back to Dentists List"
-                    onClick={() => { setSelectedDentist(null); setDentistOrders([]); }}
+                    onClick={() => { setSelectedDentist(null); setDentistOrders([]); setSelectedStaffPaymentIds([]); }}
                     variant="secondary"
                     size="md"
                   />
@@ -725,7 +800,7 @@ const StaffDashboard = () => {
                 {['orders', 'payments'].map(tab => (
                   <button key={tab}
                     className={`sd-filter-btn ${dentistSubTab === tab ? 'sd-filter-btn--active' : ''}`}
-                    onClick={() => setDentistSubTab(tab)}>
+                    onClick={() => { setDentistSubTab(tab); setSelectedStaffPaymentIds([]); }}>
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 ))}
@@ -780,35 +855,154 @@ const StaffDashboard = () => {
                 dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length === 0 ? (
                   <div className="sd-empty"><p>No payment records for this dentist.</p></div>
                 ) : (
-                  <div className="sd-order-grid">
-                    {dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).map(order => (
-                      <div key={order._id || order.id} className="sd-order-card">
-                        <div className="sd-order-header">
-                          <div>
-                            <span className="sd-order-caseid">{order.caseId}</span>
-                            <span className="sd-order-patient">{order.patientName}</span>
+                  <div>
+                    {/* Multi-select Header Bar */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      marginBottom: '12px', padding: '6px 4px',
+                    }}>
+                      <label
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#4a7060',
+                          userSelect: 'none',
+                        }}
+                        onClick={toggleSelectAllStaffPayments}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={
+                            dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length > 0 &&
+                            dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).every(o =>
+                              selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)
+                            )
+                          }
+                          onChange={toggleSelectAllStaffPayments}
+                          style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+                        />
+                        <span>
+                          Select All ({dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length})
+                        </span>
+                      </label>
+                      {selectedStaffPaymentIds.length > 0 && (
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e5038', background: '#edf5f0', padding: '2px 8px', borderRadius: '6px' }}>
+                          {selectedStaffPaymentIds.length} selected
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="sd-order-grid">
+                      {dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).map(order => {
+                        const oid = order._id || order.id || order.caseId;
+                        const isSelected = selectedStaffPaymentIds.includes(oid);
+                        return (
+                          <div
+                            key={oid}
+                            className="sd-order-card"
+                            style={{
+                              border: isSelected ? '1.5px solid #1e5038' : undefined,
+                              background: isSelected ? '#edf5f0' : undefined,
+                              transition: 'background 0.15s ease, border-color 0.15s ease',
+                            }}
+                          >
+                            <div className="sd-order-header">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div
+                                  onClick={e => { e.stopPropagation(); toggleStaffPaymentSelect(oid); }}
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                  title="Select for batch payment"
+                                  aria-label="Select order for batch payment"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleStaffPaymentSelect(oid)}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+                                  />
+                                </div>
+                                <div>
+                                  <span className="sd-order-caseid">{order.caseId}</span>
+                                  <span className="sd-order-patient">{order.patientName}</span>
+                                </div>
+                              </div>
+                              <StatusBadge status={order.paymentStatus || 'Pending'} size="sm" />
+                            </div>
+                            <div className="sd-order-meta">
+                              <span className="sd-meta-item">Amount: {order.paymentAmount > 0 ? formatINR(order.paymentAmount) : 'N/A'}</span>
+                              {order.paymentMode && <span className="sd-meta-item">Mode: {order.paymentMode}</span>}
+                              {order.paidAt && <span className="sd-meta-item">Paid: {new Date(order.paidAt).toLocaleDateString('en-IN')}</span>}
+                            </div>
+                            {order.paymentId && (
+                              <div style={{ marginTop: '8px' }}>
+                                <TwentyFirstIconButton
+                                  icon={Ico.creditCard(14)}
+                                  title="Update Payment"
+                                  ariaLabel="Update Payment"
+                                  onClick={() => setEditPaymentModal(order)}
+                                  size="sm"
+                                  variant="success"
+                                />
+                              </div>
+                            )}
                           </div>
-                          <StatusBadge status={order.paymentStatus || 'Pending'} size="sm" />
+                        );
+                      })}
+                    </div>
+
+                    {/* Floating Batch Settlement Bar */}
+                    {selectedStaffPaymentIds.length > 0 && (
+                      <div style={{
+                        position: 'fixed',
+                        bottom: '76px',
+                        left: '16px',
+                        right: '16px',
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        zIndex: 60,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 18px',
+                        borderRadius: '14px',
+                        background: '#1a3028',
+                        color: '#fff',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ background: '#25503b', color: '#a3bfb1', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700 }}>
+                            {selectedStaffPaymentIds.length} {selectedStaffPaymentIds.length === 1 ? 'order' : 'orders'} selected
+                          </span>
+                          <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#e2ece6' }}>
+                            Total: <strong style={{ color: '#fff', fontSize: '1.02rem' }}>
+                              {formatINR(dentistOrders.filter(o => selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)).reduce((s, o) => s + (Number(o.paymentAmount) || 0), 0))}
+                            </strong>
+                          </span>
                         </div>
-                        <div className="sd-order-meta">
-                          <span className="sd-meta-item">Amount: {order.paymentAmount > 0 ? `INR ${order.paymentAmount.toLocaleString('en-IN')}` : 'N/A'}</span>
-                          {order.paymentMode && <span className="sd-meta-item">Mode: {order.paymentMode}</span>}
-                          {order.paidAt && <span className="sd-meta-item">Paid: {new Date(order.paidAt).toLocaleDateString('en-IN')}</span>}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaffPaymentIds([])}
+                            style={{ background: 'transparent', border: '1px solid #4a6a5a', color: '#c2d6cc', padding: '8px 14px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', minHeight: '38px' }}
+                          >
+                            Deselect
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBatchPayForm({ status: 'Paid', paymentMode: 'Cash', referenceNumber: '', notes: '' });
+                              setBatchPayError('');
+                              setBatchPayModalOpen(true);
+                            }}
+                            style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
+                          >
+                            {Ico.creditCard(14)} Settle Payment for {selectedStaffPaymentIds.length} Orders
+                          </button>
                         </div>
-                        {order.paymentId && (
-                          <div style={{ marginTop: '8px' }}>
-                            <TwentyFirstIconButton
-                              icon={Ico.creditCard(14)}
-                              title="Update Payment"
-                              ariaLabel="Update Payment"
-                              onClick={() => setEditPaymentModal(order)}
-                              size="sm"
-                              variant="success"
-                            />
-                          </div>
-                        )}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )
               )}
@@ -1024,6 +1218,79 @@ const StaffDashboard = () => {
           isSubmitting={creatingOrder}
         />
       )}
+
+      {/* ── Staff Batch Payment Modal ──────────────────────────────── */}
+      <BaseModal
+        isOpen={batchPayModalOpen}
+        onClose={() => setBatchPayModalOpen(false)}
+        maxWidth="max-w-md"
+        className="sd-modal-wrap"
+        raw={true}
+        id="staff-batch-pay-modal"
+      >
+        <div className="sd-modal-content">
+          <div className="sd-modal-header">
+            <h3>Update Payment Details ({selectedStaffPaymentIds.length} Orders)</h3>
+            <button className="sd-modal-close" onClick={() => setBatchPayModalOpen(false)} aria-label="Close">{Ico.x(16)}</button>
+          </div>
+          <div className="sd-modal-body">
+            <div className="sd-modal-summary">
+              {selectedDentist && <span><strong>Dentist:</strong> {selectedDentist.name}</span>}
+              <span><strong>Cases:</strong> {selectedStaffPaymentIds.length}</span>
+              <span><strong>Total:</strong> {formatINR(dentistOrders.filter(o => selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)).reduce((s, o) => s + (Number(o.paymentAmount) || 0), 0))}</span>
+            </div>
+
+            <div className="sd-field">
+              <label>Payment Status</label>
+              <select value={batchPayForm.status} onChange={e => setBatchPayForm(f => ({ ...f, status: e.target.value }))}>
+                {['Paid', 'Pending', 'Overdue', 'Cancelled'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {batchPayForm.status === 'Paid' && (
+              <>
+                <div className="sd-field">
+                  <label>Payment Mode</label>
+                  <select value={batchPayForm.paymentMode} onChange={e => setBatchPayForm(f => ({ ...f, paymentMode: e.target.value }))}>
+                    {['Cash', 'UPI', 'Cheque', 'Other'].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sd-field">
+                  <label>Reference / Transaction Number</label>
+                  <input
+                    type="text"
+                    placeholder="UTR / Cheque No."
+                    value={batchPayForm.referenceNumber}
+                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="sd-field">
+              <label>Notes / Settlement Reference (optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. Cleared via monthly account"
+                value={batchPayForm.notes}
+                onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))}
+              />
+            </div>
+
+            {batchPayError && <div className="sd-form-error">{batchPayError}</div>}
+          </div>
+          <div className="sd-modal-actions">
+            <button className="sd-btn-secondary" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
+            <button className="sd-btn-primary" onClick={handleBatchStaffPaymentSubmit} disabled={batchPaySaving}>
+              {batchPaySaving ? 'Saving...' : `Confirm for ${selectedStaffPaymentIds.length} Orders`}
+            </button>
+          </div>
+        </div>
+      </BaseModal>
 
       {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
       <TwentyFirstBottomNav

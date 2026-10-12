@@ -78,6 +78,12 @@ const AdminDashboard = () => {
   const [payForm, setPayForm] = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
+  // Batch payment state
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
+  const [batchPayModalOpen, setBatchPayModalOpen] = useState(false);
+  const [batchPayForm, setBatchPayForm] = useState({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+  const [batchPaySaving, setBatchPaySaving] = useState(false);
+  const [batchPayError, setBatchPayError] = useState('');
   // Order & Payment detail modals
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -470,6 +476,63 @@ const AdminDashboard = () => {
     setActionLoading(null);
   };
 
+  const togglePaymentSelect = (id) => {
+    setSelectedPaymentIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllPayments = (paymentsList) => {
+    const allIds = paymentsList.map(p => p._id);
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedPaymentIds.includes(id));
+    if (allSelected) {
+      setSelectedPaymentIds([]);
+    } else {
+      setSelectedPaymentIds(allIds);
+    }
+  };
+
+  const handleBatchRecordPayment = async () => {
+    setBatchPayError('');
+    if (batchPayForm.status === 'Paid') {
+      if (batchPayForm.mode === 'Cheque' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 3)) {
+        setBatchPayError('Cheque number is required (min 3 characters).');
+        return;
+      }
+      if ((batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 4)) {
+        setBatchPayError('Transaction / UTR number is required (min 4 characters).');
+        return;
+      }
+    }
+    setBatchPaySaving(true);
+    try {
+      const body = {
+        paymentIds: selectedPaymentIds,
+        status: batchPayForm.status,
+        paymentMode: batchPayForm.status === 'Paid' ? batchPayForm.mode : '',
+        referenceNumber: batchPayForm.status === 'Paid' ? (batchPayForm.referenceNumber || '') : '',
+        notes: batchPayForm.notes || '',
+      };
+      const res = await authFetch(`${ADMIN_API}/payments/batch`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || `Updated ${selectedPaymentIds.length} payments.`);
+        setSelectedPaymentIds([]);
+        setBatchPayModalOpen(false);
+        fetchAllOrders();
+        fetchPaymentsRef.current?.();
+      } else {
+        setBatchPayError(data.message || 'Failed to update payments.');
+      }
+    } catch {
+      setBatchPayError('Network error.');
+    }
+    setBatchPaySaving(false);
+  };
+
   const handleSendReminder = async (orderId) => {
     setActionLoading(orderId + '_remind');
     try {
@@ -792,70 +855,133 @@ const AdminDashboard = () => {
                       <div className="ud-table-wrap" style={{ overflowX: 'auto' }}>
                         <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                           <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
+                            <th style={{ width: '38px', padding: '10px 8px', textAlign: 'center', borderBottom: '2px solid var(--border, #e2ece6)' }}>
+                              <input
+                                type="checkbox"
+                                checked={filteredPaymentsForDrill.length > 0 && filteredPaymentsForDrill.every(p => selectedPaymentIds.includes(p._id))}
+                                onChange={() => toggleSelectAllPayments(filteredPaymentsForDrill)}
+                                aria-label="Select all orders"
+                                style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#1e5038' }}
+                              />
+                            </th>
                             {['Case ID', 'Patient', 'Amount', 'Status', 'Mode & Ref', 'Actions'].map(h => (
                               <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
                             ))}
                           </tr></thead>
                           <tbody>
-                            {filteredPaymentsForDrill.map((p, i) => (
-                              <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)', borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer' }}>
-                                <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
-                                <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
-                                <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(p.amount || 0)}</td>
-                                <td style={{ padding: '10px 12px' }}>
-                                  <span style={{
-                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                    background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
-                                    color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                                  }}>{p.paymentStatus || 'Pending'}</span>
-                                </td>
-                                <td style={{ padding: '10px 12px' }}>
-                                  {p.paymentStatus === 'Paid' && p.paymentMode ? (
-                                    <span style={{ fontSize: '0.78rem' }}>
-                                      <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
-                                      {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
-                                    </span>
-                                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
-                                </td>
-                                <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                                  <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                                    {p.paymentStatus === 'Paid' ? (
-                                      <TwentyFirstIconButton
-                                        icon={Ico.history(14)}
-                                        title="Mark Pending"
-                                        ariaLabel="Mark Pending"
-                                        onClick={() => handleRevertPayment(p._id)}
-                                        disabled={actionLoading === p._id + '_payment'}
-                                        size="sm"
-                                        variant="secondary"
-                                      />
-                                    ) : (
-                                      <TwentyFirstIconButton
-                                        icon={Ico.creditCard(14)}
-                                        title="Record Payment"
-                                        ariaLabel="Record Payment"
-                                        onClick={() => openRecordPayment(p)}
-                                        size="sm"
-                                        variant="success"
-                                      />
-                                    )}
-                                    {p.paymentStatus !== 'Paid' && (
-                                      <TwentyFirstIconButton
-                                        icon={Ico.bell(14)}
-                                        title="Send Payment Reminder"
-                                        ariaLabel="Send Payment Reminder"
-                                        onClick={() => handleSendReminder(p._id)}
-                                        disabled={actionLoading === p._id + '_remind'}
-                                        size="sm"
-                                        variant="soft"
-                                      />
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                            {filteredPaymentsForDrill.map((p, i) => {
+                              const isSelected = selectedPaymentIds.includes(p._id);
+                              return (
+                                <tr key={p._id} onClick={() => setSelectedPayment(p)} style={{ background: isSelected ? '#edf5f0' : (i % 2 === 0 ? '#fff' : 'var(--surface, #f8faf9)'), borderBottom: '1px solid var(--border, #e2ece6)', cursor: 'pointer', transition: 'background 0.15s ease' }}>
+                                  <td style={{ width: '38px', padding: '10px 8px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => togglePaymentSelect(p._id)}
+                                      aria-label={`Select case ${p.caseId}`}
+                                      style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#1e5038' }}
+                                    />
+                                  </td>
+                                  <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
+                                  <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
+                                  <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(p.amount || 0)}</td>
+                                  <td style={{ padding: '10px 12px' }}>
+                                    <span style={{
+                                      padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                                      background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
+                                      color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
+                                    }}>{p.paymentStatus || 'Pending'}</span>
+                                  </td>
+                                  <td style={{ padding: '10px 12px' }}>
+                                    {p.paymentStatus === 'Paid' && p.paymentMode ? (
+                                      <span style={{ fontSize: '0.78rem' }}>
+                                        <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
+                                        {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                                      </span>
+                                    ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                                  </td>
+                                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
+                                    <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                                      {p.paymentStatus === 'Paid' ? (
+                                        <TwentyFirstIconButton
+                                          icon={Ico.history(14)}
+                                          title="Mark Pending"
+                                          ariaLabel="Mark Pending"
+                                          onClick={() => handleRevertPayment(p._id)}
+                                          disabled={actionLoading === p._id + '_payment'}
+                                          size="sm"
+                                          variant="secondary"
+                                        />
+                                      ) : (
+                                        <TwentyFirstIconButton
+                                          icon={Ico.creditCard(14)}
+                                          title="Record Payment"
+                                          ariaLabel="Record Payment"
+                                          onClick={() => openRecordPayment(p)}
+                                          size="sm"
+                                          variant="success"
+                                        />
+                                      )}
+                                      {p.paymentStatus !== 'Paid' && (
+                                        <TwentyFirstIconButton
+                                          icon={Ico.bell(14)}
+                                          title="Send Payment Reminder"
+                                          ariaLabel="Send Payment Reminder"
+                                          onClick={() => handleSendReminder(p._id)}
+                                          disabled={actionLoading === p._id + '_remind'}
+                                          size="sm"
+                                          variant="soft"
+                                        />
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
+
+                        {selectedPaymentIds.length > 0 && (
+                          <div style={{
+                            position: 'sticky', bottom: '16px', zIndex: 10,
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '12px 20px', borderRadius: '14px',
+                            background: '#1a3028', color: '#fff',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                            marginTop: '16px', gap: '12px', flexWrap: 'wrap'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ background: '#25503b', color: '#a3bfb1', padding: '4px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                {selectedPaymentIds.length} {selectedPaymentIds.length === 1 ? 'order' : 'orders'} selected
+                              </span>
+                              <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#e2ece6' }}>
+                                Total: <strong style={{ color: '#fff', fontSize: '1.05rem' }}>
+                                  {formatINR(paymentData.payments.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
+                                </strong>
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPaymentIds([])}
+                                style={{ background: 'transparent', border: '1px solid #4a6a5a', color: '#c2d6cc', padding: '8px 14px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Deselect
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+                                  setBatchPayError('');
+                                  setBatchPayModalOpen(true);
+                                }}
+                                style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 18px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                              >
+                                {Ico.creditCard(15)} Settle Payment for {selectedPaymentIds.length} Orders
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )
                   ) : (
@@ -1545,6 +1671,102 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+      </BaseModal>
+
+      {/* ── Record Batch Payment Modal ─────────────────────────────────── */}
+      <BaseModal
+        isOpen={batchPayModalOpen}
+        onClose={() => setBatchPayModalOpen(false)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="ad-batch-pay-modal"
+      >
+        <div className="ad-pay-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
+          <div className="ad-pay-modal-header">
+            <h3>Update Payment Details ({selectedPaymentIds.length} Orders)</h3>
+            <button className="ad-pay-modal-close" onClick={() => setBatchPayModalOpen(false)}>{Ico.x(16)}</button>
+          </div>
+          
+          <div className="ad-pay-modal-meta" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
+              <span><strong>Total Amount:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+                {formatINR(paymentData.payments.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
+              </strong></span>
+            </div>
+            {drillDentistPayments && (
+              <span><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</span>
+            )}
+          </div>
+
+          {/* Payment status toggle: Paid vs Pending */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
+            {[
+              { key: 'Paid', label: 'Mark as Paid' },
+              { key: 'Pending', label: 'Mark as Pending' },
+            ].map(st => (
+              <button
+                key={st.key}
+                type="button"
+                onClick={() => setBatchPayForm(f => ({ ...f, status: st.key }))}
+                style={{
+                  flex: 1, padding: '7px 12px', border: 'none', borderRadius: '8px',
+                  fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+                  background: batchPayForm.status === st.key ? '#1e5038' : 'transparent',
+                  color: batchPayForm.status === st.key ? '#fff' : '#4a7060',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+
+          {batchPayForm.status === 'Paid' && (
+            <>
+              {/* Mode toggle */}
+              <div className="ad-pay-mode-toggle">
+                {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
+                  <button key={m} className={`ad-pay-mode-btn ${batchPayForm.mode === m ? 'active' : ''}`}
+                    onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+
+              {/* Conditional reference field */}
+              {batchPayForm.mode === 'Cheque' && (
+                <div className="ad-pay-form-group">
+                  <label>Cheque Number *</label>
+                  <input type="text" placeholder="e.g. CHQ-650124" value={batchPayForm.referenceNumber}
+                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
+                </div>
+              )}
+              {(batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (
+                <div className="ad-pay-form-group">
+                  <label>{batchPayForm.mode === 'UPI' ? 'UPI Transaction ID / UTR *' : 'IMPS / NEFT Reference *'}</label>
+                  <input type="text" placeholder="e.g. 428190382910" value={batchPayForm.referenceNumber}
+                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="ad-pay-form-group">
+            <label>Notes / Settlement Reference (optional)</label>
+            <input type="text" placeholder="e.g. October batch settlement" value={batchPayForm.notes}
+              onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))} />
+          </div>
+
+          {batchPayError && <div className="ad-pay-form-error">{batchPayError}</div>}
+
+          <div className="ad-pay-modal-actions">
+            <button className="ad-pay-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleBatchRecordPayment} disabled={batchPaySaving}>
+              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
+            </button>
+          </div>
+        </div>
       </BaseModal>
     </div>
   );

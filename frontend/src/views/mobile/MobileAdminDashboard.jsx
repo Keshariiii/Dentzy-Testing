@@ -114,6 +114,13 @@ const MobileAdminDashboard = () => {
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
 
+  // Batch Payment state (multi-order payment updates)
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
+  const [batchPayModalOpen, setBatchPayModalOpen] = useState(false);
+  const [batchPayForm, setBatchPayForm] = useState({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+  const [batchPaySaving, setBatchPaySaving] = useState(false);
+  const [batchPayError, setBatchPayError] = useState('');
+
   // Detail modals
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -446,6 +453,59 @@ const MobileAdminDashboard = () => {
   };
 
   /* -- Payment Actions --------------------------------------------------- */
+  const togglePaymentSelect = (id) => {
+    setSelectedPaymentIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllPayments = () => {
+    const allIds = filteredPaymentsForDrill.map(p => p._id);
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedPaymentIds.includes(id));
+    setSelectedPaymentIds(allSelected ? [] : allIds);
+  };
+
+  const handleBatchRecordPayment = async () => {
+    if (selectedPaymentIds.length === 0) return;
+    setBatchPayError('');
+    if (batchPayForm.status === 'Paid') {
+      if (batchPayForm.mode === 'Cheque' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 3)) {
+        setBatchPayError('Cheque number is required (min 3 characters).');
+        return;
+      }
+      if (batchPayForm.mode === 'UPI' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 4)) {
+        setBatchPayError('UPI transaction / UTR number is required (min 4 characters).');
+        return;
+      }
+    }
+    setBatchPaySaving(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/payments/batch`, {
+        method: 'POST',
+        body: JSON.stringify({
+          paymentIds: selectedPaymentIds,
+          status: batchPayForm.status,
+          paymentMode: batchPayForm.status === 'Paid' ? batchPayForm.mode : '',
+          referenceNumber: batchPayForm.status === 'Paid' ? batchPayForm.referenceNumber.trim() : '',
+          notes: batchPayForm.notes.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || `Payment updated for ${data.updatedCount || selectedPaymentIds.length} orders.`);
+        setSelectedPaymentIds([]);
+        setBatchPayModalOpen(false);
+        fetchAllOrders();
+        fetchPayments();
+      } else {
+        setBatchPayError(data.message || 'Failed to update payments.');
+      }
+    } catch {
+      setBatchPayError('Network error.');
+    }
+    setBatchPaySaving(false);
+  };
+
   const openRecordPayment = (order) => {
     setPayModal(order);
     setPayForm({
@@ -1049,7 +1109,7 @@ const MobileAdminDashboard = () => {
               {/* Back Arrow Bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
                 <button
-                  onClick={() => { setDrillDentistPayments(null); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }}
+                  onClick={() => { setDrillDentistPayments(null); setSelectedPaymentIds([]); setPayFilterStatus('all'); setPayFilterMode('all'); setPaySearch(''); }}
                   aria-label="Back"
                   title="Back"
                   style={{
@@ -1068,21 +1128,41 @@ const MobileAdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Filter Status Pills */}
-              <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: 'var(--color-primary-dark)' }}>{Ico.filter(18)}</span>
-                  <select 
-                    value={payFilterStatus} 
-                    onChange={e => setPayFilterStatus(e.target.value)} 
-                    style={{ border: 'none', background: 'transparent', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-charcoal)', outline: 'none' }}
-                  >
-                    {PAY_STATUS_TABS.map(st => (
-                      <option key={st} value={st}>
-                        {st === 'all' ? 'All Status' : st}
-                      </option>
-                    ))}
-                  </select>
+              {/* Filter Status Pills & Selection Row */}
+              <div className="ma-tabs-wrap" style={{ padding: '0 16px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: 'var(--color-primary-dark)' }}>{Ico.filter(18)}</span>
+                    <select 
+                      value={payFilterStatus} 
+                      onChange={e => setPayFilterStatus(e.target.value)} 
+                      style={{ border: 'none', background: 'transparent', fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-charcoal)', outline: 'none' }}
+                    >
+                      {PAY_STATUS_TABS.map(st => (
+                        <option key={st} value={st}>
+                          {st === 'all' ? 'All Status' : st}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {filteredPaymentsForDrill.length > 0 && (
+                    <label
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#4a7060',
+                        userSelect: 'none', minHeight: '36px'
+                      }}
+                      onClick={toggleSelectAllPayments}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filteredPaymentsForDrill.length > 0 && filteredPaymentsForDrill.every(p => selectedPaymentIds.includes(p._id))}
+                        onChange={toggleSelectAllPayments}
+                        style={{ width: '15px', height: '15px', accentColor: '#1e5038', cursor: 'pointer' }}
+                      />
+                      <span>Select All ({filteredPaymentsForDrill.length})</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -1096,11 +1176,37 @@ const MobileAdminDashboard = () => {
                 ) : (
                   <div className="ma-pay-list">
                     {filteredPaymentsForDrill.map(p => (
-                      <div key={p._id} className="ma-card" onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
+                      <div
+                        key={p._id}
+                        className="ma-card"
+                        onClick={() => setSelectedPayment(p)}
+                        style={{
+                          cursor: 'pointer',
+                          background: selectedPaymentIds.includes(p._id) ? '#edf5f0' : undefined,
+                          borderColor: selectedPaymentIds.includes(p._id) ? '#1e5038' : undefined,
+                          transition: 'background 0.15s ease, border-color 0.15s ease',
+                        }}
+                      >
                         <div className="ma-card-top">
-                          <div>
-                            <span className="ma-card-title">{p.patientName}</span>
-                            <div className="ma-card-sub">{p.serviceType || p.caseId}</div>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                            <div
+                              onClick={e => { e.stopPropagation(); togglePaymentSelect(p._id); }}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', minHeight: '32px', cursor: 'pointer', marginTop: '2px' }}
+                              title="Select for batch payment"
+                              aria-label="Select order for batch payment"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedPaymentIds.includes(p._id)}
+                                onChange={() => togglePaymentSelect(p._id)}
+                                onClick={e => e.stopPropagation()}
+                                style={{ width: '17px', height: '17px', accentColor: '#1e5038', cursor: 'pointer' }}
+                              />
+                            </div>
+                            <div>
+                              <span className="ma-card-title">{p.patientName}</span>
+                              <div className="ma-card-sub">{p.serviceType || p.caseId}</div>
+                            </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
                             <span className="ma-case-badge">{p.caseId}</span>
@@ -1162,6 +1268,78 @@ const MobileAdminDashboard = () => {
                 )}
                 <div style={{ height: 24 }} />
               </main>
+
+              {/* Floating Batch Action Bar */}
+              {selectedPaymentIds.length > 0 && (
+                <div style={{
+                  position: 'fixed',
+                  bottom: '76px',
+                  left: '12px',
+                  right: '12px',
+                  zIndex: 60,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: '14px',
+                  background: '#1a3028',
+                  color: '#fff',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
+                  gap: '10px',
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <span style={{ fontSize: '0.75rem', color: '#a3bfb1', fontWeight: 600 }}>
+                      {selectedPaymentIds.length} {selectedPaymentIds.length === 1 ? 'order' : 'orders'} selected
+                    </span>
+                    <span style={{ fontSize: '0.96rem', fontWeight: 700, color: '#fff' }}>
+                      {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentIds([])}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid #4a6a5a',
+                        color: '#c2d6cc',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        minHeight: '40px',
+                      }}
+                    >
+                      Deselect
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+                        setBatchPayError('');
+                        setBatchPayModalOpen(true);
+                      }}
+                      style={{
+                        background: '#1e5038',
+                        border: '1px solid #708c80',
+                        color: '#fff',
+                        padding: '8px 14px',
+                        borderRadius: '10px',
+                        fontSize: '0.82rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        minHeight: '40px',
+                      }}
+                    >
+                      {Ico.creditCard(14)} Settle ({selectedPaymentIds.length})
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             /* ── Dentist cards overview for payments ── */
@@ -1701,6 +1879,129 @@ const MobileAdminDashboard = () => {
             </div>
           </div>
         )}
+      </BaseModal>
+
+      {/* ─────────────────────────────────────────────────────────────
+          BATCH RECORD PAYMENT MODAL (Mobile Dialog)
+          ───────────────────────────────────────────────────────────── */}
+      <BaseModal
+        isOpen={batchPayModalOpen}
+        onClose={() => setBatchPayModalOpen(false)}
+        maxWidth="max-w-md"
+        raw={true}
+        id="ma-batch-pay-modal"
+      >
+        <div className="ma-modal-sheet" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
+          <div className="ma-modal-header">
+            <h3>Update Payment Details ({selectedPaymentIds.length} Orders)</h3>
+            <button className="ma-modal-close" onClick={() => setBatchPayModalOpen(false)}>
+              {Ico.x(16)}
+            </button>
+          </div>
+
+          <div className="ma-modal-info" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
+              <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+                {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
+              </strong></span>
+            </div>
+            {drillDentistPayments && (
+              <div><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</div>
+            )}
+          </div>
+
+          {/* Status Toggle */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
+            {[
+              { key: 'Paid', label: 'Mark as Paid' },
+              { key: 'Pending', label: 'Mark as Pending' },
+            ].map(st => (
+              <button
+                key={st.key}
+                type="button"
+                onClick={() => setBatchPayForm(f => ({ ...f, status: st.key }))}
+                style={{
+                  flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
+                  fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+                  background: batchPayForm.status === st.key ? '#1e5038' : 'transparent',
+                  color: batchPayForm.status === st.key ? '#fff' : '#4a7060',
+                  transition: 'all 0.15s ease',
+                  minHeight: '40px',
+                }}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+
+          {batchPayForm.status === 'Paid' && (
+            <>
+              {/* Mode Toggle */}
+              <div className="ma-modal-mode-toggle">
+                {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`ma-modal-mode-btn ${batchPayForm.mode === m ? 'active' : ''}`}
+                    onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+
+              {/* Conditional Mode Fields */}
+              {batchPayForm.mode === 'Cheque' && (
+                <div className="ma-modal-field">
+                  <label>Cheque Number *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. CHQ-650124"
+                    value={batchPayForm.referenceNumber}
+                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
+                  />
+                </div>
+              )}
+              {(batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (
+                <div className="ma-modal-field">
+                  <label>{batchPayForm.mode === 'UPI' ? 'UPI Transaction ID / UTR *' : 'IMPS / NEFT Reference *'}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 428190382910"
+                    value={batchPayForm.referenceNumber}
+                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="ma-modal-field">
+            <label>Notes / Settlement Reference (optional)</label>
+            <input
+              type="text"
+              placeholder="e.g. Batch payment settlement"
+              value={batchPayForm.notes}
+              onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))}
+            />
+          </div>
+
+          {batchPayError && <div className="ma-modal-error">{batchPayError}</div>}
+
+          <div className="ma-modal-actions">
+            <button className="ma-modal-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>
+              Cancel
+            </button>
+            <button
+              className="ma-modal-btn-confirm"
+              onClick={handleBatchRecordPayment}
+              disabled={batchPaySaving}
+            >
+              {batchPaySaving ? 'Saving…' : `Confirm (${selectedPaymentIds.length})`}
+            </button>
+          </div>
+        </div>
       </BaseModal>
 
 

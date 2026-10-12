@@ -529,6 +529,82 @@ admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSc
   }
 });
 
+// POST /api/admin/payments/batch — update multiple orders' payments in one single payment details
+admin.post('/payments/batch', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const { orderIds = [], paymentIds = [], status = 'Paid', paymentMode = '', referenceNumber = '', notes = '' } = body;
+    const targetIds = Array.from(new Set([...orderIds, ...paymentIds])).filter(Boolean);
+
+    if (targetIds.length === 0) {
+      return c.json({ message: 'At least one order or payment ID is required.' }, 400);
+    }
+
+    const ts = now();
+    const batchId = 'BATCH-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const modeVal = status === 'Pending' ? '' : (paymentMode || '');
+    const refVal = status === 'Pending' ? '' : (referenceNumber || '');
+    const paidAtVal = status === 'Paid' ? ts : null;
+    const descVal = status === 'Pending' ? '' : (notes || '');
+
+    let updatedCount = 0;
+
+    for (const id of targetIds) {
+      // 1. Check if ID matches an existing payment directly
+      let payment = await c.env.DB.prepare('SELECT * FROM payments WHERE id = ?').bind(id).first();
+
+      // 2. If not, lookup by lab_orders id or caseId
+      if (!payment) {
+        const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
+        if (order) {
+          payment = await c.env.DB.prepare('SELECT * FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
+          if (!payment) {
+            // Insert new payment record for this order
+            const pid = newId();
+            await c.env.DB.prepare(
+              `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, paymentMode, referenceNumber, paidAt, createdAt, updatedAt)
+               VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, order.amount || 0, status, ts, order.dueDate || null, descVal, modeVal, refVal, paidAtVal, ts, ts).run();
+            updatedCount++;
+            continue;
+          }
+        }
+      }
+
+      if (payment) {
+        const updates = ['status = ?', 'paymentMode = ?', 'referenceNumber = ?', 'paidAt = ?', 'description = ?', 'updatedAt = ?'];
+        const binds = [status, modeVal, refVal, paidAtVal, descVal, ts, payment.id];
+        await c.env.DB.prepare(`UPDATE payments SET ${updates.join(', ')} WHERE id = ?`).bind(...binds).run();
+        updatedCount++;
+      }
+    }
+
+    auditLog('BATCH_PAYMENTS_UPDATED', {
+      targetCount: targetIds.length,
+      updatedCount,
+      status,
+      paymentMode: modeVal,
+      referenceNumber: refVal,
+      batchId,
+      adminUsername: c.get('admin').username,
+    });
+
+    const modeLabel = modeVal ? ` via ${modeVal}` : '';
+    const refLabel = refVal ? ` (Ref: ${refVal})` : '';
+    return c.json({
+      message: `Updated ${updatedCount} ${updatedCount === 1 ? 'order' : 'orders'} to ${status}${modeLabel}${refLabel}.`,
+      updatedCount,
+      batchId,
+      status,
+      paymentMode: modeVal,
+      referenceNumber: refVal,
+    });
+  } catch (error) {
+    logger.error('Admin batch payment update error', { error: error.message });
+    return c.json({ message: 'Failed to update batch payments.' }, 500);
+  }
+});
+
 // POST /api/admin/orders/:id/remind-payment — send payment reminder email
 admin.post('/orders/:id/remind-payment', verifyAdmin(), async (c) => {
   try {
