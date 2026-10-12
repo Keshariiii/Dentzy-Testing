@@ -224,20 +224,22 @@
 .cov-mobile-list {
   display: none;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 10px;
 }
 
 .cov-card {
   background: #ffffff;
   border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 8px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cov-card:active {
@@ -249,41 +251,72 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f8faf9;
 }
 
-.cov-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.cov-card-patient {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.cov-card-service {
-  font-size: 0.825rem;
-  color: #4b5563;
-}
-
-.cov-card-footer {
+.cov-card-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.5rem;
-  border-top: 1px solid #f3f4f6;
-  font-size: 0.775rem;
-  color: #6b7280;
+  gap: 0.75rem;
 }
 
-.cov-card-cta {
-  display: inline-flex;
+.cov-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cov-card-patient {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cov-card-meta {
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+
+.cov-card-service {
   font-weight: 600;
   color: #1e5038;
+  background: #f0f7f3;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.cov-card-dot {
+  color: #d1d5db;
+}
+
+.cov-card-date {
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+.cov-card-arrow {
+  color: #9ca3af;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.cov-card:hover .cov-card-arrow {
+  color: #1e5038;
+  transform: translateX(2px);
 }
 
 /* Loading skeleton */
@@ -312,11 +345,14 @@
 
 /* Safe bottom spacing for mobile floating nav */
 .cov-bottom-spacer {
-  height: 96px;
+  height: 120px;
 }
 
 /* Responsive breakpoint */
 @media (max-width: 768px) {
+  .cov-container {
+    gap: 0.875rem;
+  }
   .cov-table-card {
     display: none;
   }
@@ -324,13 +360,38 @@
     display: flex;
   }
   .cov-header {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+    border-radius: 14px;
+  }
+  .cov-header-left {
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .cov-title {
+    font-size: 1.1rem;
+  }
+  .cov-subtitle {
+    display: none; /* Hide verbose subtitle on mobile to conserve screen space */
+  }
+  .cov-count-pill {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
   }
   .cov-search-wrap {
     min-width: 100%;
     max-width: 100%;
   }
-  .cov-title {
-    font-size: 1.15rem;
+  .cov-search-input {
+    height: 38px;
+    font-size: 0.825rem;
+    border-radius: 10px;
+    padding-left: 2.1rem;
+  }
+  .cov-search-icon {
+    left: 0.75rem;
+  }
+  .cov-bottom-spacer {
+    height: 130px;
   }
 }

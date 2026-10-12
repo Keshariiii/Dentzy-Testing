@@ -174,17 +174,20 @@ export default function CompletedOrdersView({
                 onKeyDown={(e) => e.key === 'Enter' && onSelectOrder?.(o)}
               >
                 <div className="cov-card-top">
-                  <code className="cov-case-code">{o.caseId}</code>
+                  <span className="cov-case-code">{o.caseId}</span>
                   <StatusBadge status="completed" size="sm" />
                 </div>
-                <div className="cov-card-body">
-                  <span className="cov-card-patient">{o.patientName}</span>
-                  <span className="cov-card-service">{o.serviceType || 'Standard'}</span>
-                </div>
-                <div className="cov-card-footer">
-                  <span>{formatDate(o.completedDate || o.dueDate || o.updatedAt)}</span>
-                  <span className="cov-card-cta">
-                    View Case {Icons.chevronRight(13)}
+                <div className="cov-card-main">
+                  <div className="cov-card-info">
+                    <span className="cov-card-patient">{o.patientName}</span>
+                    <span className="cov-card-meta">
+                      <span className="cov-card-service">{o.serviceType || 'Standard'}</span>
+                      <span className="cov-card-dot">&bull;</span>
+                      <span className="cov-card-date">{formatDate(o.completedDate || o.dueDate || o.updatedAt)}</span>
+                    </span>
+                  </div>
+                  <span className="cov-card-arrow">
+                    {Icons.chevronRight(16)}
                   </span>
                 </div>
               </div>
