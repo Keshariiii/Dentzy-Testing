@@ -604,15 +604,19 @@ const MobileDashboard = () => {
     const data = payments;
 
     const modeBadge = (mode) => {
-      const colors = { Cash: { bg: '#dcfce7', fg: '#166534' }, Cheque: { bg: '#dbeafe', fg: '#1d4ed8' }, UPI: { bg: '#fae8ff', fg: '#7e22ce' } };
-      const c = colors[mode] || { bg: '#f0f0f0', fg: '#666' };
-      return <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: c.bg, color: c.fg }}>{mode}</span>;
+      const colors = {
+        Cash: { bg: '#eff5f1', fg: '#78937E', border: '#c6d8cb' },
+        Cheque: { bg: '#f1f5f8', fg: '#334155', border: '#dbe3eb' },
+        UPI: { bg: '#fbf8f2', fg: '#785b28', border: '#ede5d8' },
+      };
+      const c = colors[mode] || { bg: '#f8faf9', fg: '#4b5563', border: '#e2e8f0' };
+      return <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: c.bg, color: c.fg, border: `1px solid ${c.border}` }}>{mode}</span>;
     };
 
     return (
       <div className="m-tab-content">
         <h2 className="m-tab-title">Payments</h2>
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', lineHeight: 1.4 }}>
+        <div style={{ background: '#eff5f1', border: '1px solid #c6d8cb', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#78937E', lineHeight: 1.4 }}>
           <strong>Payment Modes:</strong> Direct UPI (mobile / UPI ID), Cash, or Cheque. Status is updated once verified by lab administration.
         </div>
         {error && (

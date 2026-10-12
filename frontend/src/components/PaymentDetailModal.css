@@ -146,8 +146,8 @@
   border-radius: 12px;
 }
 
-.pdm-status--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.pdm-status--pending { background: #fef9c3; color: #854d0e; }
+.pdm-status--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
+.pdm-status--pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
 
 .pdm-amount-val {
   font-size: 1.65rem;
@@ -258,7 +258,7 @@
 
 .pdm-amount-success-msg {
   font-size: 0.75rem;
-  color: #16a34a;
+  color: #78937E;
   font-weight: 600;
   margin-top: 2px;
 }
@@ -381,9 +381,9 @@
   display: inline-block;
 }
 
-.pdm-mode--cash { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.pdm-mode--cheque { background: #dbeafe; color: #1e40af; }
-.pdm-mode--upi { background: #f3e8ff; color: #7e22ce; }
+.pdm-mode--cash { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
+.pdm-mode--cheque { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); }
+.pdm-mode--upi { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
 
 /* ── Notes Box ──────────────────────────────── */
 .pdm-notes-box {

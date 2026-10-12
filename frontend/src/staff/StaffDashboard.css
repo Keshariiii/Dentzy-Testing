@@ -44,7 +44,7 @@
 .sd-header-title {
   font-weight: 700;
   font-size: 1rem;
-  color: #1e5038;
+  color: #78937E;
 }
 
 .sd-header-right {
@@ -63,8 +63,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #e8f5ee;
-  color: #1e5038;
+  background: #eff5f1;
+  color: #78937E;
   font-weight: 700;
   font-size: 0.82rem;
   display: flex;
@@ -119,8 +119,8 @@
   transition: all 0.2s ease;
 }
 
-.sd-nav-btn:hover { background: #f0f7f3; color: #1e5038; }
-.sd-nav-btn--active { background: #1e5038; color: #fff; }
+.sd-nav-btn:hover { background: #f0f7f3; color: #78937E; }
+.sd-nav-btn--active { background: #78937E; color: #fff; }
 
 @media (max-width: 767px) {
   .sd-nav { display: none; }
@@ -212,7 +212,7 @@
 
 .sd-filter-btn--active {
   background: #fff;
-  color: #1e5038;
+  color: #78937E;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
@@ -315,10 +315,10 @@
   flex-shrink: 0;
 }
 
-.sd-order-status--pending { background: #fef9c3; color: #92400e; }
-.sd-order-status--in-progress { background: #dbeafe; color: #1d4ed8; }
-.sd-order-status--completed { background: #dcfce7; color: #16a34a; }
-.sd-order-status--cancelled { background: #fee2e2; color: #dc2626; }
+.sd-order-status--pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
+.sd-order-status--in-progress { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); }
+.sd-order-status--completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
+.sd-order-status--cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border: 1px solid var(--dz-color-error-border); }
 
 .sd-order-meta {
   display: flex;
@@ -482,8 +482,8 @@
   color: #708c80;
 }
 
-.sd-metric-card--primary .sd-metric-value { color: #1e5038; }
-.sd-metric-card--success .sd-metric-value { color: #16a34a; }
+.sd-metric-card--primary .sd-metric-value { color: #78937E; }
+.sd-metric-card--success .sd-metric-value { color: #78937E; }
 .sd-metric-card--warning .sd-metric-value { color: #d97706; }
 
 /* ── Modal ──────────────────────────────────────────────────────────── */
@@ -801,13 +801,15 @@
 }
 
 .sd-form-msg--success {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--dz-color-success-bg);
+  color: var(--dz-color-success-text);
+  border: 1px solid var(--dz-color-success-border);
 }
 
 .sd-form-msg--error {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--dz-color-error-bg);
+  color: var(--dz-color-error-text);
+  border: 1px solid var(--dz-color-error-border);
 }
 
 /* ── Mobile Settings Adjustments ───────────────────────────────────── */

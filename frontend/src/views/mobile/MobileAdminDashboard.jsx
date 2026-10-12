@@ -965,7 +965,7 @@ const MobileAdminDashboard = () => {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
-                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    background: '#ffffff', color: '#78937E', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1073,7 +1073,7 @@ const MobileAdminDashboard = () => {
                               {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                             </div>
                           </div>
-                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} {d.orders.length === 1 ? 'Order' : 'Orders'} ›</span>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#78937E' }}>{d.orders.length} {d.orders.length === 1 ? 'Order' : 'Orders'} ›</span>
                         </div>
                         <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
                           {inProgress > 0 && <span className="ma-pill ma-pill--status-in-progress">{inProgress} In Progress</span>}
@@ -1115,7 +1115,7 @@ const MobileAdminDashboard = () => {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
-                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    background: '#ffffff', color: '#78937E', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1158,7 +1158,7 @@ const MobileAdminDashboard = () => {
                         type="checkbox"
                         checked={filteredPaymentsForDrill.length > 0 && filteredPaymentsForDrill.every(p => selectedPaymentIds.includes(p._id))}
                         onChange={toggleSelectAllPayments}
-                        style={{ width: '15px', height: '15px', accentColor: '#1e5038', cursor: 'pointer' }}
+                        style={{ width: '15px', height: '15px', accentColor: '#78937E', cursor: 'pointer' }}
                       />
                       <span>Select All ({filteredPaymentsForDrill.length})</span>
                     </label>
@@ -1182,8 +1182,8 @@ const MobileAdminDashboard = () => {
                         onClick={() => setSelectedPayment(p)}
                         style={{
                           cursor: 'pointer',
-                          background: selectedPaymentIds.includes(p._id) ? '#edf5f0' : undefined,
-                          borderColor: selectedPaymentIds.includes(p._id) ? '#1e5038' : undefined,
+                          background: selectedPaymentIds.includes(p._id) ? '#eff5f1' : undefined,
+                          borderColor: selectedPaymentIds.includes(p._id) ? '#78937E' : undefined,
                           transition: 'background 0.15s ease, border-color 0.15s ease',
                         }}
                       >
@@ -1200,7 +1200,7 @@ const MobileAdminDashboard = () => {
                                 checked={selectedPaymentIds.includes(p._id)}
                                 onChange={() => togglePaymentSelect(p._id)}
                                 onClick={e => e.stopPropagation()}
-                                style={{ width: '17px', height: '17px', accentColor: '#1e5038', cursor: 'pointer' }}
+                                style={{ width: '17px', height: '17px', accentColor: '#78937E', cursor: 'pointer' }}
                               />
                             </div>
                             <div>
@@ -1321,8 +1321,8 @@ const MobileAdminDashboard = () => {
                         setBatchPayModalOpen(true);
                       }}
                       style={{
-                        background: '#1e5038',
-                        border: '1px solid #708c80',
+                        background: '#78937E',
+                        border: '1px solid #58735e',
                         color: '#fff',
                         padding: '8px 14px',
                         borderRadius: '10px',
@@ -1391,7 +1391,7 @@ const MobileAdminDashboard = () => {
                                 {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} {d.payments.length === 1 ? 'Case' : 'Cases'} ›</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#78937E' }}>{d.payments.length} {d.payments.length === 1 ? 'Case' : 'Cases'} ›</span>
                           </div>
                           <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
                             {/* #56 — Only show non-zero values */}
@@ -1661,7 +1661,7 @@ const MobileAdminDashboard = () => {
                     <button
                       onClick={handleNoticeSave}
                       disabled={noticeSaving}
-                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
+                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#78937E', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
                     >
                       {noticeSaving ? 'Saving...' : 'Save'}
                     </button>
@@ -1680,20 +1680,20 @@ const MobileAdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Collected</div>
-                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#166534', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#78937E', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Collected</div>
+                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#78937E', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatINR(paymentData.summary?.totalCollected || 0)}
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
-                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#b45309', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#785b28', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
+                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#785b28', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatINR(paymentData.summary?.totalPending || 0)}
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e5038', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Records</div>
-                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#1e5038', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#78937E', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Records</div>
+                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#78937E', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
                   </div>
                 </div>
@@ -1710,14 +1710,14 @@ const MobileAdminDashboard = () => {
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Approved</div>
-                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#166534', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#78937E', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Approved</div>
+                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#78937E', marginTop: '4px' }}>
                     {stats.approved || 0}
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
-                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#785b28', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
+                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#785b28', marginTop: '4px' }}>
                     {stats.pending || 0}
                   </div>
                 </div>
@@ -1735,7 +1735,7 @@ const MobileAdminDashboard = () => {
               <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1a3028' }}>Administrator Account</div>
-                  <div style={{ fontSize: '0.82rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                  <div style={{ fontSize: '0.82rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#78937E' }}>{admin?.username || 'admin'}</strong></div>
                 </div>
                 <button
                   className="btn"
@@ -1902,7 +1902,7 @@ const MobileAdminDashboard = () => {
           <div className="ma-modal-info" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
-              <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+              <span><strong>Total:</strong> <strong style={{ color: '#78937E', fontSize: '1rem' }}>
                 {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
               </strong></span>
             </div>
@@ -1912,7 +1912,7 @@ const MobileAdminDashboard = () => {
           </div>
 
           {/* Status Toggle */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#eff5f1', padding: '4px', borderRadius: '10px' }}>
             {[
               { key: 'Paid', label: 'Mark as Paid' },
               { key: 'Pending', label: 'Mark as Pending' },
@@ -1924,7 +1924,7 @@ const MobileAdminDashboard = () => {
                 style={{
                   flex: 1, padding: '8px 12px', border: 'none', borderRadius: '8px',
                   fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-                  background: batchPayForm.status === st.key ? '#1e5038' : 'transparent',
+                  background: batchPayForm.status === st.key ? '#78937E' : 'transparent',
                   color: batchPayForm.status === st.key ? '#fff' : '#4a7060',
                   transition: 'all 0.15s ease',
                   minHeight: '40px',

@@ -416,12 +416,12 @@ const StaffManagementView = ({
                     </div>
                     <div style={{ marginTop: '8px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
                       {members.filter(m => m.status === 'active').length > 0 && (
-                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece' }}>
                           {members.filter(m => m.status === 'active').length} active
                         </span>
                       )}
                       {members.filter(m => m.status !== 'active').length > 0 && (
-                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#fbf3f3', color: '#7a3838', border: '1px solid #eddada' }}>
                           {members.filter(m => m.status !== 'active').length} inactive
                         </span>
                       )}
@@ -467,8 +467,9 @@ const StaffManagementView = ({
                     <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <span style={{
                         padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                        background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: s.status === 'active' ? '#16a34a' : '#dc2626',
+                        background: s.status === 'active' ? '#eff5f1' : '#fbf3f3',
+                        color: s.status === 'active' ? '#78937E' : '#7a3838',
+                        border: s.status === 'active' ? '1px solid #c6d8cb' : '1px solid #eddada',
                         marginRight: '4px',
                       }}>{s.status}</span>
                       <TwentyFirstIconButton
@@ -538,8 +539,9 @@ const StaffManagementView = ({
                       </span>
                       <span style={{
                         padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                        background: a.status === 'Present' ? '#dcfce7' : a.status === 'Half-day' ? '#fef9c3' : '#fee2e2',
-                        color: a.status === 'Present' ? '#16a34a' : a.status === 'Half-day' ? '#92400e' : '#dc2626',
+                        background: a.status === 'Present' ? '#eff5f1' : a.status === 'Half-day' ? '#fbf8f2' : '#fbf3f3',
+                        color: a.status === 'Present' ? '#78937E' : a.status === 'Half-day' ? '#785b28' : '#7a3838',
+                        border: a.status === 'Present' ? '1px solid #c6d8cb' : a.status === 'Half-day' ? '1px solid #ede5d8' : '1px solid #eddada',
                       }}>{a.status}</span>
                     </div>
                   ))}
@@ -686,15 +688,16 @@ const StaffManagementView = ({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '50%',
-                      background: i === 0 ? '#fef9c3' : '#e8f5ee',
+                      background: i === 0 ? '#fbf8f2' : '#eef6f2',
+                      border: i === 0 ? '1px solid #ede5d8' : '1px solid #c2dece',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 800, color: i === 0 ? '#92400e' : '#1e5038', fontSize: '0.88rem',
+                      fontWeight: 800, color: i === 0 ? '#785b28' : '#1e5038', fontSize: '0.88rem',
                     }}>#{i + 1}</div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>
                         {s.displayName}
                         {i === 0 && s.casesProcessed > 0 && (
-                          <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 700, color: '#92400e', background: '#fef9c3', padding: '2px 8px', borderRadius: '10px' }}>
+                          <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 700, color: '#785b28', background: '#fbf8f2', border: '1px solid #ede5d8', padding: '2px 8px', borderRadius: '10px' }}>
                             Staff of the Month
                           </span>
                         )}
@@ -705,19 +708,19 @@ const StaffManagementView = ({
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>
+                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#f1f5f8', color: '#334155', border: '1px solid #dbe3eb' }}>
                       {s.casesProcessed} cases
                     </span>
-                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
+                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece' }}>
                       {s.presentDays}d present
                     </span>
                     {s.halfDays > 0 && (
-                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fbf8f2', color: '#785b28', border: '1px solid #ede5d8' }}>
                         {s.halfDays} half
                       </span>
                     )}
                     {s.absentDays > 0 && (
-                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fbf3f3', color: '#7a3838', border: '1px solid #eddada' }}>
                         {s.absentDays} absent
                       </span>
                     )}
@@ -801,7 +804,7 @@ const StaffManagementView = ({
                       style={{
                         flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
                         fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s',
-                        background: attendanceStatus === st ? (st === 'Present' ? '#16a34a' : st === 'Half-day' ? '#d97706' : '#dc2626') : '#f0f7f3',
+                        background: attendanceStatus === st ? (st === 'Present' ? '#78937E' : st === 'Half-day' ? '#785b28' : '#7a3838') : '#f8faf9',
                         color: attendanceStatus === st ? '#fff' : '#4a7060',
                       }}>
                       {st}

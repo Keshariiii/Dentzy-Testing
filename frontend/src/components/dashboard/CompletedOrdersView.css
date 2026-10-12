@@ -3,7 +3,7 @@
    Adheres strictly to rules.md:
    - Zero emojis (SVG icons only)
    - No colored accent lines (elevation shadows only)
-   - Dentzy official palette (#1e5038, #174230, #e8f5ee, #16a34a, #dcfce7)
+   - Dentzy official palette (#1e5038, #174230, #e8f5ee, #eef6f2)
    - Mobile parity: 44px+ touch targets, 96px bottom padding
 ============================================================================= */
 
@@ -186,8 +186,8 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1e5038;
-  background: #e8f5ee;
+  color: #78937E;
+  background: #eff5f1;
   border-radius: 6px;
 }
 
@@ -208,15 +208,15 @@
   gap: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1e5038;
+  color: #78937E;
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  background: #f0f7f3;
+  background: #eff5f1;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .cov-row:hover .cov-action-cta {
-  background: #1e5038;
+  background: #78937E;
   color: #ffffff;
 }
 
@@ -290,8 +290,8 @@
 
 .cov-card-service {
   font-weight: 600;
-  color: #1e5038;
-  background: #f0f7f3;
+  color: #78937E;
+  background: #eff5f1;
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 0.72rem;
@@ -315,7 +315,7 @@
 }
 
 .cov-card:hover .cov-card-arrow {
-  color: #1e5038;
+  color: #78937E;
   transform: translateX(2px);
 }
 

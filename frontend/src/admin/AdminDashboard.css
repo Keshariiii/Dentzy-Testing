@@ -181,7 +181,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, #78937E, #5a7762);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -493,10 +493,10 @@
   justify-content: center;
 }
 
-.ad-sc--total    .ad-sc-icon-wrap { background: #f0f5f2; color: #708c80; }
-.ad-sc--pending  .ad-sc-icon-wrap { background: #fff7ed; color: #f59e0b; }
-.ad-sc--approved .ad-sc-icon-wrap { background: #ecfdf5; color: #10b981; }
-.ad-sc--rejected .ad-sc-icon-wrap { background: #fef2f2; color: #ef4444; }
+.ad-sc--total    .ad-sc-icon-wrap { background: #f0f5f2; color: #78937E; }
+.ad-sc--pending  .ad-sc-icon-wrap { background: #fbf8f2; color: #785b28; }
+.ad-sc--approved .ad-sc-icon-wrap { background: #eff5f1; color: #78937E; }
+.ad-sc--rejected .ad-sc-icon-wrap { background: #fbf3f3; color: #7a3838; }
 
 .ad-sc-body {
   display: flex;
@@ -704,7 +704,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, #78937E, #5a7762);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -754,13 +754,13 @@
 .ad-pw-value {
   font-family: var(--dz-font-family-mono, 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace);
   font-size: 0.76rem;
-  color: #5a4020;
-  background: #fef9c3;
+  color: #4b5563;
+  background: #f8faf9;
   padding: 1px 8px;
   border-radius: 4px;
   letter-spacing: 1px;
   user-select: all;
-  border: 1px solid #fde68a;
+  border: 1px solid #e2e8f0;
 }
 
 .ad-pw-toggle {
@@ -776,8 +776,8 @@
 }
 
 .ad-pw-toggle:hover {
-  color: #1e5038;
-  background: #e8f0ed;
+  color: #78937E;
+  background: #eff5f1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -974,26 +974,26 @@
 }
 
 .ad-action-approve {
-  background: #ecfdf5;
-  color: #16a34a;
-  border-color: #bbf7d0;
+  background: #eff5f1;
+  color: #78937E;
+  border-color: #c6d8cb;
 }
-.ad-action-approve:hover { background: #16a34a; color: #fff; }
+.ad-action-approve:hover { background: #78937E; color: #fff; }
 
 .ad-action-reject {
-  background: #fefce8;
-  color: #ca8a04;
-  border-color: #fde68a;
+  background: #fbf8f2;
+  color: #785b28;
+  border-color: #ede5d8;
 }
-.ad-action-reject:hover { background: #ca8a04; color: #fff; }
+.ad-action-reject:hover { background: #785b28; color: #fff; }
 
 .ad-action-delete {
-  background: #fef2f2;
-  color: #ef4444;
-  border-color: #fecaca;
+  background: #fbf3f3;
+  color: #7a3838;
+  border-color: #eddada;
   padding: 5px 7px;
 }
-.ad-action-delete:hover { background: #ef4444; color: #fff; }
+.ad-action-delete:hover { background: #7a3838; color: #fff; }
 
 /* =============================================================================
    PAYMENTS VIEW — Metrics, Filters, Mode Tags, Record Payment Modal
@@ -1027,8 +1027,8 @@
   font-weight: 700;
   color: #1a3028;
 }
-.ad-pay-metric--collected .ad-pay-metric-value { color: #16a34a; }
-.ad-pay-metric--pending .ad-pay-metric-value { color: #92400e; }
+.ad-pay-metric--collected .ad-pay-metric-value { color: #78937E; }
+.ad-pay-metric--pending .ad-pay-metric-value { color: #785b28; }
 
 .ad-pay-mode-split {
   display: flex;
@@ -1047,9 +1047,9 @@
   font-weight: 600;
   white-space: nowrap;
 }
-.ad-pay-mode--cash { background: #dcfce7; color: #166534; }
-.ad-pay-mode--cheque { background: #dbeafe; color: #1d4ed8; }
-.ad-pay-mode--upi { background: #fae8ff; color: #7e22ce; }
+.ad-pay-mode--cash { background: #eff5f1; color: #78937E; border: 1px solid #c6d8cb; }
+.ad-pay-mode--cheque { background: #f1f5f8; color: #334155; border: 1px solid #dbe3eb; }
+.ad-pay-mode--upi { background: #fbf8f2; color: #785b28; border: 1px solid #ede5d8; }
 
 /* Filters */
 .ad-pay-filters {

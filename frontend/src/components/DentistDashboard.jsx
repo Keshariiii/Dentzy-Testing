@@ -1060,8 +1060,9 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment }) => (
                   <span style={{ fontSize: '0.78rem' }}>
                     <span style={{
                       padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
-                      background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
-                      color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
+                      background: p.paymentMode === 'Cash' ? '#eff5f1' : p.paymentMode === 'UPI' ? '#fbf8f2' : '#f1f5f8',
+                      color: p.paymentMode === 'Cash' ? '#78937E' : p.paymentMode === 'UPI' ? '#785b28' : '#334155',
+                      border: p.paymentMode === 'Cash' ? '1px solid #c6d8cb' : p.paymentMode === 'UPI' ? '1px solid #ede5d8' : '1px solid #dbe3eb',
                     }}>{p.paymentMode}</span>
                     {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
                   </span>

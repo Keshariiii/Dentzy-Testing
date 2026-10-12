@@ -187,9 +187,9 @@
 .pi-doc-type-badge {
   display: inline-block;
   padding: 6px 14px;
-  background: #eef6f2;
-  border: 1.5px solid #1e5038;
-  color: #1e5038;
+  background: #eff5f1;
+  border: 1.5px solid #78937E;
+  color: #78937E;
   font-size: 0.85rem;
   font-weight: 800;
   border-radius: 8px;
@@ -293,15 +293,15 @@
 }
 
 .pi-table th {
-  background: #edf5f0;
-  color: #1e5038;
+  background: #eff5f1;
+  color: #78937E;
   font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 10px 12px;
   text-align: left;
-  border-bottom: 2px solid #b7d6c5;
+  border-bottom: 2px solid #c6d8cb;
 }
 
 .pi-table td {
@@ -311,7 +311,7 @@
 }
 
 .pi-table tr:last-child td {
-  border-bottom: 2px solid #1e5038;
+  border-bottom: 2px solid #78937E;
 }
 
 .pi-col-num {
@@ -354,15 +354,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2.5px solid #16a34a;
+  border: 2.5px solid #78937E;
   border-radius: 8px;
   padding: 6px 14px;
-  color: #16a34a;
+  color: #78937E;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   transform: rotate(-3deg);
-  background: rgba(22, 163, 74, 0.04);
+  background: rgba(120, 147, 126, 0.08);
 }
 
 .pi-stamp-word {
@@ -394,7 +394,7 @@
   border-top: 2px solid #1a3028;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #1e5038;
+  color: #78937E;
 }
 
 /* ── Footer: Signature Block & Terms ───────────────────────────────── */
@@ -446,7 +446,7 @@
 .pi-signatory-title {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #1e5038;
+  color: #78937E;
 }
 
 .pi-signatory-lab {

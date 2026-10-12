@@ -88,10 +88,10 @@ export interface AnimatedBadgeProps
 const STATUS_CLASS: Record<AnimatedBadgeStatus, string> = {
   neutral: "border-[#e2e8f0] bg-[#f8faf9] text-[#4b5563]",
   info: "border-[#dbe3eb] bg-[#f1f5f8] text-[#334155]",
-  success: "border-[#c2dece] bg-[#eef6f2] text-[#1e5038]",
+  success: "border-[#c6d8cb] bg-[#eff5f1] text-[#78937E]",
   warning: "border-[#ede5d8] bg-[#fbf8f2] text-[#785b28]",
   danger: "border-[#eddada] bg-[#fbf3f3] text-[#7a3838]",
-  loading: "border-[#cce2d5] bg-[#eef6f2] text-[#1e5038]",
+  loading: "border-[#c6d8cb] bg-[#eff5f1] text-[#78937E]",
 };
 
 const SIZE_CLASS: Record<AnimatedBadgeSize, string> = {

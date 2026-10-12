@@ -26,7 +26,7 @@ const STAGES = [
   { key: 'production', label: 'Milling', color: '#2563eb' },
   { key: 'qc', label: 'QC', color: '#d97706' },
   { key: 'dispatched', label: 'Dispatched', color: '#0891b2' },
-  { key: 'completed', label: 'Completed', color: '#16a34a' },
+  { key: 'completed', label: 'Completed', color: '#78937E' },
 ];
 
 const NAV_ITEMS = [
@@ -878,14 +878,14 @@ const StaffDashboard = () => {
                             )
                           }
                           onChange={toggleSelectAllStaffPayments}
-                          style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+                          style={{ width: '16px', height: '16px', accentColor: '#78937E', cursor: 'pointer' }}
                         />
                         <span>
                           Select All ({dentistOrders.filter(o => o.paymentAmount > 0 || o.paymentStatus).length})
                         </span>
                       </label>
                       {selectedStaffPaymentIds.length > 0 && (
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e5038', background: '#edf5f0', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#78937E', background: '#eff5f1', padding: '2px 8px', borderRadius: '6px' }}>
                           {selectedStaffPaymentIds.length} selected
                         </span>
                       )}
@@ -900,8 +900,8 @@ const StaffDashboard = () => {
                             key={oid}
                             className="sd-order-card"
                             style={{
-                              border: isSelected ? '1.5px solid #1e5038' : undefined,
-                              background: isSelected ? '#edf5f0' : undefined,
+                              border: isSelected ? '1.5px solid #78937E' : undefined,
+                              background: isSelected ? '#eff5f1' : undefined,
                               transition: 'background 0.15s ease, border-color 0.15s ease',
                             }}
                           >
@@ -918,7 +918,7 @@ const StaffDashboard = () => {
                                     checked={isSelected}
                                     onChange={() => toggleStaffPaymentSelect(oid)}
                                     onClick={e => e.stopPropagation()}
-                                    style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+                                    style={{ width: '16px', height: '16px', accentColor: '#78937E', cursor: 'pointer' }}
                                   />
                                 </div>
                                 <div>
@@ -996,7 +996,7 @@ const StaffDashboard = () => {
                               setBatchPayError('');
                               setBatchPayModalOpen(true);
                             }}
-                            style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
+                            style={{ background: '#78937E', border: '1px solid #58735e', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
                           >
                             {Ico.creditCard(14)} Settle Payment for {selectedStaffPaymentIds.length} Orders
                           </button>

@@ -15,6 +15,7 @@ import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
+import { StatusBadge } from '../components/ui/status-badge';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -879,18 +880,14 @@ const AdminDashboard = () => {
                                       checked={isSelected}
                                       onChange={() => togglePaymentSelect(p._id)}
                                       aria-label={`Select case ${p.caseId}`}
-                                      style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#1e5038' }}
+                                      style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#78937E' }}
                                     />
                                   </td>
                                   <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
                                   <td style={{ padding: '10px 12px' }}><strong>{p.patientName}</strong></td>
                                   <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(p.amount || 0)}</td>
                                   <td style={{ padding: '10px 12px' }}>
-                                    <span style={{
-                                      padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                      background: p.paymentStatus === 'Paid' ? '#dcfce7' : '#fef9c3',
-                                      color: p.paymentStatus === 'Paid' ? '#16a34a' : '#92400e',
-                                    }}>{p.paymentStatus || 'Pending'}</span>
+                                    <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
                                   </td>
                                   <td style={{ padding: '10px 12px' }}>
                                     {p.paymentStatus === 'Paid' && p.paymentMode ? (
@@ -1003,10 +1000,10 @@ const AdminDashboard = () => {
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#f0fdf4', color: '#16a34a' }}>Billed {formatINR(d.totalBilled)}</span>
-                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>Collected {formatINR(d.totalCollected)}</span>
-                                  {d.totalPending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>Pending {formatINR(d.totalPending)}</span>}
-                                  {unpaid > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>{unpaid} Unpaid</span>}
+                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#f8faf9', color: '#4b5563', border: '1px solid #e2e8f0' }}>Billed {formatINR(d.totalBilled)}</span>
+                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece' }}>Collected {formatINR(d.totalCollected)}</span>
+                                  {d.totalPending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fbf8f2', color: '#785b28', border: '1px solid #ede5d8' }}>Pending {formatINR(d.totalPending)}</span>}
+                                  {unpaid > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fbf3f3', color: '#7a3838', border: '1px solid #eddada' }}>{unpaid} Unpaid</span>}
                                 </div>
                                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.payments.length} Cases ›</span>
                               </div>
@@ -1073,18 +1070,10 @@ const AdminDashboard = () => {
                                 <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{o.caseId}</code></td>
                                 <td style={{ padding: '10px 12px' }}>{o.serviceType}</td>
                                 <td style={{ padding: '10px 12px' }}>
-                                  <span style={{
-                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                    background: o.status === 'Completed' ? '#dcfce7' : o.status === 'In Progress' ? '#dbeafe' : o.status === 'Cancelled' ? '#fee2e2' : '#fef9c3',
-                                    color: o.status === 'Completed' ? '#16a34a' : o.status === 'In Progress' ? '#1d4ed8' : o.status === 'Cancelled' ? '#dc2626' : '#92400e',
-                                  }}>{o.status}</span>
+                                  <StatusBadge status={o.status || 'Pending'} size="sm" />
                                 </td>
                                 <td style={{ padding: '10px 12px' }}>
-                                  <span style={{
-                                    padding: '3px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                                    background: (o.paymentStatus || 'Pending') === 'Paid' ? '#dcfce7' : '#fef9c3',
-                                    color: (o.paymentStatus || 'Pending') === 'Paid' ? '#16a34a' : '#92400e',
-                                  }}>{o.paymentStatus || 'Pending'}</span>
+                                  <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
                                 </td>
                                 <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(o.paymentAmount || o.amount || 0)}</td>
                                 <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
@@ -1117,9 +1106,9 @@ const AdminDashboard = () => {
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  {inProgress > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>{inProgress} In Progress</span>}
-                                  {pending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>{pending} Pending</span>}
-                                  {completed > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{completed} Completed</span>}
+                                  {inProgress > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#f1f5f8', color: '#334155', border: '1px solid #dbe3eb' }}>{inProgress} In Progress</span>}
+                                  {pending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fbf8f2', color: '#785b28', border: '1px solid #ede5d8' }}>{pending} Pending</span>}
+                                  {completed > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece' }}>{completed} Completed</span>}
                                 </div>
                                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.orders.length} Orders ›</span>
                               </div>
@@ -1190,7 +1179,10 @@ const AdminDashboard = () => {
                             <div className="ad-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
 
                             <div className="ad-user-info">
-                              <div className="ad-user-name">{user?.name || 'Unnamed Dentist'}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <div className="ad-user-name">{user?.name || 'Unnamed Dentist'}</div>
+                                <StatusBadge status={user?.status} size="sm" />
+                              </div>
                               <div className="ad-user-email">{user?.email || '—'}</div>
                               <div className="ad-user-date">
                                 {Ico.clock(12)}
@@ -1289,7 +1281,7 @@ const AdminDashboard = () => {
                           height: '38px',
                           border: 'none',
                           cursor: 'pointer',
-                          color: '#1e5038',
+                          color: '#78937E',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1475,8 +1467,8 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#78937E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#58735e', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalCollected || 0)}
                             </div>
                           </div>
@@ -1488,7 +1480,7 @@ const AdminDashboard = () => {
                           </div>
                           <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e5038', marginTop: '8px' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#78937E', marginTop: '8px' }}>
                               {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
                             </div>
                           </div>
@@ -1507,8 +1499,8 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#78937E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#58735e', marginTop: '8px' }}>
                               {stats.approved || 0}
                             </div>
                           </div>
