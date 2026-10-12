@@ -115,6 +115,23 @@ dashboard.delete('/orders/:id', async (c) => {
   const userId = c.get('user').id;
   const orderId = c.req.param('id');
   try {
+    const order = await c.env.DB.prepare(
+      'SELECT caseId FROM lab_orders WHERE id = ? AND ownerId = ?'
+    ).bind(orderId, userId).first();
+    if (!order) return c.json({ message: 'Order not found.' }, 404);
+
+    // Safeguard: block deletion if payment is already Paid
+    const paidPayment = await c.env.DB.prepare(
+      "SELECT id FROM payments WHERE caseId = ? AND status = 'Paid'"
+    ).bind(order.caseId).first();
+
+    if (paidPayment) {
+      return c.json({
+        message: `Cannot delete order ${order.caseId} because payment has already been completed. Please contact lab administration for cancellations.`,
+        code: 'PAID_ORDER_DELETION_BLOCKED',
+      }, 400);
+    }
+
     const { meta } = await c.env.DB.prepare(
       'DELETE FROM lab_orders WHERE id = ? AND ownerId = ?'
     ).bind(orderId, userId).run();

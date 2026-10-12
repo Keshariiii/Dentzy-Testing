@@ -355,6 +355,18 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
     const order = await c.env.DB.prepare('SELECT caseId, ownerId FROM lab_orders WHERE id = ?').bind(orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
 
+    // Safeguard: block deletion if payment is already Paid
+    const paidPayment = await c.env.DB.prepare(
+      "SELECT id, status, amount, paymentMode FROM payments WHERE caseId = ? AND status = 'Paid'"
+    ).bind(order.caseId).first();
+
+    if (paidPayment) {
+      return c.json({
+        message: `Cannot delete order ${order.caseId} because payment has already been recorded as Paid. Please revert the payment to Pending or issue a refund before deleting.`,
+        code: 'PAID_ORDER_DELETION_BLOCKED',
+      }, 400);
+    }
+
     await c.env.DB.prepare('DELETE FROM lab_orders WHERE id = ?').bind(orderId).run();
     await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(order.caseId).run();
 
@@ -370,6 +382,19 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
 admin.delete('/payments/:id', verifyAdmin(), async (c) => {
   try {
     const paymentId = c.req.param('id');
+
+    // Safeguard: block deletion if payment is marked as Paid
+    const payment = await c.env.DB.prepare(
+      'SELECT id, caseId, status FROM payments WHERE id = ? OR caseId = ?'
+    ).bind(paymentId, paymentId).first();
+
+    if (payment && payment.status === 'Paid') {
+      return c.json({
+        message: 'Cannot delete a payment record that is marked as Paid. Please revert the status to Pending before deleting.',
+        code: 'PAID_PAYMENT_DELETION_BLOCKED',
+      }, 400);
+    }
+
     let res = await c.env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(paymentId).run();
     if (!res.meta.changes) {
       res = await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(paymentId).run();

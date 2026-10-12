@@ -284,14 +284,20 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                             <span className="ddm-order-caseid">{order.caseId}</span>
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                               <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
-                              <TwentyFirstIconButton
-                                icon={Ico.trash(14)}
-                                title="Delete Order"
-                                ariaLabel="Delete Order"
-                                onClick={() => handleDeleteOrderClick(order)}
-                                size="sm"
-                                variant="danger"
-                              />
+                              {order.paymentStatus === 'Paid' ? (
+                                <span title="Paid order cannot be deleted. Revert payment to Pending first." style={{ fontSize: '0.72rem', color: '#708c80', background: '#edf5f0', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                  Paid
+                                </span>
+                              ) : (
+                                <TwentyFirstIconButton
+                                  icon={Ico.trash(14)}
+                                  title="Delete Order"
+                                  ariaLabel="Delete Order"
+                                  onClick={() => handleDeleteOrderClick(order)}
+                                  size="sm"
+                                  variant="danger"
+                                />
+                              )}
                             </div>
                           </div>
                           <div className="ddm-order-patient">{order.patientName}</div>

@@ -252,13 +252,29 @@ export default function PaymentDetailModal({
           {/* Footer Actions */}
           <div className="pdm-footer">
             {isAdmin && onDelete && (
-              <button
-                type="button"
-                className="pdm-delete-btn"
-                onClick={() => setShowConfirmDelete(true)}
-              >
-                {Ico.trash(14)} Delete Payment
-              </button>
+              isPaid ? (
+                <span
+                  title="Paid records cannot be deleted. Revert payment to Pending first if needed."
+                  style={{
+                    fontSize: '0.76rem',
+                    color: '#708c80',
+                    padding: '8px 12px',
+                    background: '#edf5f0',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                  }}
+                >
+                  Paid Record (Protected)
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="pdm-delete-btn"
+                  onClick={() => setShowConfirmDelete(true)}
+                >
+                  {Ico.trash(14)} Delete Payment
+                </button>
+              )
             )}
 
             <div className="pdm-footer-right">

@@ -273,13 +273,29 @@ export default function OrderDetailModal({
           {/* Modal Footer Actions */}
           <div className="odm-footer">
             {isAdmin && onDelete && (
-              <button
-                type="button"
-                className="odm-delete-btn"
-                onClick={() => setShowConfirmDelete(true)}
-              >
-                {Ico.trash(14)} Delete Order
-              </button>
+              displayOrder.paymentStatus === 'Paid' ? (
+                <span
+                  title="Cannot delete an order that has already been paid. Revert payment to Pending first."
+                  style={{
+                    fontSize: '0.76rem',
+                    color: '#708c80',
+                    padding: '8px 12px',
+                    background: '#edf5f0',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                  }}
+                >
+                  Paid Order (Protected)
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="odm-delete-btn"
+                  onClick={() => setShowConfirmDelete(true)}
+                >
+                  {Ico.trash(14)} Delete Order
+                </button>
+              )
             )}
             <button type="button" className="odm-close-footer-btn" onClick={onClose}>
               Close
