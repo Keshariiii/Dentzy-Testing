@@ -653,13 +653,7 @@ const MobileDashboard = () => {
                 >
                   <div className="m-compact-card__top">
                     <span className="m-order-id">{p.caseId}</span>
-                    <span style={{
-                      padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600,
-                      background: isPaid ? '#dcfce7' : '#fef9c3',
-                      color: isPaid ? '#16a34a' : '#92400e',
-                    }}>
-                      {p.paymentStatus || 'Pending'}
-                    </span>
+                    <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
                   </div>
                   <div className="m-compact-card__main">
                     <div className="m-compact-card__info">

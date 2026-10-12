@@ -56,12 +56,12 @@ export const SPRING_MOUSE = {
 };
 
 const STATUS_CLASS = {
-  neutral: 'border-slate-200 bg-slate-100/90 text-slate-700',
-  info: 'border-blue-400/30 bg-blue-50 text-blue-700',
-  success: 'border-emerald-500/30 bg-emerald-50 text-emerald-700',
-  warning: 'border-amber-500/30 bg-amber-50 text-amber-700',
-  danger: 'border-rose-500/30 bg-rose-50 text-rose-700',
-  loading: 'border-[#1e5038]/30 bg-[#1e5038]/10 text-[#1e5038]',
+  neutral: 'border-[#e2e8f0] bg-[#f8faf9] text-[#4b5563]',
+  info: 'border-[#dbe3eb] bg-[#f1f5f8] text-[#334155]',
+  success: 'border-[#c2dece] bg-[#eef6f2] text-[#1e5038]',
+  warning: 'border-[#ede5d8] bg-[#fbf8f2] text-[#785b28]',
+  danger: 'border-[#eddada] bg-[#fbf3f3] text-[#7a3838]',
+  loading: 'border-[#cce2d5] bg-[#eef6f2] text-[#1e5038]',
 };
 
 const SIZE_CLASS = {
