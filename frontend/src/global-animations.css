@@ -549,6 +549,17 @@ img {
   box-shadow: 0 8px 20px rgba(30, 80, 56, 0.08);
 }
 
+/* Crisp, professional hover states with zero bouncing */
+.service-card, .ud-stat-card, .ad-stat-card, .m-card, .ad-user-card {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.service-card:hover, .ud-stat-card:hover, .ad-stat-card:hover, .m-card:hover, .ad-user-card:hover {
+  transform: none !important;
+  border-color: #9BC4B0 !important;
+  box-shadow: 0 4px 16px rgba(22, 62, 43, 0.06) !important;
+}
+
 /* ---------------------------------------------------------------------------
    20. REDUCED MOTION SUPPORT  (accessibility)
 --------------------------------------------------------------------------- */

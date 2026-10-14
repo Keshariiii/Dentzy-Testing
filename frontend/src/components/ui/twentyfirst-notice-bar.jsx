@@ -1,46 +1,32 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, ChevronRight, Copy, Check, Headphones } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { TwentyFirstBadge } from './twentyfirst-badge';
 import BaseModal from './BaseModal';
 
-/**
- * TwentyFirstNoticeBar — 21st.dev Announcement / Marquee Primitive
- *
- * Smooth infinite rolling announcements bar with live pulsing badge,
- * hover/touch pause, reduced-motion fallback, and Dentzy design tokens.
- * Clicking the bar opens the full announcements modal to inspect all notices at once.
- *
- * @param {object} props
- * @param {string[]} props.messages         - List of announcement strings
- * @param {string}   [props.label='Notice'] - Badge text
- * @param {boolean}  [props.pulse=true]     - Pulsing dot on badge
- * @param {number}   [props.duration=40]    - Seconds per full scroll cycle
- * @param {boolean}  [props.pauseOnHover=true] - Pause ticker when hovered or touched
- * @param {string}   [props.className]      - Container classes
- */
 export function TwentyFirstNoticeBar({
   messages = [],
-  label = 'Notice',
-  pulse = true,
-  duration = 38,
-  pauseOnHover = true,
+  label = 'Advisory',
   className,
   ...props
 }) {
-  const [isPaused, setIsPaused] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
 
   const cleanMessages = (messages || []).filter(Boolean);
 
-  if (cleanMessages.length === 0) {
-    return null;
-  }
+  useEffect(() => {
+    if (cleanMessages.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % cleanMessages.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [cleanMessages.length]);
 
-  // Double array for seamless infinite marquee loop
-  const displayItems = [...cleanMessages, ...cleanMessages];
+  if (cleanMessages.length === 0) return null;
+
+  const activeMessage = cleanMessages[currentIndex % cleanMessages.length];
 
   const handleCopy = async (text, idx) => {
     try {
@@ -49,9 +35,7 @@ export function TwentyFirstNoticeBar({
         setCopiedIndex(idx);
         setTimeout(() => setCopiedIndex(null), 2000);
       }
-    } catch {
-      // Fallback ignore
-    }
+    } catch {}
   };
 
   return (
@@ -60,160 +44,80 @@ export function TwentyFirstNoticeBar({
         role="button"
         tabIndex={0}
         aria-label="Lab announcements — click to view all notices"
-        title="Click to view all notices"
-        className={cn(
-          'group relative flex items-center h-10 w-full overflow-hidden rounded-[14px]',
-          'bg-primary-muted/20 border border-primary/20',
-          'px-2.5 transition-all duration-200',
-          'cursor-pointer hover:bg-primary-muted/30 hover:border-primary/30',
-          'active:scale-[0.995] focus:outline-hidden focus:ring-2 focus:ring-primary/40',
-          className,
-        )}
-        onMouseEnter={() => pauseOnHover && setIsPaused(true)}
-        onMouseLeave={() => pauseOnHover && setIsPaused(false)}
-        onTouchStart={() => pauseOnHover && setIsPaused(true)}
-        onTouchEnd={() => pauseOnHover && setIsPaused(false)}
-        onClick={(e) => {
-          setIsModalOpen(true);
-          props.onClick?.(e);
-        }}
+        onClick={() => setIsModalOpen(true)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             setIsModalOpen(true);
           }
-          props.onKeyDown?.(e);
         }}
+        className={cn(
+          'group flex items-center justify-between gap-3 h-10 w-full rounded-lg',
+          'bg-[#F0F5F2] border border-[#D5E2DC] px-3 transition-colors duration-150',
+          'cursor-pointer hover:bg-[#E6EFEA] hover:border-[#B8CEC3]',
+          className,
+        )}
         {...props}
       >
-        {/* Notice Badge */}
-        <div className="relative z-10 flex-shrink-0 mr-3">
-          <TwentyFirstBadge
-            variant="approved"
-            pulse={pulse}
-            className="bg-primary-dark text-white font-bold tracking-wider uppercase text-[10px] px-2.5 py-1 shadow-xs"
-          >
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#163E2B] text-white text-[10px] font-semibold uppercase tracking-wider shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80]" />
             {label}
-          </TwentyFirstBadge>
+          </span>
+          <span className="text-xs font-medium text-[#14241D] truncate">
+            {activeMessage}
+          </span>
         </div>
 
-        {/* Marquee Viewport */}
-        <div className="relative flex-1 overflow-hidden h-full flex items-center">
-          {/* Subtle Edge Fades for sleek 21st.dev aesthetic */}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-page/80 to-transparent z-[5]" />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-page/80 to-transparent z-[5]" />
-
-          {/* Scrolling Track */}
-          <div
-            className={cn(
-              'flex items-center whitespace-nowrap will-change-transform',
-              'twentyfirst-marquee-track',
-            )}
-            style={{
-              animationDuration: `${duration}s`,
-              animationPlayState: isPaused ? 'paused' : 'running',
-            }}
-          >
-            {displayItems.map((msg, idx) => (
-              <span
-                key={`${idx}-${msg.slice(0, 10)}`}
-                className="inline-flex items-center text-xs font-medium text-dark/90 tracking-wide pr-8 select-none"
-              >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary mr-2.5 opacity-70" />
-                {msg}
-              </span>
-            ))}
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {cleanMessages.length > 1 && (
+            <span className="text-[11px] font-mono text-[#5A6E64] tabular-nums">
+              {(currentIndex % cleanMessages.length) + 1}/{cleanMessages.length}
+            </span>
+          )}
+          <span className="hidden sm:inline-flex items-center gap-0.5 text-xs font-semibold text-[#163E2B] group-hover:underline">
+            View all
+            <ChevronRight className="w-3.5 h-3.5" />
+          </span>
         </div>
-
-        {/* Action Hint / Pill (Desktop) */}
-        <div className="relative z-10 flex-shrink-0 ml-2 hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-[11px] font-semibold text-primary-dark shadow-xs border border-primary/15 transition-transform group-hover:translate-x-0.5">
-          <span>All notices ({cleanMessages.length})</span>
-          <ChevronRight className="w-3 h-3 text-primary" />
-        </div>
-
-        {/* Action Hint (Mobile) */}
-        <div className="relative z-10 flex-shrink-0 ml-1.5 flex sm:hidden items-center justify-center w-6 h-6 rounded-full bg-white/80 text-primary-dark">
-          <ChevronRight className="w-3.5 h-3.5" />
-        </div>
-
-        {/* Global CSS for the 21st marquee loop */}
-        <style jsx>{`
-          .twentyfirst-marquee-track {
-            display: flex;
-            animation: twentyfirst-marquee linear infinite;
-          }
-          @keyframes twentyfirst-marquee {
-            0% {
-              transform: translateX(0%);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .twentyfirst-marquee-track {
-              animation: none;
-              overflow-x: auto;
-            }
-          }
-        `}</style>
       </div>
 
-      {/* 21st.dev Announcements Modal */}
       <BaseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Announcements & Notices"
-        subtitle="Important updates, clinical advisories, and laboratory schedules from Dentzy."
-        badge={
-          <TwentyFirstBadge
-            variant="approved"
-            pulse={true}
-            className="bg-primary-dark text-white font-bold text-[10px] px-2 py-0.5"
-          >
-            {cleanMessages.length} Active
-          </TwentyFirstBadge>
-        }
+        title="Clinical Advisories & Lab Schedules"
+        subtitle="Official turnaround schedules and laboratory updates from Dentzy."
         maxWidth="max-w-xl"
         id="notices-modal"
       >
-        <div className="space-y-3 py-1">
+        <div className="space-y-2.5 py-1">
           {cleanMessages.map((msg, idx) => (
             <div
               key={idx}
-              className="relative flex items-start gap-3.5 p-4 rounded-xl bg-white border border-emerald-900/10 shadow-xs hover:shadow-sm transition-all"
+              className="flex items-start gap-3 p-3.5 rounded-lg bg-[#F8FAF9] border border-[#E2ECE6]"
             >
-              {/* Notice Bell Icon */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary-muted/20 flex items-center justify-center text-primary-dark mt-0.5">
-                <Bell className="w-4 h-4 text-[#1e5038]" />
+              <div className="flex-shrink-0 w-7 h-7 rounded-md bg-[#E8F2EC] flex items-center justify-center text-[#163E2B] mt-0.5">
+                <Bell className="w-3.5 h-3.5" />
               </div>
-
-              {/* Message Content */}
-              <div className="flex-1 min-w-0 pr-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] font-semibold tracking-wider text-primary-dark/75 uppercase">
-                    Notice #{idx + 1}
-                  </span>
-                </div>
-                <p className="text-sm font-normal text-slate-800 leading-relaxed break-words">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-[#5A6E64] uppercase tracking-wider mb-0.5">
+                  Advisory #{idx + 1}
+                </p>
+                <p className="text-sm text-[#111C17] leading-relaxed break-words m-0">
                   {msg}
                 </p>
               </div>
-
-              {/* Quick Copy Action */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCopy(msg, idx);
                 }}
-                className="flex-shrink-0 p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="flex-shrink-0 p-1.5 rounded-md text-[#64748B] hover:text-[#111C17] hover:bg-[#E2ECE6] transition-colors"
                 title="Copy notice text"
-                aria-label="Copy notice text"
               >
                 {copiedIndex === idx ? (
-                  <Check className="w-4 h-4 text-emerald-600" />
+                  <Check className="w-4 h-4 text-[#067647]" />
                 ) : (
                   <Copy className="w-4 h-4" />
                 )}
@@ -221,22 +125,17 @@ export function TwentyFirstNoticeBar({
             </div>
           ))}
         </div>
-
-        {/* Footer info & close */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2 text-center sm:text-left">
-            <Headphones className="w-4 h-4 text-[#1e5038] flex-shrink-0" />
-            <span>
-              For urgent inquiries, contact Lab Support at{' '}
-              <strong className="text-slate-700 font-semibold">+91 9503668112</strong>
-            </span>
-          </div>
+        <div className="mt-4 pt-3 border-t border-[#E2ECE6] flex items-center justify-between text-xs text-[#5A6E64]">
+          <span className="flex items-center gap-1.5">
+            <Headphones className="w-3.5 h-3.5 text-[#163E2B]" />
+            Lab Support: <strong className="text-[#111C17]">+91 95036 68112</strong>
+          </span>
           <button
             type="button"
             onClick={() => setIsModalOpen(false)}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#1e5038] hover:bg-[#174230] text-white font-medium text-xs transition-colors shadow-xs"
+            className="px-4 py-2 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white font-semibold text-xs transition-colors"
           >
-            Close
+            Done
           </button>
         </div>
       </BaseModal>

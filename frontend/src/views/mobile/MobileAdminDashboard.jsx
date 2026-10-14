@@ -857,31 +857,33 @@ const MobileAdminDashboard = () => {
                     {/* Inline action buttons based on status */}
                     {(user.status === 'pending' || user.status === 'rejected') && (
                       <div className="ma-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <TwentyFirstIconButton
-                          icon={Ico.check(16)}
-                          title="Approve Dentist"
-                          ariaLabel="Approve Dentist"
+                        <button
+                          type="button"
                           onClick={() => handleApprove(uId, user.name)}
-                          size="lg"
-                          variant="success"
-                        />
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
+                          title="Approve Dentist"
+                        >
+                          {Ico.check(13)}
+                          <span>Approve</span>
+                        </button>
                         {user.status === 'pending' && (
-                          <TwentyFirstIconButton
-                            icon={Ico.x(16)}
-                            title="Reject Dentist"
-                            ariaLabel="Reject Dentist"
+                          <button
+                            type="button"
                             onClick={() => handleReject(uId, user.name)}
-                            size="lg"
-                            variant="danger"
-                          />
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#D5E0DB] bg-white hover:bg-[#FEF3F2] hover:border-[#FECDCA] text-[#475467] hover:text-[#B42318] text-xs font-semibold transition-colors cursor-pointer"
+                            title="Reject Dentist"
+                          >
+                            {Ico.x(13)}
+                            <span>Reject</span>
+                          </button>
                         )}
                         <TwentyFirstIconButton
-                          icon={Ico.trash(16)}
+                          icon={Ico.trash(14)}
                           title="Delete Dentist"
                           ariaLabel="Delete Dentist"
                           onClick={() => handleDelete(uId, user.name)}
-                          size="lg"
-                          variant="danger"
+                          size="md"
+                          variant="ghost"
                         />
                       </div>
                     )}

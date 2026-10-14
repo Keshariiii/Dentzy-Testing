@@ -37,24 +37,7 @@ import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
 
 /* ============================================================
-   TICKER
-============================================================ */
-/* Ticker messages imported from dashboard/shared/constants.js */
 
-const Ticker = () => (
-  <div className="m-ticker-wrap" aria-label="Lab announcements">
-    <span className="m-ticker-label">Notice</span>
-    <div className="m-ticker-viewport">
-      <div className="m-ticker-track">
-        {[...TICKER_MESSAGES, ...TICKER_MESSAGES].map((msg, i) => (
-          <span key={i} className="m-ticker-item">
-            <span className="m-ticker-sep">&bull;</span> {msg}
-          </span>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 /* Pipeline component now imported from common/ProductionPipeline */
 

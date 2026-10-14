@@ -1,11 +1,5 @@
 'use client';
-/**
- * MobileHome -- Complete mobile landing page.
- * 100% parity with all 16 desktop sections.
- * Zero emojis. All SVG icons.
- */
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { ShieldCheck, Clock, Layers, Headphones, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
 import { TwentyFirstIconButton } from '../../components/ui/twentyfirst-icon-button';
@@ -16,68 +10,40 @@ import Footer from '../../components/Footer';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHome.css';
 
-/* ============================================================
-   DATA
-============================================================ */
 const SERVICES = [
-  { key: 'denture',  title: 'Denture',  image: '/images/denture.webp',
-    desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly." },
-  { key: 'zirconia', title: 'Zirconia', image: '/images/zirconia.webp',
-    desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material.' },
-  { key: 'pfm',      title: 'PFM',      image: '/images/pfm.webp',
-    desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry.' },
-  { key: 'metal',    title: 'Metal',    image: '/images/metal.webp',
-    desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth.' },
+  { key: 'denture',  title: 'Complete Dentures', image: '/images/denture.webp', desc: 'Precision-crafted single and full arch dentures optimized for retention, bite stability, and natural aesthetics.' },
+  { key: 'zirconia', title: 'Zirconia Crowns', image: '/images/zirconia.webp', desc: 'Monolithic and layered CAD/CAM zirconia restorations offering exceptional flexural strength and natural translucency.' },
+  { key: 'pfm',      title: 'PFM Restorations', image: '/images/pfm.webp', desc: 'Porcelain-fused-to-metal crowns combining high-tensile metal substructures with layered aesthetic ceramics.' },
+  { key: 'metal',    title: 'Metal Castings', image: '/images/metal.webp', desc: 'Full-contour base metal alloys designed with tight marginal integrity for posterior load-bearing zones.' },
 ];
 
 const PRODUCTS = [
-  { key: 'denture',   title: 'Complete Denture (single arch)', image: '/images/denture.webp',
-    desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly. A complete denture (single arch) is a reliable and time-tested solution for patients who have lost all teeth in either the upper (maxillary) or lower (mandibular) arch." },
-  { key: 'flexible',  title: 'Flexible Denture', image: '/images/flexible-denture.webp',
-    desc: 'Flexible dentures are removable dental prostheses made from advanced thermoplastic materials rather than conventional acrylic or metal frameworks. Their flexible nature allows the denture to adapt comfortably to the natural contours of the gums, offering a secure and natural fit.' },
-  { key: 'rpd',       title: 'Removable Partial Denture', image: '/images/rpd.webp',
-    desc: 'Missing one or more teeth can affect chewing, speech, and overall confidence. A Removable Partial Denture (RPD) is a practical and effective tooth replacement option that restores function and aesthetics while preserving remaining natural teeth.' },
-  { key: 'metal-cb',  title: 'Metal Crowns and Bridges', image: '/images/metal.webp',
-    desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth. A metal bridge replaces one or more missing teeth by anchoring artificial teeth to metal crowns placed on adjacent natural teeth.' },
-  { key: 'pfm-prod',  title: 'PFM', image: '/images/pfm.webp',
-    desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry. Known for combining the strength of metal with the natural appearance of porcelain, PFM crowns offer a reliable and cost-effective solution for restoring damaged or weakened teeth.' },
-  { key: 'zirconia-p', title: 'Zirconia', image: '/images/zirconia.webp',
-    desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material. It can be fabricated as monolithic zirconia (single solid structure) or layered zirconia (zirconia core with ceramic layering for enhanced aesthetics). Zirconia crowns are designed using advanced CAD/CAM technology, ensuring exceptional precision and consistency.' },
+  { key: 'denture',   title: 'Complete Denture (Arch)', image: '/images/denture.webp', desc: 'Reliable tooth replacement solution ensuring correct vertical dimension and phonetic harmony.' },
+  { key: 'flexible',  title: 'Flexible Denture', image: '/images/flexible-denture.webp', desc: 'Thermoplastic biocompatible framework adapting smoothly to gingival contours without visible clasps.' },
+  { key: 'rpd',       title: 'Removable Partial Denture', image: '/images/rpd.webp', desc: 'Functional partial replacement preserving remaining natural dentition while restoring chewing efficacy.' },
+  { key: 'metal-cb',  title: 'Metal Crowns & Bridges', image: '/images/metal.webp', desc: 'Durable multi-unit bridgework engineered for longevity and predictable load distribution.' },
+  { key: 'pfm-prod',  title: 'PFM Crown', image: '/images/pfm.webp', desc: 'Tried-and-tested restoration balancing structural resilience with lifelike porcelain shading.' },
+  { key: 'zirconia-p', title: 'Monolithic Zirconia', image: '/images/zirconia.webp', desc: 'High-translucency digital zirconia milled via 5-axis machines for exact marginal fit.' },
 ];
 
 const WHY_ITEMS = [
-  { title: 'Quality Guarantee', desc: '1-year warranty on all restorations',
-    Icon: ShieldCheck },
-  { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush',
-    Icon: Clock },
-  { title: 'Digital Workflow', desc: 'STL uploads for digital impressions',
-    Icon: Layers },
-  { title: 'Dedicated Support', desc: 'Mon-Sat, 9 AM - 6 PM IST',
-    Icon: Headphones },
+  { title: 'Quality Guarantee', desc: '1-year warranty on all restorations', Icon: ShieldCheck },
+  { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush', Icon: Clock },
+  { title: 'Digital Workflow', desc: 'STL uploads for digital impressions', Icon: Layers },
+  { title: 'Dedicated Support', desc: 'Mon-Sat, 9 AM - 6 PM IST', Icon: Headphones },
 ];
 
-/* ============================================================
-   COMPONENT
-============================================================ */
 const MobileHome = () => {
-  const router = useRouter();
-  const { user, logout } = useAuth();
-
-  // Contact form state
-  const [formData, setFormData] = useState({
-    user_name: '', user_email: '', contact_number: '', subject: '', message: '',
-  });
+  const [formData, setFormData] = useState({ user_name: '', user_email: '', contact_number: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.user_name || !formData.user_email || !formData.message) {
-      setStatusMessage({ type: 'error', text: 'Please fill in all required fields (Name, Email, Message)' });
+      setStatusMessage({ type: 'error', text: 'Please fill in Name, Email, and Message.' });
       return;
     }
     setIsSubmitting(true);
@@ -91,20 +57,17 @@ const MobileHome = () => {
           phone: formData.contact_number, subject: formData.subject, message: formData.message,
         }),
       });
-      const data = await response.json();
       if (response.ok) {
-        setStatusMessage({ type: 'success', text: 'Message Sent Successfully!' });
+        setStatusMessage({ type: 'success', text: 'Inquiry sent successfully!' });
         setFormData({ user_name: '', user_email: '', contact_number: '', subject: '', message: '' });
       } else {
-        setStatusMessage({ type: 'error', text: `Failed to send: ${data.error || 'Server error'}` });
+        setStatusMessage({ type: 'error', text: 'Failed to send message. Please try again.' });
       }
     } catch {
-      setStatusMessage({ type: 'error', text: 'Failed to connect to the server. Please try again later.' });
-    } finally { setIsSubmitting(false); }
-  };
-
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      setStatusMessage({ type: 'error', text: 'Network error. Please check your connection.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,8 +75,6 @@ const MobileHome = () => {
       <MobileHeader title={null} showLogin={true} />
 
       <main className="m-home-content">
-
-        {/* 1. Hero Banner */}
         <section className="m-hero" id="m-home">
           <video className="m-hero__video" autoPlay loop muted playsInline>
             <source src="/hero-bg.mp4" type="video/mp4" />
@@ -121,29 +82,27 @@ const MobileHome = () => {
           <div className="m-hero__overlay" />
           <div className="m-hero__text">
             <h1>
-              <span className="m-hero__line1">CRAF<span className="m-hero__accent">T</span>ED WITH CARE</span>
-              <span className="m-hero__line2">FOR PATIENTS WELFARE</span>
+              <span className="m-hero__line1" style={{ textTransform: 'none', letterSpacing: '-0.02em' }}>Precision Dental Laboratory</span>
+              <span className="m-hero__line2" style={{ letterSpacing: '0.1em' }}>Digital Workflow & CAD/CAM Milling</span>
             </h1>
+            <Link href="/login" className="m-hero__cta" style={{ textDecoration: 'none' }}>Dentist Portal Login</Link>
           </div>
         </section>
 
-        {/* 3. Intro / Mission */}
-        <section className="m-intro-section">
-          <h2 className="m-section-title">
-            <span className="m-intro-highlight">Your Partner In Modern Dentistry</span>
+        <section className="m-intro-section" style={{ background: '#ffffff', padding: '32px 16px' }}>
+          <h2 className="m-section-title" style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111C17' }}>
+            Clinical Partnership for Modern Practices
           </h2>
           <p className="m-intro-text">
-            At Dentzy, we don't just take orders; we provide solutions. Our dedicated technical support team
-            is available for real-time case consultations, ensuring every restoration fits perfectly the first time.
+            Dentzy integrates direct digital STL file processing with master ceramicist craftsmanship. We support clinics across Maharashtra with predictable margins, consistent shading, and reliable turnaround times.
           </p>
         </section>
 
-        {/* 4. Services Horizontal Scroll */}
-        <section className="m-services-section" id="m-services">
-          <h2 className="m-section-title">Our Signature Services</h2>
+        <section className="m-services-section" style={{ background: '#F8FAF9', padding: '32px 0 20px 16px' }}>
+          <h2 className="m-section-title">Core Restorations</h2>
           <div className="m-services-scroll">
             {SERVICES.map((s) => (
-              <div key={s.key} className="m-service-card">
+              <div key={s.key} className="m-service-card" style={{ border: '1px solid #E2ECE6' }}>
                 <div className="m-service-card__img">
                   <img src={s.image} alt={s.title} loading="lazy" />
                 </div>
@@ -156,153 +115,28 @@ const MobileHome = () => {
           </div>
         </section>
 
-        {/* 5. Process */}
-        <section className="m-process-section">
-          <h2 className="m-section-title" style={{ color: 'var(--dz-color-text-primary, #333)' }}>
-            The DEN<span className="m-accent">T</span>ZY Process
-          </h2>
+        <section className="m-process-section" style={{ background: '#ffffff' }}>
+          <h2 className="m-section-title" style={{ color: '#111C17' }}>The Dentzy Workflow</h2>
           <div className="m-process-steps">
-            {['Receive', 'Revive', 'Restore'].map((step, i) => (
+            {['Impression / STL', 'CAD Design & QC', 'Milling & Dispatch'].map((step, i) => (
               <React.Fragment key={step}>
                 <div className="m-process-step">
-                  <div className="m-process-step__num">{i + 1}</div>
+                  <div className="m-process-step__num" style={{ background: '#163E2B' }}>{i + 1}</div>
                   <span className="m-process-step__label">{step}</span>
                 </div>
-                {i < 2 && <div className="m-process-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                  </svg>
-                </div>}
+                {i < 2 && <div className="m-process-arrow">→</div>}
               </React.Fragment>
             ))}
           </div>
-          <div className="m-cuz-card">
-            <div className="m-cuz-content">
-              <h3>BE A DEN<span className="m-accent">T</span>ZY CUZ...</h3>
-              <p>If "Dentzy" were a person, they would be a tech-savvy craftsman.</p>
-            </div>
-            <div className="m-cuz-image">
-              <img src="/images/dentzy-cuz.webp" alt="Tech-savvy craftsman" loading="lazy" />
-            </div>
-          </div>
         </section>
 
-        {/* 6. CTA Banner */}
-        <section className="m-cta-banner">
-          <div className="m-cta-inner">
-            <h2>ARE YOU A DENTIST?</h2>
-            <Link href="/login" className="m-cta-btn">Get Started</Link>
-          </div>
-        </section>
-
-        {/* 7. About Dentzy */}
-        <section className="m-about-section" id="m-about">
-          <video className="m-about-video" autoPlay loop muted playsInline preload="none">
-            <source src="/images/about-bg.mp4" type="video/mp4" />
-          </video>
-          <div className="m-about-overlay" />
-          <div className="m-about-content">
-            <h2>About DEN<span className="m-accent">T</span>ZY</h2>
-            <p>WE ARE HERE TO WIN YOUR HEART AND EARN YOUR SMILE.</p>
-          </div>
-        </section>
-
-        {/* 8. About Details */}
-        <section className="m-details-section">
-          <h2 className="m-section-title">Excellence Behind Every Smile</h2>
-          <div className="m-details-intro">
-            <p>
-              At DENTZY, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
-              We ensure consistent quality, accuracy, and aesthetics in every case we handle.
-              Our focus is simple - to support dentists with reliable solutions that help create
-              confident, natural-looking smiles.
-            </p>
-          </div>
-          <div className="m-details-cards">
-            <div className="m-details-card">
-              <p>
-                Dentzy is a leading Indian dental brand founded by Tanish Dinesh Poojari, a
-                Certified Dental Technician (CDT). Built on a legacy of excellence, Dentzy is
-                backed by its parent company, Namrata Dental Solutions, which has been a
-                trusted leader in the dental laboratory industry mainly in Maharashtra for more than 30
-                years.
-              </p>
-            </div>
-            <div className="m-details-card">
-              <p>
-                After observing the frequent friction between dental laboratories and clinicians -- often caused by
-                poor customer service and a lack of mutual understanding -- we recognized a significant gap in the
-                industry. To bridge this divide, we envisioned a fully digital dental laboratory ecosystem.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 9. Perfect Smile */}
-        <section className="m-smile-section">
-          <div className="m-smile-content">
-            <h2>EVERYONE DESERVES A PERFECT SMILE,</h2>
-            <p className="m-smile-sub">and we're here to help you achieve yours</p>
-            <div className="m-smile-brand">
-              <span>DEN<span className="m-accent">T</span>ZY</span>
-            </div>
-            <p className="m-smile-footer">Crafted With Care, For Patients Welfare.</p>
-          </div>
-          <div className="m-smile-img">
-            <img src="/images/perfect-smile.webp" alt="Hands holding dental mold" loading="lazy" />
-          </div>
-        </section>
-
-        {/* 10. Partner Section */}
-        <section className="m-partner-section">
-          <div className="m-partner-overlay" />
-          <div className="m-partner-content">
-            <h2>Your Partner In Modern Dentistry</h2>
-            <p>
-              At DENTZY, we are not just a dental laboratory -- we are a collaborative partner committed to improving
-              workflows, strengthening professional relationships, and supporting the future of modern dentistry.
-            </p>
-          </div>
-        </section>
-
-        {/* 11. Products Intro */}
-        <section className="m-products-intro" id="m-products">
-          <video className="m-products-video" autoPlay loop muted playsInline preload="none">
-            <source src="/products-bg.mp4" type="video/mp4" />
-          </video>
-          <div className="m-products-overlay" />
-          <div className="m-products-content">
-            <h2>Our PRODUC<span className="m-accent">T</span>S</h2>
-            <p>Precision You Can Rely On</p>
-          </div>
-        </section>
-
-        {/* 12. Products Catalog (DentzyMakesUs) */}
-        <section className="m-catalog-section">
-          <h2 className="m-section-title">This Is What Makes Us <span className="m-accent-inline">DENTZY</span></h2>
-          <div className="m-catalog-list">
-            {PRODUCTS.map((p) => (
-              <div key={p.key} className="m-catalog-card">
-                <div className="m-catalog-img">
-                  <img src={p.image} alt={p.title} loading="lazy" />
-                </div>
-                <div className="m-catalog-body">
-                  <h3>{p.title}</h3>
-                  <p>{p.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 13. Why Dentzy */}
-        <section className="m-why-section">
-          <h2 className="m-section-title">Why Choose Dentzy?</h2>
+        <section className="m-why-section" style={{ background: '#F8FAF9', padding: '32px 16px' }}>
+          <h2 className="m-section-title">Why Partner With Us</h2>
           <div className="m-why-cards">
             {WHY_ITEMS.map((w, i) => (
-              <div key={i} className="m-why-card">
-                <span className="m-why-icon">
-                  <w.Icon size={20} color="var(--dz-color-primary, #1e5038)" />
+              <div key={i} className="m-why-card" style={{ background: '#fff', border: '1px solid #E2ECE6' }}>
+                <span className="m-why-icon" style={{ background: '#E8F2EC', color: '#163E2B' }}>
+                  <w.Icon size={20} />
                 </span>
                 <h4>{w.title}</h4>
                 <p>{w.desc}</p>
@@ -311,70 +145,47 @@ const MobileHome = () => {
           </div>
         </section>
 
-        {/* 14. Future Services */}
-        <section className="m-future-section">
-          <p className="m-future-text">
-            We will continue to expand our offerings with new services in the future.
-          </p>
-        </section>
-
-        {/* 15. Connect With Us */}
-        <section className="m-connect-section" id="m-contact">
-          <h2 className="m-connect-title">CONNEC<span className="m-accent">T</span></h2>
-          <p className="m-connect-sub">WITH US</p>
-        </section>
-
-        {/* 16. Contact Form */}
-        <section className="m-contact-form-section" id="m-contact-form">
-          <h2 className="m-section-title">We Are Here To Help You</h2>
+        <section className="m-contact-form-section" id="m-contact-form" style={{ background: '#ffffff', padding: '32px 16px' }}>
+          <h2 className="m-section-title">Clinic Inquiry</h2>
           <form className="m-contact-form" onSubmit={handleSubmit} noValidate>
-            <input type="text" name="user_name" placeholder="Name *" className="m-cf-input"
-              value={formData.user_name} onChange={handleChange} />
-            <input type="email" name="user_email" placeholder="Email *" className="m-cf-input"
-              value={formData.user_email} onChange={handleChange} />
-            <input type="tel" name="contact_number" placeholder="Phone Number" className="m-cf-input"
-              value={formData.contact_number} onChange={handleChange} />
-            <input type="text" name="subject" placeholder="Subject" className="m-cf-input"
-              value={formData.subject} onChange={handleChange} />
-            <textarea name="message" placeholder="Message *" className="m-cf-input m-cf-textarea" rows="4"
-              value={formData.message} onChange={handleChange} />
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-              <TwentyFirstIconButton
+            <input type="text" name="user_name" placeholder="Doctor Name *" className="m-cf-input" value={formData.user_name} onChange={handleChange} />
+            <input type="email" name="user_email" placeholder="Clinic Email *" className="m-cf-input" value={formData.user_email} onChange={handleChange} />
+            <input type="tel" name="contact_number" placeholder="Phone Number" className="m-cf-input" value={formData.contact_number} onChange={handleChange} />
+            <input type="text" name="subject" placeholder="Subject / Query" className="m-cf-input" value={formData.subject} onChange={handleChange} />
+            <textarea name="message" placeholder="Case requirements or message *" className="m-cf-input m-cf-textarea" rows="4" value={formData.message} onChange={handleChange} />
+            
+            <div style={{ marginTop: '12px' }}>
+              <button
                 type="submit"
-                icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                title={isSubmitting ? 'Sending...' : 'Send Message'}
-                ariaLabel="Send Message"
-                variant="primary"
-                size="lg"
                 disabled={isSubmitting}
-              />
+                style={{
+                  width: '100%', minHeight: '46px', background: '#163E2B', color: '#fff',
+                  border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                }}
+              >
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                <span>Send Inquiry</span>
+              </button>
             </div>
+
             {statusMessage.text && (
-              <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>{statusMessage.text}</div>
+              <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`} style={{ marginTop: '10px' }}>{statusMessage.text}</div>
             )}
           </form>
 
-          <div className="m-contact-info-grid">
+          <div className="m-contact-info-grid" style={{ marginTop: '20px' }}>
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={15} /> Address</h4>
-              <p>Vasai - Palghar 401202</p>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> Location</h4>
+              <p>Vasai-Virar, MH 401202</p>
             </div>
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={15} /> Phone</h4>
-              <p><a href="tel:+919503668112">+91-9503668112</a></p>
-            </div>
-            <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Mail size={15} /> Email</h4>
-              <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
-            </div>
-            <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={15} /> Working Hours</h4>
-              <p>Mon-Sat, 9 AM - 6 PM</p>
+              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> Direct</h4>
+              <p><a href="tel:+919503668112">+91-95036 68112</a></p>
             </div>
           </div>
         </section>
 
-        {/* 17. Footer */}
         <Footer />
       </main>
     </div>

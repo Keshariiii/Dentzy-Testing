@@ -202,31 +202,33 @@ export default function AdminDentistsListView({
                       onClick={(e) => e.stopPropagation()}
                       style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
                     >
-                      <TwentyFirstIconButton
-                        icon={Ico.check(14)}
-                        title="Approve Dentist"
-                        ariaLabel="Approve Dentist"
+                      <button
+                        type="button"
                         onClick={() => onApprove(uId, user.name)}
-                        size={isMobile ? 'lg' : 'sm'}
-                        variant="success"
-                      />
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
+                        title="Approve Dentist"
+                      >
+                        {Ico.check(12)}
+                        <span>Approve</span>
+                      </button>
                       {user.status === 'pending' && (
-                        <TwentyFirstIconButton
-                          icon={Ico.x(14)}
-                          title="Reject Dentist"
-                          ariaLabel="Reject Dentist"
+                        <button
+                          type="button"
                           onClick={() => onReject(uId, user.name)}
-                          size={isMobile ? 'lg' : 'sm'}
-                          variant="danger"
-                        />
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#D5E0DB] bg-white hover:bg-[#FEF3F2] hover:border-[#FECDCA] text-[#475467] hover:text-[#B42318] text-xs font-semibold transition-colors cursor-pointer"
+                          title="Reject Dentist"
+                        >
+                          {Ico.x(12)}
+                          <span>Reject</span>
+                        </button>
                       )}
                       <TwentyFirstIconButton
-                        icon={Ico.trash(14)}
+                        icon={Ico.trash(13)}
                         title="Delete Dentist"
                         ariaLabel="Delete Dentist"
                         onClick={() => onDelete(uId, user.name)}
-                        size={isMobile ? 'lg' : 'sm'}
-                        variant="danger"
+                        size="sm"
+                        variant="ghost"
                       />
                     </div>
                   )}

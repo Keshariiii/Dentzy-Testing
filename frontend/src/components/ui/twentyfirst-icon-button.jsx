@@ -48,40 +48,40 @@ export const TwentyFirstIconButton = ({
   // Palette Variants
   const variantStyles = {
     primary: {
-      background: '#78937E',
+      background: '#163E2B',
       color: '#ffffff',
       border: 'none',
-      boxShadow: '0 2px 6px -1px rgba(120, 147, 126, 0.3), 0 1px 3px rgba(0, 0, 0, 0.05)',
+      boxShadow: '0 1px 3px rgba(22, 62, 43, 0.2)',
     },
     soft: {
-      background: '#eff5f1',
-      color: '#78937E',
-      border: '1px solid rgba(120, 147, 126, 0.25)',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+      background: '#F0F5F2',
+      color: '#163E2B',
+      border: '1px solid #D5E2DC',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
     },
     secondary: {
       background: '#ffffff',
       color: '#374151',
-      border: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+      border: '1px solid #E2ECE6',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
     },
     ghost: {
       background: 'transparent',
-      color: '#4b5563',
+      color: '#4B5563',
       border: 'none',
       boxShadow: 'none',
     },
     success: {
-      background: '#eff5f1',
-      color: '#78937E',
-      border: '1px solid #c6d8cb',
-      boxShadow: '0 1px 3px rgba(120, 147, 126, 0.08)',
+      background: '#ECFDF3',
+      color: '#067647',
+      border: '1px solid #ABEFC6',
+      boxShadow: '0 1px 2px rgba(6, 118, 71, 0.06)',
     },
     danger: {
-      background: '#fbf3f3',
-      color: '#7a3838',
-      border: '1px solid #eddada',
-      boxShadow: '0 1px 3px rgba(122, 56, 56, 0.08)',
+      background: '#FEF3F2',
+      color: '#B42318',
+      border: '1px solid #FECDCA',
+      boxShadow: '0 1px 2px rgba(180, 35, 24, 0.06)',
     },
   }[variant] || {};
 
@@ -126,12 +126,12 @@ export const TwentyFirstIconButton = ({
   // Hover background override
   let hoverBg = baseStyle.background;
   if (isHovered && !disabled && !loading) {
-    if (variant === 'primary') hoverBg = '#174230';
-    else if (variant === 'soft') hoverBg = '#dcf2e5';
-    else if (variant === 'secondary') hoverBg = '#f9fafb';
-    else if (variant === 'ghost') hoverBg = '#f3f4f6';
-    else if (variant === 'success') hoverBg = '#bbf7d0';
-    else if (variant === 'danger') hoverBg = '#fecaca';
+    if (variant === 'primary') hoverBg = '#0F2C1E';
+    else if (variant === 'soft') hoverBg = '#E2ECE6';
+    else if (variant === 'secondary') hoverBg = '#F8FAFC';
+    else if (variant === 'ghost') hoverBg = '#F0F5F2';
+    else if (variant === 'success') hoverBg = '#D1FADF';
+    else if (variant === 'danger') hoverBg = '#FEE4E2';
   }
 
   const activeStyle = {
