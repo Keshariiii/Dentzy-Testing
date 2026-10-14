@@ -10,7 +10,7 @@ export default function HomeLoading() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'var(--dz-color-bg-page, #f4f7f5)',
-      fontFamily: 'var(--font-inter, Inter, system-ui, sans-serif)',
+      fontFamily: 'var(--dz-font-family, var(--font-dm-sans, system-ui, sans-serif))',
     }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{

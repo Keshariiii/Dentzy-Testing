@@ -103,7 +103,7 @@ export function useAdminPayments({ authFetch, ADMIN_API, admin, showToast }) {
   const handleDeletePayment = useCallback(async (paymentId) => {
     setActionLoading(paymentId);
     try {
-      const res = await authFetchRef.current(`${ADMIN_API}/orders/${paymentId}`, { method: 'DELETE' });
+      const res = await authFetchRef.current(`${ADMIN_API}/payments/${paymentId}`, { method: 'DELETE' });
       if (res.ok) {
         showToast?.('Payment record deleted.');
         fetchPayments();

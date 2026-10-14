@@ -5,9 +5,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import ResponsiveLayout from '../../layouts/ResponsiveLayout';
-import PCDashboard from '../../views/pc/PCDashboard';
-import MobileDashboard from '../../views/mobile/MobileDashboard';
+import DentistDashboard from '../../components/DentistDashboard';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -27,5 +25,5 @@ export default function DashboardPage() {
     );
   }
 
-  return <ResponsiveLayout pcView={<PCDashboard />} mobileView={<MobileDashboard />} />;
+  return <DentistDashboard />;
 }

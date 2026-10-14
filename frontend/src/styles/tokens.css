@@ -76,10 +76,20 @@
   --dz-color-info-text:       #334155;   /* Muted slate text          */
   --dz-color-info-border:     #dbe3eb;   /* Subtle slate border       */
 
+  /* ── 5-Color Clinical Palette ────────────────────────────────── */
+  --dz-bg-canvas:             #F6F8F7;
+  --dz-bg-surface:            #FFFFFF;
+  --dz-bg-subtle:             #F0F4F2;
+  --dz-border:                #E2E9E5;
+  --dz-primary:               #163E2B;
+  --dz-text-primary:          #111C17;
+  --dz-text-secondary:        #4A5D54;
+  --dz-text-muted:            #7A8E84;
+
   /* ── Typography: Font Family ─────────────────────────────────── */
   --dz-font-family:           var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont,
                                'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --dz-font-family-mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --dz-font-family-mono:      var(--font-mono), 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
   /* ── Typography: Font Sizes ──────────────────────────────────── */
   --dz-font-size-display:     2.25rem;   /* 36px — Hero headings      */

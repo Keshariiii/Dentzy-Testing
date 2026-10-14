@@ -5,9 +5,7 @@
 import { useAdminAuth } from '../../../admin/AdminAuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import ResponsiveLayout from '../../../layouts/ResponsiveLayout';
-import PCAdminDashboard from '../../../views/pc/PCAdminDashboard';
-import MobileAdminDashboard from '../../../views/mobile/MobileAdminDashboard';
+import AdminDashboard from '../../../admin/AdminDashboard';
 
 export default function AdminDashboardPage() {
   const { admin, loading } = useAdminAuth();
@@ -27,5 +25,5 @@ export default function AdminDashboardPage() {
     );
   }
 
-  return <ResponsiveLayout pcView={<PCAdminDashboard />} mobileView={<MobileAdminDashboard />} />;
+  return <AdminDashboard />;
 }
