@@ -87,13 +87,36 @@ export default function PipelinePage() {
 
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        fetchOrdersRef.current?.();
-      }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [user]);
+    let es = null;
+    let retryTimeout;
+    let retryCount = 0;
+    let stopped = false;
+
+    const connect = () => {
+      if (stopped || retryCount >= 3) return;
+      try {
+        es = new EventSource(`${DASH_URL}/events`, { withCredentials: true });
+        es.addEventListener('connected', () => { retryCount = 0; });
+        const refresh = () => fetchOrdersRef.current?.();
+        ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt =>
+          es.addEventListener(evt, refresh)
+        );
+        es.onerror = () => {
+          if (es) { es.close(); es = null; }
+          if (!stopped && retryCount < 3) {
+            retryCount += 1;
+            retryTimeout = setTimeout(connect, 10000);
+          }
+        };
+      } catch {}
+    };
+    connect();
+    return () => {
+      stopped = true;
+      if (es) es.close();
+      clearTimeout(retryTimeout);
+    };
+  }, [user, DASH_URL]);
 
   // Filter logic
   const filtered = orders.filter(o => {

@@ -224,20 +224,6 @@
   cursor: pointer;
 }
 
-@media (min-width: 1024px) {
-  .ad-sidebar {
-    position: static;
-    top: auto;
-    left: 0 !important;
-    height: 100%;
-    flex-shrink: 0;
-  }
-  .ad-hamburger,
-  .ad-sidebar-overlay {
-    display: none !important;
-  }
-}
-
 .ad-sidebar-top {
   display: flex;
   flex-direction: column;

@@ -270,17 +270,77 @@ const AdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  /* ── Background polling (replaces nonexistent SSE route) ─────────────── */
+  /* ── SSE connection ────────────────────────────────────────────────────── */
   useEffect(() => {
     if (!admin?.username) return;
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        fetchUsersRef.current?.();
-        fetchStatsRef.current?.();
+
+    let retryTimeout;
+    let retryCount = 0;
+    let stopped = false;
+    let es = null;
+
+    const connect = () => {
+      if (stopped || retryCount >= 3) return;
+      try {
+        const url = `${ADMIN_API}/events`;
+        es = new EventSource(url, { withCredentials: true });
+        sseRef.current = es;
+
+        es.addEventListener('connected', () => {
+          retryCount = 0;
+        });
+
+        es.addEventListener('new-registration', (e) => {
+          try {
+            const user = JSON.parse(e.data);
+            playNotifSoundRef.current?.();
+            const id = Date.now();
+            setLiveNotifs(prev => [{ id, ...user }, ...prev]);
+            setTimeout(() => setLiveNotifs(prev => prev.filter(n => n.id !== id)), 8000);
+            fetchUsersRef.current?.();
+            fetchStatsRef.current?.();
+          } catch { }
+        });
+
+        es.addEventListener('user-updated', () => {
+          fetchUsersRef.current?.();
+          fetchStatsRef.current?.();
+          fetchAllOrdersRef.current?.();
+        });
+        es.addEventListener('order-created', () => { fetchAllOrdersRef.current?.(); });
+        es.addEventListener('order-stage-updated', () => { fetchAllOrdersRef.current?.(); });
+        es.addEventListener('order-deleted', () => { fetchAllOrdersRef.current?.(); });
+
+        es.onerror = () => {
+          if (es) {
+            es.close();
+            es = null;
+          }
+          if (!stopped && retryCount < 3) {
+            retryCount += 1;
+            retryTimeout = setTimeout(connect, 10000);
+          }
+        };
+      } catch {
+        // SSE not supported or network error
       }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [admin?.username]);
+    };
+
+    connect();
+
+    return () => {
+      stopped = true;
+      if (es) {
+        es.close();
+        es = null;
+      }
+      if (sseRef.current) {
+        sseRef.current.close();
+        sseRef.current = null;
+      }
+      clearTimeout(retryTimeout);
+    };
+  }, [admin?.username, ADMIN_API]);
 
   const { showToast } = useToast();
 
@@ -683,25 +743,17 @@ const AdminDashboard = () => {
 
             {/* Nav — mirrors ud-nav */}
             <nav className="ad-nav">
-              <button className={`ad-nav-item ${adminView === 'dentists' && dentistSubView === 'users' ? 'active' : ''}`} onClick={() => { setAdminView('dentists'); setDentistSubView('users'); setSidebarOpen(false); }} aria-label="Dentists">
+              <button className={`ad-nav-item ${adminView === 'dentists' ? 'active' : ''}`} onClick={() => setAdminView('dentists')} aria-label="Dentist">
                 <span className="ad-nav-icon">{Ico.grid(16)}</span>
-                Dentists {stats?.total ? <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: 99, fontSize: '0.72rem' }}>{stats.total}</span> : null}
+                Dentist
               </button>
-              <button className={`ad-nav-item ${adminView === 'dentists' && dentistSubView === 'orders' ? 'active' : ''}`} onClick={() => { setAdminView('dentists'); setDentistSubView('orders'); fetchAllOrders(); setSidebarOpen(false); }} aria-label="Lab Orders">
-                <span className="ad-nav-icon">{Ico.orders ? Ico.orders(16) : Ico.grid(16)}</span>
-                Lab Orders
-              </button>
-              <button className={`ad-nav-item ${adminView === 'dentists' && dentistSubView === 'payments' ? 'active' : ''}`} onClick={() => { setAdminView('dentists'); setDentistSubView('payments'); fetchPaymentsRef.current?.(); setSidebarOpen(false); }} aria-label="Payments & Billing">
-                <span className="ad-nav-icon">{Ico.creditCard ? Ico.creditCard(16) : Ico.payments(16)}</span>
-                Payments & Billing
-              </button>
-              <button className={`ad-nav-item ${adminView === 'staff' ? 'active' : ''}`} onClick={() => { setAdminView('staff'); fetchStaff(); setSidebarOpen(false); }} aria-label="Staff">
+              <button className={`ad-nav-item ${adminView === 'staff' ? 'active' : ''}`} onClick={() => { setAdminView('staff'); fetchStaff(); }} aria-label="Staff">
                 <span className="ad-nav-icon">{Ico.usersS ? Ico.usersS(16) : Ico.grid(16)}</span>
-                Staff & Inventory
+                Staff
               </button>
-              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); setSettingsSubView(null); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); setSidebarOpen(false); }} aria-label="Settings">
+              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); setSettingsSubView(null); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
                 <span className="ad-nav-icon">{Ico.settings(16)}</span>
-                Portal Settings
+                Settings
               </button>
             </nav>
 
@@ -1246,38 +1298,50 @@ const AdminDashboard = () => {
                                   hour: '2-digit', minute: '2-digit',
                                 }) : '—'}
                               </div>
+                              {user.plainPassword && (
+                                <div className="ad-user-pw">
+                                  {Ico.lock(12)}
+                                  <span className="ad-pw-value">
+                                    {visiblePw === uId ? user.plainPassword : '••••••••'}
+                                  </span>
+                                  <button className="ad-pw-toggle"
+                                    onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
+                                    title={visiblePw === uId ? 'Hide password' : 'Show password'}
+                                  >
+                                    {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             {/* Inline action buttons based on status */}
                             {(user.status === 'pending' || user.status === 'rejected') && (
                               <div className="ad-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleApprove(uId, user.name)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
+                                <TwentyFirstIconButton
+                                  icon={Ico.check(14)}
                                   title="Approve Dentist"
-                                >
-                                  {Ico.check(12)}
-                                  <span>Approve</span>
-                                </button>
+                                  ariaLabel="Approve Dentist"
+                                  onClick={() => handleApprove(uId, user.name)}
+                                  size="sm"
+                                  variant="success"
+                                />
                                 {user.status === 'pending' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleReject(uId, user.name)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#D5E0DB] bg-white hover:bg-[#FEF3F2] hover:border-[#FECDCA] text-[#475467] hover:text-[#B42318] text-xs font-semibold transition-colors cursor-pointer"
+                                  <TwentyFirstIconButton
+                                    icon={Ico.x(14)}
                                     title="Reject Dentist"
-                                  >
-                                    {Ico.x(12)}
-                                    <span>Reject</span>
-                                  </button>
+                                    ariaLabel="Reject Dentist"
+                                    onClick={() => handleReject(uId, user.name)}
+                                    size="sm"
+                                    variant="danger"
+                                  />
                                 )}
                                 <TwentyFirstIconButton
-                                  icon={Ico.trash(13)}
+                                  icon={Ico.trash(14)}
                                   title="Delete Dentist"
                                   ariaLabel="Delete Dentist"
                                   onClick={() => handleDelete(uId, user.name)}
                                   size="sm"
-                                  variant="ghost"
+                                  variant="danger"
                                 />
                               </div>
                             )}

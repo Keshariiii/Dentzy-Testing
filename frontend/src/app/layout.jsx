@@ -1,10 +1,12 @@
-import { DM_Sans, JetBrains_Mono } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import { ReticleDev } from './reticle-dev';
 import '../styles/tokens.css';
 import '../styles/reset.css';
 import '../styles/skeleton.css';
 import '../styles/registry.css';
 import '../index.css';
+import '../global-animations.css';
+import '../responsive.css';
 import Providers from './Providers';
 
 const dmSans = DM_Sans({
@@ -12,13 +14,6 @@ const dmSans = DM_Sans({
   weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
   variable: '--font-dm-sans',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-mono',
 });
 
 export const metadata = {
@@ -85,7 +80,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={dmSans.variable}>
       <head>
         <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
         <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />

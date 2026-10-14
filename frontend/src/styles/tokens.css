@@ -17,35 +17,35 @@
 
 :root {
   /* ── Color: Brand ────────────────────────────────────────────── */
-  --dz-color-primary:         #163E2B;   /* Official Dentzy Clinical Green */
-  --dz-color-primary-dark:    #0F2C1E;   /* Deep Forest               */
-  --dz-color-primary-accent:  #163E2B;   /* Primary Accent            */
-  --dz-color-primary-light:   #4A6A5A;   /* Muted Green               */
-  --dz-color-primary-muted:   rgba(22, 62, 43, 0.08); /* Subtle tint */
+  --dz-color-primary:         #78937E;   /* Official Dentzy Sage Green */
+  --dz-color-primary-dark:    #58735e;   /* Deep Sage                 */
+  --dz-color-primary-accent:  #78937E;   /* Official Dentzy Accent    */
+  --dz-color-primary-light:   #a8bfae;   /* Light Sage                */
+  --dz-color-primary-muted:   rgba(120, 147, 126, 0.12); /* Subtle tint */
 
   /* ── Color: Neutrals ─────────────────────────────────────────── */
-  --dz-color-charcoal:        #111C17;   /* Deep Charcoal             */
-  --dz-color-dark:            #17261F;   /* Dark                      */
+  --dz-color-charcoal:        #1e2824;   /* Dark Forest Charcoal      */
+  --dz-color-dark:            #2a3d35;   /* Forest Dark               */
   --dz-color-white:           #ffffff;
   --dz-color-black:           #000000;
 
   /* ── Color: Backgrounds & Surfaces ───────────────────────────── */
-  --dz-color-bg-page:         #F6F8F7;   /* Clinical Off-White Canvas */
+  --dz-color-bg-page:         #f0f5f2;   /* Main page background      */
   --dz-color-bg-surface:      #ffffff;   /* Card / elevated surfaces  */
-  --dz-color-bg-surface-alt:  #F0F5F2;   /* Alternate surface         */
+  --dz-color-bg-surface-alt:  #f8faf9;   /* Alternate surface         */
   --dz-color-bg-overlay:      rgba(0, 0, 0, 0.45); /* Modal overlay   */
 
   /* ── Color: Text ─────────────────────────────────────────────── */
-  --dz-color-text-primary:    #111C17;   /* Primary Headings          */
-  --dz-color-text-body:       #33413B;   /* Body paragraphs           */
-  --dz-color-text-muted:      #5A6E64;   /* Captions, labels          */
-  --dz-color-text-light:      #82988E;   /* Placeholders, disabled    */
+  --dz-color-text-primary:    #1e2824;   /* Headings, strong text     */
+  --dz-color-text-body:       #444444;   /* Body paragraphs           */
+  --dz-color-text-muted:      #64748b;   /* Captions, labels          */
+  --dz-color-text-light:      #94a3b8;   /* Placeholders, disabled    */
   --dz-color-text-inverse:    #ffffff;   /* Text on dark bg            */
 
   /* ── Color: Borders ──────────────────────────────────────────── */
-  --dz-color-border:          #D5E0DB;   /* Default border            */
-  --dz-color-border-light:    #E2ECE6;   /* Subtle separator          */
-  --dz-color-border-focus:    #4A6A5A;   /* Input focus ring          */
+  --dz-color-border:          #e2e8f0;   /* Default border            */
+  --dz-color-border-light:    #f0f2f1;   /* Subtle separator          */
+  --dz-color-border-focus:    #708c80;   /* Input focus ring          */
 
   /* ── Color: Text Selection ───────────────────────────────────── */
   --dz-color-selection-light-bg:   rgba(112, 140, 128, 0.32); /* Sage green on light bg  */
@@ -76,20 +76,10 @@
   --dz-color-info-text:       #334155;   /* Muted slate text          */
   --dz-color-info-border:     #dbe3eb;   /* Subtle slate border       */
 
-  /* ── 5-Color Clinical Palette ────────────────────────────────── */
-  --dz-bg-canvas:             #F6F8F7;
-  --dz-bg-surface:            #FFFFFF;
-  --dz-bg-subtle:             #F0F4F2;
-  --dz-border:                #E2E9E5;
-  --dz-primary:               #163E2B;
-  --dz-text-primary:          #111C17;
-  --dz-text-secondary:        #4A5D54;
-  --dz-text-muted:            #7A8E84;
-
   /* ── Typography: Font Family ─────────────────────────────────── */
   --dz-font-family:           var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont,
                                'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --dz-font-family-mono:      var(--font-mono), 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --dz-font-family-mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
   /* ── Typography: Font Sizes ──────────────────────────────────── */
   --dz-font-size-display:     2.25rem;   /* 36px — Hero headings      */

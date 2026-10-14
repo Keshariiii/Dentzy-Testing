@@ -194,6 +194,26 @@ export default function AdminDentistsListView({
                     </div>
                   </div>
 
+                  {user.plainPassword && (
+                    <div className={isMobile ? 'ma-uc-pw' : 'ad-user-pw'} style={{ marginTop: '8px' }}>
+                      {Ico.lock(11)}
+                      <span className="ma-pw-value" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                        {visiblePw === uId ? user.plainPassword : '••••••••'}
+                      </span>
+                      <button
+                        type="button"
+                        className="ma-pw-toggle"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setVisiblePw(visiblePw === uId ? null : uId);
+                        }}
+                        title={visiblePw === uId ? 'Hide password' : 'Show password'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}
+                      >
+                        {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
+                      </button>
+                    </div>
+                  )}
 
                   {/* Inline action buttons */}
                   {(user.status === 'pending' || user.status === 'rejected') && (
@@ -202,33 +222,31 @@ export default function AdminDentistsListView({
                       onClick={(e) => e.stopPropagation()}
                       style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => onApprove(uId, user.name)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
+                      <TwentyFirstIconButton
+                        icon={Ico.check(14)}
                         title="Approve Dentist"
-                      >
-                        {Ico.check(12)}
-                        <span>Approve</span>
-                      </button>
+                        ariaLabel="Approve Dentist"
+                        onClick={() => onApprove(uId, user.name)}
+                        size={isMobile ? 'lg' : 'sm'}
+                        variant="success"
+                      />
                       {user.status === 'pending' && (
-                        <button
-                          type="button"
-                          onClick={() => onReject(uId, user.name)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#D5E0DB] bg-white hover:bg-[#FEF3F2] hover:border-[#FECDCA] text-[#475467] hover:text-[#B42318] text-xs font-semibold transition-colors cursor-pointer"
+                        <TwentyFirstIconButton
+                          icon={Ico.x(14)}
                           title="Reject Dentist"
-                        >
-                          {Ico.x(12)}
-                          <span>Reject</span>
-                        </button>
+                          ariaLabel="Reject Dentist"
+                          onClick={() => onReject(uId, user.name)}
+                          size={isMobile ? 'lg' : 'sm'}
+                          variant="danger"
+                        />
                       )}
                       <TwentyFirstIconButton
-                        icon={Ico.trash(13)}
+                        icon={Ico.trash(14)}
                         title="Delete Dentist"
                         ariaLabel="Delete Dentist"
                         onClick={() => onDelete(uId, user.name)}
-                        size="sm"
-                        variant="ghost"
+                        size={isMobile ? 'lg' : 'sm'}
+                        variant="danger"
                       />
                     </div>
                   )}

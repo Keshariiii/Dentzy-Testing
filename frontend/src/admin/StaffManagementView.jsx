@@ -373,14 +373,14 @@ const StaffManagementView = ({
                 variant="secondary"
                 size="md"
               />
-              <button
-                type="button"
+              <TwentyFirstIconButton
+                icon={Ico.userPlus ? Ico.userPlus(18) : (Ico.plus ? Ico.plus(18) : null)}
+                title="Add Staff"
+                ariaLabel="Add Staff"
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
-              >
-                {Ico.userPlus ? Ico.userPlus(15) : (Ico.plus ? Ico.plus(15) : null)}
-                <span>+ Add Staff</span>
-              </button>
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 
@@ -602,14 +602,14 @@ const StaffManagementView = ({
                 variant="secondary"
                 size="md"
               />
-              <button
-                type="button"
+              <TwentyFirstIconButton
+                icon={Ico.plus ? Ico.plus(18) : null}
+                title="Add Item"
+                ariaLabel="Add Item"
                 onClick={() => setShowAddItem(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
-              >
-                {Ico.plus ? Ico.plus(15) : null}
-                <span>+ Add Item</span>
-              </button>
+                variant="primary"
+                size="md"
+              />
             </div>
           </div>
 

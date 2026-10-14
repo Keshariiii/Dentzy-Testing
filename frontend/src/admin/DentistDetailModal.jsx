@@ -242,14 +242,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                 <div className="ddm-section-header">
                   <span className="ddm-section-title">Lab Orders ({orders.length})</span>
                   {user.status === 'approved' && (
-                    <button
-                      type="button"
+                    <TwentyFirstIconButton
+                      icon={Ico.plus(16)}
+                      title="New Order"
+                      ariaLabel="New Order"
                       onClick={() => setShowForm(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#163E2B] hover:bg-[#0F2C1E] text-white text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      {Ico.plus(13)}
-                      <span>+ New Order</span>
-                    </button>
+                      size="sm"
+                      variant="primary"
+                    />
                   )}
                 </div>
 
