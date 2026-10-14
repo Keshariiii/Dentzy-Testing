@@ -156,7 +156,7 @@ export default function PrintableInvoice({
           <div className="pi-section-label">Settlement Details</div>
           <div className="pi-pay-row">
             <span className="pi-pay-lbl">Status:</span>
-            <span className="pi-pay-val" style={{ color: isPaid ? '#78937E' : '#785b28' }}>
+            <span className="pi-pay-val" style={{ color: isPaid ? '#16a34a' : '#d97706' }}>
               {isPaid ? 'PAID' : 'PENDING CLEARANCE'}
             </span>
           </div>
@@ -226,7 +226,7 @@ export default function PrintableInvoice({
             <span>{formatINR(subtotal)}</span>
           </div>
           {discount > 0 && (
-            <div className="pi-total-line" style={{ color: '#1e5038' }}>
+            <div className="pi-total-line" style={{ color: '#16a34a' }}>
               <span>Special Concession:</span>
               <span>- {formatINR(discount)}</span>
             </div>

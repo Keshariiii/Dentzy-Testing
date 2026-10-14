@@ -98,10 +98,10 @@
   text-transform: capitalize;
 }
 
-.odm-status--completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
-.odm-status--in-progress { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); }
-.odm-status--pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
-.odm-status--cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border: 1px solid var(--dz-color-error-border); }
+.odm-status--completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
+.odm-status--in-progress { background: #dbeafe; color: #1e40af; }
+.odm-status--pending { background: #fef9c3; color: #854d0e; }
+.odm-status--cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
 
 .odm-close-btn {
   width: 32px;
@@ -207,12 +207,12 @@
 }
 
 .odm-pipeline-step--done .odm-pipeline-dot {
-  background: #78937E;
+  background: #16a34a;
 }
 
 .odm-pipeline-step--current .odm-pipeline-dot {
-  background: #78937E;
-  box-shadow: 0 0 0 4px rgba(120, 147, 126, 0.2);
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
 .odm-pipeline-step--done .odm-pipeline-label,
@@ -222,7 +222,7 @@
 }
 
 .odm-pipeline-line--done {
-  background: #78937E;
+  background: #16a34a;
 }
 
 /* ── Key Details Grid ───────────────────────── */
@@ -326,8 +326,8 @@
   border-radius: 8px;
 }
 
-.odm-pay--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
-.odm-pay--pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
+.odm-pay--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
+.odm-pay--pending { background: #fef9c3; color: #854d0e; }
 
 .odm-payment-body {
   display: flex;

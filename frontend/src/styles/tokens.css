@@ -17,11 +17,11 @@
 
 :root {
   /* ── Color: Brand ────────────────────────────────────────────── */
-  --dz-color-primary:         #78937E;   /* Official Dentzy Sage Green */
-  --dz-color-primary-dark:    #58735e;   /* Deep Sage                 */
-  --dz-color-primary-accent:  #78937E;   /* Official Dentzy Accent    */
-  --dz-color-primary-light:   #a8bfae;   /* Light Sage                */
-  --dz-color-primary-muted:   rgba(120, 147, 126, 0.12); /* Subtle tint */
+  --dz-color-primary:         #708c80;   /* Sage Green                */
+  --dz-color-primary-dark:    #4a6a5a;   /* Deep Sage                 */
+  --dz-color-primary-accent:  #1e5038;   /* Deep Forest Green         */
+  --dz-color-primary-light:   #a3bfb1;   /* Light Sage                */
+  --dz-color-primary-muted:   rgba(112, 140, 128, 0.12); /* Subtle tint */
 
   /* ── Color: Neutrals ─────────────────────────────────────────── */
   --dz-color-charcoal:        #1e2824;   /* Dark Forest Charcoal      */
@@ -54,27 +54,23 @@
   --dz-color-selection-dark-text:  #1e2824;                    /* Charcoal contrast text  */
 
   /* ── Color: Status (Semantic) ────────────────────────────────── */
-  --dz-color-success:         #78937E;   /* Official Dentzy Green     */
-  --dz-color-success-bg:      #eff5f1;   /* Soft serene neutral sage  */
-  --dz-color-success-text:    #78937E;   /* Official Dentzy Green text */
-  --dz-color-success-border:  #c6d8cb;   /* Subtle sage border        */
+  --dz-color-success:         #22c55e;
+  --dz-color-success-bg:      #dcfce7;
+  --dz-color-success-text:    #166534;
 
-  --dz-color-warning:         #785b28;   /* Warm muted stone/ochre    */
-  --dz-color-warning-bg:      #fbf8f2;   /* Neutral linen background  */
-  --dz-color-warning-text:    #785b28;   /* Neutral warm stone text   */
-  --dz-color-warning-border:  #ede5d8;   /* Soft warm border          */
+  --dz-color-warning:         #f59e0b;
+  --dz-color-warning-bg:      #fef3c7;
+  --dz-color-warning-text:    #92400e;
 
-  --dz-color-error:           #7a3838;   /* Muted earthy rose-stone   */
-  --dz-color-error-bg:        #fbf3f3;   /* Soft neutral rose tint    */
-  --dz-color-error-text:      #7a3838;   /* Muted deep brick text     */
-  --dz-color-error-border:    #eddada;   /* Soft rose-stone border    */
+  --dz-color-error:           #ef4444;
+  --dz-color-error-bg:        #fee2e2;
+  --dz-color-error-text:      #991b1b;
   --dz-color-danger:          #EF4444;   /* Global delete/destructive action red */
   --dz-color-danger-hover:    #dc2626;   /* Destructive hover red     */
 
-  --dz-color-info:            #334155;   /* Neutral slate gray        */
-  --dz-color-info-bg:         #f1f5f8;   /* Cool soft neutral slate   */
-  --dz-color-info-text:       #334155;   /* Muted slate text          */
-  --dz-color-info-border:     #dbe3eb;   /* Subtle slate border       */
+  --dz-color-info:            #3b82f6;
+  --dz-color-info-bg:         #dbeafe;
+  --dz-color-info-text:       #1e40af;
 
   /* ── Typography: Font Family ─────────────────────────────────── */
   --dz-font-family:           var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont,

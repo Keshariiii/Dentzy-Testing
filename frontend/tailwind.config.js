@@ -8,10 +8,10 @@ module.exports = {
       /* ── Dentzy Brand Colors (from tokens.css --dz-color-*) ──── */
       colors: {
         primary: {
-          DEFAULT: 'var(--dz-color-primary, #78937E)',
-          dark: 'var(--dz-color-primary-dark, #58735e)',
-          light: 'var(--dz-color-primary-light, #a8bfae)',
-          muted: 'var(--dz-color-primary-muted, rgba(120, 147, 126, 0.12))',
+          DEFAULT: 'var(--dz-color-primary, #708c80)',
+          dark: 'var(--dz-color-primary-dark, #4a6a5a)',
+          light: 'var(--dz-color-primary-light, #a3bfb1)',
+          muted: 'var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12))',
         },
         charcoal: 'var(--dz-color-charcoal, #1e2824)',
         dark: 'var(--dz-color-dark, #2a3d35)',
@@ -22,24 +22,24 @@ module.exports = {
         'border-light': 'var(--dz-color-border-light, #f0f2f1)',
         /* Semantic status colors */
         success: {
-          DEFAULT: 'var(--dz-color-success, #78937E)',
-          bg: 'var(--dz-color-success-bg, #eff5f1)',
-          text: 'var(--dz-color-success-text, #78937E)',
+          DEFAULT: 'var(--dz-color-success, #22c55e)',
+          bg: 'var(--dz-color-success-bg, #dcfce7)',
+          text: 'var(--dz-color-success-text, #166534)',
         },
         warning: {
-          DEFAULT: 'var(--dz-color-warning, #785b28)',
-          bg: 'var(--dz-color-warning-bg, #fbf8f2)',
-          text: 'var(--dz-color-warning-text, #785b28)',
+          DEFAULT: 'var(--dz-color-warning, #f59e0b)',
+          bg: 'var(--dz-color-warning-bg, #fef3c7)',
+          text: 'var(--dz-color-warning-text, #92400e)',
         },
         error: {
-          DEFAULT: 'var(--dz-color-error, #7a3838)',
-          bg: 'var(--dz-color-error-bg, #fbf3f3)',
-          text: 'var(--dz-color-error-text, #7a3838)',
+          DEFAULT: 'var(--dz-color-error, #ef4444)',
+          bg: 'var(--dz-color-error-bg, #fee2e2)',
+          text: 'var(--dz-color-error-text, #991b1b)',
         },
         info: {
-          DEFAULT: 'var(--dz-color-info, #334155)',
-          bg: 'var(--dz-color-info-bg, #f1f5f8)',
-          text: 'var(--dz-color-info-text, #334155)',
+          DEFAULT: 'var(--dz-color-info, #3b82f6)',
+          bg: 'var(--dz-color-info-bg, #dbeafe)',
+          text: 'var(--dz-color-info-text, #1e40af)',
         },
       },
       /* ── Typography ──────────────────────────────────────────── */

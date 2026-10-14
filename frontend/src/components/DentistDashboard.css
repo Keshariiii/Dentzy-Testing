@@ -417,9 +417,9 @@
 
 .ud-stat-breakdown { display: flex; gap: 6px; flex-wrap: wrap; }
 
-.tag-pending  { font-size: 0.7rem; background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
-.tag-progress { font-size: 0.7rem; background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
-.tag-overdue  { font-size: 0.7rem; background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border: 1px solid var(--dz-color-error-border); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+.tag-pending  { font-size: 0.7rem; background: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+.tag-progress { font-size: 0.7rem; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+.tag-overdue  { font-size: 0.7rem; background: #fecaca; color: var(--dz-color-error-text); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
 
 /* â”€â”€ Quick Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .ud-section-title {
@@ -544,10 +544,10 @@
 
 /* Priority chips */
 .ud-priority { font-size: 0.72rem; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
-.ud-priority-low    { background: #f8faf9; color: #4b5563; border: 1px solid #e2e8f0; }
-.ud-priority-normal { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); }
-.ud-priority-high   { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
-.ud-priority-urgent { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border: 1px solid var(--dz-color-error-border); }
+.ud-priority-low    { background: #f0f4f2; color: #6a8a7c; }
+.ud-priority-normal { background: #dbeafe; color: #1e40af; }
+.ud-priority-high   { background: #fef9c3; color: #854d0e; }
+.ud-priority-urgent { background: #fecaca; color: var(--dz-color-error-text); }
 
 /* â”€â”€ Status Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .ud-badge {
@@ -560,12 +560,12 @@
   white-space: nowrap;
 }
 
-.badge-pending   { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
-.badge-progress  { background: var(--dz-color-info-bg); color: var(--dz-color-info-text); border: 1px solid var(--dz-color-info-border); }
-.badge-completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
-.badge-cancelled { background: #f8faf9; color: var(--dz-color-text-muted); border: 1px solid #e2e8f0; }
-.badge-paid      { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
-.badge-overdue   { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border: 1px solid var(--dz-color-error-border); }
+.badge-pending   { background: #fef9c3; color: #854d0e; }
+.badge-progress  { background: #dbeafe; color: #1e40af; }
+.badge-completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
+.badge-cancelled { background: #f1f5f9; color: var(--dz-color-text-muted); }
+.badge-paid      { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
+.badge-overdue   { background: #fecaca; color: var(--dz-color-error-text); }
 
 /* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .ud-loading {

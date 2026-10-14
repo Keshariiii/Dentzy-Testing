@@ -285,7 +285,9 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                               <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
                               {order.paymentStatus === 'Paid' ? (
-                                <StatusBadge status="Paid" size="sm" title="Paid order cannot be deleted. Revert payment to Pending first." />
+                                <span title="Paid order cannot be deleted. Revert payment to Pending first." style={{ fontSize: '0.72rem', color: '#708c80', background: '#edf5f0', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                  Paid
+                                </span>
                               ) : (
                                 <TwentyFirstIconButton
                                   icon={Ico.trash(14)}

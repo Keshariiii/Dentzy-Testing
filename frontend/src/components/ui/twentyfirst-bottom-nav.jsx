@@ -50,13 +50,13 @@ export function TwentyFirstBottomNav({
             className={cn(
               'relative z-10 flex flex-1 flex-col items-center justify-center py-2 px-1 rounded-xl',
               'transition-colors duration-200 select-none cursor-pointer min-h-[52px]',
-              isActive ? 'text-[#78937E]' : 'text-neutral-500 hover:text-neutral-800',
+              isActive ? 'text-[#1e5038]' : 'text-neutral-500 hover:text-neutral-800',
             )}
           >
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-xl bg-[#eff5f1]"
+                className="absolute inset-0 rounded-xl bg-[#eef6f2]"
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
@@ -71,7 +71,7 @@ export function TwentyFirstBottomNav({
             <span
               className={cn(
                 'relative z-10 text-[10px] tracking-tight leading-tight',
-                isActive ? 'font-bold text-[#78937E]' : 'font-medium text-neutral-600',
+                isActive ? 'font-bold text-[#1e5038]' : 'font-medium text-neutral-600',
               )}
             >
               {item.label}

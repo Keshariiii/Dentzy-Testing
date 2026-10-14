@@ -122,9 +122,9 @@ export default function AdminPaymentsListView({
                 {formatINR(summary.totalRevenue || 0)}
               </div>
             </div>
-            <div className="ad-stat-card" style={{ background: '#eff5f1', padding: '14px 16px', borderRadius: '14px', border: '1px solid #c6d8cb' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#58735e' }}>Collected</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#78937E', marginTop: '4px' }}>
+            <div className="ad-stat-card" style={{ background: '#f0fdf4', padding: '14px 16px', borderRadius: '14px', border: '1px solid #bbf7d0' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#166534' }}>Collected</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#15803d', marginTop: '4px' }}>
                 {formatINR(summary.collectedRevenue || 0)}
               </div>
             </div>
@@ -272,7 +272,7 @@ export default function AdminPaymentsListView({
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: isPaid ? '#1e5038' : '#785b28' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: isPaid ? '#15803d' : '#b45309' }}>
                         {p.amount > 0 ? formatINR(p.amount) : '₹0'}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--dz-color-text-muted)' }}>

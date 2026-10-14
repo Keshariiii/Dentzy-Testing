@@ -213,7 +213,7 @@ const MobileForgotPassword = () => {
         {/* Step 4: Success */}
         {step === 4 ? (
           <div style={{ textAlign: 'center', padding: '10px 0' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -265,7 +265,7 @@ const MobileForgotPassword = () => {
             </p>
 
             {infoMsg && (
-              <div style={{ background: '#eef6f2', color: '#1e5038', border: '1px solid #c2dece', padding: '8px 12px', borderRadius: '8px', fontSize: '0.8rem', marginBottom: '14px', textAlign: 'center' }}>
+              <div style={{ background: '#dcfce7', color: '#166534', padding: '8px 12px', borderRadius: '8px', fontSize: '0.8rem', marginBottom: '14px', textAlign: 'center' }}>
                 {infoMsg}
               </div>
             )}

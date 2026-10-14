@@ -148,8 +148,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(120, 147, 126, 0.12);
-  color: #78937E;
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -518,11 +518,11 @@
   white-space: nowrap;
 }
 
-.ma-action-approve { background: #eff5f1; color: #78937E; border-color: #c6d8cb; }
-.ma-action-approve:active { background: #78937E; color: #fff; }
+.ma-action-approve { background: #ecfdf5; color: #16a34a; border-color: #bbf7d0; }
+.ma-action-approve:active { background: #16a34a; color: #fff; }
 
-.ma-action-reject { background: #fbf8f2; color: #785b28; border-color: #ede5d8; }
-.ma-action-reject:active { background: #785b28; color: #fff; }
+.ma-action-reject { background: #fefce8; color: #ca8a04; border-color: #fde68a; }
+.ma-action-reject:active { background: #ca8a04; color: #fff; }
 
 .ma-action-delete { background: #fef2f2; color: #EF4444; border-color: rgba(239, 68, 68, 0.35); padding: 7px 10px; }
 .ma-action-delete:active { background: #EF4444; color: #fff; }
@@ -663,8 +663,8 @@
 .ma-pill--status-pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); }
 .ma-pill--status-cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
 
-.ma-pill--pay-paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); border: 1px solid var(--dz-color-success-border); }
-.ma-pill--pay-pending { background: var(--dz-color-warning-bg); color: var(--dz-color-warning-text); border: 1px solid var(--dz-color-warning-border); }
+.ma-pill--pay-paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
+.ma-pill--pay-pending { background: #fef9c3; color: #854d0e; }
 
 /* ── Specific Action Buttons ────────────────────── */
 .ma-action-pay {
@@ -729,7 +729,7 @@
   color: var(--color-charcoal, var(--dz-color-charcoal));
 }
 
-.ma-val--green { color: #78937E; }
+.ma-val--green { color: #16a34a; }
 .ma-val--amber { color: var(--dz-color-warning-text); }
 
 .ma-pay-mode-tags {

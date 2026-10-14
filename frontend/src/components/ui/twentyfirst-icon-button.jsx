@@ -48,15 +48,15 @@ export const TwentyFirstIconButton = ({
   // Palette Variants
   const variantStyles = {
     primary: {
-      background: '#78937E',
+      background: '#1e5038',
       color: '#ffffff',
       border: 'none',
-      boxShadow: '0 2px 6px -1px rgba(120, 147, 126, 0.3), 0 1px 3px rgba(0, 0, 0, 0.05)',
+      boxShadow: '0 2px 6px -1px rgba(30, 80, 56, 0.3), 0 1px 3px rgba(0, 0, 0, 0.05)',
     },
     soft: {
-      background: '#eff5f1',
-      color: '#78937E',
-      border: '1px solid rgba(120, 147, 126, 0.25)',
+      background: '#e8f5ee',
+      color: '#1e5038',
+      border: '1px solid rgba(30, 80, 56, 0.12)',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
     },
     secondary: {
@@ -72,16 +72,16 @@ export const TwentyFirstIconButton = ({
       boxShadow: 'none',
     },
     success: {
-      background: '#eff5f1',
-      color: '#78937E',
-      border: '1px solid #c6d8cb',
-      boxShadow: '0 1px 3px rgba(120, 147, 126, 0.08)',
+      background: '#dcfce7',
+      color: '#15803d',
+      border: '1px solid #bbf7d0',
+      boxShadow: '0 1px 3px rgba(21, 128, 61, 0.08)',
     },
     danger: {
-      background: '#fbf3f3',
-      color: '#7a3838',
-      border: '1px solid #eddada',
-      boxShadow: '0 1px 3px rgba(122, 56, 56, 0.08)',
+      background: '#fee2e2',
+      color: '#dc2626',
+      border: '1px solid #fecaca',
+      boxShadow: '0 1px 3px rgba(220, 38, 38, 0.08)',
     },
   }[variant] || {};
 

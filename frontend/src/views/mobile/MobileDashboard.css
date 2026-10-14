@@ -909,9 +909,8 @@
 }
 
 .m-priority--rush {
-    background: var(--dz-color-warning-bg);
-    color: var(--dz-color-warning-text);
-    border: 1px solid var(--dz-color-warning-border);
+    background: #ffedd5;
+    color: #c2410c;
 }
 
 /* ── Coming Soon ────────────────────────────── */
