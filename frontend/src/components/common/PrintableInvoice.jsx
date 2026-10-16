@@ -123,7 +123,7 @@ export default function PrintableInvoice({
           <h1 className="pi-brand-title">Dentzy Dental Laboratory</h1>
           <p className="pi-brand-subtitle">Advanced Digital Dental Prosthetics & CAD/CAM Milling Center</p>
           <div className="pi-brand-meta">
-            <div>Dindayal Nagar, Vasai West - 401202, Maharashtra, India</div>
+            <div>Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
             <div>
               <strong>Tel / WhatsApp:</strong> +91 9503668112 &nbsp;|&nbsp; <strong>Email:</strong> support@dentzy.in
             </div>
@@ -209,13 +209,23 @@ export default function PrintableInvoice({
         </table>
       </div>
 
-      {/* ── Totals & Stamp Block ──────────────────────────────── */}
+      {/* ── Totals Block ──────────────────────────────── */}
       <div className="pi-summary-grid">
-        <div className="pi-stamp-block">
-          {isPaid && (
-            <div className="pi-paid-stamp">
-              <span className="pi-stamp-word">PAID</span>
-              <span className="pi-stamp-sub">DENTZY LAB OFFICIAL</span>
+        <div className="pi-payment-status-block">
+          <div className="pi-pay-row">
+            <span className="pi-pay-lbl">Payment Status:</span>
+            <span className="pi-pay-val">{isPaid ? 'PAID IN FULL' : 'PENDING CLEARANCE'}</span>
+          </div>
+          {paymentMode && (
+            <div className="pi-pay-row">
+              <span className="pi-pay-lbl">Mode:</span>
+              <span className="pi-pay-val">{paymentMode}</span>
+            </div>
+          )}
+          {referenceNumber && (
+            <div className="pi-pay-row">
+              <span className="pi-pay-lbl">UTR / Ref No:</span>
+              <span className="pi-pay-val" style={{ fontFamily: 'monospace' }}>{referenceNumber}</span>
             </div>
           )}
         </div>
@@ -226,20 +236,20 @@ export default function PrintableInvoice({
             <span>{formatINR(subtotal)}</span>
           </div>
           {discount > 0 && (
-            <div className="pi-total-line" style={{ color: '#16a34a' }}>
+            <div className="pi-total-line">
               <span>Special Concession:</span>
               <span>- {formatINR(discount)}</span>
             </div>
           )}
           <div className="pi-total-line">
-            <span>GST (0% Healthcare Exemption):</span>
+            <span>GST (0% Healthcare Exemption — HSN 9021):</span>
             <span>₹0</span>
           </div>
           <div className="pi-total-line pi-total-line--final">
             <span>Total Settled:</span>
             <span>{formatINR(totalPaid)}</span>
           </div>
-          <div className="pi-total-line" style={{ fontSize: '0.78rem', color: '#708c80', marginTop: '4px' }}>
+          <div className="pi-total-line" style={{ fontSize: '0.78rem', marginTop: '4px' }}>
             <span>Balance Due:</span>
             <span>{isPaid ? '₹0 (Cleared)' : formatINR(totalPaid)}</span>
           </div>
@@ -250,11 +260,13 @@ export default function PrintableInvoice({
       <div className="pi-footer">
         <div className="pi-terms-block">
           <div><strong>Quality Guarantee:</strong> All clinical prosthetics fabricated by Dentzy Dental Laboratory are backed by our 1-Year Laboratory Guarantee against material defects.</div>
-          <div style={{ marginTop: '6px' }}>Prosthetics & appliances (HSN Code 9021) exempt under Indian healthcare regulations. Thank you for your continued clinical partnership!</div>
+          <div style={{ marginTop: '4px' }}>Prosthetics &amp; appliances (HSN Code 9021) are exempt from GST under Indian healthcare regulations.</div>
+          <div style={{ marginTop: '6px', fontStyle: 'italic' }}>Whether tax is payable under reverse charge — No</div>
+          <div style={{ marginTop: '6px', fontStyle: 'italic', fontSize: '0.7rem' }}>This is a computer-generated invoice and does not require a physical ink signature.</div>
         </div>
 
         <div className="pi-signatory-block">
-          <div className="pi-section-label">Authorized Lab Signatory</div>
+          <div className="pi-section-label">For Dentzy Dental Laboratory</div>
           <div className="pi-signature-wrap">
             <img
               src="/images/founder-signature.png"
@@ -264,8 +276,8 @@ export default function PrintableInvoice({
             />
           </div>
           <div className="pi-signatory-name">Tanish Dinesh Poojari</div>
-          <div className="pi-signatory-title">Founder & Managing Director</div>
-          <div className="pi-signatory-lab">Dentzy Dental Laboratory</div>
+          <div className="pi-signatory-title">Founder &amp; Managing Director</div>
+          <div className="pi-signatory-lab">Authorized Signatory</div>
         </div>
       </div>
     </div>
