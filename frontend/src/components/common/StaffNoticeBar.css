@@ -1,0 +1,50 @@
+/* StaffNoticeBar — Dentzy Staff Broadcast Notice */
+.dz-notice-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dz-space-4);
+  background: var(--dz-color-primary-muted);
+  border-bottom: 1px solid rgba(112, 140, 128, 0.25);
+  padding: var(--dz-space-3) var(--dz-space-6);
+  color: var(--dz-color-primary-accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.dz-notice-bar__content {
+  display: flex;
+  align-items: center;
+  gap: var(--dz-space-2);
+  flex: 1;
+}
+
+.dz-notice-bar__icon {
+  flex-shrink: 0;
+  color: var(--dz-color-primary);
+}
+
+.dz-notice-bar__text {
+  color: var(--dz-color-charcoal);
+}
+
+.dz-notice-bar__dismiss {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--dz-color-primary);
+  padding: var(--dz-space-1);
+  border-radius: var(--dz-radius-sm);
+  transition: background 0.15s;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.dz-notice-bar__dismiss:hover {
+  background: rgba(112, 140, 128, 0.2);
+}

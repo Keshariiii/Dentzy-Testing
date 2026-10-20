@@ -73,6 +73,20 @@ staff.get('/me', verifyStaff(), async (c) => {
   return c.json({ staff: { ...row, role: 'staff' } });
 });
 
+// GET /api/staff/notice — fetch broadcast notice for authenticated staff
+staff.get('/notice', verifyStaff(), async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT value, updated_at FROM app_settings WHERE key = ?'
+    ).bind('staff_notice_bar').first();
+    if (!row) return c.json({ enabled: false, message: '' });
+    const notice = JSON.parse(row.value);
+    return c.json({ enabled: Boolean(notice.enabled), message: notice.message || notice.messages?.[0] || '', updatedAt: row.updated_at });
+  } catch {
+    return c.json({ enabled: false, message: '' });
+  }
+});
+
 // PUT /api/staff/profile
 staff.put('/profile', verifyStaff(), async (c) => {
   try {

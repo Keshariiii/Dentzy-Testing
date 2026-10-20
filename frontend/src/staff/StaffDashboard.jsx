@@ -16,6 +16,7 @@ import CreateOrderModal from '../components/common/CreateOrderModal';
 import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
+import StaffNoticeBar from '../components/common/StaffNoticeBar';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
@@ -491,6 +492,7 @@ const StaffDashboard = () => {
 
   return (
     <div className="sd-shell">
+      <StaffNoticeBar authFetch={authFetch} />
       {/* -- Top Bar --------------------------------------------------------- */}
       <header className="sd-header">
         <button

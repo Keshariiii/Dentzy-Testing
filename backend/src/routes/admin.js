@@ -1072,4 +1072,23 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
   }
 });
 
+// PUT /api/admin/settings/staff-notice — update staff broadcast notice
+admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const payload = JSON.stringify({
+      enabled: Boolean(body.enabled),
+      message: (body.message || '').trim().slice(0, 500),
+    });
+    await c.env.DB.prepare(`
+      INSERT INTO app_settings (key, value, updated_at, updated_by)
+      VALUES ('staff_notice_bar', ?, datetime('now'), 'admin')
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at, updated_by = 'admin'
+    `).bind(payload).run();
+    return c.json({ success: true, message: 'Staff notice updated.' });
+  } catch (err) {
+    return c.json({ message: 'Failed to update notice.' }, 500);
+  }
+});
+
 export default admin;
