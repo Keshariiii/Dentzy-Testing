@@ -18,7 +18,7 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   metadataBase: new URL('https://dentzy-testing.pages.dev'),
-  title: 'Dentzy - Dental Lab Solutions',
+  title: 'Denty lab | official site | Get started',
   description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
   applicationName: 'Dentzy',
   manifest: '/manifest.json',
@@ -50,7 +50,7 @@ export const metadata = {
     ],
   },
   openGraph: {
-    title: 'Dentzy - Dental Lab Solutions',
+    title: 'Denty lab | official site | Get started',
     description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
     url: 'https://dentzy-testing.pages.dev',
     siteName: 'Dentzy',
@@ -67,7 +67,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Dentzy - Dental Lab Solutions',
+    title: 'Denty lab | official site | Get started',
     description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
     images: ['/dentzy-icon.png'],
   },
