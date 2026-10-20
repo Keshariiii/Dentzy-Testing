@@ -11,9 +11,9 @@ const staff = new Hono();
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 const cookieHeader = (name, value, maxAge) =>
-  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=None; Secure`;
+  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
 const clearCookieHeader = (name) =>
-  `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure`;
+  `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
 
 // POST /api/staff/login
 staff.post('/login', validate(staffLoginSchema), async (c) => {

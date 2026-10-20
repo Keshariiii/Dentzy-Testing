@@ -118,14 +118,14 @@ describe('createOtpToken / verifyOtpToken', () => {
 
 describe('createResetToken / verifyResetToken', () => {
   it('creates and verifies a reset token', async () => {
-    const token = await createResetToken('user@dentzy.com', SECRET);
+    const token = await createResetToken('user@dentzy.com', 'abc1234567', SECRET);
     const result = await verifyResetToken(token, SECRET);
     assert.ok(result.valid);
     assert.equal(result.email, 'user@dentzy.com');
   });
 
   it('rejects token with wrong secret', async () => {
-    const token = await createResetToken('user@dentzy.com', SECRET);
+    const token = await createResetToken('user@dentzy.com', 'abc1234567', SECRET);
     const result = await verifyResetToken(token, 'wrong-key');
     assert.ok(!result.valid);
   });
