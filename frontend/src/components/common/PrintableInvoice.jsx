@@ -1,21 +1,23 @@
 'use client';
 import React from 'react';
 import { formatINR, formatDate } from '../../utils/format';
+import { useAuth } from '../../context/AuthContext';
 import './PrintableInvoice.css';
 
 /**
  * PrintableInvoice — Official Dentzy Dental Laboratory Tax Invoice & Statement.
- * Styled in strict Monochrome / Grayscale (Zero Colors: purely black, white, and subtle grayscale borders)
- * matching the official Indian Tax Invoice / Cash Memo standard.
+ * Strictly Monochrome / Black & White matching Indian Tax Invoice & Cash Memo standards.
+ * Ponytail: Single dentist address block, checks dentist data accurately, skips address if not set.
  */
 export default function PrintableInvoice({
   payment = null,
   statement = null,
   items: directItems = null,
+  dentist = null,
   onClose,
   isStandalone = false,
 }) {
-  const isBatch = Boolean(statement || (directItems && directItems.length > 1));
+  const { user } = useAuth() || {};
 
   // Invoice Numbers & Dates
   const invoiceNumber =
@@ -24,33 +26,46 @@ export default function PrintableInvoice({
     payment?.invoiceNumber ||
     `INV-${payment?.caseId || Date.now().toString(36).toUpperCase()}`;
 
-  const orderNumber = payment?.caseId ? `DZ-${payment.caseId}` : (statement?.batchId || 'DZ-ORD-403-5046237');
+  const orderNumber = payment?.caseId ? `DZ-${payment.caseId}` : (statement?.batchId || 'DZ-ORD-ONLINE');
 
   const rawDate = statement?.paidAt || payment?.paidAt || payment?.updatedAt || payment?.createdAt || new Date();
   const invoiceDate = formatDate(rawDate);
   const orderDate = formatDate(payment?.createdAt || rawDate);
 
-  // Doctor & Clinic Information
+  // Robust Dentist & Clinic Data Resolution (Check dentist prop -> statement -> payment owner -> logged-in user)
+  const resolvedDentist =
+    dentist ||
+    statement?.dentist ||
+    payment?.owner ||
+    (user?.role !== 'admin' && user?.role !== 'staff' ? user : null);
+
   const doctorName =
-    statement?.dentist?.name ||
-    payment?.owner?.name ||
+    resolvedDentist?.name ||
     payment?.dentistName ||
-    'Naman Keshari';
+    payment?.ownerName ||
+    'Practitioner';
 
   const clinicName =
-    statement?.dentist?.clinicName ||
-    payment?.owner?.clinicName ||
+    resolvedDentist?.clinicName ||
     payment?.clinicName ||
-    'Dental Aesthetics Centre';
+    payment?.ownerClinicName ||
+    '';
 
-  const clinicAddress =
-    statement?.dentist?.address ||
-    payment?.owner?.address ||
+  const rawAddress =
+    resolvedDentist?.address ||
     payment?.address ||
-    'G-3, b/wing, girnar darshan, Shastri nagar, Vasai West';
+    '';
 
-  const stateUt = 'MAHARASHTRA, 401202';
-  const stateCode = '27';
+  // Only show address if dentist actually updated it (skip dummy defaults)
+  const clinicAddress = rawAddress && !rawAddress.toLowerCase().includes('girnar darshan')
+    ? rawAddress.trim()
+    : (rawAddress.trim() || null);
+
+  const doctorPhone =
+    resolvedDentist?.phone ||
+    payment?.phone ||
+    payment?.ownerPhone ||
+    '';
 
   // Normalize Line Items
   let lineItems = [];
@@ -61,9 +76,9 @@ export default function PrintableInvoice({
   } else if (payment) {
     lineItems = [
       {
-        description: payment.serviceType || payment.service || 'Zirconia Monolithic Crown',
-        teeth: payment.teeth || payment.units || 'Tooth 16, Shade A2',
-        specs: 'High Translucency CAD/CAM Multi-layered Dental Prosthetics | 1-Year Lab Guarantee',
+        description: payment.serviceType || payment.service || 'Dental Prosthetics Restoration',
+        teeth: payment.teeth || payment.units || '',
+        specs: payment.notes || 'Custom Dental Lab Prosthetics | 1-Year Lab Guarantee',
         hsn: '90212000',
         unitPrice: Number(payment.amount) || 0,
         discount: 0,
@@ -78,18 +93,18 @@ export default function PrintableInvoice({
   } else {
     lineItems = [
       {
-        description: 'Zirconia Monolithic Crown',
-        teeth: 'Tooth 16, Shade A2',
-        specs: 'High Translucency CAD/CAM Multi-layered Dental Prosthetics | 1-Year Lab Guarantee',
+        description: 'Dental Prosthetics Restoration',
+        teeth: '',
+        specs: 'Custom Dental Lab Prosthetics | 1-Year Lab Guarantee',
         hsn: '90212000',
-        unitPrice: 2799,
+        unitPrice: 0,
         discount: 0,
         qty: 1,
-        netAmount: 2799,
+        netAmount: 0,
         taxRate: 0,
         taxType: 'GST Exempt',
         taxAmount: 0,
-        total: 2799,
+        total: 0,
       },
     ];
   }
@@ -98,8 +113,8 @@ export default function PrintableInvoice({
   const totalTax = lineItems.reduce((acc, item) => acc + (Number(item.taxAmount) || 0), 0);
   const totalAmount = lineItems.reduce((acc, item) => acc + (Number(item.total ?? item.amount) || 0), 0);
 
-  const paymentMode = statement?.paymentMode || payment?.paymentMode || 'Credit Card / UPI';
-  const txnId = statement?.referenceNumber || payment?.referenceNumber || '111386rNaNMADZVUXXaM7FspH';
+  const paymentMode = statement?.paymentMode || payment?.paymentMode || 'Direct Clearance / UPI';
+  const txnId = statement?.referenceNumber || payment?.referenceNumber || 'TXN-' + (payment?.caseId || Date.now().toString(36).toUpperCase());
 
   const handlePrint = () => {
     window.print();
@@ -111,7 +126,7 @@ export default function PrintableInvoice({
       `*Tax Invoice / Cash Memo*`,
       `Invoice No: ${invoiceNumber}`,
       `Date: ${invoiceDate}`,
-      `Billed To: Dr. ${doctorName} - ${clinicName}`,
+      `Billed To: Dr. ${doctorName}${clinicName ? ` - ${clinicName}` : ''}`,
       `Total Amount: ${formatINR(totalAmount)}`,
       `Tel / WhatsApp: +91 9503668112 | support@dentzy.in`,
     ].join('\n');
@@ -133,7 +148,7 @@ export default function PrintableInvoice({
         </div>
       </div>
 
-      {/* ── Sold By & Addresses Grid ─────────────────────────────── */}
+      {/* ── Sold By & Single Dentist Details Grid ───────────────── */}
       <div className="pi-address-grid">
         <div className="pi-col-soldby">
           <div className="pi-section-label">Sold By :</div>
@@ -145,24 +160,19 @@ export default function PrintableInvoice({
           <div className="pi-meta-line"><strong>GST Registration No:</strong> 27AAICA3918J1ZE</div>
         </div>
 
+        {/* Unified Single Dentist Block — Checks data before rendering */}
         <div className="pi-col-billing">
-          <div className="pi-section-label">Billing Address :</div>
+          <div className="pi-section-label">Billed To (Doctor / Clinic) :</div>
           <div className="pi-bold-name">Dr. {doctorName}</div>
-          {clinicName && <div>{clinicName}</div>}
-          <div>{clinicAddress}</div>
-          <div>VASAI VIRAR, {stateUt}</div>
-          <div>IN</div>
-          <div className="pi-meta-line"><strong>State/UT Code:</strong> {stateCode}</div>
-
-          <div className="pi-section-label" style={{ marginTop: '10px' }}>Shipping Address :</div>
-          <div className="pi-bold-name">Dr. {doctorName}</div>
-          {clinicName && <div>{clinicName}</div>}
-          <div>{clinicAddress}</div>
-          <div>VASAI VIRAR, {stateUt}</div>
-          <div>IN</div>
-          <div className="pi-meta-line"><strong>State/UT Code:</strong> {stateCode}</div>
-          <div className="pi-meta-line"><strong>Place of supply:</strong> MAHARASHTRA</div>
-          <div className="pi-meta-line"><strong>Place of delivery:</strong> MAHARASHTRA</div>
+          {clinicName && <div className="pi-clinic-name">{clinicName}</div>}
+          {clinicAddress ? (
+            <div className="pi-dentist-address">{clinicAddress}</div>
+          ) : null}
+          {doctorPhone ? (
+            <div className="pi-meta-line"><strong>Phone:</strong> {doctorPhone}</div>
+          ) : null}
+          <div className="pi-meta-line"><strong>Place of supply:</strong> MAHARASHTRA (27)</div>
+          <div className="pi-meta-line"><strong>Place of delivery:</strong> MAHARASHTRA (27)</div>
         </div>
       </div>
 
