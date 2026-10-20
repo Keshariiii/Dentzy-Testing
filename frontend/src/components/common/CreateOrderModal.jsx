@@ -339,6 +339,7 @@ export default function CreateOrderModal({
               <ToothChart
                 selectedTeeth={selectedTeeth}
                 onChange={setSelectedTeeth}
+                restorationType={restorationType}
               />
             </div>
           )}

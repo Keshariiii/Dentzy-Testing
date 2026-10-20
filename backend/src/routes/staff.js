@@ -54,6 +54,7 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
       id: row.id,
       username: row.username,
       displayName: row.displayName,
+      designation: row.designation,
       role: 'staff',
     },
   });
@@ -68,7 +69,7 @@ staff.post('/logout', (c) => {
 // GET /api/staff/me
 staff.get('/me', verifyStaff(), async (c) => {
   const row = await c.env.DB.prepare(
-    'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+    'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
   ).bind(c.get('staff').id).first();
   return c.json({ staff: { ...row, role: 'staff' } });
 });
@@ -101,7 +102,7 @@ staff.put('/profile', verifyStaff(), async (c) => {
     if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
 
     const updated = await c.env.DB.prepare(
-      'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
     ).bind(staffId).first();
     auditLog('STAFF_PROFILE_UPDATED', { staffId });
 

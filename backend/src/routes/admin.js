@@ -770,9 +770,14 @@ admin.delete('/staff/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
     const row = await c.env.DB.prepare(
-      'SELECT id, username FROM staff WHERE id = ?'
+      'SELECT id, username, designation FROM staff WHERE id = ?'
     ).bind(id).first();
     if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+    // Receptionists cannot be deleted directly
+    if (row.designation === 'Receptionist') {
+      return c.json({ message: 'Receptionist accounts cannot be deleted directly via portal. Contact your administrator.', code: 'CANNOT_DELETE_RECEPTIONIST' }, 403);
+    }
 
     // ponytail: clean up assigned orders, attendance records, and staff account
     await c.env.DB.batch([

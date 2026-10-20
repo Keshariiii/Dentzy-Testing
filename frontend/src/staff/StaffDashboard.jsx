@@ -44,6 +44,20 @@ const StaffDashboard = () => {
   const { staff, staffLogout, updateStaffState, authFetch, STAFF_API } = useStaffAuth();
   const [activeView, setActiveView] = useState('orders');
 
+  // Receptionist gets a strict 4-tab portal only (orders, dentists, leaderboard, settings)
+  const isReceptionist = staff?.designation === 'Receptionist';
+
+  const visibleNavItems = isReceptionist
+    ? NAV_ITEMS.filter(item => ['orders', 'dentists', 'leaderboard', 'settings'].includes(item.key))
+    : NAV_ITEMS;
+
+  // Department-specific filter: technicians only see their category
+  const DEPT_CATEGORY_MAP = {
+    'Ceramist':      'Ceramic',
+    'Acrylic Tech':  'Acrylic',
+    'CAD/CAM Tech':  'Zirconia',
+  };
+
   // ── Orders ──────────────────────────────────────────────────────────────
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -523,7 +537,7 @@ const StaffDashboard = () => {
 
       {/* ── Navigation Tabs ─────────────────────────────────────────── */}
       <nav className="sd-nav">
-        {NAV_ITEMS.map(item => (
+        {visibleNavItems.map(item => (
           <button key={item.key}
             className={`sd-nav-btn ${activeView === item.key ? 'sd-nav-btn--active' : ''}`}
             onClick={() => setActiveView(item.key)}>
@@ -1454,7 +1468,7 @@ const StaffDashboard = () => {
 
       {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
       <TwentyFirstBottomNav
-        items={NAV_ITEMS}
+        items={visibleNavItems}
         activeKey={activeView}
         onChange={setActiveView}
       />

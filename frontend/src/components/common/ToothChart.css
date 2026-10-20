@@ -218,3 +218,47 @@
   color: #94a3b8;
   font-style: italic;
 }
+
+/* -- Mobile Arch Switcher -------------------------------------------------- */
+.tc-arch-switcher {
+  display: none; /* hidden on desktop */
+  gap: var(--dz-space-2, 8px);
+  margin-bottom: var(--dz-space-3, 12px);
+}
+@media (max-width: 600px) {
+  .tc-arch-switcher { display: flex; }
+  .tc-row--mobile-hidden { display: none !important; }
+}
+.tc-arch-tab {
+  flex: 1;
+  padding: 10px var(--dz-space-4, 16px);
+  border-radius: var(--dz-radius-md, 10px);
+  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.2));
+  background: none;
+  color: var(--dz-color-primary-accent, #1e5038);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+.tc-arch-tab--active {
+  background: var(--dz-color-primary-accent, #1e5038);
+  color: #fff;
+  border-color: var(--dz-color-primary-accent, #1e5038);
+}
+
+/* -- Bridge Indicator ------------------------------------------------------ */
+.tc-bridge-indicator {
+  background: rgba(30, 80, 56, 0.08);
+  border: 1px dashed var(--dz-color-primary, #708c80);
+  border-radius: var(--dz-radius-sm, 6px);
+  padding: 3px 8px;
+  margin-top: var(--dz-space-1, 4px);
+  text-align: center;
+}
+.tc-bridge-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--dz-color-primary-accent, #1e5038);
+}
