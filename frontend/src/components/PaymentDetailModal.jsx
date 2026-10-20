@@ -104,7 +104,7 @@ export default function PaymentDetailModal({
   return (
     <>
       <BaseModal
-        isOpen={Boolean(payment)}
+        isOpen={Boolean(payment) && !showInvoice}
         onClose={onClose}
         maxWidth="max-w-2xl"
         className="pdm-modal-wrap"

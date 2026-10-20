@@ -396,7 +396,7 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm;
+    margin: 6mm 8mm;
   }
 
   /* Reset document for printing without clipping */
@@ -412,11 +412,21 @@
     print-color-adjust: exact !important;
   }
 
-  /* Hide screen controls and non-printable wrappers */
+  /* Strict Isolation: Hide everything except PrintableInvoice */
+  body > *:not(#printable-invoice-root):not(.pi-backdrop) {
+    display: none !important;
+  }
+
+  .dz-modal-root,
+  .dz-modal-backdrop,
+  .dz-modal-container,
+  .dz-modal-scroll-wrap,
+  .pdm-modal-wrap,
   .no-print,
   .pi-screen-bar,
   .pi-screen-bar-standalone {
     display: none !important;
+    visibility: hidden !important;
   }
 
   /* Unravel modal shell to render directly into standard page flow */
@@ -470,5 +480,110 @@
 
   #printable-invoice-root * {
     visibility: visible !important;
+  }
+}
+
+/* ── Mobile View Adjustments (Screen & Touch Ergonomics) ─────────────── */
+@media (max-width: 768px) {
+  .pi-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .pi-modal-shell {
+    max-height: 96vh;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+  }
+
+  .pi-screen-bar {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pi-screen-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .pi-btn-action {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    min-height: 40px; /* Touch target */
+  }
+
+  .pi-scroll-body {
+    padding: 12px 8px;
+    background: #333333;
+  }
+
+  .pi-paper {
+    padding: 20px 14px;
+    font-size: 8.5pt;
+  }
+
+  .pi-top-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pi-title-block {
+    text-align: left;
+  }
+
+  .pi-address-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pi-col-billing {
+    text-align: left;
+  }
+
+  .pi-order-info-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pi-order-right {
+    text-align: left;
+  }
+
+  .pi-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pi-table {
+    min-width: 580px; /* Enable smooth horizontal swipe on small mobile screens */
+  }
+
+  .pi-words-and-sign {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pi-sign-col {
+    width: 100%;
+    text-align: left;
+  }
+
+  .pi-sign-img-box {
+    justify-content: flex-start;
+  }
+
+  .pi-txn-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pi-txn-cell {
+    border-right: none;
+    border-bottom: 1px solid #000000;
+  }
+
+  .pi-txn-cell:last-child {
+    border-bottom: none;
   }
 }
