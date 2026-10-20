@@ -392,94 +392,35 @@
   font-weight: 600;
 }
 
-/* ── Native Browser Print & PDF Export (@media print) ────────────────── */
+/* ── Native Browser Print & PDF Export ──────────────────────────────────
+   Printing is handled by an isolated window.open() call in handlePrint().
+   This @media print block only applies if the user manually prints the page
+   (Ctrl+P) — it hides screen chrome but cannot reliably isolate the invoice
+   from the Next.js Providers tree. Use the Print/PDF button instead.
+── */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 6mm 8mm;
+    margin: 8mm 10mm;
   }
 
-  /* Reset document for printing without clipping */
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
-    color: #000000 !important;
-    height: auto !important;
-    min-height: 100% !important;
-    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Strict Isolation: Hide everything except PrintableInvoice */
-  body > *:not(#printable-invoice-root):not(.pi-backdrop) {
-    display: none !important;
-  }
-
-  .dz-modal-root,
-  .dz-modal-backdrop,
-  .dz-modal-container,
-  .dz-modal-scroll-wrap,
-  .pdm-modal-wrap,
   .no-print,
   .pi-screen-bar,
   .pi-screen-bar-standalone {
     display: none !important;
-    visibility: hidden !important;
   }
 
-  /* Unravel modal shell to render directly into standard page flow */
-  .pi-backdrop {
-    position: static !important;
-    inset: auto !important;
-    display: block !important;
-    background: transparent !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    z-index: auto !important;
-  }
-
-  .pi-modal-shell {
-    position: static !important;
+  .pi-paper {
     box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-    display: block !important;
-  }
-
-  .pi-scroll-body {
-    position: static !important;
-    padding: 0 !important;
-    background: transparent !important;
-    display: block !important;
-    overflow: visible !important;
-    max-height: none !important;
-    height: auto !important;
-  }
-
-  #printable-invoice-root {
-    display: block !important;
-    visibility: visible !important;
-    position: static !important;
-    width: 100% !important;
-    max-width: 100% !important;
     min-height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  #printable-invoice-root * {
-    visibility: visible !important;
   }
 }
 

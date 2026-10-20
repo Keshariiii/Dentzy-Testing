@@ -117,7 +117,56 @@ export default function PrintableInvoice({
   const txnId = statement?.referenceNumber || payment?.referenceNumber || 'TXN-' + (payment?.caseId || Date.now().toString(36).toUpperCase());
 
   const handlePrint = () => {
-    window.print();
+    const el = document.getElementById('printable-invoice-root');
+    if (!el) return;
+
+    // Collect all pi-* CSS rules from loaded stylesheets
+    let css = '';
+    try {
+      css = Array.from(document.styleSheets)
+        .flatMap(sheet => {
+          try { return Array.from(sheet.cssRules); } catch { return []; }
+        })
+        .map(rule => rule.cssText)
+        .join('\n');
+    } catch { /* cross-origin sheet blocked — fall back to empty */ }
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      // Popup blocked (common on mobile) — do nothing, user sees the invoice on screen
+      alert('Please allow popups for this site to download the PDF, or use your browser\'s Share → Print option.');
+      return;
+    }
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Dentzy Invoice</title>
+    <style>
+      @page { size: A4 portrait; margin: 8mm 10mm; }
+      html, body { margin: 0; padding: 0; background: #fff; font-family: Arial, Helvetica, sans-serif; }
+      ${css}
+      /* Override screen-only chrome for print window */
+      .pi-backdrop { position: static !important; background: transparent !important; padding: 0 !important; display: block !important; }
+      .pi-modal-shell { box-shadow: none !important; border: none !important; max-height: none !important; border-radius: 0 !important; display: block !important; }
+      .pi-scroll-body { overflow: visible !important; background: transparent !important; padding: 0 !important; display: block !important; }
+      .pi-paper { box-shadow: none !important; min-height: auto !important; }
+      .no-print, .pi-screen-bar, .pi-screen-bar-standalone { display: none !important; }
+    </style>
+  </head>
+  <body>
+    ${el.outerHTML}
+    <script>
+      window.onload = function() {
+        window.focus();
+        window.print();
+        setTimeout(function() { window.close(); }, 500);
+      };
+    <\/script>
+  </body>
+</html>`);
+    printWindow.document.close();
   };
 
   const handleShareWhatsApp = () => {
