@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import './ToothChart.css';
 
 /**
@@ -15,7 +15,30 @@ const QUAD_UL = [1, 2, 3, 4, 5, 6, 7, 8];
 const QUAD_LR = [8, 7, 6, 5, 4, 3, 2, 1];
 const QUAD_LL = [1, 2, 3, 4, 5, 6, 7, 8];
 
-export default function ToothChart({ selectedTeeth = [], onChange }) {
+export default function ToothChart({ selectedTeeth = [], onChange, restorationType = 'Crown' }) {
+  const isBridge = restorationType === 'Bridge';
+
+  // For a given quadrant, find runs of adjacent selected teeth
+  const getBridgeGroups = (quad) => {
+    const nums = [1, 2, 3, 4, 5, 6, 7, 8];
+    const selected = nums.filter(n => selectedTeeth.includes(`${quad}${n}`));
+    if (selected.length < 2) return [];
+    const groups = [];
+    let group = [selected[0]];
+    for (let i = 1; i < selected.length; i++) {
+      if (selected[i] === selected[i - 1] + 1) {
+        group.push(selected[i]);
+      } else {
+        if (group.length >= 2) groups.push(group);
+        group = [selected[i]];
+      }
+    }
+    if (group.length >= 2) groups.push(group);
+    return groups;
+  };
+
+  const [mobileArch, setMobileArch] = useState('upper'); // 'upper' | 'lower'
+
   const isSelected = (quad, tooth) => selectedTeeth.includes(`${quad}${tooth}`);
 
   const toggleTooth = (quad, tooth) => {
@@ -67,10 +90,28 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
         </div>
       </div>
 
+      {/* Mobile Arch Switcher -- shown on small screens */}
+      <div className="tc-arch-switcher">
+        <button
+          type="button"
+          className={`tc-arch-tab ${mobileArch === 'upper' ? 'tc-arch-tab--active' : ''}`}
+          onClick={() => setMobileArch('upper')}
+        >
+          Upper Arch (Maxillary)
+        </button>
+        <button
+          type="button"
+          className={`tc-arch-tab ${mobileArch === 'lower' ? 'tc-arch-tab--active' : ''}`}
+          onClick={() => setMobileArch('lower')}
+        >
+          Lower Arch (Mandibular)
+        </button>
+      </div>
+
       {/* Crosshair Chart Grid */}
       <div className="tc-grid">
         {/* Upper Row */}
-        <div className="tc-row tc-row-upper">
+        <div className={`tc-row tc-row-upper ${mobileArch !== 'upper' ? 'tc-row--mobile-hidden' : ''}`}>
           {/* UR: 8 to 1 */}
           <div className="tc-quad tc-quad-ur">
             <span className="tc-quad-badge">UR</span>
@@ -90,6 +131,11 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
                 );
               })}
             </div>
+            {isBridge && getBridgeGroups('UR').map((group, gi) => (
+              <div key={gi} className="tc-bridge-indicator" title={`Bridge: UR${group[0]} to UR${group[group.length - 1]}`}>
+                <span className="tc-bridge-label">Bridge Span: {group.length} units</span>
+              </div>
+            ))}
           </div>
 
           <div className="tc-v-divider" />
@@ -113,6 +159,11 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
                 );
               })}
             </div>
+            {isBridge && getBridgeGroups('UL').map((group, gi) => (
+              <div key={gi} className="tc-bridge-indicator" title={`Bridge: UL${group[0]} to UL${group[group.length - 1]}`}>
+                <span className="tc-bridge-label">Bridge Span: {group.length} units</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -120,7 +171,7 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
         <div className="tc-h-divider" />
 
         {/* Lower Row */}
-        <div className="tc-row tc-row-lower">
+        <div className={`tc-row tc-row-lower ${mobileArch !== 'lower' ? 'tc-row--mobile-hidden' : ''}`}>
           {/* LR: 8 to 1 */}
           <div className="tc-quad tc-quad-lr">
             <span className="tc-quad-badge">LR</span>
@@ -140,6 +191,11 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
                 );
               })}
             </div>
+            {isBridge && getBridgeGroups('LR').map((group, gi) => (
+              <div key={gi} className="tc-bridge-indicator" title={`Bridge: LR${group[0]} to LR${group[group.length - 1]}`}>
+                <span className="tc-bridge-label">Bridge Span: {group.length} units</span>
+              </div>
+            ))}
           </div>
 
           <div className="tc-v-divider" />
@@ -163,6 +219,11 @@ export default function ToothChart({ selectedTeeth = [], onChange }) {
                 );
               })}
             </div>
+            {isBridge && getBridgeGroups('LL').map((group, gi) => (
+              <div key={gi} className="tc-bridge-indicator" title={`Bridge: LL${group[0]} to LL${group[group.length - 1]}`}>
+                <span className="tc-bridge-label">Bridge Span: {group.length} units</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

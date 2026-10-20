@@ -85,7 +85,7 @@ dashboard.patch('/orders/:id', validate(updateOrderSchema), async (c) => {
 
   const sets = [];
   const vals = [];
-  const allowed = ['patientName', 'caseId', 'serviceType', 'dueDate', 'notes', 'priority'];
+  const allowed = ['patientName', 'serviceType', 'dueDate', 'notes', 'priority'];
   for (const key of allowed) {
     if (body[key] !== undefined) { sets.push(`${key} = ?`); vals.push(body[key]); }
   }

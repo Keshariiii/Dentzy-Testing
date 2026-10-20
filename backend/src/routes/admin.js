@@ -12,21 +12,23 @@ const admin = new Hono();
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 const cookieHeader = (name, value, maxAge) =>
-  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=None; Secure`;
-const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure`;
+  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
+const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
 
-// ── Timing-safe compare ─────────────────────────────────────────────────────
-// ponytail: portable constant-time compare — works on all Workers runtimes
-function safeCompare(a, b) {
+// -- Timing-safe compare -------------------------------------------------------------------
+// ponytail: SHA-256 digest comparison -- no length leak, Cloudflare Workers crypto.subtle
+async function safeCompare(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
-  if (a.length !== b.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < a.length; i++) {
-    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return mismatch === 0;
+  const enc2 = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc2.encode(a)),
+    crypto.subtle.digest('SHA-256', enc2.encode(b)),
+  ]);
+  const va = new Uint8Array(ha), vb = new Uint8Array(hb);
+  let diff = 0;
+  for (let i = 0; i < 32; i++) diff |= va[i] ^ vb[i];
+  return diff === 0;
 }
-
 // Stage → status sync helper
 const stageToStatus = (stage) => {
   if (stage === 'completed') return 'Completed';
@@ -46,8 +48,8 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
     return c.json({ message: `Too many login attempts. Please try again in ${Math.ceil(rl.retryAfterSecs / 60)} minute(s).`, retryAfter: rl.retryAfterSecs }, 429);
   }
 
-  const isUserValid = safeCompare(username, c.env.ADMIN_USERNAME || '');
-  const isPassValid = safeCompare(password, c.env.ADMIN_PASSWORD || '');
+  const isUserValid = await safeCompare(username, c.env.ADMIN_USERNAME || '');
+  const isPassValid = await safeCompare(password, c.env.ADMIN_PASSWORD || '');
 
   if (!isUserValid || !isPassValid)
     return c.json({ message: 'Invalid admin credentials.' }, 401);
@@ -768,9 +770,14 @@ admin.delete('/staff/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
     const row = await c.env.DB.prepare(
-      'SELECT id, username FROM staff WHERE id = ?'
+      'SELECT id, username, designation FROM staff WHERE id = ?'
     ).bind(id).first();
     if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+    // Receptionists cannot be deleted directly
+    if (row.designation === 'Receptionist') {
+      return c.json({ message: 'Receptionist accounts cannot be deleted directly via portal. Contact your administrator.', code: 'CANNOT_DELETE_RECEPTIONIST' }, 403);
+    }
 
     // ponytail: clean up assigned orders, attendance records, and staff account
     await c.env.DB.batch([
@@ -1067,6 +1074,25 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
   } catch (err) {
     logger.error('Admin notice update error', { error: err.message });
     return c.json({ message: 'Failed to update notice settings.' }, 500);
+  }
+});
+
+// PUT /api/admin/settings/staff-notice — update staff broadcast notice
+admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const payload = JSON.stringify({
+      enabled: Boolean(body.enabled),
+      message: (body.message || '').trim().slice(0, 500),
+    });
+    await c.env.DB.prepare(`
+      INSERT INTO app_settings (key, value, updated_at, updated_by)
+      VALUES ('staff_notice_bar', ?, datetime('now'), 'admin')
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at, updated_by = 'admin'
+    `).bind(payload).run();
+    return c.json({ success: true, message: 'Staff notice updated.' });
+  } catch (err) {
+    return c.json({ message: 'Failed to update notice.' }, 500);
   }
 });
 

@@ -92,7 +92,7 @@ export default function GlobalError({ error, reset }) {
               Reload Portal
             </button>
             <a
-              href="tel:+919170000195"
+              href="tel:+919503668112"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -110,7 +110,7 @@ export default function GlobalError({ error, reset }) {
                 width: '100%',
               }}
             >
-              Call Lab Support (+91 91700 00195)
+              Call Lab Support (+91 95036 68112)
             </a>
           </div>
         </div>

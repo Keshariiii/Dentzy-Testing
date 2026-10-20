@@ -11,9 +11,9 @@ const staff = new Hono();
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 const cookieHeader = (name, value, maxAge) =>
-  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=None; Secure`;
+  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
 const clearCookieHeader = (name) =>
-  `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure`;
+  `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
 
 // POST /api/staff/login
 staff.post('/login', validate(staffLoginSchema), async (c) => {
@@ -54,6 +54,7 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
       id: row.id,
       username: row.username,
       displayName: row.displayName,
+      designation: row.designation,
       role: 'staff',
     },
   });
@@ -68,9 +69,23 @@ staff.post('/logout', (c) => {
 // GET /api/staff/me
 staff.get('/me', verifyStaff(), async (c) => {
   const row = await c.env.DB.prepare(
-    'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+    'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
   ).bind(c.get('staff').id).first();
   return c.json({ staff: { ...row, role: 'staff' } });
+});
+
+// GET /api/staff/notice — fetch broadcast notice for authenticated staff
+staff.get('/notice', verifyStaff(), async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT value, updated_at FROM app_settings WHERE key = ?'
+    ).bind('staff_notice_bar').first();
+    if (!row) return c.json({ enabled: false, message: '' });
+    const notice = JSON.parse(row.value);
+    return c.json({ enabled: Boolean(notice.enabled), message: notice.message || notice.messages?.[0] || '', updatedAt: row.updated_at });
+  } catch {
+    return c.json({ enabled: false, message: '' });
+  }
 });
 
 // PUT /api/staff/profile
@@ -87,7 +102,7 @@ staff.put('/profile', verifyStaff(), async (c) => {
     if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
 
     const updated = await c.env.DB.prepare(
-      'SELECT id, username, displayName, email, phone, dob, status FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
     ).bind(staffId).first();
     auditLog('STAFF_PROFILE_UPDATED', { staffId });
 

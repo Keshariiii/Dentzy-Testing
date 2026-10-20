@@ -130,3 +130,11 @@ CREATE TABLE IF NOT EXISTS app_settings (
     updated_at TEXT NOT NULL,
     updated_by TEXT DEFAULT 'admin'
 );
+
+
+-- -- v2 columns added via migrate_v2_core.sql -----------------------------------------------
+-- lab_orders: teeth_data, restoration_type, service_category, is_urgent,
+--             credit_override, credit_override_reason
+-- New tables: delivery_tasks, intern_tasks
+-- New indexes: idx_payments_case_owner, idx_orders_created_desc
+-- New app_settings key: staff_notice_bar

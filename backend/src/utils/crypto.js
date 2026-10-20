@@ -36,6 +36,11 @@ export const verifyJWT = async (token, secret) => {
   return payload;
 };
 
+export const verifyJWTRaw = async (token, secret) => {
+  const { payload } = await jwtVerify(token, enc.encode(secret), { algorithms: ['HS256'] });
+  return payload;
+};
+
 // ── CAPTCHA HMAC (Web Crypto) ────────────────────────────────────────────────
 async function hmacSHA256(secret, message) {
   const key = await crypto.subtle.importKey(
@@ -109,8 +114,8 @@ export const verifyOtpToken = async (token, userEmail, userOtp, secret) => {
 };
 
 // ── Password Reset JWT Token (15 min expiry) ────────────────────────────────
-export const createResetToken = (email, secret) =>
-  signJWT({ email: email.toLowerCase().trim(), purpose: 'password-reset' }, secret, '15m');
+export const createResetToken = (email, pwSuffix, secret) =>
+  signJWT({ email: email.toLowerCase().trim(), purpose: 'password-reset', ps: pwSuffix }, secret, '15m');
 
 export const verifyResetToken = async (token, secret) => {
   try {

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
 import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
-import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, generateSecureOtp } from '../utils/crypto.js';
+import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, generateSecureOtp } from '../utils/crypto.js';
 import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
@@ -14,10 +14,10 @@ const auth = new Hono();
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 const isProd = () => true; // Workers are always "production" edge
 const cookieHeader = (name, value, maxAge) => {
-  const parts = [`${name}=${value}`, 'HttpOnly', 'Path=/', `Max-Age=${Math.floor(maxAge / 1000)}`, 'SameSite=None', 'Secure'];
+  const parts = [`${name}=${value}`, 'HttpOnly', 'Path=/', `Max-Age=${Math.floor(maxAge / 1000)}`, 'SameSite=Lax', 'Secure'];
   return parts.join('; ');
 };
-const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure`;
+const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
 
 const safeUserObj = (u) => ({
   id: u.id, name: u.name, email: u.email,
@@ -310,8 +310,9 @@ auth.post('/forgot-password/verify-otp', validate(verifyOtpSchema), async (c) =>
       return c.json({ message: check.message }, 400);
     }
 
-    const resetToken = await createResetToken(email, c.env.JWT_SECRET);
-    auditLog('OTP_VERIFIED', { email });
+    const userForReset = await c.env.DB.prepare('SELECT password FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first();
+    if (!userForReset) return c.json({ message: 'No account found with this email.' }, 404);
+    const resetToken = await createResetToken(email, userForReset.password.slice(-10), c.env.JWT_SECRET);
 
     return c.json({
       success: true,
@@ -329,18 +330,29 @@ auth.post('/forgot-password/reset', validate(resetPasswordWithOtpSchema), async 
   const { resetToken, password } = c.get('body');
 
   try {
-    const check = await verifyResetToken(resetToken, c.env.JWT_SECRET);
-    if (!check.valid) {
-      return c.json({ message: check.message }, 400);
+    let payload;
+    try {
+      payload = await verifyJWTRaw(resetToken, c.env.JWT_SECRET);
+    } catch {
+      return c.json({ message: 'Reset session expired. Please start over.' }, 400);
     }
 
-    const user = await c.env.DB.prepare('SELECT id, status FROM users WHERE email = ?').bind(check.email).first();
+    if (payload.purpose !== 'password-reset' || !payload.email) {
+      return c.json({ message: 'Invalid reset session.' }, 400);
+    }
+
+    const user = await c.env.DB.prepare('SELECT id, status, password FROM users WHERE email = ?').bind(payload.email).first();
     if (!user) return c.json({ message: 'User not found.' }, 404);
+
+    // If ps suffix in token, validate against current hash (prevents replay after reset)
+    if (payload.ps && payload.ps !== user.password.slice(-10)) {
+      return c.json({ message: 'Reset session has already been used. Please start over.' }, 400);
+    }
 
     const hashed = await hashPassword(password);
     await c.env.DB.prepare('UPDATE users SET password = ?, updatedAt = ? WHERE id = ?').bind(hashed, now(), user.id).run();
 
-    auditLog('PASSWORD_RESET_VIA_OTP', { userId: user.id, email: check.email });
+    auditLog('PASSWORD_RESET_VIA_OTP', { userId: user.id, email: payload.email });
 
     return c.json({
       success: true,

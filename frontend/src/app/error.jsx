@@ -35,8 +35,8 @@ export default function Error({ error, reset }) {
           <a href="/dashboard" className="dz-error-btn dz-error-btn--secondary">
             Return to Dashboard
           </a>
-          <a href="tel:+919170000195" className="dz-error-btn dz-error-btn--ghost">
-            Call Lab Support (+91 91700 00195)
+          <a href="tel:+919503668112" className="dz-error-btn dz-error-btn--ghost">
+            Call Lab Support (+91 95036 68112)
           </a>
         </div>
       </div>
