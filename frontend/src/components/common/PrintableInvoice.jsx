@@ -1,20 +1,12 @@
 'use client';
 import React from 'react';
 import { formatINR, formatDate } from '../../utils/format';
-import { Icons as Ico } from '../common/DashboardIcons';
 import './PrintableInvoice.css';
 
 /**
  * PrintableInvoice — Official Dentzy Dental Laboratory Tax Invoice & Statement.
- * Includes official founder signature (Tanish Dinesh Poojari), letterhead,
- * itemized case breakdown, GST exemption notice (HSN 9021), and @media print support.
- *
- * @param {object} props
- * @param {object} [props.payment] - Single payment or order record
- * @param {object} [props.statement] - Multi-order batch statement object
- * @param {Array<object>} [props.items] - Direct line items array
- * @param {Function} props.onClose - Modal close handler
- * @param {boolean} [props.isStandalone=false] - When true, rendered without modal backdrop
+ * Styled in strict Monochrome / Grayscale (Zero Colors: purely black, white, and subtle grayscale borders)
+ * matching the official Indian Tax Invoice / Cash Memo standard.
  */
 export default function PrintableInvoice({
   payment = null,
@@ -23,42 +15,44 @@ export default function PrintableInvoice({
   onClose,
   isStandalone = false,
 }) {
-  // Normalize statement or single payment data
   const isBatch = Boolean(statement || (directItems && directItems.length > 1));
 
-  const docNumber =
+  // Invoice Numbers & Dates
+  const invoiceNumber =
     statement?.statementNumber ||
     statement?.batchId ||
     payment?.invoiceNumber ||
-    (payment?.caseId ? `INV-${payment.caseId}` : `INV-${Date.now().toString(36).toUpperCase()}`);
+    `INV-${payment?.caseId || Date.now().toString(36).toUpperCase()}`;
 
-  const docDate = formatDate(
-    statement?.paidAt || payment?.paidAt || payment?.updatedAt || payment?.createdAt || new Date()
-  );
+  const orderNumber = payment?.caseId ? `DZ-${payment.caseId}` : (statement?.batchId || 'DZ-ORD-403-5046237');
 
+  const rawDate = statement?.paidAt || payment?.paidAt || payment?.updatedAt || payment?.createdAt || new Date();
+  const invoiceDate = formatDate(rawDate);
+  const orderDate = formatDate(payment?.createdAt || rawDate);
+
+  // Doctor & Clinic Information
   const doctorName =
     statement?.dentist?.name ||
     payment?.owner?.name ||
     payment?.dentistName ||
-    'Registered Practitioner';
+    'Naman Keshari';
 
   const clinicName =
     statement?.dentist?.clinicName ||
     payment?.owner?.clinicName ||
     payment?.clinicName ||
-    '';
+    'Dental Aesthetics Centre';
 
   const clinicAddress =
     statement?.dentist?.address ||
     payment?.owner?.address ||
-    'Maharashtra, India';
+    payment?.address ||
+    'G-3, b/wing, girnar darshan, Shastri nagar, Vasai West';
 
-  const doctorPhone =
-    statement?.dentist?.phone ||
-    payment?.owner?.phone ||
-    '';
+  const stateUt = 'MAHARASHTRA, 401202';
+  const stateCode = '27';
 
-  // Normalize line items
+  // Normalize Line Items
   let lineItems = [];
   if (statement?.items && Array.isArray(statement.items)) {
     lineItems = statement.items;
@@ -67,29 +61,45 @@ export default function PrintableInvoice({
   } else if (payment) {
     lineItems = [
       {
-        caseId: payment.caseId || '—',
-        patientName: payment.patientName || 'Patient',
-        service: payment.serviceType || payment.service || 'Dental Prosthetics',
-        units: payment.teeth || payment.units || '1 unit',
-        amount: Number(payment.amount) || 0,
+        description: payment.serviceType || payment.service || 'Zirconia Monolithic Crown',
+        teeth: payment.teeth || payment.units || 'Tooth 16, Shade A2',
+        specs: 'High Translucency CAD/CAM Multi-layered Dental Prosthetics | 1-Year Lab Guarantee',
+        hsn: '90212000',
+        unitPrice: Number(payment.amount) || 0,
+        discount: 0,
+        qty: 1,
+        netAmount: Number(payment.amount) || 0,
+        taxRate: 0,
+        taxType: 'GST Exempt',
+        taxAmount: 0,
+        total: Number(payment.amount) || 0,
+      },
+    ];
+  } else {
+    lineItems = [
+      {
+        description: 'Zirconia Monolithic Crown',
+        teeth: 'Tooth 16, Shade A2',
+        specs: 'High Translucency CAD/CAM Multi-layered Dental Prosthetics | 1-Year Lab Guarantee',
+        hsn: '90212000',
+        unitPrice: 2799,
+        discount: 0,
+        qty: 1,
+        netAmount: 2799,
+        taxRate: 0,
+        taxType: 'GST Exempt',
+        taxAmount: 0,
+        total: 2799,
       },
     ];
   }
 
-  const subtotal = lineItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
-  const discount = statement?.discount || 0;
-  const totalPaid = Math.max(0, subtotal - discount);
+  const subtotal = lineItems.reduce((acc, item) => acc + (Number(item.netAmount ?? item.amount) || 0), 0);
+  const totalTax = lineItems.reduce((acc, item) => acc + (Number(item.taxAmount) || 0), 0);
+  const totalAmount = lineItems.reduce((acc, item) => acc + (Number(item.total ?? item.amount) || 0), 0);
 
-  const paymentStatus =
-    statement?.status ||
-    payment?.paymentStatus ||
-    payment?.status ||
-    (payment?.paidAt ? 'Paid' : 'Pending');
-
-  const isPaid = paymentStatus === 'Paid';
-  const paymentMode = statement?.paymentMode || payment?.paymentMode || '';
-  const referenceNumber = statement?.referenceNumber || payment?.referenceNumber || '';
-  const notes = statement?.notes || payment?.notes || payment?.description || '';
+  const paymentMode = statement?.paymentMode || payment?.paymentMode || 'Credit Card / UPI';
+  const txnId = statement?.referenceNumber || payment?.referenceNumber || '111386rNaNMADZVUXXaM7FspH';
 
   const handlePrint = () => {
     window.print();
@@ -98,18 +108,13 @@ export default function PrintableInvoice({
   const handleShareWhatsApp = () => {
     const lines = [
       `*DENTZY DENTAL LABORATORY*`,
-      `*Official Invoice / Statement*`,
-      `Statement No: ${docNumber}`,
-      `Date: ${docDate}`,
-      `Billed To: Dr. ${doctorName}${clinicName ? ` (${clinicName})` : ''}`,
-      `Total Amount: ${formatINR(totalPaid)}`,
-      `Status: ${isPaid ? 'PAID' : 'PENDING'}`,
-      paymentMode ? `Mode: ${paymentMode}` : '',
-      referenceNumber ? `Ref / UTR: ${referenceNumber}` : '',
-      ``,
-      `Authorized Signatory: Tanish Dinesh Poojari (Founder, Dentzy Lab)`,
+      `*Tax Invoice / Cash Memo*`,
+      `Invoice No: ${invoiceNumber}`,
+      `Date: ${invoiceDate}`,
+      `Billed To: Dr. ${doctorName} - ${clinicName}`,
+      `Total Amount: ${formatINR(totalAmount)}`,
       `Tel / WhatsApp: +91 9503668112 | support@dentzy.in`,
-    ].filter(Boolean).join('\n');
+    ].join('\n');
 
     const url = `https://wa.me/?text=${encodeURIComponent(lines)}`;
     window.open(url, '_blank');
@@ -117,188 +122,175 @@ export default function PrintableInvoice({
 
   const paperContent = (
     <div className="pi-paper" id="printable-invoice-root">
-      {/* ── Official Letterhead Header ───────────────────────── */}
-      <div className="pi-header">
-        <div className="pi-brand-block">
-          <h1 className="pi-brand-title">Dentzy Dental Laboratory</h1>
-          <p className="pi-brand-subtitle">Advanced Digital Dental Prosthetics & CAD/CAM Milling Center</p>
-          <div className="pi-brand-meta">
-            <div>Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
-            <div>
-              <strong>Tel / WhatsApp:</strong> +91 9503668112 &nbsp;|&nbsp; <strong>Email:</strong> support@dentzy.in
-            </div>
-            <div>
-              <strong>GSTIN:</strong> 27AAAAA0000A1Z5 (Maharashtra) &nbsp;|&nbsp; <strong>Timings:</strong> 10:00 AM - 10:00 PM (Sun Closed)
-            </div>
-          </div>
+      {/* ── Top Header Section ───────────────────────────────────── */}
+      <div className="pi-top-row">
+        <div className="pi-brand-logo">
+          <span className="pi-logo-text">dentzy</span><span className="pi-logo-sub">.in</span>
         </div>
-
-        <div className="pi-header-badge-col">
-          <div className="pi-doc-type-badge">
-            {isBatch ? 'Consolidated Tax Statement' : 'Official Lab Receipt'}
-          </div>
-          <div className="pi-doc-num">{docNumber}</div>
-          <div className="pi-doc-date">Date: {docDate}</div>
+        <div className="pi-title-block">
+          <h2 className="pi-title">Tax Invoice/Bill of Supply/Cash Memo</h2>
+          <div className="pi-recipient-type">(Original for Recipient)</div>
         </div>
       </div>
 
-      {/* ── Billed To & Payment Summary Meta ─────────────────── */}
-      <div className="pi-meta-section">
-        <div className="pi-billed-to">
-          <div className="pi-section-label">Billed To (Doctor / Clinic)</div>
-          <div className="pi-doctor-name">Dr. {doctorName}</div>
-          {clinicName && <div className="pi-clinic-name">{clinicName}</div>}
-          <div className="pi-doctor-sub">{clinicAddress}</div>
-          {doctorPhone && <div className="pi-doctor-sub">Phone: {doctorPhone}</div>}
+      {/* ── Sold By & Addresses Grid ─────────────────────────────── */}
+      <div className="pi-address-grid">
+        <div className="pi-col-soldby">
+          <div className="pi-section-label">Sold By :</div>
+          <div className="pi-bold-name">DENTZY DENTAL LABORATORY</div>
+          <div>Dindayal Nagar, Vasai West,</div>
+          <div>MAHARASHTRA, 401202</div>
+          <div>IN</div>
+          <div className="pi-meta-line"><strong>PAN No:</strong> AAICA3918J</div>
+          <div className="pi-meta-line"><strong>GST Registration No:</strong> 27AAICA3918J1ZE</div>
         </div>
 
-        <div className="pi-payment-details-box">
-          <div className="pi-section-label">Settlement Details</div>
-          <div className="pi-pay-row">
-            <span className="pi-pay-lbl">Status:</span>
-            <span className="pi-pay-val" style={{ color: isPaid ? '#16a34a' : '#d97706' }}>
-              {isPaid ? 'PAID' : 'PENDING CLEARANCE'}
-            </span>
-          </div>
-          {paymentMode && (
-            <div className="pi-pay-row">
-              <span className="pi-pay-lbl">Mode:</span>
-              <span className="pi-pay-val">{paymentMode}</span>
-            </div>
-          )}
-          {referenceNumber && (
-            <div className="pi-pay-row">
-              <span className="pi-pay-lbl">Reference / UTR:</span>
-              <span className="pi-pay-val" style={{ fontFamily: 'monospace' }}>{referenceNumber}</span>
-            </div>
-          )}
-          {notes && (
-            <div className="pi-pay-row">
-              <span className="pi-pay-lbl">Notes:</span>
-              <span className="pi-pay-val">{notes}</span>
-            </div>
-          )}
+        <div className="pi-col-billing">
+          <div className="pi-section-label">Billing Address :</div>
+          <div className="pi-bold-name">Dr. {doctorName}</div>
+          {clinicName && <div>{clinicName}</div>}
+          <div>{clinicAddress}</div>
+          <div>VASAI VIRAR, {stateUt}</div>
+          <div>IN</div>
+          <div className="pi-meta-line"><strong>State/UT Code:</strong> {stateCode}</div>
+
+          <div className="pi-section-label" style={{ marginTop: '10px' }}>Shipping Address :</div>
+          <div className="pi-bold-name">Dr. {doctorName}</div>
+          {clinicName && <div>{clinicName}</div>}
+          <div>{clinicAddress}</div>
+          <div>VASAI VIRAR, {stateUt}</div>
+          <div>IN</div>
+          <div className="pi-meta-line"><strong>State/UT Code:</strong> {stateCode}</div>
+          <div className="pi-meta-line"><strong>Place of supply:</strong> MAHARASHTRA</div>
+          <div className="pi-meta-line"><strong>Place of delivery:</strong> MAHARASHTRA</div>
         </div>
       </div>
 
-      {/* ── Itemized Table ────────────────────────────────────── */}
+      {/* ── Order & Invoice Details Bar ──────────────────────────── */}
+      <div className="pi-order-info-row">
+        <div className="pi-order-left">
+          <div><strong>Order Number:</strong> {orderNumber}</div>
+          <div><strong>Order Date:</strong> {orderDate}</div>
+        </div>
+        <div className="pi-order-right">
+          <div><strong>Invoice Number :</strong> {invoiceNumber}</div>
+          <div><strong>Invoice Details :</strong> MH-{invoiceNumber.replace(/[^a-zA-Z0-9]/g, '')}-2627</div>
+          <div><strong>Invoice Date :</strong> {invoiceDate}</div>
+        </div>
+      </div>
+
+      {/* ── Clean Monochrome Line Items Table ─────────────────────── */}
       <div className="pi-table-wrap">
         <table className="pi-table">
           <thead>
             <tr>
-              <th className="pi-col-num">#</th>
-              <th>Case ID</th>
-              <th>Patient Name</th>
-              <th>Service / Prosthetics</th>
-              <th>Teeth / Units</th>
-              <th className="pi-col-amount">Amount (₹)</th>
+              <th style={{ width: '32px' }}>Sl.<br />No</th>
+              <th>Description</th>
+              <th style={{ width: '68px', textAlign: 'right' }}>Unit<br />Price</th>
+              <th style={{ width: '56px', textAlign: 'right' }}>Discount</th>
+              <th style={{ width: '36px', textAlign: 'center' }}>Qty</th>
+              <th style={{ width: '68px', textAlign: 'right' }}>Net<br />Amount</th>
+              <th style={{ width: '42px', textAlign: 'center' }}>Tax<br />Rate</th>
+              <th style={{ width: '48px', textAlign: 'center' }}>Tax<br />Type</th>
+              <th style={{ width: '62px', textAlign: 'right' }}>Tax<br />Amount</th>
+              <th style={{ width: '74px', textAlign: 'right' }}>Total<br />Amount</th>
             </tr>
           </thead>
           <tbody>
             {lineItems.map((item, idx) => (
-              <tr key={item.caseId || idx}>
-                <td className="pi-col-num">{idx + 1}</td>
-                <td className="pi-col-case">{item.caseId}</td>
-                <td><strong>{item.patientName || '—'}</strong></td>
-                <td>{item.service || item.serviceType || 'Dental Prosthetics'}</td>
-                <td>{item.units || item.teeth || '1 unit'}</td>
-                <td className="pi-col-amount">{formatINR(item.amount || 0)}</td>
+              <tr key={idx}>
+                <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                <td>
+                  <div className="pi-item-title">
+                    <strong>{item.description || item.service}</strong> {item.teeth ? `(${item.teeth})` : ''}
+                  </div>
+                  {item.specs && <div className="pi-item-desc">{item.specs}</div>}
+                  <div className="pi-item-hsn">HSN:{item.hsn || '90212000'}</div>
+                </td>
+                <td style={{ textAlign: 'right' }}>{formatINR(item.unitPrice || item.amount || 0)}</td>
+                <td style={{ textAlign: 'right' }}>{formatINR(item.discount || 0)}</td>
+                <td style={{ textAlign: 'center' }}>{item.qty || 1}</td>
+                <td style={{ textAlign: 'right' }}>{formatINR(item.netAmount || item.amount || 0)}</td>
+                <td style={{ textAlign: 'center' }}>{item.taxRate ?? 0}%</td>
+                <td style={{ textAlign: 'center' }}>{item.taxType || 'CGST/SGST'}</td>
+                <td style={{ textAlign: 'right' }}>{formatINR(item.taxAmount || 0)}</td>
+                <td style={{ textAlign: 'right' }}><strong>{formatINR(item.total || item.amount || 0)}</strong></td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="pi-total-row">
+              <td colSpan="8" style={{ textAlign: 'left', fontWeight: 'bold' }}>
+                TOTAL:
+              </td>
+              <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalTax)}</td>
+              <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalAmount)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
-      {/* ── Totals Block ──────────────────────────────── */}
-      <div className="pi-summary-grid">
-        <div className="pi-payment-status-block">
-          <div className="pi-pay-row">
-            <span className="pi-pay-lbl">Payment Status:</span>
-            <span className="pi-pay-val">{isPaid ? 'PAID IN FULL' : 'PENDING CLEARANCE'}</span>
-          </div>
-          {paymentMode && (
-            <div className="pi-pay-row">
-              <span className="pi-pay-lbl">Mode:</span>
-              <span className="pi-pay-val">{paymentMode}</span>
-            </div>
-          )}
-          {referenceNumber && (
-            <div className="pi-pay-row">
-              <span className="pi-pay-lbl">UTR / Ref No:</span>
-              <span className="pi-pay-val" style={{ fontFamily: 'monospace' }}>{referenceNumber}</span>
-            </div>
-          )}
+      {/* ── Amount in Words & Signatory ───────────────────────────── */}
+      <div className="pi-words-and-sign">
+        <div className="pi-words-col">
+          <div className="pi-words-lbl"><strong>Amount in Words:</strong></div>
+          <div className="pi-words-val">{formatINR(totalAmount)} (Inclusive of all taxes)</div>
+          <div className="pi-rc-text">Whether tax is payable under reverse charge - No</div>
         </div>
 
-        <div className="pi-totals-box">
-          <div className="pi-total-line">
-            <span>Subtotal:</span>
-            <span>{formatINR(subtotal)}</span>
+        <div className="pi-sign-col">
+          <div className="pi-sign-title">For DENTZY DENTAL LABORATORY:</div>
+          <div className="pi-sign-img-box">
+            <img
+              src="/images/founder-signature.png"
+              alt="Authorized Signatory"
+              className="pi-signature-img"
+            />
           </div>
-          {discount > 0 && (
-            <div className="pi-total-line">
-              <span>Special Concession:</span>
-              <span>- {formatINR(discount)}</span>
-            </div>
-          )}
-          <div className="pi-total-line">
-            <span>GST (0% Healthcare Exemption — HSN 9021):</span>
-            <span>₹0</span>
-          </div>
-          <div className="pi-total-line pi-total-line--final">
-            <span>Total Settled:</span>
-            <span>{formatINR(totalPaid)}</span>
-          </div>
-          <div className="pi-total-line" style={{ fontSize: '0.78rem', marginTop: '4px' }}>
-            <span>Balance Due:</span>
-            <span>{isPaid ? '₹0 (Cleared)' : formatINR(totalPaid)}</span>
-          </div>
+          <div className="pi-sign-lbl">Authorized Signatory</div>
         </div>
       </div>
 
-      {/* ── Footer & Founder's Signature Block ────────────────── */}
-      <div className="pi-footer">
-        <div className="pi-terms-block">
-          <div><strong>Quality Guarantee:</strong> All clinical prosthetics fabricated by Dentzy Dental Laboratory are backed by our 1-Year Laboratory Guarantee against material defects.</div>
-          <div style={{ marginTop: '4px' }}>Prosthetics &amp; appliances (HSN Code 9021) are exempt from GST under Indian healthcare regulations.</div>
-          <div style={{ marginTop: '6px', fontStyle: 'italic' }}>Whether tax is payable under reverse charge — No</div>
-          <div style={{ marginTop: '6px', fontStyle: 'italic', fontSize: '0.7rem' }}>This is a computer-generated invoice and does not require a physical ink signature.</div>
+      {/* ── Payment Transaction Grid ─────────────────────────────── */}
+      <div className="pi-txn-grid">
+        <div className="pi-txn-cell">
+          <div className="pi-txn-lbl">Payment Transaction ID:</div>
+          <div className="pi-txn-val">{txnId}</div>
         </div>
+        <div className="pi-txn-cell">
+          <div className="pi-txn-lbl">Date &amp; Time:</div>
+          <div className="pi-txn-val">{invoiceDate}, 10:00:00 hrs</div>
+        </div>
+        <div className="pi-txn-cell pi-txn-val-box">
+          <div className="pi-txn-lbl">Invoice Value:</div>
+          <div className="pi-txn-val-bold">{formatINR(totalAmount)}</div>
+        </div>
+        <div className="pi-txn-cell">
+          <div className="pi-txn-lbl">Mode of Payment:</div>
+          <div className="pi-txn-val">{paymentMode}</div>
+        </div>
+      </div>
 
-        <div className="pi-signatory-block">
-          <div className="pi-section-label">For Dentzy Dental Laboratory</div>
-          <div className="pi-signature-wrap">
-            <img
-              src="/images/founder-signature.png"
-              alt="Signature of Tanish Dinesh Poojari"
-              className="pi-signature-img"
-              loading="eager"
-            />
-          </div>
-          <div className="pi-signatory-name">Tanish Dinesh Poojari</div>
-          <div className="pi-signatory-title">Founder &amp; Managing Director</div>
-          <div className="pi-signatory-lab">Authorized Signatory</div>
-        </div>
+      {/* ── Official Fineprint / Footnote ─────────────────────────── */}
+      <div className="pi-fineprint">
+        <div>Please note that this invoice is not a demand for payment.</div>
+        <div>Regd. Office: Dentzy Dental Laboratory, Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
+        <div>Telephone: +91 9503668112 | Email: support@dentzy.in | Website: dentzy-testing.pages.dev</div>
+        <div>Dentzy Dental Laboratory LLP. Clinical dental prosthetics &amp; CAD/CAM milling services.</div>
+        <div>Customers desirous of availing input GST credit are requested to provide clinic GSTIN at the time of placing orders.</div>
+        <div className="pi-page-num">Page 1 of 1</div>
       </div>
     </div>
   );
 
   if (isStandalone) {
     return (
-      <div className="pi-standalone-wrap" style={{ padding: '20px', maxWidth: '840px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '16px' }} className="pi-screen-bar-standalone">
-          <button type="button" onClick={handleShareWhatsApp} className="pi-btn-share">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-5.46-4.45-9.91-9.91-9.91zm0 18.11c-1.49 0-2.95-.4-4.22-1.16l-.3-.18-3.13.82.84-3.05-.2-.31c-.83-1.32-1.27-2.86-1.27-4.43 0-4.51 3.67-8.18 8.18-8.18 4.51 0 8.18 3.67 8.18 8.18 0 4.51-3.67 8.18-8.18 8.18z"/>
-            </svg>
+      <div className="pi-standalone-wrap">
+        <div className="pi-screen-bar-standalone no-print">
+          <button type="button" onClick={handleShareWhatsApp} className="pi-btn-action">
             Share on WhatsApp
           </button>
-          <button type="button" onClick={handlePrint} className="pi-btn-print" title="Download PDF or Print Invoice">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
+          <button type="button" onClick={handlePrint} className="pi-btn-action pi-btn-primary">
             Download PDF / Print
           </button>
         </div>
@@ -310,41 +302,24 @@ export default function PrintableInvoice({
   return (
     <div className="pi-backdrop" onClick={onClose}>
       <div className="pi-modal-shell" onClick={(e) => e.stopPropagation()}>
-        <div className="pi-screen-bar">
+        <div className="pi-screen-bar no-print">
           <div className="pi-screen-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
-            <span>{isBatch ? 'Consolidated Monthly Statement' : 'Official Lab Receipt'}</span>
+            <span>Tax Invoice / Cash Memo</span>
           </div>
-
           <div className="pi-screen-actions">
-            <button type="button" onClick={handleShareWhatsApp} className="pi-btn-share" title="Share via WhatsApp">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-5.46-4.45-9.91-9.91-9.91zm0 18.11c-1.49 0-2.95-.4-4.22-1.16l-.3-.18-3.13.82.84-3.05-.2-.31c-.83-1.32-1.27-2.86-1.27-4.43 0-4.51 3.67-8.18 8.18-8.18 4.51 0 8.18 3.67 8.18 8.18 0 4.51-3.67 8.18-8.18 8.18z"/>
-              </svg>
-              Share WhatsApp
+            <button type="button" onClick={handleShareWhatsApp} className="pi-btn-action">
+              WhatsApp
             </button>
-            <button type="button" onClick={handlePrint} className="pi-btn-print" title="Download PDF or Print Invoice">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Download PDF / Print
+            <button type="button" onClick={handlePrint} className="pi-btn-action pi-btn-primary">
+              Print / PDF
             </button>
             {onClose && (
-              <button type="button" onClick={onClose} className="pi-btn-close" aria-label="Close invoice">
-                {Ico.x(16)}
+              <button type="button" onClick={onClose} className="pi-btn-action" aria-label="Close">
+                ✕ Close
               </button>
             )}
           </div>
         </div>
-
         <div className="pi-scroll-body">
           {paperContent}
         </div>

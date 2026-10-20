@@ -1,13 +1,14 @@
 /**
- * PrintableInvoice.css — Official Dentzy Dental Laboratory Invoice & Statement
- * Supports high-fidelity screen preview and pixel-perfect A4 printing (@media print).
+ * PrintableInvoice.css — Official Dentzy Dental Laboratory Tax Invoice & Statement
+ * Strictly Monochrome / Black & White / Grayscale matching Indian Tax Invoice & Cash Memo standards.
+ * Zero colors: clean black ink, fine borders, pure white paper background.
  */
 
 .pi-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -18,420 +19,377 @@
 
 .pi-modal-shell {
   background: #ffffff;
-  border-radius: 16px;
-  max-width: 820px;
+  border-radius: 8px;
+  max-width: 860px;
   width: 100%;
-  max-height: 94vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  animation: piFadeIn 0.2s ease-out;
+  border: 1px solid #000000;
 }
 
-@keyframes piFadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* ── Top Modal Control Bar (Screen Only) ───────────────────────────── */
+/* ── Screen Control Bar ─────────────────────────────────────────────── */
 .pi-screen-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  background: #1a3028;
+  padding: 10px 18px;
+  background: #111111;
   color: #ffffff;
   flex-shrink: 0;
+  border-bottom: 1px solid #000000;
 }
 
 .pi-screen-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #e2ece6;
+  color: #ffffff;
+  letter-spacing: 0.02em;
 }
 
 .pi-screen-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.pi-btn-print {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: #1e5038;
-  color: #ffffff;
-  border: 1px solid #708c80;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 38px;
-  transition: all 0.15s ease;
-}
-
-.pi-btn-print:hover {
-  background: #256345;
-}
-
-.pi-btn-share {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: #25d366;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 38px;
-  transition: all 0.15s ease;
-}
-
-.pi-btn-share:hover {
-  background: #1eb956;
-}
-
-.pi-btn-close {
+.pi-btn-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: transparent;
-  color: #a3bfb1;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
+  padding: 6px 14px;
+  background: #222222;
+  color: #ffffff;
+  border: 1px solid #444444;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.pi-btn-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.pi-btn-action:hover {
+  background: #333333;
+  border-color: #666666;
 }
 
-/* ── Scrollable Document Container ─────────────────────────────────── */
+.pi-btn-primary {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
+}
+
+.pi-btn-primary:hover {
+  background: #e5e5e5;
+  border-color: #e5e5e5;
+}
+
 .pi-scroll-body {
   overflow-y: auto;
   padding: 24px;
-  background: #f8faf9;
-  flex: 1;
+  background: #555555;
+  display: flex;
+  justify-content: center;
 }
 
-/* ── Printable Paper (A4 Form Factor) ─────────────────────────────── */
+/* ── Printable Paper (Strict Black & White / Grayscale) ───────────────── */
 .pi-paper {
-  background: #ffffff;
-  border: 1px solid #e2ece6;
-  border-radius: 12px;
+  background: #ffffff !important;
+  color: #000000 !important;
+  width: 100%;
+  max-width: 794px; /* A4 aspect width */
+  min-height: 1123px; /* A4 height */
   padding: 36px 40px;
-  color: #1a3028;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  line-height: 1.45;
+  font-family: Arial, Helvetica, sans-serif, -apple-system;
+  font-size: 9.5pt;
+  line-height: 1.35;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* ── Header: Lab Details & Letterhead ──────────────────────────────── */
-.pi-header {
+/* ── Top Header Row ─────────────────────────────────────────────────── */
+.pi-top-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #1e5038;
-  gap: 20px;
+  margin-bottom: 14px;
 }
 
-.pi-brand-block {
-  flex: 1;
+.pi-brand-logo {
+  font-size: 22pt;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: -0.03em;
 }
 
-.pi-brand-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #1e5038;
-  letter-spacing: -0.01em;
-  margin: 0 0 4px;
-  text-transform: uppercase;
+.pi-logo-text {
+  font-weight: 900;
 }
 
-.pi-brand-subtitle {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #4a7060;
-  margin: 0 0 6px;
+.pi-logo-sub {
+  font-weight: 400;
+  font-size: 16pt;
 }
 
-.pi-brand-meta {
-  font-size: 0.76rem;
-  color: #556b60;
-  line-height: 1.4;
-}
-
-.pi-brand-meta strong {
-  color: #1a3028;
-}
-
-.pi-header-badge-col {
+.pi-title-block {
   text-align: right;
-  flex-shrink: 0;
 }
 
-.pi-doc-type-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  background: #eef6f2;
-  border: 1.5px solid #1e5038;
-  color: #1e5038;
-  font-size: 0.85rem;
+.pi-title {
+  font-size: 12pt;
   font-weight: 800;
-  border-radius: 8px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  margin: 0;
+  color: #000000;
+  letter-spacing: -0.01em;
 }
 
-.pi-doc-num {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1a3028;
-  font-family: monospace;
-}
-
-.pi-doc-date {
-  font-size: 0.78rem;
-  color: #708c80;
+.pi-recipient-type {
+  font-size: 9pt;
+  font-weight: 600;
+  color: #222222;
   margin-top: 2px;
 }
 
-/* ── Bill To & Status Section ──────────────────────────────────────── */
-.pi-meta-section {
+/* ── Addresses Grid ─────────────────────────────────────────────────── */
+.pi-address-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
-  padding: 20px 0;
-  border-bottom: 1px solid #eef2ef;
-}
-
-.pi-billed-to {
-  font-size: 0.82rem;
+  font-size: 8.5pt;
+  line-height: 1.38;
+  margin-bottom: 18px;
 }
 
 .pi-section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #708c80;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-
-.pi-doctor-name {
-  font-size: 1rem;
   font-weight: 800;
-  color: #1a3028;
+  font-size: 8.8pt;
+  color: #000000;
   margin-bottom: 2px;
 }
 
-.pi-clinic-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4a7060;
+.pi-bold-name {
+  font-weight: 800;
+  font-size: 9pt;
 }
 
-.pi-doctor-sub {
-  font-size: 0.76rem;
-  color: #708c80;
+.pi-col-soldby, .pi-col-billing {
+  display: flex;
+  flex-direction: column;
+}
+
+.pi-col-billing {
+  text-align: right;
+}
+
+.pi-meta-line {
   margin-top: 2px;
 }
 
-.pi-payment-details-box {
-  background: #f8faf9;
-  border: 1px solid #e2ece6;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 0.8rem;
-}
-
-.pi-pay-row {
+/* ── Order Information Bar ──────────────────────────────────────────── */
+.pi-order-info-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  font-size: 8.5pt;
+  line-height: 1.45;
+  margin-bottom: 12px;
 }
 
-.pi-pay-row:last-child {
-  margin-bottom: 0;
+.pi-order-left {
+  text-align: left;
 }
 
-.pi-pay-lbl {
-  color: #708c80;
-  font-weight: 500;
+.pi-order-right {
+  text-align: right;
 }
 
-.pi-pay-val {
-  font-weight: 700;
-  color: #1a3028;
-}
-
-/* ── Itemized Cases Table ──────────────────────────────────────────── */
+/* ── Items Table (Strict Monochrome Border Style) ───────────────────── */
 .pi-table-wrap {
-  margin: 20px 0;
-  overflow-x: auto;
+  width: 100%;
+  margin-bottom: 16px;
 }
 
 .pi-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 8pt;
+  color: #000000;
 }
 
 .pi-table th {
-  background: #edf5f0;
-  color: #1e5038;
-  font-weight: 700;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 2px solid #b7d6c5;
+  border: 1px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  padding: 6px 4px;
+  font-weight: 800;
+  vertical-align: middle;
+  line-height: 1.2;
 }
 
 .pi-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eef2ef;
-  color: #2d453b;
+  border: 1px solid #000000;
+  padding: 6px 5px;
+  vertical-align: top;
+  color: #000000;
 }
 
-.pi-table tr:last-child td {
-  border-bottom: 2px solid #1e5038;
+.pi-item-title {
+  font-weight: 700;
+  font-size: 8.5pt;
+  margin-bottom: 2px;
 }
 
-.pi-col-num {
-  width: 36px;
-  color: #708c80;
+.pi-item-desc {
+  font-size: 7.5pt;
+  color: #222222;
+  line-height: 1.25;
+}
+
+.pi-item-hsn {
+  font-size: 7.5pt;
   font-weight: 600;
+  margin-top: 3px;
 }
 
-.pi-col-case {
-  font-family: monospace;
-  font-weight: 700;
-  color: #1e5038;
+.pi-total-row td {
+  border: 1px solid #000000;
+  padding: 6px 5px;
+  background: #ffffff;
 }
 
-.pi-col-amount {
-  text-align: right;
-  font-weight: 700;
-  color: #1a3028;
-}
-
-/* ── Totals & Summary Block ────────────────────────────────────────── */
-.pi-summary-grid {
+/* ── Words & Signatory Section ──────────────────────────────────────── */
+.pi-words-and-sign {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
-  margin-top: 16px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e2ece6;
+  margin-bottom: 18px;
 }
 
-/* ── Payment Status Text Block ────────────────────────────────────── */
-.pi-payment-status-block {
-  font-size: 0.82rem;
-  padding-top: 4px;
-}
-.pi-totals-box {
-  width: 280px;
-  font-size: 0.85rem;
+.pi-words-col {
+  flex: 1;
+  padding-right: 20px;
 }
 
-.pi-total-line {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  color: #556b60;
+.pi-words-lbl {
+  font-size: 8.5pt;
+  margin-bottom: 2px;
 }
 
-.pi-total-line--final {
-  margin-top: 6px;
-  padding-top: 8px;
-  border-top: 2px solid #1a3028;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #1e5038;
+.pi-words-val {
+  font-size: 8.5pt;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 
-/* ── Footer: Signature Block & Terms ───────────────────────────────── */
-.pi-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 28px;
-  gap: 24px;
+.pi-rc-text {
+  font-size: 8pt;
+  font-weight: 600;
 }
 
-.pi-terms-block {
-  max-width: 420px;
-  font-size: 0.74rem;
-  color: #708c80;
-  line-height: 1.45;
+.pi-sign-col {
+  width: 250px;
+  border: 1px solid #000000;
+  padding: 8px 12px 10px;
+  text-align: right;
+  box-sizing: border-box;
 }
 
-.pi-terms-block strong {
-  color: #2d453b;
-}
-
-.pi-signatory-block {
-  text-align: center;
-  min-width: 220px;
-}
-
-.pi-signature-wrap {
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.pi-sign-title {
+  font-size: 8pt;
+  font-weight: 700;
+  text-align: left;
   margin-bottom: 6px;
 }
 
+.pi-sign-img-box {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .pi-signature-img {
-  max-height: 64px;
-  max-width: 170px;
+  max-height: 44px;
+  max-width: 140px;
   object-fit: contain;
-  display: block;
+  filter: grayscale(100%) contrast(150%);
 }
 
-.pi-signatory-name {
-  font-size: 0.88rem;
+.pi-sign-lbl {
+  font-size: 8pt;
   font-weight: 700;
-  color: #1a3028;
+  margin-top: 4px;
 }
 
-.pi-signatory-title {
-  font-size: 0.72rem;
+/* ── Payment Details Boxed Table ─────────────────────────────────────── */
+.pi-txn-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1.1fr 1fr 1fr;
+  border: 1px solid #000000;
+  margin-bottom: 18px;
+  font-size: 7.8pt;
+}
+
+.pi-txn-cell {
+  padding: 6px 8px;
+  border-right: 1px solid #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pi-txn-cell:last-child {
+  border-right: none;
+}
+
+.pi-txn-lbl {
+  font-size: 7.2pt;
+  color: #333333;
+  margin-bottom: 2px;
+}
+
+.pi-txn-val {
+  font-size: 7.8pt;
   font-weight: 600;
-  color: #1e5038;
+  word-break: break-all;
 }
 
-.pi-signatory-lab {
-  font-size: 0.68rem;
-  color: #708c80;
+.pi-txn-val-box {
+  background: #ffffff;
 }
 
-/* ====================================================================
-   PRINT STYLES (@media print)
-   ==================================================================== */
+.pi-txn-val-bold {
+  font-size: 9pt;
+  font-weight: 800;
+}
+
+/* ── Footnote / Fineprint ───────────────────────────────────────────── */
+.pi-fineprint {
+  text-align: center;
+  font-size: 6.8pt;
+  color: #333333;
+  line-height: 1.4;
+  margin-top: 24px;
+  position: relative;
+}
+
+.pi-page-num {
+  text-align: right;
+  margin-top: 8px;
+  font-size: 7pt;
+  font-weight: 600;
+}
+
+/* ── Print Media Optimization (@media print) ────────────────────────── */
 @media print {
   body * {
     visibility: hidden !important;
+  }
+
+  .no-print {
+    display: none !important;
   }
 
   .pi-backdrop {
@@ -442,20 +400,16 @@
 
   .pi-modal-shell {
     box-shadow: none !important;
+    border: none !important;
     border-radius: 0 !important;
     max-width: 100% !important;
     max-height: none !important;
     overflow: visible !important;
   }
 
-  .pi-screen-bar {
-    display: none !important;
-  }
-
   .pi-scroll-body {
     padding: 0 !important;
-    background: #ffffff !important;
-    overflow: visible !important;
+    background: transparent !important;
   }
 
   #printable-invoice-root,
@@ -464,74 +418,17 @@
   }
 
   #printable-invoice-root {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #111827 !important;
-    border: none !important;
+    padding: 12mm 15mm !important;
     box-shadow: none !important;
-  }
-
-  * {
+    background: #ffffff !important;
+    color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  @page {
-    size: A4;
-    margin: 12mm 15mm;
-  }
-}
-
-/* ── Mobile View Adjustments ───────────────────────────────────────── */
-@media (max-width: 640px) {
-  .pi-backdrop {
-    padding: 8px;
-  }
-
-  .pi-paper {
-    padding: 20px 16px;
-  }
-
-  .pi-header {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .pi-header-badge-col {
-    text-align: left;
-  }
-
-  .pi-meta-section {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .pi-summary-grid {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .pi-totals-box {
-    width: 100%;
-  }
-
-  .pi-footer {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 20px;
-  }
-
-  .pi-signatory-block {
-    text-align: left;
-    width: 100%;
-  }
-
-  .pi-signature-wrap {
-    justify-content: flex-start;
   }
 }
