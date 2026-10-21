@@ -32,17 +32,18 @@ const STAGES = [
 ];
 
 const NAV_ITEMS = [
-  { key: 'orders', label: 'Orders', icon: (active) => Ico.labOrder(active ? 20 : 19) },
-  { key: 'dentists', label: 'Dentists', icon: (active) => Ico.clinic(active ? 20 : 19) },
-  { key: 'inventory', label: 'Inventory', icon: (active) => Ico.package(active ? 20 : 19) },
-  { key: 'leaderboard', label: 'Leaderboard', icon: (active) => Ico.chart(active ? 20 : 19) },
-  { key: 'settings', label: 'Settings', icon: (active) => Ico.settings(active ? 20 : 19) },
+  { key: 'orders', label: 'Orders', icon: (s) => Ico.labOrder(typeof s === 'number' ? s : (s ? 20 : 18)) },
+  { key: 'dentists', label: 'Dentists', icon: (s) => Ico.clinic(typeof s === 'number' ? s : (s ? 20 : 18)) },
+  { key: 'inventory', label: 'Inventory', icon: (s) => Ico.package(typeof s === 'number' ? s : (s ? 20 : 18)) },
+  { key: 'leaderboard', label: 'Leaderboard', icon: (s) => Ico.chart(typeof s === 'number' ? s : (s ? 20 : 18)) },
+  { key: 'settings', label: 'Settings', icon: (s) => Ico.settings(typeof s === 'number' ? s : (s ? 20 : 18)) },
 ];
 
 const StaffDashboard = () => {
   const router = useRouter();
   const { staff, staffLogout, updateStaffState, authFetch, STAFF_API } = useStaffAuth();
   const [activeView, setActiveView] = useState('orders');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Receptionist gets a strict 4-tab portal only (orders, dentists, leaderboard, settings)
   const isReceptionist = staff?.designation === 'Receptionist';
@@ -506,49 +507,79 @@ const StaffDashboard = () => {
 
   return (
     <div className="sd-shell">
-      {/* -- Top Bar --------------------------------------------------------- */}
+      {/* ── Top Header (mirrors ud-header / ad-top-header) ──────────────── */}
       <header className="sd-header">
-        <button
-          type="button"
-          className="sd-header-left"
-          onClick={() => setActiveView('settings')}
-          aria-label="Go to Staff Settings"
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 'inherit' }}
-        >
-          <img src="/dentzy-logo-v2.png" alt="Dentzy" className="sd-logo" />
-          <span className="sd-header-title">Staff Portal</span>
-        </button>
-        <div className="sd-header-right">
-          <span className="sd-header-name">{staffName}</span>
+        <div className="sd-header-left">
+          <button
+            className="sd-hamburger"
+            onClick={() => setSidebarOpen(v => !v)}
+            aria-label="Toggle sidebar"
+          >
+            <span /><span /><span />
+          </button>
           <button
             type="button"
+            className="sd-header-logo-btn"
+            onClick={() => setActiveView('settings')}
+            aria-label="Go to Staff Settings"
+          >
+            <img src="/dentzy-logo-v2.png" alt="Dentzy" className="sd-logo" />
+            <span className="sd-header-title">Staff Portal</span>
+          </button>
+        </div>
+        <div className="sd-header-right">
+          <button
+            type="button"
+            className="sd-header-user"
             onClick={() => setActiveView('settings')}
             aria-label="Staff Profile Settings"
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
           >
+            <div className="sd-header-user-details">
+              <span className="sd-header-name">{staffName}</span>
+              <span className="sd-header-role">{staff?.designation || 'Staff'}</span>
+            </div>
             <div className="sd-avatar">{initials}</div>
-          </button>
-          <button onClick={handleLogout} className="sd-logout-btn">
-            {Ico.logout(16)} <span className="sd-logout-text">Logout</span>
           </button>
         </div>
       </header>
 
-      {/* ── Navigation Tabs ─────────────────────────────────────────── */}
-      <nav className="sd-nav">
-        {visibleNavItems.map(item => (
-          <button key={item.key}
-            className={`sd-nav-btn ${activeView === item.key ? 'sd-nav-btn--active' : ''}`}
-            onClick={() => setActiveView(item.key)}>
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      {/* ── Body (mirrors ud-body / ad-body) ────────────────────────────── */}
+      <div className="sd-body">
+        {/* Sidebar overlay */}
+        {sidebarOpen && <div className="sd-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Staff Notice Bar */}
-      <div className="sd-notice-wrap" style={{ maxWidth: '1400px', margin: '12px auto 0', padding: '0 24px' }}>
-        <StaffNoticeBar authFetch={authFetch} />
-      </div>
+        {/* ── SIDEBAR (mirrors ud-sidebar / ad-sidebar) ───────────────────── */}
+        <aside className={`sd-sidebar ${sidebarOpen ? 'sd-sidebar--open' : ''}`}>
+          <div className="sd-sidebar-top">
+            <nav className="sd-nav">
+              {visibleNavItems.map(item => (
+                <button
+                  key={item.key}
+                  id={`staff-nav-${item.key}`}
+                  className={`sd-nav-item ${activeView === item.key ? 'active' : ''}`}
+                  onClick={() => { setActiveView(item.key); setSidebarOpen(false); }}
+                >
+                  <span className="sd-nav-icon">{item.icon(16)}</span>
+                  <span className="sd-nav-label">{item.label}</span>
+                  {item.key === 'orders' && orders.length > 0 && (
+                    <span className="sd-nav-badge">{orders.length}</span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <button id="staff-logout-btn" className="sd-logout" onClick={handleLogout}>
+            {Ico.logout(15)} Logout
+          </button>
+        </aside>
+
+        {/* ── Main Content Area ───────────────────────────────────────────── */}
+        <div className="sd-content-area">
+          {/* Staff Notice Bar */}
+          <div className="sd-notice-wrap" style={{ maxWidth: '1400px', margin: '12px auto 0', padding: '0 24px' }}>
+            <StaffNoticeBar authFetch={authFetch} />
+          </div>
 
 
 
@@ -1353,6 +1384,9 @@ const StaffDashboard = () => {
         </main>
       )}
 
+        </div>
+      </div>
+
       {/* ── Modals (global — work from any view) ─────────────────────── */}
       {editOrderModal && (
         <StaffOrderModal
@@ -1472,7 +1506,7 @@ const StaffDashboard = () => {
 
       {/* ── 21st.dev Mobile Bottom Nav ───────────────────────────────── */}
       <TwentyFirstBottomNav
-        items={visibleNavItems}
+        items={visibleNavItems.map(it => it.key === 'orders' ? { ...it, badge: orders.length } : it)}
         activeKey={activeView}
         onChange={setActiveView}
       />
