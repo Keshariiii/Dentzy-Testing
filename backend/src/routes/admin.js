@@ -10,6 +10,16 @@ import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
 
 const admin = new Hono();
 
+// -- Doctor Credit Limit Helper -----------------------------------------------
+const CREDIT_LIMIT = 200000;
+
+async function getDoctorDebt(db, dentistId) {
+  const row = await db.prepare(
+    `SELECT COALESCE(SUM(amount),0) as totalDebt FROM payments WHERE ownerId=? AND status IN ('Pending','Overdue')`
+  ).bind(dentistId).first();
+  return row?.totalDebt || 0;
+}
+
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 const cookieHeader = (name, value, maxAge) =>
   `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
@@ -290,6 +300,15 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     const dentist = await c.env.DB.prepare("SELECT id, name, email, status FROM users WHERE id = ?").bind(dentistId).first();
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
     if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
+
+    // Credit limit check � skip only if admin explicitly passes creditOverride: true
+    const overrideBody = await c.req.raw.clone().json().catch(() => ({}));
+    if (!overrideBody.creditOverride) {
+      const debt = await getDoctorDebt(c.env.DB, dentistId);
+      if (debt >= CREDIT_LIMIT) {
+        return c.json({ message: 'Credit limit exceeded. Settle outstanding dues before placing new orders.', code: 'CREDIT_LIMIT_EXCEEDED', totalUnpaid: debt }, 403);
+      }
+    }
 
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const random = Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase();

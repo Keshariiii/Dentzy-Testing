@@ -430,55 +430,30 @@ const MobileDashboard = () => {
         {/* Pipeline */}
         {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
-        {/* Action Hub */}
-        <div className="m-section">
-          <div className="m-section-hdr">
-            <h3 className="m-section-h">Quick Actions</h3>
-            <p className="m-section-sub">Jump to key areas of your dental lab portal</p>
-          </div>
-          <div className="m-action-hub">
-            {ACTION_ITEMS.map((a) => (
-              <button key={a.key} className={`m-action-card m-action-card--${a.color}`} onClick={a.onClick}>
-                <div className="m-action-icon">{a.icon}</div>
-                <h4 className="m-action-title">{a.title}</h4>
-                <p className="m-action-desc">{a.desc}</p>
-                <span className="m-action-cta">
-                  {a.cta}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                  </svg>
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* Resources */}
-        <div className="m-section">
-          <div className="m-section-hdr">
-            <h3 className="m-section-h">Lab Resources & Downloads</h3>
-            <p className="m-section-sub">Forms, clinical guides, and specification documents</p>
+        {/* Vasai West Lab Hotline */}
+        <div className="ud-partnership-card" style={{ margin: '0 0 var(--dz-space-4)' }}>
+          <span className="ud-partnership-badge">Vasai West Lab Hotline</span>
+          <h3 className="ud-partnership-title">Dentzy Dental Lab</h3>
+          <p className="ud-partnership-desc">
+            Direct line to your lab team for order queries, rush requests, and case consultations.
+            Available Mon-Sat, 9 AM - 7 PM IST.
+          </p>
+          <div className="ud-partnership-actions">
+            <a className="ud-partnership-btn ud-partnership-btn--primary" href="tel:+919503668112">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+              Call +91 9503668112
+            </a>
+            <a className="ud-partnership-btn ud-partnership-btn--whatsapp" href="https://wa.me/919503668112" target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+            <a className="ud-partnership-btn ud-partnership-btn--ghost" href="mailto:support@dentzy.in">
+              Email Support
+            </a>
           </div>
-          <div className="m-resources-list">
-            {RESOURCES.map((r) => (
-              <div key={r.key} className="m-resource-card">
-                <div className="m-resource-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                </div>
-                <div className="m-resource-info">
-                  <span className="m-resource-title">{r.title}</span>
-                  <span className="m-resource-desc">{r.desc}</span>
-                </div>
-                <span className="m-resource-badge">PDF</span>
-                <button className="m-resource-dl-btn" aria-label={`Download ${r.title}`}>
-                  {Icons.download(15)}
-                </button>
-              </div>
-            ))}
-          </div>
+          <p className="ud-partnership-address">Dindayal Nagar, Vasai West - 401202</p>
         </div>
 
         {/* Support Bar */}

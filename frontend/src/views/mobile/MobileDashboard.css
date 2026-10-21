@@ -1470,3 +1470,15 @@
 .m-error-banner { margin: 0 16px 16px; padding: 12px; background: var(--dz-color-error-bg); color: var(--dz-color-error-text); border-radius: 12px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
 .m-error-banner span { flex: 1; }
 .m-error-banner button { background: none; border: none; color: var(--dz-color-error-text); font-weight: bold; cursor: pointer; padding: 4px 8px; }
+/* Partnership Hotline Card (shared with desktop) */
+.ud-partnership-card { background: var(--dz-color-bg-surface, #fff); border-radius: var(--dz-radius-lg); box-shadow: var(--dz-shadow-sm); padding: var(--dz-space-6); border: 1px solid var(--dz-color-primary-muted); }
+.ud-partnership-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dz-color-primary); background: var(--dz-color-primary-muted); border-radius: var(--dz-radius-full); padding: 3px 10px; margin-bottom: var(--dz-space-2); }
+.ud-partnership-title { font-size: 1.05rem; font-weight: 700; color: var(--dz-color-primary-accent); margin: 0 0 var(--dz-space-2); }
+.ud-partnership-desc { font-size: 0.85rem; color: #6b7280; line-height: 1.5; margin: 0 0 var(--dz-space-4); }
+.ud-partnership-actions { display: flex; flex-wrap: wrap; gap: var(--dz-space-3); margin-bottom: var(--dz-space-3); }
+.ud-partnership-btn { display: inline-flex; align-items: center; gap: var(--dz-space-2); padding: 10px var(--dz-space-6); border-radius: var(--dz-radius-md); font-size: 0.85rem; font-weight: 600; text-decoration: none; min-height: 44px; width: 100%; justify-content: center; transition: opacity 0.15s; }
+.ud-partnership-btn:hover { opacity: 0.85; }
+.ud-partnership-btn--primary { background: var(--dz-color-primary-accent); color: #fff; }
+.ud-partnership-btn--whatsapp { background: #25D366; color: #fff; }
+.ud-partnership-btn--ghost { background: var(--dz-color-primary-muted); color: var(--dz-color-primary-accent); }
+.ud-partnership-address { font-size: 0.75rem; color: #9ca3af; margin: 0; }

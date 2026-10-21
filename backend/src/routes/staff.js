@@ -219,6 +219,14 @@ staff.post('/orders', verifyStaff(), async (c) => {
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
     if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
 
+    // Credit limit check
+    const debtRow = await c.env.DB.prepare(
+      `SELECT COALESCE(SUM(amount),0) as totalDebt FROM payments WHERE ownerId=? AND status IN ('Pending','Overdue')`
+    ).bind(dentistId).first();
+    if ((debtRow?.totalDebt || 0) >= 200000) {
+      return c.json({ message: 'Credit limit exceeded. Settle outstanding dues before placing new orders.', code: 'CREDIT_LIMIT_EXCEEDED', totalUnpaid: debtRow.totalDebt }, 403);
+    }
+
     const validServices = ['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other'];
     const safeService = validServices.includes(serviceType) ? serviceType : 'Other';
     const validPriorities = ['Low', 'Normal', 'High', 'Urgent'];
