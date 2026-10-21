@@ -15,7 +15,7 @@ const CREDIT_LIMIT = 200000;
 
 async function getDoctorDebt(db, dentistId) {
   const row = await db.prepare(
-    SELECT COALESCE(SUM(amount),0) as totalDebt FROM payments WHERE ownerId=? AND status IN ('Pending','Overdue')
+    `SELECT COALESCE(SUM(amount),0) as totalDebt FROM payments WHERE ownerId=? AND status IN ('Pending','Overdue')`
   ).bind(dentistId).first();
   return row?.totalDebt || 0;
 }
@@ -301,7 +301,7 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
     if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
 
-    // Credit limit check — skip only if admin explicitly passes creditOverride: true
+    // Credit limit check ï¿½ skip only if admin explicitly passes creditOverride: true
     const overrideBody = await c.req.raw.clone().json().catch(() => ({}));
     if (!overrideBody.creditOverride) {
       const debt = await getDoctorDebt(c.env.DB, dentistId);
