@@ -56,32 +56,27 @@ const ProductionPipeline = ({ stats, orders, onViewOrders }) => {
   const router = useRouter();
 
   const inProgress = stats?.orders?.inProgress ?? 0;
-  const unfinished = orders?.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled') || [];
-  const displayOrder = unfinished[0] || orders?.[0];
-  const hasMultiple = unfinished.length > 1;
+  const DONE = ['Completed', 'Cancelled'];
+  const unfinished = (orders || [])
+    .filter(o => !DONE.includes(o.status) && o.stage !== 'completed')
+    .sort((a, b) => {
+      // Urgent/Rush first
+      const pa = a.priority === 'Urgent' || a.priority === 'Rush' ? 0 : 1;
+      const pb = b.priority === 'Urgent' || b.priority === 'Rush' ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      // Nearest dueDate first
+      const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const db = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      if (da !== db) return da - db;
+      // Newest createdAt first
+      return (new Date(b.createdAt || 0)).getTime() - (new Date(a.createdAt || 0)).getTime();
+    });
 
-  // No orders at all
-  if (!orders?.length) {
-    return (
-      <div className="pp-card pp-card--single">
-        <div className="pp-header">
-          <div>
-            <h3 className="pp-title">Production Pipeline</h3>
-            <p className="pp-sub">Live status of your active lab cases</p>
-          </div>
-        </div>
-        <div className="pp-empty">
-          <div className="pp-empty-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 2h6l3 7H6L9 2zM5 9h14v13a2 2 0 01-2 2H7a2 2 0 01-2-2V9z" />
-            </svg>
-          </div>
-          <p>No active orders in the pipeline.</p>
-        </div>
-      </div>
-    );
-  }
+  // Auto-hide when nothing active
+  if (unfinished.length === 0) return null;
+
+  const displayOrder = unfinished[0];
+  const hasMultiple = unfinished.length > 1;
 
   return (
     <div className="pp-card pp-card--single">

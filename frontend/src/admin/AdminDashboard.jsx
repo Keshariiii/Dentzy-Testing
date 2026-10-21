@@ -11,7 +11,7 @@ import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import './AdminDashboard.css';
-import { formatINR } from '../utils/format';
+import { formatINR, formatOrderDateTime } from '../utils/format';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
@@ -1226,7 +1226,7 @@ const AdminDashboard = () => {
                                 </td>
                                 <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(o.paymentAmount || o.amount || 0)}</td>
                                 <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
-                                  {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                  {formatOrderDateTime(o.createdAt)}
                                 </td>
                               </tr>
                             ))}
@@ -1332,10 +1332,7 @@ const AdminDashboard = () => {
                               <div className="ad-user-email">{user?.email || '—'}</div>
                               <div className="ad-user-date">
                                 {Ico.clock(12)}
-                                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', {
-                                  day: '2-digit', month: 'short', year: 'numeric',
-                                  hour: '2-digit', minute: '2-digit',
-                                }) : '—'}
+                                {formatOrderDateTime(user?.createdAt)}
                               </div>
                               {user.plainPassword && (
                                 <div className="ad-user-pw">

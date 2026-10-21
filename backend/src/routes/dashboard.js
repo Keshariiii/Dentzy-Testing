@@ -30,13 +30,14 @@ dashboard.get('/stats', async (c) => {
         COUNT(*) as total,
         COALESCE(SUM(CASE WHEN status = 'Paid' THEN 1 ELSE 0 END), 0) as paid,
         COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
-        COALESCE(SUM(CASE WHEN status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue
+        COALESCE(SUM(CASE WHEN status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue,
+        COALESCE(SUM(CASE WHEN status IN ('Pending','Overdue') THEN amount ELSE 0 END), 0) as totalUnpaid
       FROM payments WHERE ownerId = ?
     `).bind(userId).first();
 
     return c.json({
       orders: { total: orderStats.total, pending: orderStats.pending, inProgress: orderStats.inProgress, completed: orderStats.completed },
-      payments: { total: paymentStats.total, paid: paymentStats.paid, pending: paymentStats.pending, overdue: paymentStats.overdue },
+      payments: { total: paymentStats.total, paid: paymentStats.paid, pending: paymentStats.pending, overdue: paymentStats.overdue, totalUnpaid: paymentStats.totalUnpaid },
     });
   } catch (error) {
     logger.error('Dashboard stats error', { error: error.message, userId });
