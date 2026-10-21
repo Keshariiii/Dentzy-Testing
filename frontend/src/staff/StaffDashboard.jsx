@@ -506,7 +506,6 @@ const StaffDashboard = () => {
 
   return (
     <div className="sd-shell">
-      <StaffNoticeBar authFetch={authFetch} />
       {/* -- Top Bar --------------------------------------------------------- */}
       <header className="sd-header">
         <button
@@ -545,6 +544,11 @@ const StaffDashboard = () => {
           </button>
         ))}
       </nav>
+
+      {/* Staff Notice Bar */}
+      <div className="sd-notice-wrap" style={{ maxWidth: '1400px', margin: '12px auto 0', padding: '0 24px' }}>
+        <StaffNoticeBar authFetch={authFetch} />
+      </div>
 
 
 

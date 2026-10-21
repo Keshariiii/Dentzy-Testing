@@ -1673,6 +1673,7 @@ const MobileAdminDashboard = () => {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1a3028', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {settingsSubView === 'notice' && 'Dentist Portal Notice Bar'}
+                  {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
                   {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
                   {settingsSubView === 'users' && 'User Accounts Overview'}
                   {settingsSubView === 'account' && 'Administrator Account'}

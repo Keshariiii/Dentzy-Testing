@@ -1023,57 +1023,73 @@ const DEFAULT_NOTICE_MESSAGES = [
   'Lab support: Mon-Sat, 9 AM to 6 PM IST',
 ];
 
-// GET /api/admin/settings/notice — fetch current notice bar config
+const DEFAULT_STAFF_NOTICE_MESSAGES = [
+  'Welcome to Dentzy Lab Operations Portal',
+  'Ensure all case scans & QC checklists are logged before dispatch',
+  'Priority cases marked Urgent must be completed within 24 hours',
+  'Standard daily shift handover meeting at 6:00 PM',
+  'Lab Support & Rush Desk hotline: +91 9503668112',
+];
+
+function parseNotice(row, defaults) {
+  if (row?.value) {
+    try {
+      const parsed = JSON.parse(row.value);
+      const messages = Array.isArray(parsed.messages) && parsed.messages.length > 0
+        ? parsed.messages
+        : (parsed.message ? [parsed.message] : defaults);
+      return {
+        enabled: parsed.enabled !== false,
+        messages,
+        updated_at: row.updated_at,
+        updated_by: row.updated_by,
+      };
+    } catch {}
+  }
+  return { enabled: true, messages: defaults, updated_at: null, updated_by: null };
+}
+
+function cleanNoticeMessages(messages, legacyMessage) {
+  const list = Array.isArray(messages) ? messages : (legacyMessage ? [legacyMessage] : []);
+  if (list.length === 0 || list.length > 25) {
+    throw new Error('Messages must be an array of 1 to 25 items.');
+  }
+  const cleaned = [];
+  for (let i = 0; i < list.length; i++) {
+    if (typeof list[i] !== 'string') {
+      throw new Error(`Message at index ${i} must be a string.`);
+    }
+    const trimmed = list[i].trim();
+    if (trimmed.length === 0 || trimmed.length > 250) {
+      throw new Error(`Message at index ${i} must be 1-250 characters.`);
+    }
+    cleaned.push(trimmed);
+  }
+  return cleaned;
+}
+
+// GET /api/admin/settings/notice — fetch dentist notice bar config
 admin.get('/settings/notice', verifyAdmin(), async (c) => {
   try {
     const row = await c.env.DB.prepare(
       "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'dentist_notice_bar'"
     ).first();
-    if (row?.value) {
-      const parsed = JSON.parse(row.value);
-      return c.json({
-        enabled: !!parsed.enabled,
-        messages: parsed.messages || [],
-        updated_at: row.updated_at,
-        updated_by: row.updated_by,
-      });
-    }
-    return c.json({ enabled: true, messages: DEFAULT_NOTICE_MESSAGES, updated_at: null, updated_by: null });
+    return c.json(parseNotice(row, DEFAULT_NOTICE_MESSAGES));
   } catch (err) {
     logger.error('Admin notice get error', { error: err.message });
     return c.json({ message: 'Failed to load notice settings.' }, 500);
   }
 });
 
-// PUT /api/admin/settings/notice — update notice bar config
+// PUT /api/admin/settings/notice — update dentist notice bar config
 admin.put('/settings/notice', verifyAdmin(), async (c) => {
   try {
     const body = await c.req.json();
-    const { enabled, messages } = body;
-
-    // Validate enabled
-    if (typeof enabled !== 'boolean') {
+    if (typeof body.enabled !== 'boolean') {
       return c.json({ message: '"enabled" must be a boolean.' }, 400);
     }
-
-    // Validate messages
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 25) {
-      return c.json({ message: 'Messages must be an array of 1 to 25 items.' }, 400);
-    }
-
-    const cleaned = [];
-    for (let i = 0; i < messages.length; i++) {
-      if (typeof messages[i] !== 'string') {
-        return c.json({ message: `Message at index ${i} must be a string.` }, 400);
-      }
-      const trimmed = messages[i].trim();
-      if (trimmed.length === 0 || trimmed.length > 250) {
-        return c.json({ message: `Message at index ${i} must be 1-250 characters.` }, 400);
-      }
-      cleaned.push(trimmed);
-    }
-
-    const value = JSON.stringify({ enabled, messages: cleaned });
+    const cleaned = cleanNoticeMessages(body.messages, body.message);
+    const value = JSON.stringify({ enabled: body.enabled, messages: cleaned });
     const ts = now();
     const updatedBy = c.get('admin').username;
 
@@ -1086,11 +1102,24 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
          updated_by = excluded.updated_by`
     ).bind(value, ts, updatedBy).run();
 
-    auditLog('ADMIN_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled });
-    return c.json({ message: 'Notice bar updated.', enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
+    auditLog('ADMIN_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled: body.enabled });
+    return c.json({ message: 'Notice bar updated.', enabled: body.enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
   } catch (err) {
     logger.error('Admin notice update error', { error: err.message });
-    return c.json({ message: 'Failed to update notice settings.' }, 500);
+    return c.json({ message: err.message || 'Failed to update notice settings.' }, 400);
+  }
+});
+
+// GET /api/admin/settings/staff-notice — fetch staff broadcast notice
+admin.get('/settings/staff-notice', verifyAdmin(), async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'staff_notice_bar'"
+    ).first();
+    return c.json(parseNotice(row, DEFAULT_STAFF_NOTICE_MESSAGES));
+  } catch (err) {
+    logger.error('Admin staff notice get error', { error: err.message });
+    return c.json({ message: 'Failed to load staff notice settings.' }, 500);
   }
 });
 
@@ -1098,19 +1127,30 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
 admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
   try {
     const body = await c.req.json();
-    const payload = JSON.stringify({
-      enabled: Boolean(body.enabled),
-      message: (body.message || '').trim().slice(0, 500),
-    });
-    await c.env.DB.prepare(`
-      INSERT INTO app_settings (key, value, updated_at, updated_by)
-      VALUES ('staff_notice_bar', ?, datetime('now'), 'admin')
-      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at, updated_by = 'admin'
-    `).bind(payload).run();
-    return c.json({ success: true, message: 'Staff notice updated.' });
+    if (typeof body.enabled !== 'boolean') {
+      return c.json({ message: '"enabled" must be a boolean.' }, 400);
+    }
+    const cleaned = cleanNoticeMessages(body.messages, body.message);
+    const value = JSON.stringify({ enabled: body.enabled, messages: cleaned });
+    const ts = now();
+    const updatedBy = c.get('admin').username;
+
+    await c.env.DB.prepare(
+      `INSERT INTO app_settings (key, value, updated_at, updated_by)
+       VALUES ('staff_notice_bar', ?, ?, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = excluded.updated_at,
+         updated_by = excluded.updated_by`
+    ).bind(value, ts, updatedBy).run();
+
+    auditLog('ADMIN_STAFF_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled: body.enabled });
+    return c.json({ message: 'Staff notice bar updated.', enabled: body.enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
   } catch (err) {
-    return c.json({ message: 'Failed to update notice.' }, 500);
+    logger.error('Admin staff notice update error', { error: err.message });
+    return c.json({ message: err.message || 'Failed to update staff notice settings.' }, 400);
   }
 });
 
 export default admin;
+

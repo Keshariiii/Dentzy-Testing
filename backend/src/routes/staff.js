@@ -75,16 +75,35 @@ staff.get('/me', verifyStaff(), async (c) => {
 });
 
 // GET /api/staff/notice — fetch broadcast notice for authenticated staff
+export const DEFAULT_STAFF_NOTICE_MESSAGES = [
+  'Welcome to Dentzy Lab Operations Portal',
+  'Ensure all case scans & QC checklists are logged before dispatch',
+  'Priority cases marked Urgent must be completed within 24 hours',
+  'Standard daily shift handover meeting at 6:00 PM',
+  'Lab Support & Rush Desk hotline: +91 9503668112',
+];
+
+// GET /api/staff/notice — fetch broadcast notice for authenticated staff
 staff.get('/notice', verifyStaff(), async (c) => {
   try {
     const row = await c.env.DB.prepare(
       'SELECT value, updated_at FROM app_settings WHERE key = ?'
     ).bind('staff_notice_bar').first();
-    if (!row) return c.json({ enabled: false, message: '' });
+    if (!row?.value) {
+      return c.json({ enabled: true, messages: DEFAULT_STAFF_NOTICE_MESSAGES, message: DEFAULT_STAFF_NOTICE_MESSAGES[0] });
+    }
     const notice = JSON.parse(row.value);
-    return c.json({ enabled: Boolean(notice.enabled), message: notice.message || notice.messages?.[0] || '', updatedAt: row.updated_at });
+    const messages = Array.isArray(notice.messages) && notice.messages.length > 0
+      ? notice.messages
+      : (notice.message ? [notice.message] : DEFAULT_STAFF_NOTICE_MESSAGES);
+    return c.json({
+      enabled: notice.enabled !== false,
+      messages,
+      message: messages[0] || '',
+      updatedAt: row.updated_at,
+    });
   } catch {
-    return c.json({ enabled: false, message: '' });
+    return c.json({ enabled: true, messages: DEFAULT_STAFF_NOTICE_MESSAGES, message: DEFAULT_STAFF_NOTICE_MESSAGES[0] });
   }
 });
 
@@ -365,15 +384,18 @@ staff.get('/metrics', verifyStaff(), async (c) => {
     const monthStr = monthStart.toISOString();
 
     // Cases processed this month by this staff
-    const myCount = await c.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM lab_orders WHERE assigned_staff_id = ? AND updatedAt >= ?'
-    ).bind(staffId, monthStr).first();
-
-    // Attendance this month
+    // ponytail: batch metrics queries into single D1 round-trip
     const datePrefix = monthStart.toISOString().slice(0, 7); // YYYY-MM
-    const attendance = await c.env.DB.prepare(
-      "SELECT COUNT(*) as present FROM staff_attendance WHERE staff_id = ? AND date LIKE ? AND status = 'Present'"
-    ).bind(staffId, `${datePrefix}%`).first();
+    const [countRes, attendanceRes] = await c.env.DB.batch([
+      c.env.DB.prepare(
+        'SELECT COUNT(*) as count FROM lab_orders WHERE assigned_staff_id = ? AND updatedAt >= ?'
+      ).bind(staffId, monthStr),
+      c.env.DB.prepare(
+        "SELECT COUNT(*) as present FROM staff_attendance WHERE staff_id = ? AND date LIKE ? AND status = 'Present'"
+      ).bind(staffId, `${datePrefix}%`),
+    ]);
+    const myCount = countRes.results[0];
+    const attendance = attendanceRes.results[0];
 
     const halfDays = await c.env.DB.prepare(
       "SELECT COUNT(*) as half FROM staff_attendance WHERE staff_id = ? AND date LIKE ? AND status = 'Half-day'"

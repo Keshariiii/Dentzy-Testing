@@ -431,30 +431,36 @@ const MobileDashboard = () => {
         {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
 
-        {/* Vasai West Lab Hotline */}
-        <div className="ud-partnership-card" style={{ margin: '0 0 var(--dz-space-4)' }}>
-          <span className="ud-partnership-badge">Vasai West Lab Hotline</span>
-          <h3 className="ud-partnership-title">Dentzy Dental Lab</h3>
-          <p className="ud-partnership-desc">
-            Direct line to your lab team for order queries, rush requests, and case consultations.
-            Available Mon-Sat, 9 AM - 7 PM IST.
-          </p>
-          <div className="ud-partnership-actions">
-            <a className="ud-partnership-btn ud-partnership-btn--primary" href="tel:+919503668112">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-              </svg>
-              Call +91 9503668112
-            </a>
-            <a className="ud-partnership-btn ud-partnership-btn--whatsapp" href="https://wa.me/919503668112" target="_blank" rel="noopener noreferrer">
-              WhatsApp
-            </a>
-            <a className="ud-partnership-btn ud-partnership-btn--ghost" href="mailto:support@dentzy.in">
-              Email Support
-            </a>
-          </div>
-          <p className="ud-partnership-address">Dindayal Nagar, Vasai West - 401202</p>
+        {/* Action Pills */}
+        <div className="m-pill-bar">
+          <button onClick={() => setActiveTab('orders')} className="m-pill-primary">+ New Lab Order</button>
+          <button onClick={() => setActiveTab('payments')} className="m-pill-outline">Pay Balance</button>
+          <a href="tel:+919503668112" className="m-pill-outline">Contact Lab</a>
         </div>
+
+        {/* Recent Active Cases */}
+        {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (
+          <div className="m-recent-cases">
+            <div className="m-recent-cases-header">
+              <span className="m-section-h" style={{ marginBottom: 0 }}>Recent Cases</span>
+              <button onClick={() => setActiveTab('orders')} className="m-view-all-btn">View All →</button>
+            </div>
+            <div className="m-recent-cases-list">
+              {orders.filter(o => o.status !== 'Completed').slice(0, 4).map(order => (
+                <div key={order._id || order.id} className="m-recent-row" onClick={() => setSelectedOrder(order)}>
+                  <div className="m-recent-row-top">
+                    <span className="m-case-mono">{order.caseId}</span>
+                    <StatusBadge status={order.status} size="sm" />
+                  </div>
+                  <div className="m-recent-row-bottom">
+                    <span className="m-recent-name">{order.patientName}</span>
+                    <span className="m-recent-tag">{order.serviceType}{order.toothNumber ? ` #${order.toothNumber}` : ''}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Support Bar */}
         <div className="m-support-bar" id="m-support-bar">

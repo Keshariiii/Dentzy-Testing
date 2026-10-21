@@ -16,24 +16,28 @@ const ORDER_SORT_FIELDS = ['createdAt', 'dueDate', 'patientName', 'caseId', 'sta
 dashboard.get('/stats', async (c) => {
   const userId = c.get('user').id;
   try {
-    const orderStats = await c.env.DB.prepare(`
-      SELECT
-        COUNT(*) as total,
-        COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
-        COALESCE(SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END), 0) as inProgress,
-        COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) as completed
-      FROM lab_orders WHERE ownerId = ?
-    `).bind(userId).first();
-
-    const paymentStats = await c.env.DB.prepare(`
-      SELECT
-        COUNT(*) as total,
-        COALESCE(SUM(CASE WHEN status = 'Paid' THEN 1 ELSE 0 END), 0) as paid,
-        COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
-        COALESCE(SUM(CASE WHEN status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue,
-        COALESCE(SUM(CASE WHEN status IN ('Pending','Overdue') THEN amount ELSE 0 END), 0) as totalUnpaid
-      FROM payments WHERE ownerId = ?
-    `).bind(userId).first();
+    // ponytail: batch both stats queries into a single D1 round-trip
+    const [orderRes, paymentRes] = await c.env.DB.batch([
+      c.env.DB.prepare(`
+        SELECT
+          COUNT(*) as total,
+          COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
+          COALESCE(SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END), 0) as inProgress,
+          COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) as completed
+        FROM lab_orders WHERE ownerId = ?
+      `).bind(userId),
+      c.env.DB.prepare(`
+        SELECT
+          COUNT(*) as total,
+          COALESCE(SUM(CASE WHEN status = 'Paid' THEN 1 ELSE 0 END), 0) as paid,
+          COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
+          COALESCE(SUM(CASE WHEN status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue,
+          COALESCE(SUM(CASE WHEN status IN ('Pending','Overdue') THEN amount ELSE 0 END), 0) as totalUnpaid
+        FROM payments WHERE ownerId = ?
+      `).bind(userId),
+    ]);
+    const orderStats = orderRes.results[0];
+    const paymentStats = paymentRes.results[0];
 
     return c.json({
       orders: { total: orderStats.total, pending: orderStats.pending, inProgress: orderStats.inProgress, completed: orderStats.completed },

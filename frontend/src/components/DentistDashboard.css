@@ -1751,3 +1751,153 @@
 .ud-partnership-btn--ghost { background: var(--dz-color-primary-muted); color: var(--dz-color-primary-accent); }
 .ud-partnership-address { font-size: 0.78rem; color: #9ca3af; margin: 0; }
 @media (max-width: 768px) { .ud-partnership-btn { width: 100%; justify-content: center; } }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PONYTAIL OVERHAUL: Unboxed Metric Strip + Pill Bar + Recent Cases
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Unboxed Inline Metric Strip ──────────────────────────── */
+.ud-metric-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 20px;
+}
+.ud-metric-col {
+  flex: 1;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-right: 1px solid rgba(30, 77, 59, 0.12);
+}
+.ud-metric-col:last-child { border-right: none; }
+.ud-metric-col:hover { background: rgba(30, 77, 59, 0.03); }
+.ud-metric-num {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a3028;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  display: block;
+}
+.ud-metric-label {
+  font-size: 0.72rem;
+  color: #8aa59d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+}
+.ud-metric-pills { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ── Tactile Pill Buttons ─────────────────────────────────── */
+.ud-pill-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 20px; }
+.ud-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px;
+  background: #1E4D3B;
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  text-decoration: none;
+}
+.ud-pill-primary:hover { background: #15372a; transform: translateY(-1px); }
+.ud-pill-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px;
+  background: #fff;
+  color: #1E4D3B;
+  border: 1px solid rgba(30, 77, 59, 0.18);
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  text-decoration: none;
+}
+.ud-pill-outline:hover { border-color: rgba(30, 77, 59, 0.35); background: #f7faf8; transform: translateY(-1px); }
+
+/* ── Recent Active Cases Hairline List ────────────────────── */
+.ud-recent-cases { margin-bottom: 20px; }
+.ud-recent-cases-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ud-view-all-link {
+  background: none;
+  border: none;
+  color: #1E4D3B;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+.ud-view-all-link:hover { text-decoration: underline; }
+.ud-recent-cases-list {
+  border-top: 1px solid rgba(30, 77, 59, 0.1);
+  border-bottom: 1px solid rgba(30, 77, 59, 0.1);
+}
+.ud-recent-case-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(30, 77, 59, 0.08);
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 12px;
+}
+.ud-recent-case-row:last-child { border-bottom: none; }
+.ud-recent-case-row:hover { background: rgba(30, 77, 59, 0.02); }
+.ud-recent-case-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ud-case-id-mono {
+  font-family: var(--dz-font-family-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  color: #1E4D3B;
+  background: rgba(30, 77, 59, 0.06);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: -0.3px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ud-recent-case-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1a3028;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ud-recent-case-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ud-case-tag {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #5a7a6d;
+  background: #f0f5f2;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.ud-recent-case-chevron { color: #c5d8ce; font-size: 0.85rem; }
+
+/* ── Partnership card: kill shadow, use 1px hairline ──────── */
+.ud-partnership-card {
+  box-shadow: none !important;
+  border: 1px solid rgba(30, 77, 59, 0.1) !important;
+}

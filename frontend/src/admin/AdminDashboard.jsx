@@ -1468,7 +1468,7 @@ const AdminDashboard = () => {
                         label="Staff Notice Alert Broadcast"
                         desc="Send a lab-wide announcement banner to all logged-in staff members"
                         icon={Ico.bell ? Ico.bell(22) : Ico.settings(22)}
-                        onClick={() => { setSettingsSubView('staff-notice'); if (!staffNoticeFetched) fetchStaffNotice(); }}
+                        onClick={() => { setSettingsSubView('staff-notice'); if (!staffNoticeLoaded) fetchStaffNotice(); }}
                       />                      <TwentyFirstNavCard
                         label="Administrator Account"
                         desc="View active session, security options, and account logout"
@@ -1499,7 +1499,7 @@ const AdminDashboard = () => {
                           {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
                           {settingsSubView === 'users' && 'User Accounts Overview'}
                           {settingsSubView === 'account' && 'Administrator Account'}
-                          {settingsSubView === 'staff-notice' && 'Staff Notice Alert Broadcast'}
+                          {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
                         </h2>
                         <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
                       </div>

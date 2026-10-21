@@ -257,7 +257,7 @@
   background: rgba(255,255,255,0.95);
   color: #1e5038;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(30, 77, 59, 0.04);
 }
 
 .ad-nav-item:disabled {
