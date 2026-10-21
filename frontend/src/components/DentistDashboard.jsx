@@ -338,12 +338,7 @@ const DentistDashboard = () => {
           </div>
         )}
 
-        {/* Action Pills */}
-        <div className="ud-pill-bar">
-          <button onClick={() => setActiveTab('orders')} className="ud-pill-primary">+ New Lab Order</button>
-          <button onClick={() => setActiveTab('payments')} className="ud-pill-outline">Pay Balance</button>
-          <a href="tel:+919503668112" className="ud-pill-outline">Contact Lab</a>
-        </div>
+
 
         {/* Recent Active Cases */}
         {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (

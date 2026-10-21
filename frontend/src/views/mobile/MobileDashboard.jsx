@@ -431,12 +431,7 @@ const MobileDashboard = () => {
         {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
 
-        {/* Action Pills */}
-        <div className="m-pill-bar">
-          <button onClick={() => setActiveTab('orders')} className="m-pill-primary">+ New Lab Order</button>
-          <button onClick={() => setActiveTab('payments')} className="m-pill-outline">Pay Balance</button>
-          <a href="tel:+919503668112" className="m-pill-outline">Contact Lab</a>
-        </div>
+
 
         {/* Recent Active Cases */}
         {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (
