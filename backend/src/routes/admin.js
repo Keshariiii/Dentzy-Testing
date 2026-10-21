@@ -295,15 +295,13 @@ admin.get('/orders', verifyAdmin(), async (c) => {
 // POST /api/admin/orders
 admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
   try {
-    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount } = c.get('body');
+    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount, creditOverride } = c.get('body');
 
     const dentist = await c.env.DB.prepare("SELECT id, name, email, status FROM users WHERE id = ?").bind(dentistId).first();
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
     if (dentist.status !== 'approved') return c.json({ message: 'Dentist is not approved.' }, 400);
-
-    // Credit limit check � skip only if admin explicitly passes creditOverride: true
-    const overrideBody = await c.req.raw.clone().json().catch(() => ({}));
-    if (!overrideBody.creditOverride) {
+    // Credit limit check — skip only if admin explicitly passes creditOverride: true
+    if (!creditOverride) {
       const debt = await getDoctorDebt(c.env.DB, dentistId);
       if (debt >= CREDIT_LIMIT) {
         return c.json({ message: 'Credit limit exceeded. Settle outstanding dues before placing new orders.', code: 'CREDIT_LIMIT_EXCEEDED', totalUnpaid: debt }, 403);

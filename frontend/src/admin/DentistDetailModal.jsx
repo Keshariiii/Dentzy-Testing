@@ -67,6 +67,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [creditOverridePrompt, setCreditOverridePrompt] = useState(null);
   const { showToast } = useToast();
 
 
@@ -133,12 +134,33 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
       if (res.ok) {
         setOrders(prev => [data.order, ...prev]);
         setShowForm(false);
-        showToast('Order created successfully.');
+        showToast(
+          payload.creditOverride
+            ? 'Order created successfully with credit limit override.'
+            : 'Order created successfully.'
+        );
+      } else if (res.status === 403 && data.code === 'CREDIT_LIMIT_EXCEEDED') {
+        showToast(
+          `Credit limit exceeded (₹${Number(data.totalUnpaid || 0).toLocaleString('en-IN')} outstanding dues). Override required.`,
+          'warning',
+          6000
+        );
+        setCreditOverridePrompt({
+          payload,
+          totalUnpaid: data.totalUnpaid,
+        });
       } else {
         showToast(data.message || 'Failed to create order', 'error');
       }
     } catch { showToast('Network error', 'error'); }
     setSubmitting(false);
+  };
+
+  const handleConfirmCreditOverride = async () => {
+    if (!creditOverridePrompt) return;
+    const { payload } = creditOverridePrompt;
+    setCreditOverridePrompt(null);
+    await handleSubmitOrder({ ...payload, creditOverride: true });
   };
   /* ── Delete order ─────────────────────────────────────────────────────── */
   const handleDeleteOrderClick = (order) => {
@@ -384,6 +406,22 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
         loading={deletingOrder}
         onConfirm={handleConfirmDeleteOrder}
         onCancel={() => setOrderToDelete(null)}
+      />
+
+      {/* Credit Limit Override Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(creditOverridePrompt)}
+        title="Credit Limit Exceeded"
+        message={`Dr. ${user?.name || 'this dentist'} has ₹${Number(creditOverridePrompt?.totalUnpaid || 0).toLocaleString('en-IN')} in outstanding dues, exceeding the ₹2,00,000 credit limit. As an administrator, do you wish to override the credit limit and place this order?`}
+        confirmText="Override & Create Order"
+        cancelText="Cancel"
+        type="warning"
+        loading={submitting}
+        onConfirm={handleConfirmCreditOverride}
+        onCancel={() => {
+          setCreditOverridePrompt(null);
+          showToast('Order placement cancelled due to credit limit.', 'info');
+        }}
       />
 
       {/* Delete Dentist Confirmation Dialog */}

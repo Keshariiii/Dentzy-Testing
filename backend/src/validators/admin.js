@@ -17,6 +17,7 @@ export const createOrderSchema = z.object({
   dueDate: z.union([z.string(), z.null()]).optional().default(null),
   amount: z.number().min(0, 'Amount cannot be negative.').optional().default(0),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less.').optional().default(''),
+  creditOverride: z.boolean().optional().default(false),
 });
 
 export const updateOrderStageSchema = z.object({
