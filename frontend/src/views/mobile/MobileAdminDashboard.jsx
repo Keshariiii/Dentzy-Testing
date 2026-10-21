@@ -136,6 +136,13 @@ const MobileAdminDashboard = () => {
   const [noticeSaving, setNoticeSaving] = useState(false);
   const [noticeLoaded, setNoticeLoaded] = useState(false);
 
+  // Staff notice bar settings state
+  const [staffNoticeEnabled, setStaffNoticeEnabled] = useState(true);
+  const [staffNoticeMessages, setStaffNoticeMessages] = useState([]);
+  const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
+  const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
+  const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
+
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
   const [liveNotifs, setLiveNotifs]       = useState([]);
@@ -205,6 +212,37 @@ const MobileAdminDashboard = () => {
       showToast('Network error.', 'error');
     }
     setNoticeSaving(false);
+  };
+
+  const fetchStaffNotice = useCallback(async () => {
+    try {
+      const res = await authFetch(`${ADMIN_API}/settings/staff-notice`);
+      if (res.ok) {
+        const d = await res.json();
+        setStaffNoticeEnabled(d.enabled !== false);
+        setStaffNoticeMessages(d.messages || []);
+        setStaffNoticeLoaded(true);
+      }
+    } catch {}
+  }, [authFetch, ADMIN_API]);
+
+  const handleStaffNoticeSave = async () => {
+    setStaffNoticeSaving(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/settings/staff-notice`, {
+        method: 'PUT',
+        body: JSON.stringify({ enabled: staffNoticeEnabled, messages: staffNoticeMessages }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Staff notice bar updated successfully.', 'success');
+      } else {
+        showToast(data.message || 'Failed to update staff notice bar.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+    setStaffNoticeSaving(false);
   };
 
   /* -- Data fetching ----------------------------------------------------- */
@@ -1619,6 +1657,15 @@ const MobileAdminDashboard = () => {
                 }}
               />
               <TwentyFirstNavCard
+                label="Staff Portal Notice Bar"
+                desc="Manage scrolling announcements for staff members"
+                icon={Ico.bell ? Ico.bell(20) : Ico.grid(20)}
+                onClick={() => {
+                  setSettingsSubView('staff-notice');
+                  if (!staffNoticeLoaded) fetchStaffNotice();
+                }}
+              />
+              <TwentyFirstNavCard
                 label="Payment & Revenue Overview"
                 desc="Billed, collected, and pending revenue statistics"
                 icon={Ico.payments ? Ico.payments(20) : Ico.wallet(20)}
@@ -1779,6 +1826,107 @@ const MobileAdminDashboard = () => {
                       style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
                     >
                       {noticeSaving ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-view: Staff Notice Bar Manager */}
+            {settingsSubView === 'staff-notice' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+                {/* Master Toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div style={{ minWidth: 0, flex: 1, paddingRight: '12px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>Show Notice Bar to Staff</div>
+                    <div style={{ fontSize: '0.75rem', color: '#6b8a7a', marginTop: '1px' }}>Toggle scrolling ticker across staff portals</div>
+                  </div>
+                  <button
+                    onClick={() => setStaffNoticeEnabled(v => !v)}
+                    style={{
+                      width: '46px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', position: 'relative',
+                      background: staffNoticeEnabled ? '#22c55e' : '#d1d5db', transition: 'background 0.2s', flexShrink: 0,
+                    }}
+                    aria-label="Toggle staff notice bar"
+                  >
+                    <span style={{
+                      position: 'absolute', top: '3px', left: staffNoticeEnabled ? '23px' : '3px',
+                      width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+                    }} />
+                  </button>
+                </div>
+
+                {/* Live Preview */}
+                {staffNoticeMessages.length > 0 && (
+                  <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
+                    <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
+                      <TwentyFirstNoticeBar messages={staffNoticeMessages} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Announcement Editor & Reorder List */}
+                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Staff Announcements</div>
+
+                  {/* Add New Message Bar */}
+                  <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                    <input
+                      type="text"
+                      value={staffNoticeNewMsg}
+                      onChange={e => setStaffNoticeNewMsg(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && staffNoticeNewMsg.trim()) {
+                          setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]);
+                          setStaffNoticeNewMsg('');
+                        }
+                      }}
+                      placeholder="Add a staff announcement..."
+                      maxLength={250}
+                      style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.84rem', outline: 'none' }}
+                    />
+                    <TwentyFirstIconButton
+                      icon={Ico.plus(18)}
+                      title="Add Message"
+                      ariaLabel="Add Message"
+                      disabled={!staffNoticeNewMsg.trim()}
+                      onClick={() => { setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
+                      variant="primary"
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Draggable Reorderable List (21st.dev) */}
+                  <TwentyFirstNoticeList
+                    messages={staffNoticeMessages}
+                    onChange={setStaffNoticeMessages}
+                  />
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '6px' }}>
+                    <button
+                      onClick={() => {
+                        setStaffNoticeMessages([
+                          'Welcome to Dentzy Lab Operations Portal',
+                          'Ensure all case scans & QC checklists are logged before dispatch',
+                          'Priority cases marked Urgent must be completed within 24 hours',
+                          'Standard daily shift handover meeting at 6:00 PM',
+                          'Lab Support & Rush Desk hotline: +91 9503668112',
+                        ]);
+                        setStaffNoticeEnabled(true);
+                      }}
+                      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
+                    >
+                      Defaults
+                    </button>
+                    <button
+                      onClick={handleStaffNoticeSave}
+                      disabled={staffNoticeSaving}
+                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: staffNoticeSaving ? 'default' : 'pointer', opacity: staffNoticeSaving ? 0.7 : 1 }}
+                    >
+                      {staffNoticeSaving ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 </div>
