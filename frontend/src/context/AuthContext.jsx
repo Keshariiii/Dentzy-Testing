@@ -102,10 +102,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Register Step 1: Send email verification OTP
-  const sendRegisterOtp = useCallback(async (name, email, password, captchaInput, captchaToken) => {
+  const sendRegisterOtp = useCallback(async (name, email, password, recaptchaToken) => {
     const data = await apiFetch(`${getAuthUrl()}/register/send-otp`, {
       method: 'POST',
-      body: JSON.stringify({ name, email, password, captchaInput, captchaToken }),
+      body: JSON.stringify({ name, email, password, recaptchaToken }),
     });
     return data; // { success, otpToken, expiresIn }
   }, []);

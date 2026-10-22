@@ -42,7 +42,7 @@ describe('Auth Validators', () => {
   });
 
   describe('registerSchema', () => {
-    const base = { name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, captchaInput: 'ABC', captchaToken: 'tok' };
+    const base = { name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, recaptchaToken: 'tok' };
 
     it('accepts valid registration', () => valid(registerSchema, base));
     it('rejects short name', () => invalid(registerSchema, { ...base, name: 'A' }));
@@ -51,7 +51,6 @@ describe('Auth Validators', () => {
     it('rejects weak password (no special char)', () => invalid(registerSchema, { ...base, password: 'NoSpecial1' }));
     it('rejects weak password (too short)', () => invalid(registerSchema, { ...base, password: 'Sh1!' }));
     it('rejects disposable email', () => invalid(registerSchema, { ...base, email: 'test@mailinator.com' }));
-    it('rejects missing captcha', () => invalid(registerSchema, { ...base, captchaInput: '' }));
   });
 
   describe('sendOtpSchema', () => {

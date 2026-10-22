@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -44,39 +45,21 @@ const Register = () => {
   /* #33 — Field-level validation state */
   const [fieldErrors, setFieldErrors] = useState({ name: '', email: '' });
 
-  // CAPTCHA state
-  const [captchaInput, setCaptchaInput]   = useState('');
-  const [captchaToken, setCaptchaToken]   = useState('');
-  const [captchaSvg, setCaptchaSvg]       = useState('');
-  const [captchaLoading, setCaptchaLoading] = useState(false);
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  const [otp, setOtp]                         = useState(['', '', '', '', '', '']);
-  const [otpToken, setOtpToken]               = useState('');
-  const [resendCooldown, setResendCooldown]   = useState(0);
-  const otpInputsRef                          = useRef([]);
-
-  const [pending, setPending] = useState(null);
-
-  const API_URL = getAuthUrl();
-
-  const fetchCaptcha = useCallback(async () => {
-    setCaptchaLoading(true);
-    setCaptchaInput('');
-    try {
-      const res  = await fetch(`${API_URL}/captcha`);
-      const data = await res.json();
-      if (res.ok) {
-        setCaptchaToken(data.captchaToken);
-        setCaptchaSvg(data.captchaSvg);
-      }
-    } catch { /* silently ignore */ }
-    setCaptchaLoading(false);
-  }, [API_URL]);
-
-  // Load CAPTCHA on first render
-  useEffect(() => {
-    fetchCaptcha();
-  }, [fetchCaptcha]);
+  const getRecaptchaToken = useCallback(async () => {
+    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) return null;
+    return new Promise((resolve) => {
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(siteKey, { action: 'register' });
+          resolve(token);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+  }, [siteKey]);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -161,14 +144,10 @@ const Register = () => {
       return;
     }
 
-    if (!captchaInput.trim()) {
-      setError('Please enter the CAPTCHA code shown in the image.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      const recaptchaToken = await getRecaptchaToken();
+      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, recaptchaToken);
       if (result?.otpToken) {
         setOtpToken(result.otpToken);
         setStep(2);
@@ -180,7 +159,6 @@ const Register = () => {
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
-      if (err.invalidCaptcha) fetchCaptcha();
     } finally {
       setLoading(false);
     }
@@ -349,7 +327,7 @@ const Register = () => {
                   icon={Ico.arrowLeft(16)}
                   title="Change Email / Back"
                   ariaLabel="Change Email"
-                  onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                  onClick={() => { setStep(1); setError(''); }}
                   size="sm"
                   variant="secondary"
                 />
@@ -393,6 +371,12 @@ const Register = () => {
   // ── Step 1: Registration Form ───────────────────────────────────────
   return (
     <div className="auth-page">
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
       {/* Left Panel */}
       <div className="auth-left">
         <div className="auth-left-overlay" />
@@ -553,72 +537,6 @@ const Register = () => {
                 </ul>
               </div>
             )}
-
-            {/* CAPTCHA */}
-            <div className="captcha-container">
-              <div className="captcha-label">Verify you're human</div>
-              <div className="captcha-box">
-                <div className="captcha-svg-wrap">
-                  {captchaSvg
-                    ? <div dangerouslySetInnerHTML={{ __html: captchaSvg }} style={{ width: '100%' }} />
-                    : (
-                      <div className="captcha-placeholder">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="captcha-spin">
-                          <line x1="12" y1="2" x2="12" y2="6"/>
-                          <line x1="12" y1="18" x2="12" y2="22"/>
-                          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
-                          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
-                          <line x1="2" y1="12" x2="6" y2="12"/>
-                          <line x1="18" y1="12" x2="22" y2="12"/>
-                          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
-                          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
-                        </svg>
-                      </div>
-                    )
-                  }
-                </div>
-                <button
-                  type="button"
-                  className="captcha-refresh-btn"
-                  onClick={fetchCaptcha}
-                  disabled={captchaLoading}
-                  title="Get a new CAPTCHA"
-                  aria-label="Refresh CAPTCHA"
-                >
-                  {/* Refresh icon */}
-                  <svg
-                    width="17" height="17"
-                    viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                    className={captchaLoading ? 'captcha-spin' : ''}
-                  >
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                  </svg>
-                </button>
-              </div>
-              <div className="captcha-input-group auth-input-group">
-                <label htmlFor="register-captcha" className="sr-only">CAPTCHA code</label>
-                <span className="auth-input-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                </span>
-                <input
-                  id="register-captcha"
-                  type="text"
-                  className="auth-input captcha-input"
-                  placeholder="Enter code above"
-                  value={captchaInput}
-                  onChange={e => { setCaptchaInput(e.target.value); setError(''); }}
-                  autoComplete="off"
-                  maxLength={6}
-                  spellCheck={false}
-                />
-              </div>
-            </div>
 
             {/* Remember */}
             <div className="auth-options">

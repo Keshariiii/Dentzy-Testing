@@ -2,8 +2,7 @@ import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
 import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
-import { hashPassword, comparePassword, signJWT, createCaptchaToken, verifyCaptchaToken, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, generateSecureOtp } from '../utils/crypto.js';
-import { generateCode, generateCaptchaSVG } from '../utils/captcha.js';
+import { hashPassword, comparePassword, signJWT, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, generateSecureOtp } from '../utils/crypto.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
@@ -25,26 +24,32 @@ const safeUserObj = (u) => ({
   createdAt: u.createdAt,
 });
 
-// GET /api/auth/captcha
-auth.get('/captcha', async (c) => {
-  try {
-    const code = generateCode(6);
-    const captchaSvg = generateCaptchaSVG(code);
-    const captchaToken = await createCaptchaToken(code, c.env.JWT_SECRET);
-    return c.json({ captchaToken, captchaSvg });
-  } catch (err) {
-    logger.error('CAPTCHA generation error', { error: err.message });
-    return c.json({ message: 'Failed to generate CAPTCHA.' }, 500);
-  }
-});
 
 // POST /api/auth/register/send-otp — Step 1: Validate form + send email verification OTP
 auth.post('/register/send-otp', validate(registerSchema), async (c) => {
-  const { name, email, captchaInput, captchaToken } = c.get('body');
+  const { name, email, recaptchaToken } = c.get('body');
 
-  const captchaResult = await verifyCaptchaToken(captchaToken, captchaInput, c.env.JWT_SECRET);
-  if (!captchaResult.valid)
-    return c.json({ message: captchaResult.message, invalidCaptcha: true }, 400);
+  // ponytail: verify reCAPTCHA v3 only when secret key is provided (graceful in tests/local dev)
+  const recaptchaSecret = c.env.RECAPTCHA_SECRET_KEY;
+  if (recaptchaSecret) {
+    if (!recaptchaToken) {
+      return c.json({ message: 'Security check failed. Please refresh and try again.' }, 400);
+    }
+    try {
+      const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ secret: recaptchaSecret, response: recaptchaToken }),
+      });
+      const data = await resp.json();
+      if (!data.success || (typeof data.score === 'number' && data.score < 0.5)) {
+        logger.warn('reCAPTCHA failed', { score: data.score, errors: data['error-codes'] });
+        return c.json({ message: 'Security verification failed. Please try again.' }, 403);
+      }
+    } catch (err) {
+      logger.error('reCAPTCHA verify error', { error: err.message });
+    }
+  }
 
   try {
     // Rate limit: 3 OTP sends per 10 min per email
