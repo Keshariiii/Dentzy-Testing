@@ -45,6 +45,12 @@ const Register = () => {
   /* #33 — Field-level validation state */
   const [fieldErrors, setFieldErrors] = useState({ name: '', email: '' });
 
+  const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
+  const [otpToken, setOtpToken]             = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpInputsRef                        = useRef([]);
+  const [pending, setPending]               = useState(null);
+
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const getRecaptchaToken = useCallback(async () => {

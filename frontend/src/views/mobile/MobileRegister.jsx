@@ -3,6 +3,7 @@
  * MobileRegister — Fullscreen mobile-native registration with 2-step email OTP verification.
  */
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -35,44 +36,21 @@ const MobileRegister = () => {
   const [loading, setLoading]         = useState(false);
   const [pwFocused, setPwFocused]     = useState(false);
 
-  // CAPTCHA
-  const [captchaInput, setCaptchaInput]     = useState('');
-  const [captchaToken, setCaptchaToken]     = useState('');
-  const [captchaSvg, setCaptchaSvg]         = useState('');
-  const [captchaLoading, setCaptchaLoading] = useState(false);
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  // OTP
-  const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
-  const [otpToken, setOtpToken]             = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const otpInputsRef                        = useRef([]);
-
-  const API_URL = getAuthUrl();
-
-  const fetchCaptcha = useCallback(async () => {
-    setCaptchaLoading(true);
-    setCaptchaInput('');
-    try {
-      const res  = await fetch(`${API_URL}/captcha`);
-      const data = await res.json();
-      if (res.ok) { setCaptchaToken(data.captchaToken); setCaptchaSvg(data.captchaSvg); }
-    } catch {}
-    setCaptchaLoading(false);
-  }, [API_URL]);
-
-  useEffect(() => {
-    let active = true;
-    fetch(`${API_URL}/captcha`)
-      .then(res => res.json())
-      .then(data => {
-        if (active && data.captchaToken) {
-          setCaptchaToken(data.captchaToken);
-          setCaptchaSvg(data.captchaSvg);
+  const getRecaptchaToken = useCallback(async () => {
+    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) return null;
+    return new Promise((resolve) => {
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(siteKey, { action: 'register' });
+          resolve(token);
+        } catch {
+          resolve(null);
         }
-      })
-      .catch(() => {});
-    return () => { active = false; };
-  }, [API_URL]);
+      });
+    });
+  }, [siteKey]);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -119,14 +97,10 @@ const MobileRegister = () => {
       setError('Password does not meet all requirements.');
       return;
     }
-    if (!captchaInput) {
-      setError('Please enter the CAPTCHA code.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, captchaInput, captchaToken);
+      const recaptchaToken = await getRecaptchaToken();
+      const result = await sendRegisterOtp(form.name.trim(), form.email.trim(), form.password, recaptchaToken);
       if (result?.otpToken) {
         setOtpToken(result.otpToken);
         setStep(2);
@@ -138,7 +112,6 @@ const MobileRegister = () => {
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
-      fetchCaptcha();
     } finally { setLoading(false); }
   };
 
@@ -240,7 +213,7 @@ const MobileRegister = () => {
   if (step === 2) {
     return (
       <div className="m-auth-page">
-        <button className="m-auth-back-btn" onClick={() => { setStep(1); setError(''); fetchCaptcha(); }} aria-label="Back">
+        <button className="m-auth-back-btn" onClick={() => { setStep(1); setError(''); }} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
@@ -296,7 +269,7 @@ const MobileRegister = () => {
                 icon={Ico.arrowLeft(16)}
                 title="Change Email / Back"
                 ariaLabel="Change Email"
-                onClick={() => { setStep(1); setError(''); fetchCaptcha(); }}
+                onClick={() => { setStep(1); setError(''); }}
                 size="md"
                 variant="secondary"
               />
@@ -338,6 +311,12 @@ const MobileRegister = () => {
   // ── Step 1: Registration Form ───────────────────────────────────────
   return (
     <div className="m-auth-page">
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
       {/* Back Arrow Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/')} aria-label="Back" title="Back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -430,32 +409,6 @@ const MobileRegister = () => {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* CAPTCHA */}
-          <div className="m-auth-input-group">
-            <label>Verify You're Human</label>
-            <div className="m-captcha-wrap">
-              <div className="m-captcha-img" dangerouslySetInnerHTML={{ __html: captchaSvg }} />
-              <input
-                className="m-captcha-input"
-                type="text"
-                value={captchaInput}
-                onChange={(e) => setCaptchaInput(e.target.value)}
-                placeholder="Enter code"
-                autoComplete="off"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontSize: '0.9rem', fontFamily: 'inherit', boxSizing: 'border-box' }}
-              />
-              <TwentyFirstIconButton
-                icon={Ico.refresh(16)}
-                title="Refresh Captcha"
-                ariaLabel="Refresh Captcha"
-                onClick={fetchCaptcha}
-                disabled={captchaLoading}
-                size="md"
-                variant="secondary"
-              />
-            </div>
           </div>
 
           <button type="submit" className="m-auth-submit" disabled={loading}>
