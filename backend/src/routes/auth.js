@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
-import { registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
+import { registerSchema, loginSchema, googleAuthSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
 import { hashPassword, comparePassword, signJWT, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, generateSecureOtp } from '../utils/crypto.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
@@ -217,6 +217,89 @@ auth.post('/login', validate(loginSchema), async (c) => {
   } catch (error) {
     logger.error('Login error', { error: error.message });
     return c.json({ message: 'Server error during login. Please try again.' }, 500);
+  }
+});
+
+// POST /api/auth/google — Verify Google ID token and log in or register user
+auth.post('/google', validate(googleAuthSchema), async (c) => {
+  const { credential } = c.get('body');
+
+  try {
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+    if (!googleRes.ok) {
+      return c.json({ message: 'Invalid Google credential. Please try again.' }, 401);
+    }
+
+    const payload = await googleRes.json();
+    const { email, email_verified, name } = payload;
+
+    if (!email || (email_verified !== 'true' && email_verified !== true)) {
+      return c.json({ message: 'Google account email is not verified.' }, 400);
+    }
+
+    const expectedClientId = c.env.GOOGLE_CLIENT_ID;
+    if (expectedClientId && payload.aud !== expectedClientId) {
+      logger.warn('Google aud mismatch', { aud: payload.aud, expected: expectedClientId });
+      return c.json({ message: 'Google authentication failed: audience mismatch.' }, 401);
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if user already exists
+    const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(normalizedEmail).first();
+
+    if (user) {
+      if (user.status === 'pending') {
+        return c.json({ message: 'Your account is awaiting admin approval.', status: 'pending' }, 403);
+      }
+      if (user.status === 'rejected') {
+        return c.json({ message: 'Your registration request was not approved. Please contact support.', status: 'rejected' }, 403);
+      }
+
+      const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
+      auditLog('USER_LOGIN_GOOGLE', { userId: user.id, email: user.email });
+      c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
+      return c.json({ user: safeUserObj(user), token });
+    }
+
+    // New user auto-registration
+    const id = newId();
+    const ts = now();
+    const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16)).join('');
+    const hashed = await hashPassword(randomPassword);
+    const userName = name || 'Dentist';
+
+    await c.env.DB.prepare(
+      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, userName, normalizedEmail, hashed, 'pending', '', null, '', '', '', ts, ts).run();
+
+    auditLog('USER_REGISTERED_GOOGLE', { userId: id, status: 'pending', email: normalizedEmail });
+
+    const backgroundTasks = async () => {
+      try {
+        await Promise.allSettled([
+          sendNewUserAdminAlert(c.env, { id, name: userName, email: normalizedEmail, clinicName: '' }),
+          sendRegistrationPendingEmail(c.env, normalizedEmail, userName),
+        ]);
+      } catch (err) {
+        logger.error('Background alert error after Google register', { error: err.message });
+      }
+    };
+
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(backgroundTasks());
+    } else {
+      backgroundTasks();
+    }
+
+    return c.json({
+      message: 'Registration submitted! Your account is awaiting admin approval.',
+      status: 'pending',
+      pending: { name: userName, email: normalizedEmail },
+    }, 201);
+  } catch (err) {
+    logger.error('Google auth server error', { error: err.message });
+    return c.json({ message: 'Failed to authenticate with Google. Please try again.' }, 500);
   }
 });
 

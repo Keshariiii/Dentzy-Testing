@@ -738,3 +738,24 @@
   border-color: var(--dz-color-primary, var(--dz-color-primary));
   box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.2);
 }
+
+/* ── Auth Divider ────────────────────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0;
+  color: #708c80;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1.5px solid #d4e4da;
+}
+.auth-divider span {
+  padding: 0 12px;
+}

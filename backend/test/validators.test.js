@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {
   registerSchema, loginSchema, sendOtpSchema, verifyOtpSchema,
   resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema,
-  deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema,
+  deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema, googleAuthSchema,
 } from '../src/validators/auth.js';
 
 // Contact validators

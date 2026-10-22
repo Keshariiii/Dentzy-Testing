@@ -400,3 +400,24 @@
   cursor: pointer;
   padding: 0;
 }
+
+/* ── Mobile Auth Divider ─────────────────────────────────────── */
+.m-auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.m-auth-divider::before,
+.m-auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+.m-auth-divider span {
+  padding: 0 10px;
+}

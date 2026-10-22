@@ -5,6 +5,7 @@
  * Touch-optimized card, large inputs, role selector, single-tap submit.
  */
 import Link from 'next/link';
+import GoogleSignInButton from '../../components/ui/GoogleSignInButton';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -311,6 +312,19 @@ const MobileLogin = () => {
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
+
+        {isDentist && (
+          <>
+            <div className="m-auth-divider">
+              <span>or</span>
+            </div>
+            <GoogleSignInButton
+              mode="signin"
+              onError={(msg) => setError(msg)}
+              onPending={() => setError('Your registration is submitted and awaiting admin approval.')}
+            />
+          </>
+        )}
 
         {isDentist && (
           <div className="m-auth-links">

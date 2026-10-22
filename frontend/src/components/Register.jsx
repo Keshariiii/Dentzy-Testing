@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import GoogleSignInButton from './ui/GoogleSignInButton';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
@@ -582,6 +583,19 @@ const Register = () => {
                 </>
               )}
             </button>
+
+            <div className="auth-divider">
+              <span>or</span>
+            </div>
+
+            <GoogleSignInButton
+              mode="signup"
+              onError={(msg) => setError(msg)}
+              onPending={(p) => {
+                setPending(p);
+                setStep(3);
+              }}
+            />
           </form>
 
           <p className="auth-switch">

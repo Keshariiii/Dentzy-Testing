@@ -3,6 +3,7 @@
  * MobileRegister — Fullscreen mobile-native registration with 2-step email OTP verification.
  */
 import Link from 'next/link';
+import GoogleSignInButton from '../../components/ui/GoogleSignInButton';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
@@ -414,6 +415,19 @@ const MobileRegister = () => {
           <button type="submit" className="m-auth-submit" disabled={loading}>
             {loading ? 'Sending Code…' : 'Verify Email & Sign Up'}
           </button>
+
+          <div className="m-auth-divider">
+            <span>or</span>
+          </div>
+
+          <GoogleSignInButton
+            mode="signup"
+            onError={(msg) => setError(msg)}
+            onPending={(p) => {
+              setPending(p);
+              setStep(3);
+            }}
+          />
         </form>
 
         <div className="m-auth-links" style={{ justifyContent: 'center' }}>

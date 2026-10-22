@@ -85,3 +85,7 @@ export const changePasswordSchema = z.object({
 export const deleteAccountSchema = z.object({
   password: z.string().min(1, 'Please enter your password to confirm account deletion.'),
 });
+
+export const googleAuthSchema = z.object({
+  credential: z.string().trim().min(1, 'Google credential token is required.'),
+});

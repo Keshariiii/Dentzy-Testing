@@ -148,6 +148,19 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   }, []);
 
+  // Google OAuth Login / Auto-Registration
+  const googleLogin = useCallback(async (credential) => {
+    const data = await apiFetch(`${getAuthUrl()}/google`, {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
+    if (data.user) {
+      localStorage.setItem('dentzy_user', JSON.stringify(data.user));
+      setUser(data.user);
+    }
+    return data;
+  }, []);
+
   // Logout
   const logout = useCallback(async () => {
     try {
@@ -174,6 +187,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    googleLogin,
     sendRegisterOtp,
     resendRegisterOtp,
     register,

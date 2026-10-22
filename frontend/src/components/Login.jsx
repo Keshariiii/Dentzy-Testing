@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import GoogleSignInButton from './ui/GoogleSignInButton';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -547,6 +548,19 @@ const Login = ({ defaultRole }) => {
               )}
             </button>
           </form>
+
+          {isDentist && (
+            <>
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+              <GoogleSignInButton
+                mode="signin"
+                onError={(msg) => setError(msg)}
+                onPending={() => setError('Your registration is submitted and awaiting admin approval.')}
+              />
+            </>
+          )}
 
           {/* ── Footer links ──────────────────────── */}
           {isDentist ? (
