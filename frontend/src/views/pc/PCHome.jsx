@@ -1,8 +1,6 @@
 /**
- * PCHome — Desktop version of the Home/Landing page.
- *
- * Currently re-exports the existing Home component as-is.
- * All future desktop-specific landing page changes should live here.
+ * PCHome — Universal Fluid Landing Page for Dentzy.
+ * Optimised for all screen sizes (mobile, tablet, desktop, foldables).
  */
 import React, { useEffect } from 'react';
 import Header from '../../components/Header';
@@ -30,7 +28,7 @@ const PCHome = () => {
     }, []);
 
     return (
-        <div className="home-page">
+        <div className="home-page" style={{ width: '100%', maxWidth: '100vw', overflowX: 'clip', position: 'relative' }}>
             <Header />
             <Hero />
             <Intro />

@@ -112,20 +112,40 @@
 @media (max-width: 768px) {
     .process-steps {
         flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-top: 24px;
     }
 
     .process-step {
         width: 100%;
+        max-width: 100%;
         margin-left: 0 !important;
-        margin-top: var(--dz-space-3, 10px);
+        margin-top: 0;
+    }
+
+    .step-content {
+        height: auto;
+        min-height: 52px;
+        clip-path: none !important;
+        border-radius: 12px;
+        padding: 12px 20px;
+        box-shadow: 0 4px 16px rgba(30, 80, 56, 0.08);
+        border: 1px solid rgba(112, 140, 128, 0.15);
+        font-size: 1.05rem;
+    }
+
+    .process-step:first-child .step-content {
+        clip-path: none !important;
+        padding-left: 20px;
     }
 
     .dentzy-cuz-section {
         flex-direction: column;
         text-align: center;
         padding: 0;
-        gap: var(--dz-space-10, 40px);
-        margin-top: var(--dz-space-16, 60px);
+        gap: var(--dz-space-8, 32px);
+        margin-top: var(--dz-space-12, 48px);
     }
 
     .cuz-content {

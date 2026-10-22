@@ -282,27 +282,17 @@ img {
   border: 1px solid rgba(112, 140, 128, 0.12);
 }
 
-/* ── Premium Scrollbar ──────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(112, 140, 128, 0.25);
-  border-radius: 99px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(112, 140, 128, 0.4);
-}
-
-/* Firefox */
+/* ── Clean App Viewport (Scrollbar hidden for clean native app appearance) ─── */
+html,
+body,
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(112, 140, 128, 0.25) transparent;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
 }

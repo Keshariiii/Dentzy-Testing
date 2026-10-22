@@ -1,13 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, Loader2 } from 'lucide-react';
-import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
 import { getContactUrl } from '../api/client';
 import './ContactForm.css';
 
 const CONTACT_API = () => getContactUrl();
 
 const ContactForm = () => {
-
     const [formData, setFormData] = useState({
         user_name: '',
         user_email: '',
@@ -17,30 +15,21 @@ const ContactForm = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
-
-
-
-    // Honeypot state
     const [hpWebsite, setHpWebsite] = useState('');
-
     const sectionRef = useRef(null);
-
-
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
         // VALIDATION: Basic check
         if (!formData.user_name || !formData.user_email || !formData.message) {
             setStatusMessage({ type: 'error', text: "Please fill in all required fields (Name, Email, Message)" });
             return;
         }
-
-
 
         setIsSubmitting(true);
         setStatusMessage({ type: '', text: '' });
@@ -57,7 +46,6 @@ const ContactForm = () => {
                     phone: formData.contact_number,
                     subject: formData.subject,
                     message: formData.message,
-
                     hp_website: hpWebsite,
                 })
             });
@@ -73,11 +61,8 @@ const ContactForm = () => {
                     subject: '',
                     message: ''
                 });
-
             } else {
                 setStatusMessage({ type: 'error', text: data.error || data.message || 'Server error' });
-                // Refresh CAPTCHA on invalid captcha or any error
-                if (response.status === 400) {}
             }
         } catch (error) {
             console.error('FAILED...', error);
@@ -92,7 +77,7 @@ const ContactForm = () => {
             <div className="container">
                 <h2 className="contact-form-title">We Are Here To Help You</h2>
 
-                <div className="form-bar">
+                <form className="form-bar" onSubmit={handleSubmit}>
                     <label htmlFor="contact-name" className="sr-only">Your name</label>
                     <input
                         id="contact-name"
@@ -102,6 +87,7 @@ const ContactForm = () => {
                         className="form-input"
                         value={formData.user_name}
                         onChange={handleChange}
+                        required
                     />
                     <label htmlFor="contact-email" className="sr-only">Your email</label>
                     <input
@@ -112,6 +98,7 @@ const ContactForm = () => {
                         className="form-input"
                         value={formData.user_email}
                         onChange={handleChange}
+                        required
                     />
                     <label htmlFor="contact-phone" className="sr-only">Phone number</label>
                     <input
@@ -141,9 +128,38 @@ const ContactForm = () => {
                         className="form-input message-input"
                         value={formData.message}
                         onChange={handleChange}
-                        rows={1}
+                        rows={3}
+                        required
                     />
-                </div>
+
+                    {/* Send Button directly below message field */}
+                    <div className="form-submit-wrap">
+                        <button
+                            type="submit"
+                            className="send-msg-btn"
+                            disabled={isSubmitting}
+                            aria-label={isSubmitting ? 'Sending message...' : 'Send Message'}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span>Sending...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Send Message</span>
+                                    <Send size={18} />
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {statusMessage.text && (
+                        <div className={`form-status-msg ${statusMessage.type}`}>
+                            {statusMessage.text}
+                        </div>
+                    )}
+                </form>
 
                 {/* Honeypot — hidden from real users, bots fill it */}
                 <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
@@ -157,12 +173,10 @@ const ContactForm = () => {
                     />
                 </div>
 
-
-
                 <div className="contact-info-row">
                     <div className="info-item">
                         <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> Address:</h3>
-                        <p>Vasai - Palghar 401202</p>
+                        <p>Dindayal Nagar, Vasai West - 401202, Maharashtra, India</p>
                     </div>
                     <div className="info-item">
                         <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={16} /> Phone:</h3>
@@ -174,24 +188,7 @@ const ContactForm = () => {
                     </div>
                     <div className="info-item">
                         <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> Working Hours:</h3>
-                        <p>Mon-Sat, 9 AM - 6 PM</p>
-                    </div>
-                    <div className="action-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <TwentyFirstIconButton 
-                            type="button"
-                            icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />} 
-                            title={isSubmitting ? 'Sending...' : 'Send Message'}
-                            ariaLabel="Send Message"
-                            variant="primary"
-                            size="lg"
-                            onClick={handleSubmit} 
-                            disabled={isSubmitting}
-                        />
-                        {statusMessage.text && (
-                            <p style={{ marginTop: '10px', color: statusMessage.type === 'error' ? 'red' : 'green', fontWeight: 'bold' }}>
-                                {statusMessage.text}
-                            </p>
-                        )}
+                        <p>Mon-Sat, 9 AM - 6 PM IST</p>
                     </div>
                 </div>
             </div>

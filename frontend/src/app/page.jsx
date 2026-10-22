@@ -1,15 +1,14 @@
 'use client';
 /**
  * Home page — Redirects logged-in users to their dashboards.
+ * Universally fluid across all screen sizes (desktop, tablet, mobile).
  */
 import { useAuth } from '../context/AuthContext';
 import { useAdminAuth } from '../admin/AdminAuthContext';
 import { useStaffAuth } from '../staff/StaffAuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import ResponsiveLayout from '../layouts/ResponsiveLayout';
 import PCHome from '../views/pc/PCHome';
-import MobileHome from '../views/mobile/MobileHome';
 
 export default function HomePage() {
   const { user, loading: userLoading } = useAuth();
@@ -28,5 +27,5 @@ export default function HomePage() {
   // While auth is loading, show the landing page (not a blank screen).
   // The useEffect above will redirect once auth confirms a session.
 
-  return <ResponsiveLayout pcView={<PCHome />} mobileView={<MobileHome />} />;
+  return <PCHome />;
 }

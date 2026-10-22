@@ -1,6 +1,7 @@
 .hero {
     position: relative;
     height: 90vh;
+    height: 90dvh;
     min-height: 600px;
     background-image: url('https://images.unsplash.com/photo-1588776814546-1ffcf4722e12?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
     background-size: cover;
@@ -15,7 +16,7 @@
     overflow: hidden;
 }
 
-/* Video background — single rule (duplicate removed #6) */
+/* Video background — single rule */
 .hero-video {
     position: absolute;
     top: 0;
@@ -47,6 +48,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--dz-space-4, 16px);
+    width: 100%;
+    max-width: 900px;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .hero h1 {
@@ -60,7 +65,6 @@
     flex-direction: column;
     gap: 0px;
     animation: float 6s ease-in-out infinite;
-    /* Added gentle float */
 }
 
 .hero-line {
@@ -81,18 +85,37 @@
 /* Responsive */
 @media (max-width: 768px) {
     .hero {
-        background-attachment: scroll; /* Fix parallax on mobile Safari (#29) */
+        min-height: 420px;
+        height: 75vh;
+        height: 75dvh;
+        background-attachment: scroll; /* Fix parallax on mobile iOS & Android */
+    }
+
+    .hero-content {
+        padding: 0 16px;
     }
 
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: clamp(1.85rem, 6.5vw, 2.6rem);
+        letter-spacing: 1px;
     }
 
     .hero-subtext {
-        font-size: 1.2rem;
+        font-size: clamp(0.95rem, 3.2vw, 1.2rem);
+        letter-spacing: 0.5px;
     }
 
     .hero-overlay {
-        background: var(--dz-color-bg-overlay, rgba(0, 0, 0, 0.45));
+        background: var(--dz-color-bg-overlay, rgba(0, 0, 0, 0.52));
+    }
+}
+
+@media (max-width: 360px) {
+    .hero h1 {
+        font-size: 1.65rem;
+        letter-spacing: 0.5px;
+    }
+    .hero-subtext {
+        font-size: 0.88rem;
     }
 }
