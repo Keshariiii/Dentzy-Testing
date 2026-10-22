@@ -37,6 +37,12 @@ const MobileRegister = () => {
   const [loading, setLoading]         = useState(false);
   const [pwFocused, setPwFocused]     = useState(false);
 
+  const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
+  const [otpToken, setOtpToken]             = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpInputsRef                        = useRef([]);
+  const [pending, setPending]               = useState(null);
+
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const getRecaptchaToken = useCallback(async () => {
@@ -169,7 +175,7 @@ const MobileRegister = () => {
 
 
   // ── Step 3: Pending ─────────────────────────────────────────────────
-  if (step === 3) {
+  if (step === 3 || pending) {
     return (
       <div className="m-auth-page">
         <div className="m-auth-logo">
@@ -194,13 +200,13 @@ const MobileRegister = () => {
           </div>
           <h1 className="m-auth-title">Awaiting Approval</h1>
           <p className="m-auth-subtitle">
-            Hi <strong>{form.name}</strong>, your registration is submitted!
+            Hi <strong>{pending?.name || form.name}</strong>, your registration is submitted!
           </p>
           <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '12px 0 20px' }}>
             Our admin will review your account and approve it shortly. You'll be notified by email.
           </p>
           <div style={{ background: '#f0f7f3', borderRadius: '10px', padding: '10px', fontSize: '0.85rem', color: '#1e5038', fontWeight: 600, marginBottom: '20px' }}>
-            {form.email}
+            {pending?.email || form.email}
           </div>
           <Link href="/login" className="m-auth-submit" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
             Go to Login

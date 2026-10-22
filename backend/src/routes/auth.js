@@ -277,9 +277,10 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
 
     const backgroundTasks = async () => {
       try {
+        const userData = { id, name: userName, email: normalizedEmail, clinicName: '' };
         await Promise.allSettled([
-          sendNewUserAdminAlert(c.env, { id, name: userName, email: normalizedEmail, clinicName: '' }),
-          sendRegistrationPendingEmail(c.env, normalizedEmail, userName),
+          sendNewUserAdminAlert({ env: c.env, user: userData }),
+          sendRegistrationPendingEmail({ env: c.env, user: userData }),
         ]);
       } catch (err) {
         logger.error('Background alert error after Google register', { error: err.message });

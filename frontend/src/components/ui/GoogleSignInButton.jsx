@@ -70,7 +70,7 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
         text: mode === 'signup' ? 'signup_with' : 'signin_with',
         shape: 'rectangular',
         logo_alignment: 'left',
-        width: 320,
+        width: Math.min(320, Math.max(220, btnContainerRef.current?.clientWidth || 280)),
       });
     } catch (e) {
       console.warn('Google sign-in button render warning:', e);
