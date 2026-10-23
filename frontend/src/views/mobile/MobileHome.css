@@ -288,10 +288,26 @@
 .m-cta-banner { padding: 0 16px 20px; }
 
 .m-cta-inner {
-  padding: 28px 20px;
+  position: relative;
+  padding: 38px 20px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--color-charcoal, var(--dz-color-charcoal)) 0%, #2a3d35 100%);
+  background: url('/images/dentist-cta.webp') center/cover no-repeat;
   text-align: center;
+  overflow: hidden;
+}
+
+.m-cta-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(30, 40, 36, 0.65) 0%, rgba(30, 40, 36, 0.85) 100%);
+  z-index: 1;
+}
+
+.m-cta-inner h2,
+.m-cta-inner .m-cta-btn {
+  position: relative;
+  z-index: 2;
 }
 
 .m-cta-inner h2 {
@@ -448,15 +464,15 @@
 /* ── Partner Section ────────────────────────── */
 .m-partner-section {
   position: relative;
-  padding: 40px 16px;
-  background: linear-gradient(135deg, var(--color-charcoal, var(--dz-color-charcoal)) 0%, #2a3d35 100%);
+  padding: 48px 16px;
+  background: url('/images/partner-shades.webp') center/cover no-repeat;
   overflow: hidden;
 }
 
 .m-partner-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.75) 0%, rgba(30, 40, 36, 0.65) 50%, rgba(30, 80, 56, 0.75) 100%);
 }
 
 .m-partner-content {
@@ -558,48 +574,61 @@
   margin: 0;
 }
 
-/* ── Why Section ────────────────────────────── */
-.m-why-section { padding: 20px 16px; }
+/* ── Why Section (Card-free Editorial Layout) ── */
+.m-why-section { padding: 24px 16px; }
 
 .m-why-cards {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 14px;
 }
 
 .m-why-card {
-  padding: 16px 12px;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(112, 140, 128, 0.06);
-  border: 1px solid var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 2px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  text-align: left;
 }
 
 .m-why-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: rgba(112, 140, 128, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary, var(--dz-color-primary));
-  margin: 0 auto 8px;
+  color: var(--dz-color-primary-accent, #1e5038);
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.m-why-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .m-why-card h4 {
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  margin: 0 0 4px;
+  margin: 0;
   color: var(--color-charcoal, var(--dz-color-charcoal));
 }
 
 .m-why-card p {
-  font-size: 0.68rem;
-  color: var(--dz-color-text-muted);
+  font-size: 0.75rem;
+  color: var(--dz-color-text-muted, #6b7280);
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* ── Future Services ────────────────────────── */
@@ -619,9 +648,25 @@
 
 /* ── Connect With Us ────────────────────────── */
 .m-connect-section {
-  padding: 40px 16px;
+  position: relative;
+  padding: 56px 16px;
   text-align: center;
-  background: linear-gradient(135deg, var(--color-charcoal, var(--dz-color-charcoal)) 0%, #2a3d35 100%);
+  background: url('/images/connect-bg.webp') center/cover no-repeat;
+  overflow: hidden;
+}
+
+.m-connect-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(30, 40, 36, 0.65) 50%, rgba(30, 80, 56, 0.72) 100%);
+  z-index: 1;
+}
+
+.m-connect-title,
+.m-connect-sub {
+  position: relative;
+  z-index: 2;
 }
 
 .m-connect-title {
@@ -699,39 +744,64 @@
 .m-cf-msg--success { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
 .m-cf-msg--error   { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
 
-/* ── Contact Info Grid ──────────────────────── */
+/* ── Contact Info (Card-free Editorial Layout) ── */
 .m-contact-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .m-ci-item {
-  padding: 14px;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 2px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.m-ci-item h4 {
+.m-ci-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dz-color-primary-accent, #1e5038);
+  flex-shrink: 0;
+}
+
+.m-ci-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.m-ci-text h4 {
   font-size: 0.68rem;
   font-weight: 700;
-  color: var(--color-primary, var(--dz-color-primary));
-  margin: 0 0 4px;
+  color: #6b7280;
+  margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
-.m-ci-item p {
-  font-size: 0.75rem;
+.m-ci-text p {
+  font-size: 0.82rem;
   color: var(--color-charcoal, var(--dz-color-charcoal));
   margin: 0;
   font-weight: 600;
 }
 
-.m-ci-item a {
-  color: var(--color-charcoal, var(--dz-color-charcoal));
+.m-ci-text a {
+  color: var(--dz-color-primary-accent, #1e5038);
   text-decoration: none;
+  font-weight: 600;
 }
 
 /* ── Footer ─────────────────────────────────── */

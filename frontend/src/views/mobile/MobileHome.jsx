@@ -302,10 +302,12 @@ const MobileHome = () => {
             {WHY_ITEMS.map((w, i) => (
               <div key={i} className="m-why-card">
                 <span className="m-why-icon">
-                  <w.Icon size={20} color="var(--dz-color-primary, #1e5038)" />
+                  <w.Icon size={18} />
                 </span>
-                <h4>{w.title}</h4>
-                <p>{w.desc}</p>
+                <div className="m-why-text">
+                  <h4>{w.title}</h4>
+                  <p>{w.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -356,20 +358,32 @@ const MobileHome = () => {
 
           <div className="m-contact-info-grid">
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={15} /> Address</h4>
-              <p>Vasai - Palghar 401202</p>
+              <div className="m-ci-icon"><MapPin size={16} /></div>
+              <div className="m-ci-text">
+                <h4>Address</h4>
+                <p>Dindayal Nagar, Vasai West - 401202, Maharashtra</p>
+              </div>
             </div>
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={15} /> Phone</h4>
-              <p><a href="tel:+919503668112">+91-9503668112</a></p>
+              <div className="m-ci-icon"><Phone size={16} /></div>
+              <div className="m-ci-text">
+                <h4>Phone</h4>
+                <p><a href="tel:+919503668112">+91 9503668112</a></p>
+              </div>
             </div>
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Mail size={15} /> Email</h4>
-              <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
+              <div className="m-ci-icon"><Mail size={16} /></div>
+              <div className="m-ci-text">
+                <h4>Email</h4>
+                <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
+              </div>
             </div>
             <div className="m-ci-item">
-              <h4 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={15} /> Working Hours</h4>
-              <p>Mon-Sat, 9 AM - 6 PM</p>
+              <div className="m-ci-icon"><Clock size={16} /></div>
+              <div className="m-ci-text">
+                <h4>Working Hours</h4>
+                <p>Mon - Sat, 9:00 AM - 6:00 PM IST</p>
+              </div>
             </div>
           </div>
         </section>
