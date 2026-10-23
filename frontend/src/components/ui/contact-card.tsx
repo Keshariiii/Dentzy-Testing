@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { LucideIcon, PlusIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 
 export type ContactInfoItem = {
   icon: LucideIcon;
@@ -27,7 +27,7 @@ export function ContactCard({
   ...props
 }: ContactCardProps) {
   return (
-    <div className="relative p-3.5 w-full max-w-5xl mx-auto overflow-visible">
+    <div className="relative w-full max-w-5xl mx-auto">
       <div
         className={cn(
           'bg-surface border border-primary/25 relative grid h-full w-full rounded-2xl shadow-sm md:grid-cols-2 lg:grid-cols-3',
@@ -35,11 +35,6 @@ export function ContactCard({
         )}
         {...props}
       >
-        <PlusIcon className="absolute -top-3 -left-3 h-6 w-6 text-primary pointer-events-none" aria-hidden="true" />
-        <PlusIcon className="absolute -top-3 -right-3 h-6 w-6 text-primary pointer-events-none" aria-hidden="true" />
-        <PlusIcon className="absolute -bottom-3 -left-3 h-6 w-6 text-primary pointer-events-none" aria-hidden="true" />
-        <PlusIcon className="absolute -right-3 -bottom-3 h-6 w-6 text-primary pointer-events-none" aria-hidden="true" />
-
         <div className="flex flex-col justify-between p-6 sm:p-8 md:p-10 lg:col-span-2">
           <div className="relative space-y-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-charcoal">
