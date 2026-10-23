@@ -1,199 +1,265 @@
-import React, { useState, useRef } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, Loader2 } from 'lucide-react';
+'use client';
+
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Mail, Phone, MapPin, Clock, Send, Loader2 } from 'lucide-react';
 import { getContactUrl } from '../api/client';
-import './ContactForm.css';
+import { ContactCard } from './ui/contact-card';
+import { ThankYouAnimation } from './ui/thank-you-animation';
+import { Label } from './ui/label';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Button } from './ui/button';
 
 const CONTACT_API = () => getContactUrl();
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const ContactForm = () => {
-    const [formData, setFormData] = useState({
-        user_name: '',
-        user_email: '',
-        contact_number: '',
-        subject: '',
-        message: ''
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
-    const [hpWebsite, setHpWebsite] = useState('');
-    const sectionRef = useRef(null);
+export default function ContactForm() {
+  const [formData, setFormData] = useState({
+    user_name: '',
+    user_email: '',
+    contact_number: '',
+    subject: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [hpWebsite, setHpWebsite] = useState('');
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    const handleSubmit = async (e) => {
-        if (e) e.preventDefault();
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
 
-        // VALIDATION: Basic check
-        if (!formData.user_name || !formData.user_email || !formData.message) {
-            setStatusMessage({ type: 'error', text: "Please fill in all required fields (Name, Email, Message)" });
-            return;
-        }
+    const trimmedName = formData.user_name.trim();
+    const trimmedEmail = formData.user_email.trim();
+    const trimmedMessage = formData.message.trim();
 
-        setIsSubmitting(true);
+    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Please fill in all required fields (Name, Email, Message).',
+      });
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Please enter a valid email address (e.g. doctor@clinic.com).',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatusMessage({ type: '', text: '' });
+
+    try {
+      const response = await fetch(CONTACT_API(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: formData.contact_number.trim(),
+          subject: formData.subject.trim(),
+          message: trimmedMessage,
+          hp_website: hpWebsite,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        setIsSubmitted(true);
         setStatusMessage({ type: '', text: '' });
+        setFormData({
+          user_name: '',
+          user_email: '',
+          contact_number: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        setStatusMessage({
+          type: 'error',
+          text: data.error || data.message || 'Unable to submit your message. Please try again.',
+        });
+      }
+    } catch (error) {
+      console.error('Contact submit network error:', error);
+      setStatusMessage({
+        type: 'error',
+        text: 'Failed to connect to the server. Please check your connection and try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-        try {
-            const response = await fetch(CONTACT_API(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: formData.user_name,
-                    email: formData.user_email,
-                    phone: formData.contact_number,
-                    subject: formData.subject,
-                    message: formData.message,
-                    hp_website: hpWebsite,
-                })
-            });
+  const handleReset = () => {
+    setIsSubmitted(false);
+    setStatusMessage({ type: '', text: '' });
+  };
 
-            const data = await response.json();
+  return (
+    <section className="py-14 sm:py-20 px-4 bg-surface-alt relative overflow-hidden" id="contact">
+      <ContactCard
+        title="Contact With Us"
+        description="If you have questions regarding our dental laboratory cases, digital workflows, or doctor partnerships, send us a message. We respond within 1 business day."
+        contactInfo={[
+          {
+            icon: Mail,
+            label: 'Email',
+            value: 'support@dentzy.in',
+            href: 'mailto:support@dentzy.in',
+          },
+          {
+            icon: Phone,
+            label: 'Phone / WhatsApp',
+            value: '+91 95036 68112',
+            href: 'tel:+919503668112',
+          },
+          {
+            icon: MapPin,
+            label: 'Address',
+            value: 'Dindayal Nagar, Vasai West - 401202, Maharashtra, India',
+            className: 'sm:col-span-2',
+          },
+          {
+            icon: Clock,
+            label: 'Working Hours',
+            value: 'Mon-Sat, 9 AM - 6 PM IST',
+            className: 'sm:col-span-2',
+          },
+        ]}
+      >
+        <AnimatePresence mode="wait">
+          {!isSubmitted ? (
+            <form onSubmit={handleSubmit} className="w-full space-y-3.5" noValidate={false}>
+              <div className="space-y-1.5">
+                <Label htmlFor="cf-name">Name *</Label>
+                <Input
+                  id="cf-name"
+                  type="text"
+                  name="user_name"
+                  placeholder="Dr. Rajesh Sharma"
+                  maxLength={100}
+                  value={formData.user_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            if (response.ok) {
-                setStatusMessage({ type: 'success', text: "Message Sent Successfully!" });
-                setFormData({
-                    user_name: '',
-                    user_email: '',
-                    contact_number: '',
-                    subject: '',
-                    message: ''
-                });
-            } else {
-                setStatusMessage({ type: 'error', text: data.error || data.message || 'Server error' });
-            }
-        } catch (error) {
-            console.error('FAILED...', error);
-            setStatusMessage({ type: 'error', text: "Failed to connect to the server. Please try again later." });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <section className="contact-form-section" id="contact" ref={sectionRef}>
-            <div className="container">
-                <h2 className="contact-form-title">We Are Here To Help You</h2>
-
-                <form className="form-bar" onSubmit={handleSubmit}>
-                    <label htmlFor="contact-name" className="sr-only">Your name</label>
-                    <input
-                        id="contact-name"
-                        type="text"
-                        name="user_name"
-                        placeholder="Name"
-                        className="form-input"
-                        value={formData.user_name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <label htmlFor="contact-email" className="sr-only">Your email</label>
-                    <input
-                        id="contact-email"
-                        type="email"
-                        name="user_email"
-                        placeholder="Email"
-                        className="form-input"
-                        value={formData.user_email}
-                        onChange={handleChange}
-                        required
-                    />
-                    <label htmlFor="contact-phone" className="sr-only">Phone number</label>
-                    <input
-                        id="contact-phone"
-                        type="tel"
-                        name="contact_number"
-                        placeholder="Phone Number"
-                        className="form-input"
-                        value={formData.contact_number}
-                        onChange={handleChange}
-                    />
-                    <label htmlFor="contact-subject" className="sr-only">Subject</label>
-                    <input
-                        id="contact-subject"
-                        type="text"
-                        name="subject"
-                        placeholder="Subject"
-                        className="form-input"
-                        value={formData.subject}
-                        onChange={handleChange}
-                    />
-                    <label htmlFor="contact-message" className="sr-only">Message</label>
-                    <textarea
-                        id="contact-message"
-                        name="message"
-                        placeholder="Message"
-                        className="form-input message-input"
-                        value={formData.message}
-                        onChange={handleChange}
-                        rows={3}
-                        required
-                    />
-
-                    {/* Send Button directly below message field */}
-                    <div className="form-submit-wrap">
-                        <button
-                            type="submit"
-                            className="send-msg-btn"
-                            disabled={isSubmitting}
-                            aria-label={isSubmitting ? 'Sending message...' : 'Send Message'}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span>Sending...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>Send Message</span>
-                                    <Send size={18} />
-                                </>
-                            )}
-                        </button>
-                    </div>
-
-                    {statusMessage.text && (
-                        <div className={`form-status-msg ${statusMessage.type}`}>
-                            {statusMessage.text}
-                        </div>
-                    )}
-                </form>
-
-                {/* Honeypot — hidden from real users, bots fill it */}
-                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
-                    <input
-                        type="text"
-                        name="hp_website"
-                        tabIndex={-1}
-                        autoComplete="off"
-                        value={hpWebsite}
-                        onChange={(e) => setHpWebsite(e.target.value)}
-                    />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="cf-email">Email *</Label>
+                  <Input
+                    id="cf-email"
+                    type="email"
+                    name="user_email"
+                    placeholder="doctor@clinic.com"
+                    maxLength={100}
+                    value={formData.user_email}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
-
-                <div className="contact-info-row">
-                    <div className="info-item">
-                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> Address:</h3>
-                        <p>Dindayal Nagar, Vasai West - 401202, Maharashtra, India</p>
-                    </div>
-                    <div className="info-item">
-                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Phone size={16} /> Phone:</h3>
-                        <p><a href="tel:+919503668112" style={{ color: 'inherit', textDecoration: 'none' }}>+91 95036 68112</a></p>
-                    </div>
-                    <div className="info-item">
-                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Mail size={16} /> Email:</h3>
-                        <p><a href="mailto:support@dentzy.in" style={{ color: 'inherit', textDecoration: 'none' }}>support@dentzy.in</a></p>
-                    </div>
-                    <div className="info-item">
-                        <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> Working Hours:</h3>
-                        <p>Mon-Sat, 9 AM - 6 PM IST</p>
-                    </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cf-phone">Phone</Label>
+                  <Input
+                    id="cf-phone"
+                    type="tel"
+                    name="contact_number"
+                    placeholder="+91 98765 43210"
+                    maxLength={20}
+                    value={formData.contact_number}
+                    onChange={handleChange}
+                  />
                 </div>
-            </div>
-        </section>
-    );
-};
+              </div>
 
-export default ContactForm;
+              <div className="space-y-1.5">
+                <Label htmlFor="cf-subject">Subject</Label>
+                <Input
+                  id="cf-subject"
+                  type="text"
+                  name="subject"
+                  placeholder="Zirconia Case Inquiry"
+                  maxLength={200}
+                  value={formData.subject}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="cf-message">Message *</Label>
+                <Textarea
+                  id="cf-message"
+                  name="message"
+                  placeholder="Please describe your clinical case or inquiry..."
+                  rows={3}
+                  maxLength={15000}
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              {/* Bot Honeypot */}
+              <div
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}
+                aria-hidden="true"
+              >
+                <input
+                  type="text"
+                  name="hp_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={hpWebsite}
+                  onChange={(e) => setHpWebsite(e.target.value)}
+                />
+              </div>
+
+              {statusMessage.text && (
+                <div
+                  className={`p-3 rounded-md text-xs font-medium ${
+                    statusMessage.type === 'error'
+                      ? 'bg-error-bg text-error-text border border-error/20'
+                      : 'bg-success-bg text-success-text border border-success/20'
+                  }`}
+                  role="alert"
+                >
+                  {statusMessage.text}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full gap-2 mt-2" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Message</span>
+                    <Send className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          ) : (
+            <ThankYouAnimation onReset={handleReset} />
+          )}
+        </AnimatePresence>
+      </ContactCard>
+    </section>
+  );
+}

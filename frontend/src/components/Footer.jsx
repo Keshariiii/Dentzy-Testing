@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { MapPin, Phone, Mail, Clock, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
+import { MacOSDock } from './ui/mac-os-dock';
 
 import './Footer.css';
 
@@ -33,13 +34,13 @@ const FacebookIcon = () => (
 
 const dentzyLogo = '/dentzy-logo-v2.png';
 
-const SOCIALS = [
-  { Icon: WhatsAppIcon,  href: 'https://wa.me/919503668112', label: 'WhatsApp' },
-  { Icon: YouTubeIcon,   href: '#', label: 'YouTube' },
-  { Icon: XIcon,         href: '#', label: 'X' },
-  { Icon: InstagramIcon, href: '#', label: 'Instagram' },
-  { Icon: LinkedInIcon,  href: '#', label: 'LinkedIn' },
-  { Icon: FacebookIcon,  href: '#', label: 'Facebook' },
+const DOCK_SOCIALS = [
+  { id: 'whatsapp',  name: 'WhatsApp',  href: 'https://wa.me/919503668112', IconComponent: WhatsAppIcon },
+  { id: 'youtube',   name: 'YouTube',   href: '#', IconComponent: YouTubeIcon },
+  { id: 'x',         name: 'X',         href: '#', IconComponent: XIcon },
+  { id: 'instagram', name: 'Instagram', href: '#', IconComponent: InstagramIcon },
+  { id: 'linkedin',  name: 'LinkedIn',  href: '#', IconComponent: LinkedInIcon },
+  { id: 'facebook',  name: 'Facebook',  href: '#', IconComponent: FacebookIcon },
 ];
 
 const DISCLAIMERS = [
@@ -83,19 +84,8 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
             gateway to premier dental solutions and seamless clinic-lab collaboration.
           </p>
 
-          <div className="dz-footer__socials">
-            {SOCIALS.map(({ Icon, href, label }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                className="dz-footer__social-badge"
-                aria-label={label}
-              >
-                <Icon />
-              </a>
-            ))}
+          <div className="dz-footer__socials-dock">
+            <MacOSDock items={DOCK_SOCIALS} baseSize={36} />
           </div>
         </div>
 

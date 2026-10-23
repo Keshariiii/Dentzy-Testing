@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --port 5000 --ip 0.0.0.0",
     "deploy": "wrangler deploy",
     "test": "node --loader ./test/loader.js --test \"test/**/*.test.js\""
   },

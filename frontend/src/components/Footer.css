@@ -126,6 +126,15 @@
 }
 
 /* Social Badges */
+.dz-footer__socials-dock {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: visible;
+}
+
 .dz-footer__socials {
   display: flex;
   gap: 10px;
