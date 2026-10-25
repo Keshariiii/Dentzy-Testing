@@ -861,7 +861,7 @@ const AdminDashboard = () => {
               /* ── Payments View ────────────────────────────────────────── */
               <div>
                 <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => {
                         if (drillDentistPayments) {
@@ -883,6 +883,43 @@ const AdminDashboard = () => {
                         `${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}`
                       ) : 'Payments & Billing'}
                     </p>
+
+                    {/* Dentist Filter Dropdown */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '12px' }}>
+                      <label htmlFor="ad-pay-dentist-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
+                        Dentist:
+                      </label>
+                      <select
+                        id="ad-pay-dentist-filter"
+                        value={drillDentistPayments ? (drillDentistPayments._id || drillDentistPayments.id) : 'all'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'all') {
+                            setDrillDentistPayments(null);
+                          } else {
+                            const found = users.find(u => (u._id || u.id) === val) || dentistPaymentGroups.find(d => (d._id || d.id) === val);
+                            if (found) setDrillDentistPayments(found);
+                          }
+                          setSelectedPaymentIds([]);
+                        }}
+                        style={{
+                          border: '1px solid #c2dcd0',
+                          borderRadius: '8px',
+                          padding: '5px 10px',
+                          fontSize: '0.82rem',
+                          color: '#1a3028',
+                          background: '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value="all">All Dentists</option>
+                        {users.filter(u => u.status === 'approved').map(u => (
+                          <option key={u._id || u.id} value={u._id || u.id}>
+                            Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <TwentyFirstIconButton
                     icon={Ico.refresh(15)}
@@ -962,6 +999,26 @@ const AdminDashboard = () => {
                           </button>
                         </>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pendingIds = filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').map(p => p._id);
+                          setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
+                        }}
+                        style={{
+                          background: '#fef3c7',
+                          border: '1px solid #f59e0b',
+                          borderRadius: '6px',
+                          padding: '4px 10px',
+                          fontSize: '0.78rem',
+                          color: '#92400e',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                        }}
+                        title="Select all pending orders for batch payment"
+                      >
+                        Select All Pending ({filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').length})
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1835,6 +1892,8 @@ const AdminDashboard = () => {
       {selectedUserId && (
         <DentistDetailModal
           userId={selectedUserId}
+          users={users}
+          onSelectDentist={(id) => setSelectedUserId(id)}
           onClose={() => setSelectedUserId(null)}
           onDeleteUser={() => {
             fetchUsers();

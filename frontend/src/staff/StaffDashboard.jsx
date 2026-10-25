@@ -34,6 +34,7 @@ const STAGES = [
 const NAV_ITEMS = [
   { key: 'orders', label: 'Orders', icon: (s) => Ico.labOrder(typeof s === 'number' ? s : (s ? 20 : 18)) },
   { key: 'dentists', label: 'Dentists', icon: (s) => Ico.clinic(typeof s === 'number' ? s : (s ? 20 : 18)) },
+  { key: 'payments', label: 'Payments', icon: (s) => Ico.payments ? Ico.payments(typeof s === 'number' ? s : (s ? 20 : 18)) : Ico.wallet(typeof s === 'number' ? s : (s ? 20 : 18)) },
   { key: 'inventory', label: 'Inventory', icon: (s) => Ico.package(typeof s === 'number' ? s : (s ? 20 : 18)) },
   { key: 'leaderboard', label: 'Leaderboard', icon: (s) => Ico.chart(typeof s === 'number' ? s : (s ? 20 : 18)) },
   { key: 'settings', label: 'Settings', icon: (s) => Ico.settings(typeof s === 'number' ? s : (s ? 20 : 18)) },
@@ -45,11 +46,11 @@ const StaffDashboard = () => {
   const [activeView, setActiveView] = useState('orders');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Receptionist gets a strict 4-tab portal only (orders, dentists, leaderboard, settings)
+  // Receptionist gets orders, dentists, payments, leaderboard, settings
   const isReceptionist = staff?.designation === 'Receptionist';
 
   const visibleNavItems = isReceptionist
-    ? NAV_ITEMS.filter(item => ['orders', 'dentists', 'leaderboard', 'settings'].includes(item.key))
+    ? NAV_ITEMS.filter(item => ['orders', 'dentists', 'payments', 'leaderboard', 'settings'].includes(item.key))
     : NAV_ITEMS;
 
   // Department-specific filter: technicians only see their category
@@ -216,6 +217,29 @@ const StaffDashboard = () => {
     setSingleInvoiceModal(order);
   };
 
+  // ── Staff All Payments ──────────────────────────────────────────────────
+  const [staffPayments, setStaffPayments] = useState([]);
+  const [loadingStaffPayments, setLoadingStaffPayments] = useState(false);
+  const [staffPayDentistFilter, setStaffPayDentistFilter] = useState('all');
+  const [staffPayMonthFilter, setStaffPayMonthFilter] = useState('all');
+  const [staffPayStatusFilter, setStaffPayStatusFilter] = useState('all');
+
+  const fetchStaffPayments = useCallback(async () => {
+    setLoadingStaffPayments(true);
+    try {
+      const params = new URLSearchParams();
+      if (staffPayDentistFilter && staffPayDentistFilter !== 'all') params.append('dentistId', staffPayDentistFilter);
+      if (staffPayMonthFilter && staffPayMonthFilter !== 'all') params.append('month', staffPayMonthFilter);
+      if (staffPayStatusFilter && staffPayStatusFilter !== 'all') params.append('status', staffPayStatusFilter);
+      const res = await authFetch(`${STAFF_API}/payments?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStaffPayments(data.payments || []);
+      }
+    } catch {}
+    setLoadingStaffPayments(false);
+  }, [authFetch, STAFF_API, staffPayDentistFilter, staffPayMonthFilter, staffPayStatusFilter]);
+
   const fetchDentists = useCallback(async () => {
     setLoadingDentists(true);
     try {
@@ -224,6 +248,13 @@ const StaffDashboard = () => {
     } catch {}
     setLoadingDentists(false);
   }, [authFetch, STAFF_API]);
+
+  useEffect(() => {
+    if (activeView === 'payments' && staff) {
+      fetchStaffPayments();
+      if (dentists.length === 0) fetchDentists();
+    }
+  }, [activeView, staff, fetchStaffPayments, dentists.length, fetchDentists]);
 
   useEffect(() => { if (activeView === 'dentists' && staff) fetchDentists(); }, [activeView, staff, fetchDentists]);
 
@@ -311,6 +342,17 @@ const StaffDashboard = () => {
     setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...monthIds])));
   };
 
+  const totalSelectedAmount = React.useMemo(() => {
+    if (selectedDentist) {
+      return dentistOrders
+        .filter(o => selectedStaffPaymentIds.includes(o._id || o.id || o.caseId))
+        .reduce((s, o) => s + (Number(o.paymentAmount) || 0), 0);
+    }
+    return (staffPayments || [])
+      .filter(p => selectedStaffPaymentIds.includes(p._id || p.id))
+      .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  }, [selectedDentist, dentistOrders, staffPayments, selectedStaffPaymentIds]);
+
   const handleBatchStaffPaymentSubmit = async () => {
     if (selectedStaffPaymentIds.length === 0) return;
     setBatchPayError('');
@@ -330,7 +372,14 @@ const StaffDashboard = () => {
         selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)
       );
       const orderIds = selectedOrders.map(o => o._id || o.id || o.caseId);
-      const paymentIds = selectedOrders.map(o => o.paymentId).filter(Boolean);
+      const directPaymentIds = (staffPayments || [])
+        .filter(p => selectedStaffPaymentIds.includes(p._id || p.id))
+        .map(p => p._id || p.id);
+      const paymentIds = Array.from(new Set([
+        ...directPaymentIds,
+        ...selectedOrders.map(o => o.paymentId).filter(Boolean),
+        ...selectedStaffPaymentIds,
+      ]));
 
       const res = await authFetch(`${STAFF_API}/payments/batch`, {
         method: 'POST',
@@ -350,6 +399,7 @@ const StaffDashboard = () => {
         setBatchPayModalOpen(false);
         fetchOrders();
         if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+        fetchStaffPayments();
 
         if (batchPayForm.status === 'Paid' && data.batchId) {
           try {
@@ -1011,36 +1061,58 @@ const StaffDashboard = () => {
                           >
                             + Select {staffPayMonth} Orders ({filteredStaffDentistOrders.length})
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const dId = selectedDentist.id || selectedDentist._id;
-                              const mQuery = staffPayMonth && staffPayMonth !== 'all' ? `&month=${encodeURIComponent(staffPayMonth)}` : '';
-                              window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
-                            }}
-                            style={{
-                              background: '#1e5038',
-                              color: '#ffffff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '6px 12px',
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                            }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                              <polyline points="7 10 12 15 17 10"/>
-                              <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                            Download Pending Bill
-                          </button>
                         </>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pendingIds = dentistOrders
+                            .filter(o => (o.paymentAmount > 0 || o.paymentStatus) && o.paymentStatus !== 'Paid')
+                            .map(o => o._id || o.id || o.caseId);
+                          setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
+                        }}
+                        style={{
+                          background: '#fef3c7',
+                          border: '1px solid #f59e0b',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '0.78rem',
+                          color: '#92400e',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                        }}
+                        title="Select all pending orders for batch payment"
+                      >
+                        Select All Pending ({dentistOrders.filter(o => (o.paymentAmount > 0 || o.paymentStatus) && o.paymentStatus !== 'Paid').length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const dId = selectedDentist.id || selectedDentist._id;
+                          const mQuery = staffPayMonth && staffPayMonth !== 'all' ? `&month=${encodeURIComponent(staffPayMonth)}` : '';
+                          window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
+                        }}
+                        style={{
+                          background: '#1e5038',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="7 10 12 15 17 10"/>
+                          <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download Pending Bill
+                      </button>
                       {selectedStaffPaymentIds.length > 0 && (
                         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#78937E', background: '#eff5f1', padding: '3px 10px', borderRadius: '6px' }}>
@@ -1200,7 +1272,7 @@ const StaffDashboard = () => {
                           </span>
                           <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#e2ece6' }}>
                             Total: <strong style={{ color: '#fff', fontSize: '1.02rem' }}>
-                              {formatINR(dentistOrders.filter(o => selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)).reduce((s, o) => s + (Number(o.paymentAmount) || 0), 0))}
+                              {formatINR(totalSelectedAmount)}
                             </strong>
                           </span>
                         </div>
@@ -1229,6 +1301,384 @@ const StaffDashboard = () => {
                   </div>
                 )
               )}
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* ── PAYMENTS VIEW ────────────────────────────────────────────── */}
+      {activeView === 'payments' && (
+        <main className="sd-main">
+          <div className="sd-section-header">
+            <div>
+              <h2 className="sd-section-title">Payments & Billing</h2>
+              <span style={{ fontSize: '0.82rem', color: '#4a7060', fontWeight: 500 }}>
+                {staffPayments.length} records found
+              </span>
+            </div>
+            <div className="sd-controls" style={{ flexWrap: 'wrap', gap: '8px' }}>
+              {/* Dentist Filter */}
+              <select
+                value={staffPayDentistFilter}
+                onChange={e => {
+                  setStaffPayDentistFilter(e.target.value);
+                  setSelectedStaffPaymentIds([]);
+                }}
+                className="sd-search"
+                style={{ height: '36px', padding: '0 10px', fontSize: '0.82rem', width: 'auto', minWidth: '160px' }}
+                aria-label="Filter by Dentist"
+              >
+                <option value="all">All Dentists</option>
+                {dentists.map(d => (
+                  <option key={d._id || d.id} value={d._id || d.id}>
+                    {d.name} {d.clinicName ? `(${d.clinicName})` : ''}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="month"
+                  value={staffPayMonthFilter === 'all' ? '' : staffPayMonthFilter}
+                  onChange={e => {
+                    setStaffPayMonthFilter(e.target.value || 'all');
+                    setSelectedStaffPaymentIds([]);
+                  }}
+                  className="sd-search"
+                  style={{ height: '36px', padding: '0 8px', fontSize: '0.82rem', width: 'auto' }}
+                  aria-label="Filter by Month"
+                />
+                {staffPayMonthFilter !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStaffPayMonthFilter('all');
+                      setSelectedStaffPaymentIds([]);
+                    }}
+                    style={{
+                      background: '#eff5f1',
+                      border: '1px solid #78937E',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '0.75rem',
+                      color: '#4a7060',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      height: '36px',
+                    }}
+                  >
+                    All Months
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={staffPayStatusFilter}
+                onChange={e => {
+                  setStaffPayStatusFilter(e.target.value);
+                  setSelectedStaffPaymentIds([]);
+                }}
+                className="sd-search"
+                style={{ height: '36px', padding: '0 10px', fontSize: '0.82rem', width: 'auto' }}
+                aria-label="Filter by Status"
+              >
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+
+              {/* Select All Pending button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const pendingIds = staffPayments.filter(p => p.paymentStatus !== 'Paid').map(p => p._id);
+                  setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
+                }}
+                style={{
+                  background: '#fef3c7',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  color: '#92400e',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  height: '36px',
+                }}
+                title="Select all pending orders for batch payment"
+              >
+                Select All Pending ({staffPayments.filter(p => p.paymentStatus !== 'Paid').length})
+              </button>
+
+              {/* Download Pending Bill button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const dQuery = staffPayDentistFilter !== 'all' ? `&dentistId=${encodeURIComponent(staffPayDentistFilter)}` : '';
+                  const mQuery = staffPayMonthFilter !== 'all' ? `&month=${encodeURIComponent(staffPayMonthFilter)}` : '';
+                  window.open(`/invoice?unpaid=true${dQuery}${mQuery}`, '_blank');
+                }}
+                style={{
+                  background: '#1e5038',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  height: '36px',
+                }}
+                title="Download official statement of outstanding dues"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Pending Bill
+              </button>
+
+              {/* Refresh button */}
+              <TwentyFirstIconButton
+                icon={Ico.refresh(16)}
+                title="Refresh Payments"
+                ariaLabel="Refresh Payments"
+                onClick={fetchStaffPayments}
+                variant="secondary"
+                size="md"
+              />
+            </div>
+          </div>
+
+          {/* Selection count & Clear */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: '12px', padding: '6px 4px',
+          }}>
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#4a7060',
+                userSelect: 'none',
+              }}
+              onClick={() => {
+                const curIds = staffPayments.map(p => p._id);
+                const allSel = curIds.length > 0 && curIds.every(id => selectedStaffPaymentIds.includes(id));
+                if (allSel) {
+                  setSelectedStaffPaymentIds(prev => prev.filter(id => !curIds.includes(id)));
+                } else {
+                  setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...curIds])));
+                }
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={staffPayments.length > 0 && staffPayments.every(p => selectedStaffPaymentIds.includes(p._id))}
+                onChange={() => {
+                  const curIds = staffPayments.map(p => p._id);
+                  const allSel = curIds.length > 0 && curIds.every(id => selectedStaffPaymentIds.includes(id));
+                  if (allSel) {
+                    setSelectedStaffPaymentIds(prev => prev.filter(id => !curIds.includes(id)));
+                  } else {
+                    setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...curIds])));
+                  }
+                }}
+                style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+              />
+              <span>Select All Visible ({staffPayments.length})</span>
+            </label>
+            {selectedStaffPaymentIds.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e5038', background: '#edf5f0', padding: '2px 8px', borderRadius: '6px' }}>
+                  {selectedStaffPaymentIds.length} selected ({formatINR(totalSelectedAmount)})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStaffPaymentIds([])}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#c53030',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
+          </div>
+
+          {loadingStaffPayments ? (
+            <div className="sd-loading">
+              {[1, 2, 3, 4].map(i => <div key={i} className="sd-skeleton-card" />)}
+            </div>
+          ) : staffPayments.length === 0 ? (
+            <div className="sd-empty">
+              {Ico.wallet ? Ico.wallet(48) : Ico.grid(48)}
+              <p>No payment records found.</p>
+            </div>
+          ) : (
+            <div className="sd-order-grid">
+              {staffPayments.map(payment => {
+                const pid = payment._id;
+                const isSelected = selectedStaffPaymentIds.includes(pid);
+                return (
+                  <div
+                    key={pid}
+                    className="sd-order-card"
+                    style={{
+                      border: isSelected ? '1.5px solid #1e5038' : undefined,
+                      background: isSelected ? '#edf5f0' : undefined,
+                      transition: 'background 0.15s ease, border-color 0.15s ease',
+                    }}
+                  >
+                    <div className="sd-order-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div
+                          onClick={e => { e.stopPropagation(); toggleStaffPaymentSelect(pid); }}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          title="Select for batch payment"
+                          aria-label="Select order for batch payment"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleStaffPaymentSelect(pid)}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
+                          />
+                        </div>
+                        <div>
+                          <span className="sd-order-caseid">{payment.caseId || 'N/A'}</span>
+                          <span className="sd-order-patient">{payment.patientName || 'Unknown'}</span>
+                        </div>
+                      </div>
+                      <StatusBadge status={payment.paymentStatus || 'Pending'} size="sm" />
+                    </div>
+                    <div className="sd-order-meta">
+                      {payment.owner?.name && (
+                        <span className="sd-meta-item">
+                          {Ico.clinic(13)} {payment.owner.name} {payment.owner.clinicName ? `· ${payment.owner.clinicName}` : ''}
+                        </span>
+                      )}
+                      <span className="sd-meta-item">Amount: {payment.amount > 0 ? formatINR(payment.amount) : 'N/A'}</span>
+                      {payment.paymentMode && <span className="sd-meta-item">Mode: {payment.paymentMode}</span>}
+                      {payment.paidAt && <span className="sd-meta-item">Paid: {new Date(payment.paidAt).toLocaleDateString('en-IN')}</span>}
+                      {payment.serviceType && <span className="sd-meta-item">Type: {payment.serviceType}</span>}
+                    </div>
+                    <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <TwentyFirstIconButton
+                        icon={Ico.creditCard(14)}
+                        title="Update Payment"
+                        ariaLabel="Update Payment"
+                        onClick={() => setEditPaymentModal({ ...payment, paymentId: payment._id, paymentAmount: payment.amount })}
+                        size="sm"
+                        variant="success"
+                      />
+                      {payment.batchId && (
+                        <button
+                          type="button"
+                          onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(payment.batchId)}`, '_blank')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#eff5f1',
+                            border: '1px solid #78937E',
+                            color: '#1e5038',
+                            borderRadius: '6px',
+                            padding: '4px 8px',
+                            fontSize: '0.74rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                          title={`Batch: ${payment.batchId}`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                          Batch Invoice
+                        </button>
+                      )}
+                      {payment.paymentStatus === 'Paid' && (
+                        <TwentyFirstIconButton
+                          icon={Ico.fileText(14)}
+                          title="View / Print Invoice"
+                          ariaLabel="View / Print Invoice"
+                          onClick={() => handleViewStaffInvoice(payment)}
+                          size="sm"
+                          variant="soft"
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Floating Batch Settlement Bar in Payments view */}
+          {selectedStaffPaymentIds.length > 0 && (
+            <div style={{
+              position: 'fixed',
+              bottom: '76px',
+              left: '16px',
+              right: '16px',
+              maxWidth: '800px',
+              margin: '0 auto',
+              zIndex: 60,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 18px',
+              borderRadius: '14px',
+              background: '#1a3028',
+              color: '#fff',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ background: '#25503b', color: '#a3bfb1', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700 }}>
+                  {selectedStaffPaymentIds.length} {selectedStaffPaymentIds.length === 1 ? 'case' : 'cases'} selected
+                </span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#e2ece6' }}>
+                  Total: <strong style={{ color: '#fff', fontSize: '1.02rem' }}>
+                    {formatINR(totalSelectedAmount)}
+                  </strong>
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStaffPaymentIds([])}
+                  style={{ background: 'transparent', border: '1px solid #4a6a5a', color: '#c2d6cc', padding: '8px 14px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', minHeight: '38px' }}
+                >
+                  Deselect
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBatchPayForm({ status: 'Paid', paymentMode: 'Cash', referenceNumber: '', notes: '' });
+                    setBatchPayError('');
+                    setBatchPayModalOpen(true);
+                  }}
+                  style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
+                >
+                  {Ico.creditCard(14)} Settle Payment for {selectedStaffPaymentIds.length} Cases
+                </button>
+              </div>
             </div>
           )}
         </main>
@@ -1456,14 +1906,14 @@ const StaffDashboard = () => {
       >
         <div className="sd-modal-content">
           <div className="sd-modal-header">
-            <h3>Update Payment Details ({selectedStaffPaymentIds.length} Orders)</h3>
+            <h3>Update Payment Details ({selectedStaffPaymentIds.length} Cases)</h3>
             <button className="sd-modal-close" onClick={() => setBatchPayModalOpen(false)} aria-label="Close">{Ico.x(16)}</button>
           </div>
           <div className="sd-modal-body">
             <div className="sd-modal-summary">
               {selectedDentist && <span><strong>Dentist:</strong> {selectedDentist.name}</span>}
               <span><strong>Cases:</strong> {selectedStaffPaymentIds.length}</span>
-              <span><strong>Total:</strong> {formatINR(dentistOrders.filter(o => selectedStaffPaymentIds.includes(o._id || o.id || o.caseId)).reduce((s, o) => s + (Number(o.paymentAmount) || 0), 0))}</span>
+              <span><strong>Total:</strong> {formatINR(totalSelectedAmount)}</span>
             </div>
 
             <div className="sd-field">

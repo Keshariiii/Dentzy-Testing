@@ -107,6 +107,8 @@ const MobileDashboard = () => {
   const [error,       setError]       = useState(null);
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [unpaidMonthFilter, setUnpaidMonthFilter] = useState('');
+  const [overviewMonth, setOverviewMonth] = useState('');
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
 
@@ -407,6 +409,22 @@ const MobileDashboard = () => {
               </div>
               <span className="m-stat-label">Completed</span>
             </div>
+            <div
+              className="m-stat-card m-stat--amber m-stat-card--clickable"
+              onClick={() => setActiveTab('payments')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('payments'); } }}
+            >
+              <div className="m-stat-top">
+                <span className="m-stat-num">₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}</span>
+                <span className="m-stat-icon">{Icons.payments(22)}</span>
+              </div>
+              <span className="m-stat-label">Outstanding</span>
+              <div className="m-stat-tags">
+                <span className="m-tag m-tag--amber">{(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} Unpaid</span>
+              </div>
+            </div>
           </div>
         ) : (
           <SkeletonGroup>
@@ -430,27 +448,145 @@ const MobileDashboard = () => {
         {/* Pipeline */}
         {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
+        {/* Outstanding Balance & Credit Limit Overview Card */}
+        {stats?.payments && (
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e2ece6',
+            borderRadius: '12px',
+            padding: '14px',
+            marginTop: '14px',
+            marginBottom: '14px',
+            boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80' }}>
+              Outstanding Balance / Amount to Pay
+            </div>
+            <div style={{ fontSize: '1.45rem', fontWeight: 800, color: (stats.payments?.totalUnpaid || 0) > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
+              ₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '10px' }}>
+              Across {(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} unpaid orders pending clearance
+            </div>
 
+            {/* Credit Limit Progress Bar */}
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 600, color: '#4a7060', marginBottom: '4px' }}>
+                <span>Credit Limit ({Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%)</span>
+                <span>₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')} / ₹2,00,000</span>
+              </div>
+              <div style={{ height: '6px', background: '#e8f5ee', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%`,
+                  background: (stats.payments?.totalUnpaid || 0) >= 200000 ? '#dc2626' : ((stats.payments?.totalUnpaid || 0) >= 150000 ? '#ea580c' : '#1e5038'),
+                  borderRadius: '3px',
+                }} />
+              </div>
+            </div>
 
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="month"
+                value={overviewMonth}
+                onChange={(e) => setOverviewMonth(e.target.value)}
+                style={{
+                  border: '1px solid #c2dcd0',
+                  borderRadius: '8px',
+                  padding: '6px 8px',
+                  fontSize: '0.78rem',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  flex: 1,
+                  minHeight: '38px',
+                }}
+                aria-label="Filter bill by month"
+              />
+              <button
+                type="button"
+                onClick={() => window.open(`/invoice?unpaid=true${overviewMonth ? `&month=${encodeURIComponent(overviewMonth)}` : ''}`, '_blank')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '7px 12px',
+                  background: '#1e5038',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  minHeight: '38px',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Bill
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Credit Limit Warning Banner */}
+        {(stats?.payments?.totalUnpaid || 0) >= 200000 && (
+          <div
+            style={{
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              marginTop: '16px',
+              marginBottom: '6px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              color: '#991b1b',
+              fontSize: '0.82rem',
+              lineHeight: 1.45,
+            }}
+            role="alert"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <strong>Credit limit reached:</strong> Your outstanding balance has crossed the {formatINR(200000)} credit limit. New orders may be held until dues are cleared.{' '}
+              <a href="tel:+919503668112" style={{ color: '#7f1d1d', fontWeight: 700, textDecoration: 'underline' }}>Contact lab support</a>
+            </div>
+          </div>
+        )}
 
         {/* Recent Active Cases */}
         {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (
-          <div className="m-recent-cases">
+          <div className="m-recent-cases" style={{ marginTop: '20px' }}>
             <div className="m-recent-cases-header">
               <span className="m-section-h" style={{ marginBottom: 0 }}>Recent Cases</span>
               <button onClick={() => setActiveTab('orders')} className="m-view-all-btn">View All →</button>
             </div>
             <div className="m-recent-cases-list">
               {orders.filter(o => o.status !== 'Completed').slice(0, 4).map(order => (
-                <div key={order._id || order.id} className="m-recent-row" onClick={() => setSelectedOrder(order)}>
-                  <div className="m-recent-row-top">
-                    <span className="m-case-mono">{order.caseId}</span>
-                    <StatusBadge status={order.status} size="sm" />
+                <div key={order._id || order.id} className="m-recent-row" onClick={() => setSelectedOrder(order)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 2px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div className="m-recent-row-top">
+                      <span className="m-case-mono">{order.caseId}</span>
+                      <StatusBadge status={order.status} size="sm" />
+                    </div>
+                    <div className="m-recent-row-bottom" style={{ marginTop: '4px' }}>
+                      <span className="m-recent-name">{order.patientName}</span>
+                      <span className="m-recent-tag">{order.serviceType}{order.toothNumber ? ` #${order.toothNumber}` : ''}</span>
+                    </div>
                   </div>
-                  <div className="m-recent-row-bottom">
-                    <span className="m-recent-name">{order.patientName}</span>
-                    <span className="m-recent-tag">{order.serviceType}{order.toothNumber ? ` #${order.toothNumber}` : ''}</span>
-                  </div>
+                  <span style={{ color: '#78937E', marginLeft: '12px', flexShrink: 0 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </span>
                 </div>
               ))}
             </div>
@@ -551,6 +687,28 @@ const MobileDashboard = () => {
                   <span className="m-order-id">{o.caseId}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
+                    {o.batchId && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`/invoice?batchId=${encodeURIComponent(o.batchId)}`, '_blank');
+                        }}
+                        style={{
+                          background: '#e8f2ec',
+                          border: '1px solid #c2dcd0',
+                          color: '#1e5038',
+                          borderRadius: '4px',
+                          padding: '2px 5px',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                        title="Download consolidated batch invoice"
+                      >
+                        Batch Invoice
+                      </button>
+                    )}
                     <PriorityBadge priority={o.priority} />
                     <StatusPill status={o.status} />
                   </div>
@@ -582,6 +740,32 @@ const MobileDashboard = () => {
   const renderPayments = () => {
     const data = payments;
 
+    const totalUnpaid = stats?.payments?.totalUnpaid || 0;
+    const unpaidCount = (stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0);
+    const creditLimit = 200000;
+    const creditUsedPct = Math.min(100, Math.round((totalUnpaid / creditLimit) * 100));
+
+    // Batch groups
+    const batchMap = new Map();
+    data.forEach(p => {
+      if (p.batchId && (p.paymentStatus === 'Paid' || p.status === 'Paid')) {
+        if (!batchMap.has(p.batchId)) {
+          batchMap.set(p.batchId, {
+            batchId: p.batchId,
+            count: 0,
+            totalAmount: 0,
+            paymentMode: p.paymentMode || '',
+            referenceNumber: p.referenceNumber || '',
+            paidAt: p.paidAt || '',
+          });
+        }
+        const g = batchMap.get(p.batchId);
+        g.count += 1;
+        g.totalAmount += Number(p.amount) || Number(p.paymentAmount) || 0;
+      }
+    });
+    const batchGroups = Array.from(batchMap.values());
+
     const modeBadge = (mode) => {
       const colors = { Cash: { bg: '#dcfce7', fg: '#166534' }, Cheque: { bg: '#dbeafe', fg: '#1d4ed8' }, UPI: { bg: '#fae8ff', fg: '#7e22ce' } };
       const c = colors[mode] || { bg: '#f0f0f0', fg: '#666' };
@@ -592,51 +776,190 @@ const MobileDashboard = () => {
       <div className="m-tab-content">
         <h2 className="m-tab-title">Payments</h2>
 
-        {/* Mobile Outstanding Bill Banner */}
+        {/* Mobile Outstanding Bill Card */}
         <div style={{
           background: '#ffffff',
           border: '1px solid #e2ece6',
           borderRadius: '12px',
-          padding: '14px',
+          padding: '16px',
           marginBottom: '14px',
           boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
         }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#708c80' }}>
             Outstanding Balance to Pay
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: (stats?.payments?.totalUnpaid || 0) > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
-            ₹{(stats?.payments?.totalUnpaid || 0).toLocaleString('en-IN')}
+          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
+            ₹{totalUnpaid.toLocaleString('en-IN')}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '10px' }}>
-            Across {((stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0))} unpaid orders
+          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '12px' }}>
+            Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
           </div>
-          <button
-            type="button"
-            onClick={() => window.open('/invoice?unpaid=true', '_blank')}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '9px 12px',
-              background: '#1e5038',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download Pending Monthly Bill
-          </button>
+
+          {/* Credit Limit Usage Bar */}
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+              <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
+              <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
+            </div>
+            <div style={{ height: '7px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${creditUsedPct}%`,
+                  height: '100%',
+                  background: creditUsedPct >= 100 ? '#dc2626' : creditUsedPct >= 80 ? '#f59e0b' : '#1e5038',
+                  borderRadius: '4px',
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Month Filter & Download Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="month"
+                value={unpaidMonthFilter}
+                onChange={(e) => setUnpaidMonthFilter(e.target.value)}
+                style={{
+                  flex: 1,
+                  border: '1px solid #c2dcd0',
+                  borderRadius: '8px',
+                  padding: '7px 10px',
+                  fontSize: '0.82rem',
+                  color: '#1a3028',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  minHeight: '40px',
+                }}
+                title="Filter unpaid statement by month"
+              />
+              {unpaidMonthFilter && (
+                <button
+                  type="button"
+                  onClick={() => setUnpaidMonthFilter('')}
+                  style={{
+                    background: '#f0f4f2',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 10px',
+                    fontSize: '0.75rem',
+                    color: '#4a7060',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    minHeight: '40px',
+                  }}
+                >
+                  All
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const url = unpaidMonthFilter ? `/invoice?unpaid=true&month=${encodeURIComponent(unpaidMonthFilter)}` : '/invoice?unpaid=true';
+                window.open(url, '_blank');
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '10px 12px',
+                background: '#1e5038',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                minHeight: '42px',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download Pending Bill {unpaidMonthFilter ? `(${unpaidMonthFilter})` : ''}
+            </button>
+          </div>
         </div>
+
+        {/* Consolidated Monthly Batch Receipts */}
+        {batchGroups.length > 0 && (
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e2ece6',
+            borderRadius: '12px',
+            padding: '14px',
+            marginBottom: '14px',
+            boxShadow: '0 2px 8px rgba(30, 80, 56, 0.04)',
+          }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a3028', marginBottom: '10px' }}>
+              Consolidated Monthly Batch Receipts
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {batchGroups.map(bg => (
+                <div
+                  key={bg.batchId}
+                  style={{
+                    padding: '10px 12px',
+                    background: '#f8faf9',
+                    border: '1px solid #e8f0ec',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.78rem', color: '#1e5038', background: '#eaf3ee', padding: '2px 6px', borderRadius: '4px' }}>
+                      {bg.batchId}
+                    </span>
+                    <strong style={{ fontSize: '0.85rem', color: '#1a3028' }}>
+                      ₹{bg.totalAmount.toLocaleString('en-IN')}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#666' }}>
+                    {bg.count} {bg.count === 1 ? 'order' : 'orders'}
+                    {bg.paymentMode && ` • Mode: ${bg.paymentMode}`}
+                    {bg.referenceNumber && ` (Ref: ${bg.referenceNumber})`}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(bg.batchId)}`, '_blank')}
+                    style={{
+                      width: '100%',
+                      background: '#ffffff',
+                      border: '1px solid #c2dcd0',
+                      borderRadius: '6px',
+                      padding: '7px 10px',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      color: '#1e5038',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    Download Batch Invoice
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', lineHeight: 1.4 }}>
           <strong>Payment Modes:</strong> Direct UPI (mobile / UPI ID), Cash, or Cheque. Status is updated once verified by lab administration.
         </div>
@@ -678,7 +1001,32 @@ const MobileDashboard = () => {
                 >
                   <div className="m-compact-card__top">
                     <span className="m-order-id">{p.caseId}</span>
-                    <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {p.paymentMode && modeBadge(p.paymentMode)}
+                      <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
+                      {p.batchId && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`/invoice?batchId=${encodeURIComponent(p.batchId)}`, '_blank');
+                          }}
+                          style={{
+                            background: '#e8f2ec',
+                            border: '1px solid #c2dcd0',
+                            color: '#1e5038',
+                            borderRadius: '4px',
+                            padding: '2px 5px',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                          title="Download consolidated batch invoice"
+                        >
+                          Batch Invoice
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="m-compact-card__main">
                     <div className="m-compact-card__info">

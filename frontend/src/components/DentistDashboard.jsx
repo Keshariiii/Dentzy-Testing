@@ -106,6 +106,7 @@ const DentistDashboard = () => {
 
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
+  const [overviewMonth, setOverviewMonth] = useState('');
 
   // Sync profile form when user changes
   useEffect(() => {
@@ -310,10 +311,136 @@ const DentistDashboard = () => {
                 <span className="ud-stat-lbl">Completed</span>
               </div>
             </div>
+
+            <div
+              className="ud-stat-card ud-stat-card--amber ud-stat-card--clickable"
+              title="Current outstanding balance pending lab clearance — click to view payments & statements"
+              onClick={() => setActiveTab('payments')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('payments'); } }}
+            >
+              <div className="ud-stat-icon-wrap ud-icon-amber">{Icons.payments(22)}</div>
+              <div className="ud-stat-info">
+                <span className="ud-stat-num">₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}</span>
+                <span className="ud-stat-lbl">Outstanding Balance</span>
+              </div>
+              <div className="ud-stat-breakdown">
+                <span className="tag-pending">{(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} Unpaid</span>
+                <span style={{ fontSize: '0.74rem', color: '#1e5038', fontWeight: 600 }}>Limit: ₹2,00,000</span>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="ud-stats-skeleton">
-            {[1, 2].map(i => <div key={i} className="ud-skeleton-card" />)}
+            {[1, 2, 3].map(i => <div key={i} className="ud-skeleton-card" />)}
+          </div>
+        )}
+
+        {/* Outstanding Balance & Credit Limit Overview Card */}
+        {stats?.payments && (
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e2ece6',
+            borderRadius: '12px',
+            padding: '18px 20px',
+            marginBottom: '20px',
+            boxShadow: '0 2px 10px rgba(30, 80, 56, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
+                  Outstanding Balance / Amount to Pay
+                </span>
+                <div style={{ fontSize: '1.65rem', fontWeight: 800, color: (stats.payments?.totalUnpaid || 0) > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
+                  ₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: '#555', marginTop: '2px' }}>
+                  Across {(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} unpaid orders pending lab clearance
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="month"
+                  value={overviewMonth}
+                  onChange={(e) => setOverviewMonth(e.target.value)}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid #c2dcd0',
+                    fontSize: '0.82rem',
+                    background: '#fff',
+                    color: '#1a3028',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Filter bill by month"
+                />
+                {overviewMonth && (
+                  <button
+                    type="button"
+                    onClick={() => setOverviewMonth('')}
+                    style={{
+                      background: '#f0f4f2',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      fontSize: '0.75rem',
+                      color: '#4a7060',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    All Unpaid
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => window.open(`/invoice?unpaid=true${overviewMonth ? `&month=${encodeURIComponent(overviewMonth)}` : ''}`, '_blank')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 14px',
+                    background: '#1e5038',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                  title="Download official statement of outstanding dues"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download Pending Bill
+                </button>
+              </div>
+            </div>
+
+            {/* Credit Limit Progress Bar */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+                <span>Lab Credit Limit Usage ({Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%)</span>
+                <span>₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')} / ₹2,00,000</span>
+              </div>
+              <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%`,
+                  background: (stats.payments?.totalUnpaid || 0) >= 200000 ? '#dc2626' : ((stats.payments?.totalUnpaid || 0) >= 150000 ? '#ea580c' : '#1e5038'),
+                  borderRadius: '4px',
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            </div>
           </div>
         )}
 
@@ -451,7 +578,34 @@ const DentistDashboard = () => {
                 </td>
                 <td><span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span></td>
                 <td>{formatDate(o.dueDate)}</td>
-                <td><StatusBadge status={o.paymentStatus || 'Pending'} size="sm" /></td>
+                <td>
+                  <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
+                  {o.batchId && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`/invoice?batchId=${encodeURIComponent(o.batchId)}`, '_blank');
+                      }}
+                      style={{
+                        display: 'block',
+                        marginTop: '4px',
+                        background: '#e8f2ec',
+                        border: '1px solid #c2dcd0',
+                        color: '#1e5038',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Download consolidated batch invoice"
+                    >
+                      Batch Invoice
+                    </button>
+                  )}
+                </td>
                 <td><StatusBadge status={o.status} /></td>
               </tr>
             ))}</tbody>

@@ -1565,7 +1565,7 @@
 .m-pill-outline:active { background: #f0f5f2; }
 
 /* ── Mobile Recent Cases ─────────────────────────────────── */
-.m-recent-cases { margin: 0 0 var(--dz-space-4, 16px); }
+.m-recent-cases { margin: 24px 0 var(--dz-space-4, 16px); }
 .m-recent-cases-header {
   display: flex;
   align-items: center;

@@ -476,7 +476,18 @@ staff.get('/users/:id', verifyStaff(), async (c) => {
 
     return c.json({
       user: { ...user, _id: user.id },
-      orders: orders.map(o => ({ ...o, _id: o.id })),
+      orders: orders.map(o => ({
+        ...o,
+        _id: o.id,
+        amount: Number(o.paymentAmount) || 0,
+        paymentAmount: Number(o.paymentAmount) || 0,
+        paymentStatus: o.paymentStatus,
+        paymentMode: o.paymentMode,
+        referenceNumber: o.referenceNumber,
+        batchId: o.batchId || '',
+        paymentId: o.paymentId || '',
+        paidAt: o.paidAt,
+      })),
     });
   } catch (err) {
     logger.error('Staff user detail error', { error: err.message });
@@ -524,9 +535,18 @@ staff.get('/payments', verifyStaff(), async (c) => {
   try {
     const dentistId = c.req.query('dentistId');
     const month = c.req.query('month');
-    let sql = `SELECT p.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
-               FROM payments p LEFT JOIN users u ON p.ownerId = u.id WHERE 1=1`;
+    const status = c.req.query('status');
+    let sql = `SELECT p.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
+               o.serviceType as orderServiceType
+               FROM payments p
+               LEFT JOIN users u ON p.ownerId = u.id
+               LEFT JOIN lab_orders o ON p.caseId = o.caseId AND p.ownerId = o.ownerId
+               WHERE 1=1`;
     const params = [];
+    if (status && status !== 'all') {
+      sql += ' AND p.status = ?';
+      params.push(status);
+    }
     if (dentistId) {
       sql += ' AND p.ownerId = ?';
       params.push(dentistId);
@@ -540,6 +560,8 @@ staff.get('/payments', verifyStaff(), async (c) => {
     return c.json({
       payments: results.map(r => ({
         ...r, _id: r.id,
+        serviceType: r.orderServiceType || 'Other',
+        paymentStatus: r.status || 'Pending',
         owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
       })),
     });

@@ -278,16 +278,30 @@ export default function PaymentDetailModal({
                   Settled in batch: <code>{displayPayment.batchId}</code>
                 </span>
               </div>
-              <span style={{
-                background: '#78937E',
-                color: '#fff',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                padding: '3px 9px',
-                borderRadius: '6px',
-              }}>
-                Batch Statement
-              </span>
+              <button
+                type="button"
+                onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(displayPayment.batchId)}`, '_blank')}
+                style={{
+                  background: '#1e5038',
+                  color: '#fff',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Batch Invoice
+              </button>
             </div>
           )}
 

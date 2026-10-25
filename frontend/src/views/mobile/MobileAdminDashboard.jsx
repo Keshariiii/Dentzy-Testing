@@ -1158,15 +1158,50 @@ const MobileAdminDashboard = () => {
 
       {adminView === 'dentists' && dentistSubView === 'payments' && (
         <>
-          {/* Back to Dentist landing */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-            <button onClick={() => setDentistSubView(null)} aria-label="Back"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+          {/* Back to Dentist landing & Dentist Filter */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '12px 16px 4px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => setDentistSubView(null)} aria-label="Back"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <select
+                id="ma-dentist-filter-select"
+                value={drillDentistPayments ? (drillDentistPayments._id || drillDentistPayments.id) : 'all'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'all') {
+                    setDrillDentistPayments(null);
+                  } else {
+                    const found = users.find(u => (u._id || u.id) === val) || dentistPaymentGroups.find(d => (d._id || d.id) === val);
+                    if (found) setDrillDentistPayments(found);
+                  }
+                  setSelectedPaymentIds([]);
+                }}
+                style={{
+                  border: '1px solid #c2dcd0',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  fontSize: '0.82rem',
+                  color: '#1a3028',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  maxWidth: '180px',
+                }}
+              >
+                <option value="all">All Dentists</option>
+                {users.filter(u => u.status === 'approved').map(u => (
+                  <option key={u._id || u.id} value={u._id || u.id}>
+                    Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           {drillDentistPayments ? (
             /* ── Drill-down: single dentist's payments ── */
@@ -1291,6 +1326,57 @@ const MobileAdminDashboard = () => {
                     </button>
                   </>
                 )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pendingIds = filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').map(p => p._id);
+                    setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
+                  }}
+                  style={{
+                    background: '#fef3c7',
+                    border: '1px solid #f59e0b',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '0.8rem',
+                    color: '#92400e',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    minHeight: '44px',
+                  }}
+                  title="Select all pending orders for batch payment"
+                >
+                  Select All Pending ({filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dentistId = drillDentistPayments._id || drillDentistPayments.id;
+                    const url = `/invoice?unpaid=true&dentistId=${encodeURIComponent(dentistId)}${payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : ''}`;
+                    window.open(url, '_blank');
+                  }}
+                  style={{
+                    background: '#1e5038',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minHeight: '44px',
+                  }}
+                  title="Download official statement of outstanding dues"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download Pending Bill
+                </button>
                 {selectedPaymentIds.length > 0 && (
                   <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1e5038' }}>
@@ -2273,6 +2359,8 @@ const MobileAdminDashboard = () => {
       {selectedUserId && (
         <DentistDetailModal
           userId={selectedUserId}
+          users={users}
+          onSelectDentist={(id) => setSelectedUserId(id)}
           onClose={() => setSelectedUserId(null)}
           onDeleteUser={() => {
             fetchUsers();
