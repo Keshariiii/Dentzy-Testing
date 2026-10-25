@@ -163,7 +163,7 @@ export default function CreateOrderModal({
     const dentistIdToUse = dentist?._id || dentist?.id || selectedDentistId;
     if (!dentistIdToUse) return;
 
-    const finalAmount = Number(displayAmount) || 0;
+    const finalAmount = Number(displayAmount) > 0 ? Number(displayAmount) : (autoAmount > 0 ? autoAmount : 750);
 
     // Structured notes with clinical context
     let toothDetails = '';
@@ -187,6 +187,11 @@ export default function CreateOrderModal({
       amount: finalAmount,
       notes: notesSummary,
       teethData: selectedTeeth,
+      teeth_data: selectedTeeth,
+      teeth: selectedTeeth,
+      restoration_type: restorationType,
+      service_category: activeCategory,
+      is_urgent: priority === 'Urgent' ? 1 : 0,
       productId: currentProduct.id,
       autoCalculatedAmount: autoAmount,
       isPriceOverridden: isPriceOverridden ? 1 : 0,

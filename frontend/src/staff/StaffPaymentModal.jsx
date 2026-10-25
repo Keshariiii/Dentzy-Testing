@@ -7,6 +7,7 @@ export default function StaffPaymentModal({ payment, onClose, onSave, saving }) 
     status: payment.paymentStatus || payment.status || 'Pending',
     paymentMode: payment.paymentMode || '',
     referenceNumber: payment.referenceNumber || '',
+    amount: payment.paymentAmount || payment.amount || '',
   });
 
   return (
@@ -30,6 +31,16 @@ export default function StaffPaymentModal({ payment, onClose, onSave, saving }) 
             {payment.paymentAmount > 0 && (
               <span><strong>Amount:</strong> INR {payment.paymentAmount.toLocaleString('en-IN')}</span>
             )}
+          </div>
+          <div className="sd-field">
+            <label>Amount (₹)</label>
+            <input
+              type="number"
+              min="0"
+              placeholder="e.g. 1500"
+              value={form.amount}
+              onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+            />
           </div>
           <div className="sd-field">
             <label>Payment Status</label>

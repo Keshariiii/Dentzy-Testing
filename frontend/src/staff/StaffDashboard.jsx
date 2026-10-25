@@ -68,6 +68,27 @@ const StaffDashboard = () => {
   const [showCreateOrder, setShowCreateOrder] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const { showToast } = useToast();
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const handleRecalculateAll = async () => {
+    if (!window.confirm('Recalculate and backfill rate-card amounts for all legacy orders?')) return;
+    setIsRecalculating(true);
+    try {
+      const res = await authFetch(`${STAFF_API}/orders/recalculate-all`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'All order amounts synchronized.');
+        fetchOrders();
+        fetchStaffPayments();
+        if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+      } else {
+        showToast(data.message || 'Failed to recalculate orders.', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to recalculate orders.', 'error');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoadingOrders(true);
@@ -293,6 +314,12 @@ const StaffDashboard = () => {
   const handleEditPaymentSubmit = async (payment, form) => {
     setEditPaymentSaving(true);
     try {
+      if (form.amount !== undefined && form.amount !== '') {
+        await authFetch(`${STAFF_API}/payments/${payment.paymentId || payment._id}/amount`, {
+          method: 'PATCH',
+          body: JSON.stringify({ amount: Number(form.amount) }),
+        });
+      }
       const res = await authFetch(`${STAFF_API}/payments/${payment.paymentId || payment._id}`, {
         method: 'PATCH',
         body: JSON.stringify(form),
@@ -302,6 +329,7 @@ const StaffDashboard = () => {
         showToast(data.message || 'Payment updated.');
         setEditPaymentModal(null);
         fetchOrders();
+        fetchStaffPayments();
         if (selectedDentist) fetchDentistDetail(selectedDentist._id || selectedDentist.id);
       } else showToast(data.message || 'Failed', 'error');
     } catch { showToast('Network error', 'error'); }
@@ -645,14 +673,32 @@ const StaffDashboard = () => {
                 <button className={`sd-filter-btn ${orderFilter === 'mine' ? 'sd-filter-btn--active' : ''}`}
                   onClick={() => setOrderFilter('mine')}>My Cases</button>
               </div>
-              <TwentyFirstIconButton
-                icon={Ico.plus(18)}
-                title="New Order"
-                ariaLabel="New Order"
-                onClick={() => setShowCreateOrder(true)}
-                variant="primary"
-                size="md"
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleRecalculateAll}
+                  disabled={isRecalculating}
+                  style={{
+                    padding: '8px 12px', borderRadius: '8px', border: '1px solid #c2dcd0',
+                    background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.8rem',
+                    cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  }}
+                  title="Auto-calculate and backfill rate-card amounts for all legacy orders"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  {isRecalculating ? 'Syncing...' : 'Sync Amounts'}
+                </button>
+                <TwentyFirstIconButton
+                  icon={Ico.plus(18)}
+                  title="New Order"
+                  ariaLabel="New Order"
+                  onClick={() => setShowCreateOrder(true)}
+                  variant="primary"
+                  size="md"
+                />
+              </div>
             </div>
           </div>
 

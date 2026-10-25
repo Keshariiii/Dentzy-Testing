@@ -7,6 +7,7 @@ import contact from './routes/contact.js';
 import staff from './routes/staff.js';
 import { sendEmail } from './utils/email.js';
 import { verifyAnyAuth } from './middleware/auth.js';
+import { calculateOrderAmount } from './utils/pricing.js';
 
 const app = new Hono();
 
@@ -104,12 +105,13 @@ app.get('/api/payments/batch/:batchId', verifyAnyAuth(), async (c) => {
       }
     } catch {}
 
+    const effAmt = Number(p.amount) > 0 ? Number(p.amount) : calculateOrderAmount({ serviceType: p.serviceType, teeth_data: p.teethData }).amount;
     return {
       caseId: p.caseId,
       patientName: p.patientName,
       service: p.serviceType || 'Dental Prosthetics',
       teeth: teethStr,
-      amount: Number(p.amount) || 0,
+      amount: effAmt,
       dueDate: p.dueDate,
     };
   });
@@ -201,13 +203,14 @@ app.get('/api/payments/unpaid-statement', verifyAnyAuth(), async (c) => {
       }
     } catch {}
 
+    const effAmt = Number(row.amount) > 0 ? Number(row.amount) : calculateOrderAmount({ serviceType: row.serviceType, teeth_data: row.teethData }).amount;
     return {
       orderId: row.orderId,
       caseId: row.caseId,
       patientName: row.patientName,
       service: row.serviceType || 'Dental Prosthetics Restoration',
       teeth: teethStr,
-      amount: Number(row.amount) || 0,
+      amount: effAmt,
       dueDate: row.dueDate,
       createdAt: row.createdAt,
       status: row.status,
@@ -263,6 +266,8 @@ app.get('/api/payments/single/:id', verifyAnyAuth(), async (c) => {
     }
   } catch {}
 
+  const effAmt = Number(payment.amount) > 0 ? Number(payment.amount) : calculateOrderAmount({ serviceType: payment.serviceType, teeth_data: payment.teethData }).amount;
+
   return c.json({
     id: payment.id,
     caseId: payment.caseId,
@@ -270,7 +275,7 @@ app.get('/api/payments/single/:id', verifyAnyAuth(), async (c) => {
     patientName: payment.patientName,
     serviceType: payment.serviceType || 'Dental Prosthetics',
     teeth: parsedTeeth || '1 unit',
-    amount: Number(payment.amount) || 0,
+    amount: effAmt,
     status: payment.status,
     paymentMode: payment.paymentMode || '',
     referenceNumber: payment.referenceNumber || '',

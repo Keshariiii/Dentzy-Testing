@@ -77,6 +77,27 @@ const AdminDashboard = () => {
   const [paySearch, setPaySearch] = useState('');
   // Record Payment modal state
   const [payModal, setPayModal] = useState(null); // { orderId, caseId, patientName, amount, ... }
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const handleRecalculateAll = async () => {
+    if (!window.confirm('Recalculate and backfill rate-card amounts for all legacy orders?')) return;
+    setIsRecalculating(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/recalculate-all`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'All orders recalculated successfully.');
+        fetchAllOrders();
+        fetchPaymentsRef.current?.();
+      } else {
+        showToast(data.message || 'Failed to recalculate orders.', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to recalculate orders.', 'error');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
   const [payForm, setPayForm] = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
@@ -833,27 +854,45 @@ const AdminDashboard = () => {
 
             {/* ── Dentist Sub-Nav ─────────────────────────────── */}
             {adminView === 'dentists' && (
-              <div style={{ display: 'flex', gap: '8px', padding: '12px 0', marginBottom: '16px' }}>
-                {[
-                  { key: 'users', label: 'Dentists' },
-                  { key: 'orders', label: 'Lab Orders' },
-                  { key: 'payments', label: 'Payments' },
-                ].map(sub => (
-                  <button key={sub.key}
-                    onClick={() => {
-                      setDentistSubView(sub.key);
-                      if (sub.key === 'orders') fetchAllOrders();
-                      if (sub.key === 'payments') fetchPaymentsRef.current?.();
-                    }}
-                    style={{
-                      padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                      background: dentistSubView === sub.key ? '#1e5038' : '#f0f7f3',
-                      color: dentistSubView === sub.key ? '#fff' : '#4a7060',
-                      fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s ease',
-                    }}>
-                    {sub.label}
-                  </button>
-                ))}
+              <div style={{ display: 'flex', gap: '8px', padding: '12px 0', marginBottom: '16px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { key: 'users', label: 'Dentists' },
+                    { key: 'orders', label: 'Lab Orders' },
+                    { key: 'payments', label: 'Payments' },
+                  ].map(sub => (
+                    <button key={sub.key}
+                      onClick={() => {
+                        setDentistSubView(sub.key);
+                        if (sub.key === 'orders') fetchAllOrders();
+                        if (sub.key === 'payments') fetchPaymentsRef.current?.();
+                      }}
+                      style={{
+                        padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                        background: dentistSubView === sub.key ? '#1e5038' : '#f0f7f3',
+                        color: dentistSubView === sub.key ? '#fff' : '#4a7060',
+                        fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s ease',
+                      }}>
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRecalculateAll}
+                  disabled={isRecalculating}
+                  style={{
+                    padding: '8px 14px', borderRadius: '8px', border: '1px solid #c2dcd0',
+                    background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.8rem',
+                    cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  }}
+                  title="Auto-calculate and backfill rate-card amounts for all legacy orders"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  {isRecalculating ? 'Syncing...' : 'Sync Order Amounts'}
+                </button>
               </div>
             )}
 

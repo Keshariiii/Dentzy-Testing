@@ -18,6 +18,12 @@ export const createOrderSchema = z.object({
   amount: z.number().min(0, 'Amount cannot be negative.').optional().default(0),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less.').optional().default(''),
   creditOverride: z.boolean().optional().default(false),
+  teeth_data: z.union([z.string(), z.array(z.any())]).optional(),
+  teeth: z.array(z.any()).optional(),
+  restoration_type: z.string().optional(),
+  service_category: z.string().optional(),
+  is_urgent: z.union([z.boolean(), z.number()]).optional(),
+  productId: z.string().optional(),
 });
 
 export const updateOrderStageSchema = z.object({

@@ -35,6 +35,24 @@ const NAV_ITEMS = [
   { key: 'settings',  label: 'Settings',    icon: Icons.settings },
 ];
 
+const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
+const getOrderPrice = (o) => {
+  const val = Number(o?.amount) || Number(o?.paymentAmount) || 0;
+  if (val > 0) return val;
+  const matched = Object.keys(FALLBACK_RATES).find(k => k.toLowerCase() === (o?.serviceType || '').toLowerCase()) || 'Other';
+  const base = FALLBACK_RATES[matched] || 500;
+  let units = 1;
+  const raw = o?.teeth_data ?? o?.teethData ?? o?.teeth;
+  if (Array.isArray(raw)) units = raw.length > 0 ? raw.length : 1;
+  else if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const p = JSON.parse(raw);
+      if (Array.isArray(p) && p.length > 0) units = p.length;
+    } catch {}
+  }
+  return base * units;
+};
+
 /* =============================================================================
    TICKER BANNER  (GATE 2027-inspired rolling announcements)
 ============================================================================= */
@@ -447,7 +465,7 @@ const DentistDashboard = () => {
                 <td><code className="ud-code">{o.caseId}</code></td>
                 <td>{o.serviceType}</td>
                 <td style={{ fontWeight: 700, color: '#1e5038' }}>
-                  ₹{(o.amount ?? o.paymentAmount ?? 0).toLocaleString('en-IN')}
+                  ₹{getOrderPrice(o).toLocaleString('en-IN')}
                 </td>
                 <td><span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span></td>
                 <td>{formatDate(o.dueDate)}</td>
@@ -1231,7 +1249,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 <td><strong>{p.patientName}</strong></td>
                 <td><code className="ud-code">{p.caseId}</code></td>
                 <td>{p.serviceType || '—'}</td>
-                <td className="ud-amount">{p.amount > 0 ? `₹${p.amount.toLocaleString('en-IN')}` : '—'}</td>
+                <td className="ud-amount">₹{getOrderPrice(p).toLocaleString('en-IN')}</td>
                 <td>{formatDate(p.dueDate)}</td>
                 <td>
                   <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />

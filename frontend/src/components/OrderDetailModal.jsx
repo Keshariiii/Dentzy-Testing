@@ -17,6 +17,26 @@ const STAGE_LABELS = {
   dispatched: 'Dispatch',
 };
 
+// Rate card fallback pricing helper
+const getFallbackAmount = (ord) => {
+  if (!ord) return 750;
+  const rates = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
+  const sType = ord.restoration_type || ord.serviceType || ord.service_category || 'Other';
+  const matched = Object.keys(rates).find(k => k.toLowerCase() === sType.toLowerCase()) || 'Other';
+  const base = rates[matched] || 500;
+  let units = 1;
+  const raw = ord.teeth_data ?? ord.teethData ?? ord.teeth;
+  if (Array.isArray(raw)) {
+    units = raw.length > 0 ? raw.length : 1;
+  } else if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const p = JSON.parse(raw);
+      if (Array.isArray(p) && p.length > 0) units = p.length;
+    } catch {}
+  }
+  return base * units;
+};
+
 export default function OrderDetailModal({
   order,
   onClose,
@@ -222,17 +242,18 @@ export default function OrderDetailModal({
                   </div>
                 ) : (
                   <div className="odm-amount-display-row">
-                    <strong>{currentAmount > 0 ? formatINR(currentAmount) : 'Pending Calculation'}</strong>
+                    <strong>{formatINR(currentAmount > 0 ? currentAmount : getFallbackAmount(displayOrder))}</strong>
                     {isAdmin && onUpdateAmount && (
                       <button
                         type="button"
-                        className={`odm-amount-edit-trigger ${currentAmount > 0 ? 'odm-amount-trigger--edit' : 'odm-amount-trigger--add'}`}
+                        className="odm-amount-edit-trigger odm-amount-trigger--edit"
                         onClick={() => {
-                          setAmountInput(currentAmount > 0 ? String(currentAmount) : '');
+                          const eff = currentAmount > 0 ? currentAmount : getFallbackAmount(displayOrder);
+                          setAmountInput(String(eff));
                           setIsEditingAmount(true);
                         }}
                       >
-                        {currentAmount > 0 ? 'Edit' : '+ Add Amount'}
+                        Edit
                       </button>
                     )}
                   </div>

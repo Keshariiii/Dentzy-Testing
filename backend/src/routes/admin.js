@@ -7,8 +7,19 @@ import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail, sendStaffWelcomeEmail } from '../utils/email.js';
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
+import { calculateOrderAmount } from '../utils/pricing.js';
 
 const admin = new Hono();
+
+function safeWait(c, promise) {
+  try {
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(promise);
+      return;
+    }
+  } catch {}
+  promise?.catch?.(() => {});
+}
 
 // -- Doctor Credit Limit Helper -----------------------------------------------
 const CREDIT_LIMIT = 200000;
@@ -160,18 +171,27 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
 
     return c.json({
       user: { ...user, _id: user.id },
-      orders: orders.map(o => ({
-        ...o,
-        _id: o.id,
-        amount: Number(o.paymentAmount) || 0,
-        paymentAmount: Number(o.paymentAmount) || 0,
-        paymentStatus: o.paymentStatus,
-        paymentMode: o.paymentMode,
-        referenceNumber: o.referenceNumber,
-        batchId: o.batchId || '',
-        paymentId: o.paymentId || '',
-        paidAt: o.paidAt,
-      })),
+      orders: orders.map(o => {
+        let effAmount = Number(o.paymentAmount) || 0;
+        if (effAmount <= 0) {
+          const calc = calculateOrderAmount(o);
+          effAmount = calc.amount;
+          safeWait(c, c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE caseId = ? AND ownerId = ? AND (amount IS NULL OR amount <= 0)')
+            .bind(effAmount, now(), o.caseId, o.ownerId).run());
+        }
+        return {
+          ...o,
+          _id: o.id,
+          amount: effAmount,
+          paymentAmount: effAmount,
+          paymentStatus: o.paymentStatus,
+          paymentMode: o.paymentMode,
+          referenceNumber: o.referenceNumber,
+          batchId: o.batchId || '',
+          paymentId: o.paymentId || '',
+          paidAt: o.paidAt,
+        };
+      }),
     });
   } catch (error) {
     logger.error('Admin getUserById error', { error: error.message });
@@ -291,17 +311,27 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    const orders = results.map(r => ({
-      ...r,
-      _id: r.id,
-      paymentStatus: r.paymentStatus,
-      paymentMode: r.paymentMode,
-      referenceNumber: r.referenceNumber,
-      paymentAmount: r.paymentAmount,
-      batchId: r.batchId || '',
-      paidAt: r.paidAt,
-      owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
-    }));
+    const orders = results.map(r => {
+      let effAmount = Number(r.paymentAmount) || Number(r.amount) || 0;
+      if (effAmount <= 0) {
+        const calc = calculateOrderAmount(r);
+        effAmount = calc.amount;
+        safeWait(c, c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE caseId = ? AND ownerId = ? AND (amount IS NULL OR amount <= 0)')
+          .bind(effAmount, now(), r.caseId, r.ownerId).run());
+      }
+      return {
+        ...r,
+        _id: r.id,
+        amount: effAmount,
+        paymentAmount: effAmount,
+        paymentStatus: r.paymentStatus,
+        paymentMode: r.paymentMode,
+        referenceNumber: r.referenceNumber,
+        batchId: r.batchId || '',
+        paidAt: r.paidAt,
+        owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+      };
+    });
     return c.json({ orders });
   } catch (error) {
     logger.error('Admin orders list error', { error: error.message });
@@ -309,10 +339,52 @@ admin.get('/orders', verifyAdmin(), async (c) => {
   }
 });
 
+// POST /api/admin/orders/recalculate-all — backfill missing payments and 0-amount records
+admin.post('/orders/recalculate-all', verifyAdmin(), async (c) => {
+  try {
+    const sql = `SELECT o.id, o.ownerId, o.patientName, o.caseId, o.serviceType, o.dueDate, o.notes, 
+                        o.teeth_data, o.restoration_type, o.service_category, o.createdAt,
+                        p.id as paymentId, p.amount as paymentAmount
+                 FROM lab_orders o
+                 LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId`;
+    const { results } = await c.env.DB.prepare(sql).bind().all();
+    const ts = now();
+    let inserted = 0;
+    let updated = 0;
+
+    for (const order of results) {
+      const { amount } = calculateOrderAmount(order);
+      if (!order.paymentId) {
+        const pid = newId();
+        await c.env.DB.prepare(
+          `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, 'INR', 'Pending', ?, ?, '', ?, ?)`
+        ).bind(pid, order.ownerId, order.patientName, order.caseId, `INV-${order.caseId}`, amount, order.createdAt || ts, order.dueDate || null, order.createdAt || ts, ts).run();
+        inserted++;
+      } else if (order.paymentAmount === null || order.paymentAmount <= 0) {
+        await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE id = ?').bind(amount, ts, order.paymentId).run();
+        updated++;
+      }
+    }
+
+    auditLog('ORDERS_RECALCULATED_ALL', { totalScanned: results.length, inserted, updated, admin: c.get('admin')?.username });
+    return c.json({
+      message: `Scanned ${results.length} orders: backfilled ${inserted} missing payments and updated ${updated} amounts.`,
+      totalScanned: results.length,
+      insertedPayments: inserted,
+      updatedPayments: updated,
+    });
+  } catch (error) {
+    logger.error('Recalculate all orders error', { error: error.message });
+    return c.json({ message: 'Failed to recalculate orders.' }, 500);
+  }
+});
+
 // POST /api/admin/orders
 admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
   try {
-    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount, creditOverride } = c.get('body');
+    const body = c.get('body');
+    const { dentistId, patientName, serviceType, priority, dueDate, notes, amount, creditOverride } = body;
 
     const dentist = await c.env.DB.prepare("SELECT id, name, email, status FROM users WHERE id = ?").bind(dentistId).first();
     if (!dentist) return c.json({ message: 'Dentist not found.' }, 404);
@@ -325,6 +397,17 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
       }
     }
 
+    const rawTeeth = body.teeth_data ?? body.teeth ?? [];
+    const teethJson = typeof rawTeeth === 'string' ? rawTeeth : JSON.stringify(rawTeeth);
+    const { amount: autoAmount } = calculateOrderAmount({
+      serviceType: body.serviceType,
+      restoration_type: body.restoration_type,
+      service_category: body.service_category,
+      productId: body.productId,
+      teeth_data: teethJson,
+    });
+    const finalAmount = (amount && amount > 0) ? amount : autoAmount;
+
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const random = Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase();
     const caseId = `DZ-${datePart}-${random}`;
@@ -332,24 +415,29 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     const ts = now();
 
     await c.env.DB.prepare(
-      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, 'admin', ?, ?)`
-    ).bind(id, dentistId, patientName, caseId, serviceType || 'Other', dueDate || null, notes || '', priority || 'Normal', ts, ts).run();
+      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, teeth_data, restoration_type, service_category, is_urgent, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, 'admin', ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      id, dentistId, patientName, caseId, serviceType || 'Other',
+      dueDate || null, notes || '', priority || 'Normal',
+      teethJson, body.restoration_type || serviceType || 'Crown', body.service_category || 'Ceramic',
+      priority === 'Urgent' || body.is_urgent ? 1 : 0, ts, ts
+    ).run();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
 
-    // Auto-create payment entry for this order with specified amount
+    // Auto-create payment entry for this order with calculated/specified amount
     const paymentId = newId();
     await c.env.DB.prepare(
       `INSERT INTO payments (id, ownerId, patientName, caseId, invoiceNumber, amount, currency, status, invoiceDate, dueDate, description, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, 'INR', 'Pending', ?, ?, '', ?, ?)`
-    ).bind(paymentId, dentistId, patientName, caseId, `INV-${caseId}`, amount || 0, ts, dueDate || null, ts, ts).run();
+    ).bind(paymentId, dentistId, patientName, caseId, `INV-${caseId}`, finalAmount, ts, dueDate || null, ts, ts).run();
 
     auditLog('ORDER_CREATED', { orderId: id, caseId, dentistId, adminUsername: c.get('admin').username });
 
     return c.json({
       message: 'Order created.',
-      order: { ...order, _id: order.id, amount: amount || 0, paymentAmount: amount || 0, paymentStatus: 'Pending', owner: { _id: dentist.id, name: dentist.name, email: dentist.email } },
+      order: { ...order, _id: order.id, amount: finalAmount, paymentAmount: finalAmount, paymentStatus: 'Pending', owner: { _id: dentist.id, name: dentist.name, email: dentist.email } },
     }, 201);
   } catch (error) {
     logger.error('Admin create order error', { error: error.message });
@@ -546,11 +634,19 @@ admin.get('/payments', verifyAdmin(), async (c) => {
         totalPending: summaryRow.totalPending,
         byMode: { Cash: summaryRow.cashTotal, Cheque: summaryRow.chequeTotal, UPI: summaryRow.upiTotal },
       },
-      payments: results.map(r => ({
-        ...r,
-        _id: r.id,
-        owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
-      })),
+      payments: results.map(r => {
+        let effAmount = Number(r.amount) || 0;
+        if (effAmount <= 0) {
+          const calc = calculateOrderAmount(r);
+          effAmount = calc.amount;
+        }
+        return {
+          ...r,
+          amount: effAmount,
+          _id: r.id,
+          owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+        };
+      }),
     });
   } catch (error) {
     logger.error('Admin payments list error', { error: error.message });

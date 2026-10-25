@@ -112,6 +112,27 @@ const MobileAdminDashboard = () => {
 
   // Record Payment modal state
   const [payModal, setPayModal]         = useState(null);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const handleRecalculateAll = async () => {
+    if (!window.confirm('Recalculate and backfill rate-card amounts for all legacy orders?')) return;
+    setIsRecalculating(true);
+    try {
+      const res = await authFetch(`${ADMIN_API}/orders/recalculate-all`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'All orders recalculated successfully.');
+        fetchAllOrders();
+        fetchPayments();
+      } else {
+        showToast(data.message || 'Failed to recalculate orders.', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to recalculate orders.', 'error');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
   const [payForm, setPayForm]           = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
   const [payFormSaving, setPayFormSaving] = useState(false);
@@ -853,14 +874,31 @@ const MobileAdminDashboard = () => {
       {adminView === 'dentists' && dentistSubView === 'users' && (
         <>
           {/* Back to Dentist landing */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-            <button onClick={() => setDentistSubView(null)} aria-label="Back"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button onClick={() => setDentistSubView(null)} aria-label="Back"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRecalculateAll}
+              disabled={isRecalculating}
+              style={{
+                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
+                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
+                cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
               </svg>
+              {isRecalculating ? 'Syncing...' : 'Sync Amounts'}
             </button>
-            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>
 
           {/* #50 -- Section heading with count badge */}
@@ -1009,14 +1047,31 @@ const MobileAdminDashboard = () => {
       {adminView === 'dentists' && dentistSubView === 'orders' && (
         <>
           {/* Back to Dentist landing */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-            <button onClick={() => setDentistSubView(null)} aria-label="Back"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button onClick={() => setDentistSubView(null)} aria-label="Back"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRecalculateAll}
+              disabled={isRecalculating}
+              style={{
+                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
+                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
+                cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
               </svg>
+              {isRecalculating ? 'Syncing...' : 'Sync Amounts'}
             </button>
-            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
           </div>
           {drillDentistOrders ? (
             /* ── Drill-down: single dentist's orders ── */

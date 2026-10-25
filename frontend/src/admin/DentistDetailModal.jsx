@@ -28,6 +28,24 @@ const STAGE_LABELS = {
 
 const STATUS_CLS   = { pending: 'ddm-s-pending', approved: 'ddm-s-approved', rejected: 'ddm-s-rejected' };
 
+const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
+const getOrderPrice = (o) => {
+  const val = Number(o?.amount) || Number(o?.paymentAmount) || 0;
+  if (val > 0) return val;
+  const matched = Object.keys(FALLBACK_RATES).find(k => k.toLowerCase() === (o?.serviceType || '').toLowerCase()) || 'Other';
+  const base = FALLBACK_RATES[matched] || 500;
+  let units = 1;
+  const raw = o?.teeth_data ?? o?.teethData ?? o?.teeth;
+  if (Array.isArray(raw)) units = raw.length > 0 ? raw.length : 1;
+  else if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const p = JSON.parse(raw);
+      if (Array.isArray(p) && p.length > 0) units = p.length;
+    } catch {}
+  }
+  return base * units;
+};
+
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 /* ─── Pipeline Progress Bar ──────────────────────────────────────────────── */
@@ -515,7 +533,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             <div className="ddm-order-patient">{order.patientName}</div>
                             <div className="ddm-order-meta-row">
                               <span className="ddm-order-service">{order.serviceType}</span>
-                              <span style={{ fontWeight: 700, color: '#1e5038' }}>₹{(order.amount ?? order.paymentAmount ?? 0).toLocaleString('en-IN')}</span>
+                              <span style={{ fontWeight: 700, color: '#1e5038' }}>₹{getOrderPrice(order).toLocaleString('en-IN')}</span>
                               {order.dueDate && (
                                 <span className="ddm-order-due">{Ico.calendar(12)} Due: {fmt(order.dueDate)}</span>
                               )}
@@ -698,7 +716,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <strong style={{ fontSize: '0.95rem', color: isPaid ? '#15803d' : '#b45309' }}>
-                                  {formatINR(order.paymentAmount ?? order.amount ?? 0)}
+                                  {formatINR(getOrderPrice(order))}
                                 </strong>
                                 <StatusBadge status={order.paymentStatus || 'Pending'} size="sm" />
                               </div>

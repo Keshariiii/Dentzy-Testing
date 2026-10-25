@@ -4,8 +4,19 @@ import { verifyUser } from '../middleware/auth.js';
 import { updateOrderSchema } from '../validators/dashboard.js';
 import { now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
+import { calculateOrderAmount } from '../utils/pricing.js';
 
 const dashboard = new Hono();
+
+function safeWait(c, promise) {
+  try {
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(promise);
+      return;
+    }
+  } catch {}
+  promise?.catch?.(() => {});
+}
 
 // All dashboard routes require authenticated, approved user
 dashboard.use('*', verifyUser());
@@ -92,17 +103,26 @@ dashboard.get('/orders', async (c) => {
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
     // Map id → _id for frontend compat and ensure financial and batch fields are returned
     return c.json({
-      orders: results.map(o => ({
-        ...o,
-        _id: o.id,
-        amount: Number(o.amount) || 0,
-        paymentAmount: Number(o.paymentAmount) || 0,
-        paymentStatus: o.paymentStatus,
-        paymentMode: o.paymentMode,
-        referenceNumber: o.referenceNumber,
-        batchId: o.batchId || '',
-        paidAt: o.paidAt,
-      })),
+      orders: results.map(o => {
+        let effAmount = Number(o.paymentAmount) || Number(o.amount) || 0;
+        if (effAmount <= 0) {
+          const calc = calculateOrderAmount(o);
+          effAmount = calc.amount;
+          safeWait(c, c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE caseId = ? AND ownerId = ? AND (amount IS NULL OR amount <= 0)')
+            .bind(effAmount, now(), o.caseId, o.ownerId).run());
+        }
+        return {
+          ...o,
+          _id: o.id,
+          amount: effAmount,
+          paymentAmount: effAmount,
+          paymentStatus: o.paymentStatus,
+          paymentMode: o.paymentMode,
+          referenceNumber: o.referenceNumber,
+          batchId: o.batchId || '',
+          paidAt: o.paidAt,
+        };
+      }),
     });
   } catch (error) {
     logger.error('Dashboard orders error', { error: error.message });
@@ -208,7 +228,20 @@ dashboard.get('/payments', async (c) => {
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    return c.json({ payments: results.map(r => ({ ...r, _id: r.id })) });
+    return c.json({
+      payments: results.map(r => {
+        let effAmount = Number(r.amount) || 0;
+        if (effAmount <= 0) {
+          const calc = calculateOrderAmount(r);
+          effAmount = calc.amount;
+        }
+        return {
+          ...r,
+          _id: r.id,
+          amount: effAmount,
+        };
+      }),
+    });
   } catch (error) {
     logger.error('Dashboard payments error', { error: error.message });
     return c.json({ message: 'Failed to load payments.' }, 500);
