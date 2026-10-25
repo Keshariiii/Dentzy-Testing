@@ -174,21 +174,6 @@ export default function PrintableInvoice({
     printWindow.document.close();
   };
 
-  const handleShareWhatsApp = () => {
-    const lines = [
-      `*DENTZY DENTAL LABORATORY*`,
-      `*${isUnpaid ? 'Statement of Outstanding Dues / Unpaid Bill' : 'Tax Invoice / Cash Memo'}*`,
-      `${isUnpaid ? 'Statement No' : 'Invoice No'}: ${invoiceNumber}`,
-      `Date: ${invoiceDate}`,
-      `Billed To: Dr. ${doctorName}${clinicName ? ` - ${clinicName}` : ''}`,
-      `${isUnpaid ? 'Total Outstanding Due' : 'Total Amount'}: ${formatINR(totalAmount)}`,
-      `Tel / WhatsApp: +91 9503668112 | support@dentzy.in`,
-    ].join('\n');
-
-    const url = `https://wa.me/?text=${encodeURIComponent(lines)}`;
-    window.open(url, '_blank');
-  };
-
   const paperContent = (
     <div className="pi-paper" id="printable-invoice-root">
       {/* ── Top Header Section ───────────────────────────────────── */}
@@ -351,9 +336,6 @@ export default function PrintableInvoice({
     return (
       <div className="pi-standalone-wrap">
         <div className="pi-screen-bar-standalone no-print">
-          <button type="button" onClick={handleShareWhatsApp} className="pi-btn-action">
-            Share on WhatsApp
-          </button>
           <button type="button" onClick={handlePrint} className="pi-btn-action pi-btn-primary">
             Download PDF / Print
           </button>
@@ -371,9 +353,6 @@ export default function PrintableInvoice({
             <span>{isUnpaid ? 'Statement of Outstanding Dues' : 'Tax Invoice / Cash Memo'}</span>
           </div>
           <div className="pi-screen-actions">
-            <button type="button" onClick={handleShareWhatsApp} className="pi-btn-action">
-              WhatsApp
-            </button>
             <button type="button" onClick={handlePrint} className="pi-btn-action pi-btn-primary">
               Print / PDF
             </button>

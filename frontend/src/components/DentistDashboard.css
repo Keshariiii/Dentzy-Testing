@@ -1730,13 +1730,22 @@
 
 /* Credit Warning Banner */
 .ud-credit-warning {
-  display: flex; align-items: flex-start; gap: var(--dz-space-3);
-  background: #fee2e2; border: 1px solid #fca5a5;
-  border-radius: var(--dz-radius-md); padding: var(--dz-space-4) var(--dz-space-6);
-  color: #991b1b; font-size: 0.875rem; line-height: 1.5; margin-bottom: var(--dz-space-4);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dz-space-3);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: #991b1b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.05);
 }
 .ud-credit-warning svg { flex-shrink: 0; margin-top: 2px; }
-.ud-credit-warning__link { color: #991b1b; font-weight: 600; text-underline-offset: 2px; }
+.ud-credit-warning__link { color: #991b1b; font-weight: 700; text-underline-offset: 2px; text-decoration: underline; }
 
 /* Partnership Hotline Card */
 .ud-partnership-card { background: var(--dz-color-bg-surface, #fff); border-radius: var(--dz-radius-lg); box-shadow: var(--dz-shadow-sm); padding: var(--dz-space-8); margin-bottom: var(--dz-space-6); border: 1px solid var(--dz-color-primary-muted); }

@@ -108,7 +108,6 @@ const MobileDashboard = () => {
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [unpaidMonthFilter, setUnpaidMonthFilter] = useState('');
-  const [overviewMonth, setOverviewMonth] = useState('');
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
 
@@ -409,22 +408,6 @@ const MobileDashboard = () => {
               </div>
               <span className="m-stat-label">Completed</span>
             </div>
-            <div
-              className="m-stat-card m-stat--amber m-stat-card--clickable"
-              onClick={() => setActiveTab('payments')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('payments'); } }}
-            >
-              <div className="m-stat-top">
-                <span className="m-stat-num">₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}</span>
-                <span className="m-stat-icon">{Icons.payments(22)}</span>
-              </div>
-              <span className="m-stat-label">Outstanding</span>
-              <div className="m-stat-tags">
-                <span className="m-tag m-tag--amber">{(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} Unpaid</span>
-              </div>
-            </div>
           </div>
         ) : (
           <SkeletonGroup>
@@ -448,110 +431,27 @@ const MobileDashboard = () => {
         {/* Pipeline */}
         {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
 
-        {/* Outstanding Balance & Credit Limit Overview Card */}
-        {stats?.payments && (
-          <div style={{
-            background: '#ffffff',
-            border: '1px solid #e2ece6',
-            borderRadius: '12px',
-            padding: '14px',
-            marginTop: '14px',
-            marginBottom: '14px',
-            boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
-          }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80' }}>
-              Outstanding Balance / Amount to Pay
-            </div>
-            <div style={{ fontSize: '1.45rem', fontWeight: 800, color: (stats.payments?.totalUnpaid || 0) > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
-              ₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '10px' }}>
-              Across {(stats.payments?.pending || 0) + (stats.payments?.overdue || 0)} unpaid orders pending clearance
-            </div>
-
-            {/* Credit Limit Progress Bar */}
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 600, color: '#4a7060', marginBottom: '4px' }}>
-                <span>Credit Limit ({Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%)</span>
-                <span>₹{(stats.payments?.totalUnpaid || 0).toLocaleString('en-IN')} / ₹2,00,000</span>
-              </div>
-              <div style={{ height: '6px', background: '#e8f5ee', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${Math.min(Math.round(((stats.payments?.totalUnpaid || 0) / 200000) * 100), 100)}%`,
-                  background: (stats.payments?.totalUnpaid || 0) >= 200000 ? '#dc2626' : ((stats.payments?.totalUnpaid || 0) >= 150000 ? '#ea580c' : '#1e5038'),
-                  borderRadius: '3px',
-                }} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <input
-                type="month"
-                value={overviewMonth}
-                onChange={(e) => setOverviewMonth(e.target.value)}
-                style={{
-                  border: '1px solid #c2dcd0',
-                  borderRadius: '8px',
-                  padding: '6px 8px',
-                  fontSize: '0.78rem',
-                  background: '#fff',
-                  cursor: 'pointer',
-                  flex: 1,
-                  minHeight: '38px',
-                }}
-                aria-label="Filter bill by month"
-              />
-              <button
-                type="button"
-                onClick={() => window.open(`/invoice?unpaid=true${overviewMonth ? `&month=${encodeURIComponent(overviewMonth)}` : ''}`, '_blank')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '7px 12px',
-                  background: '#1e5038',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  minHeight: '38px',
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download Bill
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Credit Limit Warning Banner */}
         {(stats?.payments?.totalUnpaid || 0) >= 200000 && (
           <div
             style={{
               background: '#fef2f2',
               border: '1px solid #fecaca',
-              borderRadius: '10px',
-              padding: '12px 14px',
-              marginTop: '16px',
-              marginBottom: '6px',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              marginTop: '18px',
+              marginBottom: '20px',
               display: 'flex',
               alignItems: 'flex-start',
-              gap: '10px',
+              gap: '12px',
               color: '#991b1b',
-              fontSize: '0.82rem',
-              lineHeight: 1.45,
+              fontSize: '0.84rem',
+              lineHeight: 1.5,
+              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.05)',
             }}
             role="alert"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
