@@ -550,6 +550,7 @@ const MobileDashboard = () => {
                 <div className="m-compact-card__top">
                   <span className="m-order-id">{o.caseId}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
                     <PriorityBadge priority={o.priority} />
                     <StatusPill status={o.status} />
                   </div>
@@ -561,6 +562,8 @@ const MobileDashboard = () => {
                       <span className="m-compact-card__tag">{o.serviceType || 'Standard'}</span>
                       <span>&bull;</span>
                       <span>Due {formatDate(o.dueDate)}</span>
+                      <span>&bull;</span>
+                      <strong style={{ color: '#1e5038' }}>₹{(o.amount ?? o.paymentAmount ?? 0).toLocaleString('en-IN')}</strong>
                     </div>
                   </div>
                   <span className="m-compact-card__arrow">
@@ -588,6 +591,52 @@ const MobileDashboard = () => {
     return (
       <div className="m-tab-content">
         <h2 className="m-tab-title">Payments</h2>
+
+        {/* Mobile Outstanding Bill Banner */}
+        <div style={{
+          background: '#ffffff',
+          border: '1px solid #e2ece6',
+          borderRadius: '12px',
+          padding: '14px',
+          marginBottom: '14px',
+          boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
+        }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80' }}>
+            Outstanding Balance to Pay
+          </div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: (stats?.payments?.totalUnpaid || 0) > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
+            ₹{(stats?.payments?.totalUnpaid || 0).toLocaleString('en-IN')}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '10px' }}>
+            Across {((stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0))} unpaid orders
+          </div>
+          <button
+            type="button"
+            onClick={() => window.open('/invoice?unpaid=true', '_blank')}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '9px 12px',
+              background: '#1e5038',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Pending Monthly Bill
+          </button>
+        </div>
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', lineHeight: 1.4 }}>
           <strong>Payment Modes:</strong> Direct UPI (mobile / UPI ID), Cash, or Cheque. Status is updated once verified by lab administration.
         </div>

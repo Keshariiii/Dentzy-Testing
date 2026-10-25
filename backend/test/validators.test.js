@@ -38,6 +38,7 @@ describe('Auth Validators', () => {
     it('accepts valid login', () => valid(loginSchema, { email: 'test@example.com', password: 'pass' }));
     it('rejects empty email', () => invalid(loginSchema, { email: '', password: 'pass' }));
     it('rejects empty password', () => invalid(loginSchema, { email: 'a@b.com', password: '' }));
+    it('rejects password > 128 chars', () => invalid(loginSchema, { email: 'a@b.com', password: 'a'.repeat(129) }));
     it('rejects email without @', () => invalid(loginSchema, { email: 'notanemail', password: 'pass' }));
   });
 
@@ -124,6 +125,7 @@ describe('Admin Validators', () => {
     it('accepts valid login', () => valid(adminLoginSchema, { username: 'admin', password: 'pass' }));
     it('rejects empty username', () => invalid(adminLoginSchema, { username: '', password: 'pass' }));
     it('rejects empty password', () => invalid(adminLoginSchema, { username: 'admin', password: '' }));
+    it('rejects password > 128 chars', () => invalid(adminLoginSchema, { username: 'admin', password: 'a'.repeat(129) }));
   });
 
   describe('rejectUserSchema', () => {

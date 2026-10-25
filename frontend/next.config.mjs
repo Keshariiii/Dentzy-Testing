@@ -2,6 +2,7 @@
 const nextConfig = {
   // Static HTML export — outputs to /out, compatible with Cloudflare Pages
   output: 'export',
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   // Allowed development origins for LAN / mobile testing
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS 
     ? process.env.ALLOWED_DEV_ORIGINS.split(',').map(o => o.trim())

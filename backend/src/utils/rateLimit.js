@@ -2,15 +2,22 @@
 // One row per attempt, count rows in window to check. Prune old rows on each check.
 
 /**
- * Resolve client IP from Cloudflare/proxy headers.
+ * Resolve client IP safely from Cloudflare edge headers.
+ * Never trusts spoofable x-forwarded-for headers in production.
  */
 export function getClientIP(c) {
-  return (
-    c.req.header('cf-connecting-ip') ||
-    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-    c.req.header('x-real-ip') ||
-    'unknown'
-  );
+  const cfIP = c.req.header('cf-connecting-ip');
+  if (cfIP) return cfIP;
+
+  if (c.env?.NODE_ENV !== 'production' && c.env?.TRUST_PROXY === 'true') {
+    return (
+      c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+      c.req.header('x-real-ip') ||
+      'local-dev-ip'
+    );
+  }
+
+  return c.env?.NODE_ENV !== 'production' ? 'local-dev-ip' : 'unknown-ip';
 }
 
 /**
@@ -20,14 +27,14 @@ export function getClientIP(c) {
  * @param {object} opts
  * @param {number} opts.windowMs - Window in milliseconds
  * @param {number} opts.max - Max attempts in window
+ * @param {boolean} [opts.recordOnCheck=true] - Whether to insert attempt row now
  * @returns {{ allowed: boolean, remaining: number, retryAfterSecs: number }}
  */
-export async function checkRateLimit(db, key, { windowMs, max }) {
+export async function checkRateLimit(db, key, { windowMs, max, recordOnCheck = true }) {
   const now = Date.now();
   const windowStart = now - windowMs;
 
-  // Batch: prune old rows + count current + insert new row
-  // ponytail: single batch call to D1 instead of 3 round trips
+  // Batch: prune old rows + count current
   const [, countResult] = await db.batch([
     db.prepare('DELETE FROM rate_limits WHERE key = ? AND ts < ?').bind(key, windowStart),
     db.prepare('SELECT COUNT(*) as cnt FROM rate_limits WHERE key = ? AND ts >= ?').bind(key, windowStart),
@@ -47,8 +54,24 @@ export async function checkRateLimit(db, key, { windowMs, max }) {
     return { allowed: false, remaining: 0, retryAfterSecs };
   }
 
-  // Record this attempt
-  await db.prepare('INSERT INTO rate_limits (key, ts) VALUES (?, ?)').bind(key, now).run();
+  // Record this attempt only if requested
+  if (recordOnCheck) {
+    await db.prepare('INSERT INTO rate_limits (key, ts) VALUES (?, ?)').bind(key, now).run();
+  }
 
-  return { allowed: true, remaining: max - count - 1, retryAfterSecs: 0 };
+  return { allowed: true, remaining: max - count - (recordOnCheck ? 1 : 0), retryAfterSecs: 0 };
+}
+
+/**
+ * Record a single rate limit attempt on failure.
+ */
+export async function recordRateLimitAttempt(db, key) {
+  await db.prepare('INSERT INTO rate_limits (key, ts) VALUES (?, ?)').bind(key, Date.now()).run();
+}
+
+/**
+ * Clear rate limit records for key on successful authentication.
+ */
+export async function clearRateLimit(db, key) {
+  await db.prepare('DELETE FROM rate_limits WHERE key = ?').bind(key).run();
 }

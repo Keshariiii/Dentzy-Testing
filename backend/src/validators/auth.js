@@ -48,7 +48,7 @@ export const loginSchema = z.object({
   email: z.string().trim().toLowerCase()
     .min(1, 'Please enter your email and password.')
     .refine(e => e.includes('@') && e.includes('.'), { message: 'Please enter a valid email address.' }),
-  password: z.string().min(1, 'Please enter your email and password.'),
+  password: z.string().min(1, 'Please enter your email and password.').max(128, 'Password is too long (max 128 characters).'),
 });
 
 export const sendOtpSchema = z.object({
@@ -78,12 +78,12 @@ export const updateProfileSchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Please provide your current and new password.'),
+  currentPassword: z.string().min(1, 'Please provide your current and new password.').max(128, 'Password is too long (max 128 characters).'),
   newPassword: strongPasswordSchema,
 });
 
 export const deleteAccountSchema = z.object({
-  password: z.string().min(1, 'Please enter your password to confirm account deletion.'),
+  password: z.string().min(1, 'Please enter your password to confirm account deletion.').max(128, 'Password is too long (max 128 characters).'),
 });
 
 export const googleAuthSchema = z.object({

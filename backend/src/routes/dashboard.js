@@ -10,7 +10,15 @@ const dashboard = new Hono();
 // All dashboard routes require authenticated, approved user
 dashboard.use('*', verifyUser());
 
-const ORDER_SORT_FIELDS = ['createdAt', 'dueDate', 'patientName', 'caseId', 'status', 'priority', 'serviceType'];
+const ORDER_SORT_MAP = {
+  createdAt: 'o.createdAt',
+  dueDate: 'o.dueDate',
+  patientName: 'o.patientName',
+  caseId: 'o.caseId',
+  status: 'o.status',
+  priority: 'o.priority',
+  serviceType: 'o.serviceType',
+};
 
 // GET /api/dashboard/stats
 dashboard.get('/stats', async (c) => {
@@ -56,23 +64,46 @@ dashboard.get('/orders', async (c) => {
     const status = c.req.query('status');
     const search = c.req.query('search');
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '20', 10) || 20, 1), 100);
-    const sort = ORDER_SORT_FIELDS.includes(c.req.query('sort')) ? c.req.query('sort') : 'createdAt';
+    const sortCol = ORDER_SORT_MAP[c.req.query('sort')] || 'o.createdAt';
     const order = c.req.query('order') === 'asc' ? 'ASC' : 'DESC';
 
-    let sql = 'SELECT * FROM lab_orders WHERE ownerId = ?';
+    let sql = `SELECT o.*,
+               COALESCE(p.amount, 0) as amount,
+               COALESCE(p.amount, 0) as paymentAmount,
+               COALESCE(p.status, 'Pending') as paymentStatus,
+               COALESCE(p.paymentMode, '') as paymentMode,
+               COALESCE(p.referenceNumber, '') as referenceNumber,
+               COALESCE(p.batchId, '') as batchId,
+               p.invoiceNumber,
+               p.paidAt
+               FROM lab_orders o
+               LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+               WHERE o.ownerId = ?`;
     const params = [userId];
 
-    if (status && status !== 'all') { sql += ' AND status = ?'; params.push(status); }
+    if (status && status !== 'all') { sql += ' AND o.status = ?'; params.push(status); }
     if (search) {
-      sql += ' AND (patientName LIKE ? OR caseId LIKE ?)';
+      sql += ' AND (o.patientName LIKE ? OR o.caseId LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
-    sql += ` ORDER BY ${sort} ${order} LIMIT ?`;
+    sql += ` ORDER BY ${sortCol} ${order} LIMIT ?`;
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    // Map id → _id for frontend compat
-    return c.json({ orders: results.map(o => ({ ...o, _id: o.id })) });
+    // Map id → _id for frontend compat and ensure financial and batch fields are returned
+    return c.json({
+      orders: results.map(o => ({
+        ...o,
+        _id: o.id,
+        amount: Number(o.amount) || 0,
+        paymentAmount: Number(o.paymentAmount) || 0,
+        paymentStatus: o.paymentStatus,
+        paymentMode: o.paymentMode,
+        referenceNumber: o.referenceNumber,
+        batchId: o.batchId || '',
+        paidAt: o.paidAt,
+      })),
+    });
   } catch (error) {
     logger.error('Dashboard orders error', { error: error.message });
     return c.json({ message: 'Failed to load orders.' }, 500);
@@ -183,7 +214,6 @@ dashboard.get('/payments', async (c) => {
     return c.json({ message: 'Failed to load payments.' }, 500);
   }
 });
-
 
 // GET /api/dashboard/notice — dentist notice bar config
 const DEFAULT_NOTICE = {

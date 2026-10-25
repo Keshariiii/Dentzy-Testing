@@ -285,4 +285,83 @@ describe('Batch Payments Invoicing API', () => {
     const body = await res.json();
     assert.equal(body.totalAmount, 5000);
   });
+
+  it('GET /api/payments/batch/:batchId blocks dentist if any item belongs to another dentist', async () => {
+    const jwtSecret = 'test-jwt-secret';
+    const secretKey = new TextEncoder().encode(jwtSecret);
+    const dentistToken = await new SignJWT({ id: 'dentist-1' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('1h')
+      .sign(secretKey);
+
+    const batchId = 'BATCH-MIXED-1';
+    const mockBatchPayments = [
+      { id: 'p1', ownerId: 'dentist-1', amount: 1000, teethData: '[]' },
+      { id: 'p2', ownerId: 'dentist-2', amount: 2000, teethData: '[]' }, // mixed owner!
+    ];
+
+    const mockEnv = {
+      DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => ({ results: mockBatchPayments }),
+          }),
+        }),
+      },
+      JWT_SECRET: jwtSecret,
+    };
+
+    const res = await app.fetch(
+      new Request(`http://localhost/api/payments/batch/${batchId}`, {
+        headers: { Authorization: `Bearer ${dentistToken}` },
+      }),
+      mockEnv
+    );
+    assert.equal(res.status, 403);
+  });
+
+  it('POST /api/admin/payments/batch rejects mixed dentists with 400', async () => {
+    const adminSecret = 'test-admin-secret';
+    const secretKey = new TextEncoder().encode(adminSecret);
+    const adminToken = await new SignJWT({ role: 'admin', username: 'admin' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('1h')
+      .sign(secretKey);
+
+    const mockPayments = {
+      'p1': { id: 'p1', ownerId: 'dentist-1' },
+      'p2': { id: 'p2', ownerId: 'dentist-2' },
+    };
+
+    const mockEnv = {
+      DB: {
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => mockPayments[id] || null,
+          }),
+        }),
+      },
+      ADMIN_JWT_SECRET: adminSecret,
+    };
+
+    const res = await app.fetch(
+      new Request('http://localhost/api/admin/payments/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          paymentIds: ['p1', 'p2'],
+          status: 'Paid',
+        }),
+      }),
+      mockEnv
+    );
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.match(body.message, /mix orders from different dentists/i);
+  });
 });

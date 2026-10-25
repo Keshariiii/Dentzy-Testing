@@ -6,7 +6,7 @@ import { signJWT, hashPassword } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail, sendStaffWelcomeEmail } from '../utils/email.js';
-import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
+import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 
 const admin = new Hono();
 
@@ -50,9 +50,10 @@ const stageToStatus = (stage) => {
 admin.post('/login', validate(adminLoginSchema), async (c) => {
   const { username, password } = c.get('body');
 
-  // Rate limit: 5 admin login attempts per 15 min per IP
+  // Rate limit: 5 failed admin login attempts per 15 min per IP
   const ip = getClientIP(c);
-  const rl = await checkRateLimit(c.env.DB, `admin-login:${ip}`, { windowMs: 15 * 60 * 1000, max: 5 });
+  const rlKey = `admin-login:${ip}`;
+  const rl = await checkRateLimit(c.env.DB, rlKey, { windowMs: 15 * 60 * 1000, max: 5, recordOnCheck: false });
   if (!rl.allowed) {
     c.header('Retry-After', String(rl.retryAfterSecs));
     return c.json({ message: `Too many login attempts. Please try again in ${Math.ceil(rl.retryAfterSecs / 60)} minute(s).`, retryAfter: rl.retryAfterSecs }, 429);
@@ -61,8 +62,12 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
   const isUserValid = await safeCompare(username, c.env.ADMIN_USERNAME || '');
   const isPassValid = await safeCompare(password, c.env.ADMIN_PASSWORD || '');
 
-  if (!isUserValid || !isPassValid)
+  if (!isUserValid || !isPassValid) {
+    await recordRateLimitAttempt(c.env.DB, rlKey);
     return c.json({ message: 'Invalid admin credentials.' }, 401);
+  }
+
+  await clearRateLimit(c.env.DB, rlKey);
 
   const token = await signJWT({ role: 'admin', username }, c.env.ADMIN_JWT_SECRET, '8h');
 
@@ -147,14 +152,26 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
 
     const { results: orders } = await c.env.DB.prepare(
       `SELECT o.*, COALESCE(p.amount, 0) as paymentAmount, COALESCE(p.status, 'Pending') as paymentStatus,
-       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber, p.paidAt
+       COALESCE(p.paymentMode, '') as paymentMode, COALESCE(p.referenceNumber, '') as referenceNumber,
+       COALESCE(p.batchId, '') as batchId, p.paidAt, p.id as paymentId
        FROM lab_orders o LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
        WHERE o.ownerId = ? ORDER BY o.createdAt DESC`
     ).bind(id).all();
 
     return c.json({
       user: { ...user, _id: user.id },
-      orders: orders.map(o => ({ ...o, _id: o.id, amount: o.paymentAmount, paymentAmount: o.paymentAmount, paymentStatus: o.paymentStatus, paymentMode: o.paymentMode, referenceNumber: o.referenceNumber, paidAt: o.paidAt })),
+      orders: orders.map(o => ({
+        ...o,
+        _id: o.id,
+        amount: Number(o.paymentAmount) || 0,
+        paymentAmount: Number(o.paymentAmount) || 0,
+        paymentStatus: o.paymentStatus,
+        paymentMode: o.paymentMode,
+        referenceNumber: o.referenceNumber,
+        batchId: o.batchId || '',
+        paymentId: o.paymentId || '',
+        paidAt: o.paidAt,
+      })),
     });
   } catch (error) {
     logger.error('Admin getUserById error', { error: error.message });
@@ -468,6 +485,8 @@ admin.get('/payments', verifyAdmin(), async (c) => {
     const status = c.req.query('status');
     const mode = c.req.query('mode');
     const search = c.req.query('search');
+    const dentistId = c.req.query('dentistId');
+    const month = c.req.query('month');
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 500);
 
     // Summary metrics — always computed across all records (unfiltered)
@@ -502,6 +521,14 @@ admin.get('/payments', verifyAdmin(), async (c) => {
     if (mode && mode !== 'all') {
       sql += " AND COALESCE(p.paymentMode, '') = ?";
       params.push(mode);
+    }
+    if (dentistId) {
+      sql += ' AND o.ownerId = ?';
+      params.push(dentistId);
+    }
+    if (month && /^\d{4}-\d{2}$/.test(month)) {
+      sql += ' AND o.createdAt LIKE ?';
+      params.push(`${month}%`);
     }
     if (search) {
       sql += ' AND (o.patientName LIKE ? OR o.caseId LIKE ? OR u.name LIKE ? OR u.clinicName LIKE ?)';
@@ -585,6 +612,20 @@ admin.post('/payments/batch', verifyAdmin(), async (c) => {
 
     if (targetIds.length === 0) {
       return c.json({ message: 'At least one order or payment ID is required.' }, 400);
+    }
+
+    // ponytail: single-tenant batch enforcement before DB write
+    const resolvedOwners = new Set();
+    for (const id of targetIds) {
+      let p = await c.env.DB.prepare('SELECT ownerId FROM payments WHERE id = ?').bind(id).first();
+      if (!p) {
+        const o = await c.env.DB.prepare('SELECT ownerId FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
+        if (o) p = o;
+      }
+      if (p?.ownerId) resolvedOwners.add(p.ownerId);
+    }
+    if (resolvedOwners.size > 1) {
+      return c.json({ message: 'Batch payments cannot mix orders from different dentists.' }, 400);
     }
 
     const ts = now();

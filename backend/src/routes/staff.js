@@ -5,7 +5,7 @@ import { staffLoginSchema } from '../validators/staff.js';
 import { comparePassword, hashPassword, signJWT } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
-import { checkRateLimit, getClientIP } from '../utils/rateLimit.js';
+import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 
 const staff = new Hono();
 
@@ -20,8 +20,10 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   const { username, password } = c.get('body');
 
   const ip = getClientIP(c);
-  const rl = await checkRateLimit(c.env.DB, `staff-login:${ip}`, {
-    windowMs: 15 * 60 * 1000, max: 5,
+  const normalizedUser = (username || '').trim().toLowerCase();
+  const rlKey = `staff-login:${ip}:${normalizedUser}`;
+  const rl = await checkRateLimit(c.env.DB, rlKey, {
+    windowMs: 15 * 60 * 1000, max: 5, recordOnCheck: false,
   });
   if (!rl.allowed) {
     c.header('Retry-After', String(rl.retryAfterSecs));
@@ -34,12 +36,20 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   const row = await c.env.DB.prepare(
     'SELECT * FROM staff WHERE username = ? COLLATE NOCASE'
   ).bind(username).first();
-  if (!row) return c.json({ message: 'Invalid staff credentials.' }, 401);
+  if (!row) {
+    await recordRateLimitAttempt(c.env.DB, rlKey);
+    return c.json({ message: 'Invalid staff credentials.' }, 401);
+  }
   if (row.status !== 'active')
     return c.json({ message: 'Staff account is inactive.' }, 403);
 
   const valid = await comparePassword(password, row.password);
-  if (!valid) return c.json({ message: 'Invalid staff credentials.' }, 401);
+  if (!valid) {
+    await recordRateLimitAttempt(c.env.DB, rlKey);
+    return c.json({ message: 'Invalid staff credentials.' }, 401);
+  }
+
+  await clearRateLimit(c.env.DB, rlKey);
 
   const token = await signJWT(
     { id: row.id, role: 'staff', username: row.username },
@@ -141,6 +151,9 @@ staff.put('/change-password', verifyStaff(), async (c) => {
     if (!currentPassword || !newPassword) {
       return c.json({ message: 'Current and new passwords are required.' }, 400);
     }
+    if (currentPassword.length > 128 || newPassword.length > 128) {
+      return c.json({ message: 'Password is too long (max 128 characters).' }, 400);
+    }
     if (newPassword.length < 6) {
       return c.json({ message: 'New password must be at least 6 characters.' }, 400);
     }
@@ -172,8 +185,18 @@ staff.get('/orders', verifyStaff(), async (c) => {
     const filter = c.req.query('filter'); // 'mine' = only assigned to me
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
-    let sql = `SELECT o.*, u.name as ownerName, u.clinicName as ownerClinicName
-               FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE 1=1`;
+    let sql = `SELECT o.*, u.name as ownerName, u.clinicName as ownerClinicName,
+               COALESCE(p.amount, 0) as amount,
+               COALESCE(p.amount, 0) as paymentAmount,
+               COALESCE(p.status, 'Pending') as paymentStatus,
+               COALESCE(p.paymentMode, '') as paymentMode,
+               COALESCE(p.referenceNumber, '') as referenceNumber,
+               COALESCE(p.batchId, '') as batchId,
+               p.paidAt
+               FROM lab_orders o
+               LEFT JOIN users u ON o.ownerId = u.id
+               LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+               WHERE 1=1`;
     const params = [];
 
     if (filter === 'mine') {
@@ -188,6 +211,13 @@ staff.get('/orders', verifyStaff(), async (c) => {
       orders: results.map(r => ({
         ...r,
         _id: r.id,
+        amount: Number(r.amount) || 0,
+        paymentAmount: Number(r.paymentAmount) || 0,
+        paymentStatus: r.paymentStatus,
+        paymentMode: r.paymentMode,
+        referenceNumber: r.referenceNumber,
+        batchId: r.batchId || '',
+        paidAt: r.paidAt,
         owner: { name: r.ownerName, clinicName: r.ownerClinicName },
       })),
     });
@@ -492,10 +522,21 @@ staff.patch('/orders/:id', verifyStaff(), async (c) => {
 // GET /api/staff/payments — staff sees all payments
 staff.get('/payments', verifyStaff(), async (c) => {
   try {
-    const { results } = await c.env.DB.prepare(
-      `SELECT p.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
-       FROM payments p LEFT JOIN users u ON p.ownerId = u.id ORDER BY p.createdAt DESC LIMIT 200`
-    ).all();
+    const dentistId = c.req.query('dentistId');
+    const month = c.req.query('month');
+    let sql = `SELECT p.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName
+               FROM payments p LEFT JOIN users u ON p.ownerId = u.id WHERE 1=1`;
+    const params = [];
+    if (dentistId) {
+      sql += ' AND p.ownerId = ?';
+      params.push(dentistId);
+    }
+    if (month && /^\d{4}-\d{2}$/.test(month)) {
+      sql += ' AND p.createdAt LIKE ?';
+      params.push(`${month}%`);
+    }
+    sql += ' ORDER BY p.createdAt DESC LIMIT 200';
+    const { results } = await c.env.DB.prepare(sql).bind(...params).all();
     return c.json({
       payments: results.map(r => ({
         ...r, _id: r.id,
@@ -549,6 +590,20 @@ staff.post('/payments/batch', verifyStaff(), async (c) => {
 
     if (targetIds.length === 0) {
       return c.json({ message: 'At least one order or payment ID is required.' }, 400);
+    }
+
+    // ponytail: single-tenant batch enforcement before DB write
+    const resolvedOwners = new Set();
+    for (const id of targetIds) {
+      let p = await c.env.DB.prepare('SELECT ownerId FROM payments WHERE id = ?').bind(id).first();
+      if (!p) {
+        const o = await c.env.DB.prepare('SELECT ownerId FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
+        if (o) p = o;
+      }
+      if (p?.ownerId) resolvedOwners.add(p.ownerId);
+    }
+    if (resolvedOwners.size > 1) {
+      return c.json({ message: 'Batch payments cannot mix orders from different dentists.' }, 400);
     }
 
     const ts = now();

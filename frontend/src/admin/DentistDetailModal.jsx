@@ -263,16 +263,45 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
               <div className="ddm-section">
                 <div className="ddm-section-header">
                   <span className="ddm-section-title">Lab Orders ({orders.length})</span>
-                  {user.status === 'approved' && (
-                    <TwentyFirstIconButton
-                      icon={Ico.plus(16)}
-                      title="New Order"
-                      ariaLabel="New Order"
-                      onClick={() => setShowForm(true)}
-                      size="sm"
-                      variant="primary"
-                    />
-                  )}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {orders.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}`, '_blank')}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          background: '#e8f5ee',
+                          color: '#1e5038',
+                          border: '1px solid #bbf7d0',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                          <line x1="16" y1="13" x2="8" y2="13"/>
+                          <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        Unpaid Bill
+                      </button>
+                    )}
+                    {user.status === 'approved' && (
+                      <TwentyFirstIconButton
+                        icon={Ico.plus(16)}
+                        title="New Order"
+                        ariaLabel="New Order"
+                        onClick={() => setShowForm(true)}
+                        size="sm"
+                        variant="primary"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Create Order Modal */}
@@ -325,8 +354,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser }) => {
                           <div className="ddm-order-patient">{order.patientName}</div>
                           <div className="ddm-order-meta-row">
                             <span className="ddm-order-service">{order.serviceType}</span>
+                            <span style={{ fontWeight: 700, color: '#1e5038' }}>₹{(order.amount ?? order.paymentAmount ?? 0).toLocaleString('en-IN')}</span>
                             {order.dueDate && (
                               <span className="ddm-order-due">{Ico.calendar(12)} Due: {fmt(order.dueDate)}</span>
+                            )}
+                            {order.batchId && (
+                              <span style={{ fontFamily: 'monospace', fontSize: '0.72rem', background: '#f0f4f2', padding: '1px 6px', borderRadius: '4px', color: '#1e5038' }}>
+                                {order.batchId}
+                              </span>
                             )}
                           </div>
                         </div>

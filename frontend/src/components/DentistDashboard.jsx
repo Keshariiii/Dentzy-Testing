@@ -432,15 +432,26 @@ const DentistDashboard = () => {
         <div className="ud-table-wrap">
           <table className="ud-table">
             <thead><tr>
-              <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Priority</th><th>Due Date</th><th>Status</th>
+              <th>Patient Name</th>
+              <th>Case ID</th>
+              <th>Service</th>
+              <th>Amount</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Payment</th>
+              <th>Status</th>
             </tr></thead>
             <tbody>{orders.map(o => (
               <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
                 <td><strong>{o.patientName}</strong></td>
                 <td><code className="ud-code">{o.caseId}</code></td>
                 <td>{o.serviceType}</td>
+                <td style={{ fontWeight: 700, color: '#1e5038' }}>
+                  ₹{(o.amount ?? o.paymentAmount ?? 0).toLocaleString('en-IN')}
+                </td>
                 <td><span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span></td>
                 <td>{formatDate(o.dueDate)}</td>
+                <td><StatusBadge status={o.paymentStatus || 'Pending'} size="sm" /></td>
                 <td><StatusBadge status={o.status} /></td>
               </tr>
             ))}</tbody>
@@ -876,7 +887,7 @@ const DentistDashboard = () => {
       </div>
     );
     if (activeTab === 'settings') return renderSettings();
-    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} />;
+    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} stats={stats} />;
     return null;
   };
 
@@ -961,55 +972,262 @@ const DentistDashboard = () => {
 /* =============================================================================
    PAYMENTS TABLE SUB-COMPONENT
 ============================================================================= */
-const PaymentsTab = ({ payments, loading, title, onSelectPayment }) => (
-  <div className="ud-content-inner">
-    <h2 className="ud-tab-title">{title}</h2>
-    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#166534', lineHeight: 1.5 }}>
-      <strong>Accepted Payment Modes:</strong> Direct UPI (to lab mobile number / UPI ID), Cash, or Cheque. No payment gateway required. Once your payment is received, lab administration will verify and mark the order as Paid.
-    </div>
-    {loading ? (
-      <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
-    ) : payments.length === 0 ? (
-      <EmptyState
-        variant="payments"
-        message="No payment records found"
-        subtext="Payment records will appear here once orders are created."
-      />
-    ) : (
-      <div className="ud-table-wrap">
-        <table className="ud-table">
-          <thead><tr>
-            <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Amount</th>
-            <th>Due Date</th><th>Payment Status</th><th>Mode & Ref</th>
-          </tr></thead>
-          <tbody>{payments.map(p => (
-            <tr key={p._id} onClick={() => onSelectPayment?.(p)} style={{ cursor: 'pointer' }}>
-              <td><strong>{p.patientName}</strong></td>
-              <td><code className="ud-code">{p.caseId}</code></td>
-              <td>{p.serviceType || '—'}</td>
-              <td className="ud-amount">{p.amount > 0 ? `₹${p.amount.toLocaleString('en-IN')}` : '—'}</td>
-              <td>{formatDate(p.dueDate)}</td>
-              <td>
-                <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
-              </td>
-              <td>
-                {p.paymentStatus === 'Paid' && p.paymentMode ? (
-                  <span style={{ fontSize: '0.78rem' }}>
-                    <span style={{
-                      padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
-                      background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
-                      color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
-                    }}>{p.paymentMode}</span>
-                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
-                  </span>
-                ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
-              </td>
-            </tr>
-          ))}</tbody>
-        </table>
+const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
+  const [statementMonth, setStatementMonth] = React.useState('');
+
+  const totalUnpaid = stats?.payments?.totalUnpaid || 0;
+  const unpaidCount = (stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0);
+  const creditLimit = 200000;
+  const creditUsedPct = Math.min(Math.round((totalUnpaid / creditLimit) * 100), 100);
+
+  // Group batch receipts
+  const batchStatements = React.useMemo(() => {
+    const map = new Map();
+    for (const p of payments) {
+      if (p.batchId) {
+        if (!map.has(p.batchId)) {
+          map.set(p.batchId, {
+            batchId: p.batchId,
+            count: 0,
+            totalAmount: 0,
+            paymentMode: p.paymentMode || '',
+            referenceNumber: p.referenceNumber || '',
+            paidAt: p.paidAt,
+          });
+        }
+        const b = map.get(p.batchId);
+        b.count += 1;
+        b.totalAmount += Number(p.amount) || 0;
+      }
+    }
+    return Array.from(map.values());
+  }, [payments]);
+
+  const handleDownloadUnpaid = () => {
+    const query = statementMonth ? `&month=${encodeURIComponent(statementMonth)}` : '';
+    window.open(`/invoice?unpaid=true${query}`, '_blank');
+  };
+
+  const handleDownloadBatch = (batchId) => {
+    window.open(`/invoice?batchId=${encodeURIComponent(batchId)}`, '_blank');
+  };
+
+  return (
+    <div className="ud-content-inner">
+      <h2 className="ud-tab-title">{title}</h2>
+
+      {/* Outstanding Bill & Credit Limit Card */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2ece6',
+        borderRadius: '12px',
+        padding: '20px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 10px rgba(30, 80, 56, 0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
+              Outstanding Balance / Amount to Pay
+            </span>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '4px' }}>
+              ₹{totalUnpaid.toLocaleString('en-IN')}
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#555', marginTop: '2px' }}>
+              Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <input
+              type="month"
+              value={statementMonth}
+              onChange={(e) => setStatementMonth(e.target.value)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '6px',
+                border: '1px solid #d0ded6',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: '#1a3028',
+                background: '#f8faf9',
+              }}
+              aria-label="Select Statement Month"
+            />
+            {statementMonth && (
+              <button
+                type="button"
+                onClick={() => setStatementMonth('')}
+                style={{
+                  background: '#f0f4f2',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '0.78rem',
+                  color: '#4a7060',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                All Unpaid
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleDownloadUnpaid}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                background: '#1e5038',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download Pending Bill
+            </button>
+          </div>
+        </div>
+
+        {/* Credit Limit Usage Bar */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+            <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
+            <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
+          </div>
+          <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${creditUsedPct}%`,
+              background: creditUsedPct > 80 ? '#dc2626' : creditUsedPct > 50 ? '#f59e0b' : '#1e5038',
+              borderRadius: '4px',
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+        </div>
       </div>
-    )}
-  </div>
-);
+
+      {/* Consolidated Batch Receipts Section */}
+      {batchStatements.length > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a3028', marginBottom: '10px' }}>
+            Consolidated Monthly Batch Receipts
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {batchStatements.map(b => (
+              <div key={b.batchId} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#f8faf9',
+                border: '1px solid #e2ece6',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}>
+                <div>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e5038', fontFamily: 'monospace' }}>
+                    {b.batchId}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#555', marginLeft: '12px' }}>
+                    {b.count} {b.count === 1 ? 'order' : 'orders'} • Total: <strong>₹{b.totalAmount.toLocaleString('en-IN')}</strong>
+                    {b.paymentMode && ` • ${b.paymentMode}`}
+                    {b.referenceNumber && ` (Ref: ${b.referenceNumber})`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadBatch(b.batchId)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    background: '#ffffff',
+                    color: '#1e5038',
+                    border: '1px solid #1e5038',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                  Download Batch Invoice
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#166534', lineHeight: 1.5 }}>
+        <strong>Accepted Payment Modes:</strong> Direct UPI (to lab mobile number / UPI ID), Cash, or Cheque. No payment gateway required. Once your payment is received, lab administration will verify and mark the order as Paid.
+      </div>
+      {loading ? (
+        <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
+      ) : payments.length === 0 ? (
+        <EmptyState
+          variant="payments"
+          message="No payment records found"
+          subtext="Payment records will appear here once orders are created."
+        />
+      ) : (
+        <div className="ud-table-wrap">
+          <table className="ud-table">
+            <thead><tr>
+              <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Amount</th>
+              <th>Due Date</th><th>Payment Status</th><th>Mode & Ref</th>
+            </tr></thead>
+            <tbody>{payments.map(p => (
+              <tr key={p._id} onClick={() => onSelectPayment?.(p)} style={{ cursor: 'pointer' }}>
+                <td><strong>{p.patientName}</strong></td>
+                <td><code className="ud-code">{p.caseId}</code></td>
+                <td>{p.serviceType || '—'}</td>
+                <td className="ud-amount">{p.amount > 0 ? `₹${p.amount.toLocaleString('en-IN')}` : '—'}</td>
+                <td>{formatDate(p.dueDate)}</td>
+                <td>
+                  <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
+                </td>
+                <td>
+                  {p.paymentStatus === 'Paid' && p.paymentMode ? (
+                    <span style={{ fontSize: '0.78rem' }}>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
+                        background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
+                        color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
+                      }}>{p.paymentMode}</span>
+                      {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                    </span>
+                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                </td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default DentistDashboard;

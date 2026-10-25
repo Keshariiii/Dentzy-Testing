@@ -7,7 +7,8 @@ import './PrintableInvoice.css';
 /**
  * PrintableInvoice — Official Dentzy Dental Laboratory Tax Invoice & Statement.
  * Strictly Monochrome / Black & White matching Indian Tax Invoice & Cash Memo standards.
- * Ponytail: Single dentist address block, checks dentist data accurately, skips address if not set.
+ * Ponytail: Supports both Paid Batch/Single Invoices and Unpaid Monthly Statements.
+ * Strict SVG-only compliance: zero emojis or Unicode glyphs.
  */
 export default function PrintableInvoice({
   payment = null,
@@ -18,6 +19,11 @@ export default function PrintableInvoice({
   isStandalone = false,
 }) {
   const { user } = useAuth() || {};
+
+  const isUnpaid =
+    statement?.statementType === 'UNPAID_BILL' ||
+    (statement?.status && statement.status !== 'Paid') ||
+    (payment?.status && payment.status !== 'Paid');
 
   // Invoice Numbers & Dates
   const invoiceNumber =
@@ -76,6 +82,8 @@ export default function PrintableInvoice({
   } else if (payment) {
     lineItems = [
       {
+        caseId: payment.caseId,
+        patientName: payment.patientName,
         description: payment.serviceType || payment.service || 'Dental Prosthetics Restoration',
         teeth: payment.teeth || payment.units || '',
         specs: payment.notes || 'Custom Dental Lab Prosthetics | 1-Year Lab Guarantee',
@@ -113,14 +121,13 @@ export default function PrintableInvoice({
   const totalTax = lineItems.reduce((acc, item) => acc + (Number(item.taxAmount) || 0), 0);
   const totalAmount = lineItems.reduce((acc, item) => acc + (Number(item.total ?? item.amount) || 0), 0);
 
-  const paymentMode = statement?.paymentMode || payment?.paymentMode || 'Direct Clearance / UPI';
+  const paymentMode = statement?.paymentMode || payment?.paymentMode || (isUnpaid ? 'Direct Clearance / UPI' : 'Direct Clearance / UPI');
   const txnId = statement?.referenceNumber || payment?.referenceNumber || 'TXN-' + (payment?.caseId || Date.now().toString(36).toUpperCase());
 
   const handlePrint = () => {
     const el = document.getElementById('printable-invoice-root');
     if (!el) return;
 
-    // Collect all pi-* CSS rules from loaded stylesheets
     let css = '';
     try {
       css = Array.from(document.styleSheets)
@@ -129,12 +136,11 @@ export default function PrintableInvoice({
         })
         .map(rule => rule.cssText)
         .join('\n');
-    } catch { /* cross-origin sheet blocked — fall back to empty */ }
+    } catch { }
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
-      // Popup blocked (common on mobile) — do nothing, user sees the invoice on screen
-      alert('Please allow popups for this site to download the PDF, or use your browser\'s Share → Print option.');
+      alert('Please allow popups for this site to download the PDF, or use your browser\'s Share -> Print option.');
       return;
     }
 
@@ -142,12 +148,11 @@ export default function PrintableInvoice({
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Dentzy Invoice</title>
+    <title>Dentzy ${isUnpaid ? 'Statement' : 'Invoice'}</title>
     <style>
       @page { size: A4 portrait; margin: 8mm 10mm; }
       html, body { margin: 0; padding: 0; background: #fff; font-family: Arial, Helvetica, sans-serif; }
       ${css}
-      /* Override screen-only chrome for print window */
       .pi-backdrop { position: static !important; background: transparent !important; padding: 0 !important; display: block !important; }
       .pi-modal-shell { box-shadow: none !important; border: none !important; max-height: none !important; border-radius: 0 !important; display: block !important; }
       .pi-scroll-body { overflow: visible !important; background: transparent !important; padding: 0 !important; display: block !important; }
@@ -172,11 +177,11 @@ export default function PrintableInvoice({
   const handleShareWhatsApp = () => {
     const lines = [
       `*DENTZY DENTAL LABORATORY*`,
-      `*Tax Invoice / Cash Memo*`,
-      `Invoice No: ${invoiceNumber}`,
+      `*${isUnpaid ? 'Statement of Outstanding Dues / Unpaid Bill' : 'Tax Invoice / Cash Memo'}*`,
+      `${isUnpaid ? 'Statement No' : 'Invoice No'}: ${invoiceNumber}`,
       `Date: ${invoiceDate}`,
       `Billed To: Dr. ${doctorName}${clinicName ? ` - ${clinicName}` : ''}`,
-      `Total Amount: ${formatINR(totalAmount)}`,
+      `${isUnpaid ? 'Total Outstanding Due' : 'Total Amount'}: ${formatINR(totalAmount)}`,
       `Tel / WhatsApp: +91 9503668112 | support@dentzy.in`,
     ].join('\n');
 
@@ -192,8 +197,8 @@ export default function PrintableInvoice({
           <span className="pi-logo-text">dentzy</span><span className="pi-logo-sub">.in</span>
         </div>
         <div className="pi-title-block">
-          <h2 className="pi-title">Tax Invoice/Bill of Supply/Cash Memo</h2>
-          <div className="pi-recipient-type">(Original for Recipient)</div>
+          <h2 className="pi-title">{isUnpaid ? 'Statement of Outstanding Dues / Unpaid Bill' : 'Tax Invoice/Bill of Supply/Cash Memo'}</h2>
+          <div className="pi-recipient-type">{isUnpaid ? '(Statement of Amount Due)' : '(Original for Recipient)'}</div>
         </div>
       </div>
 
@@ -228,13 +233,13 @@ export default function PrintableInvoice({
       {/* ── Order & Invoice Details Bar ──────────────────────────── */}
       <div className="pi-order-info-row">
         <div className="pi-order-left">
-          <div><strong>Order Number:</strong> {orderNumber}</div>
-          <div><strong>Order Date:</strong> {orderDate}</div>
+          <div><strong>{isUnpaid ? 'Billing Period:' : 'Order Number:'}</strong> {isUnpaid ? (statement?.month || 'Current Cycle') : orderNumber}</div>
+          <div><strong>{isUnpaid ? 'Statement Date:' : 'Order Date:'}</strong> {isUnpaid ? invoiceDate : orderDate}</div>
         </div>
         <div className="pi-order-right">
-          <div><strong>Invoice Number :</strong> {invoiceNumber}</div>
-          <div><strong>Invoice Details :</strong> MH-{invoiceNumber.replace(/[^a-zA-Z0-9]/g, '')}-2627</div>
-          <div><strong>Invoice Date :</strong> {invoiceDate}</div>
+          <div><strong>{isUnpaid ? 'Statement Number :' : 'Invoice Number :'}</strong> {invoiceNumber}</div>
+          <div><strong>Details :</strong> MH-{invoiceNumber.replace(/[^a-zA-Z0-9]/g, '')}-2627</div>
+          <div><strong>Due Date :</strong> {isUnpaid ? 'Immediate / Upon Clearance' : invoiceDate}</div>
         </div>
       </div>
 
@@ -261,7 +266,7 @@ export default function PrintableInvoice({
                 <td style={{ textAlign: 'center' }}>{idx + 1}</td>
                 <td>
                   <div className="pi-item-title">
-                    <strong>{item.description || item.service}</strong> {item.teeth ? `(${item.teeth})` : ''}
+                    <strong>{item.caseId ? `${item.caseId} · ` : ''}{item.patientName ? `${item.patientName} — ` : ''}{item.description || item.service}</strong> {item.teeth ? `(${item.teeth})` : ''}
                   </div>
                   {item.specs && <div className="pi-item-desc">{item.specs}</div>}
                   <div className="pi-item-hsn">HSN:{item.hsn || '90212000'}</div>
@@ -280,7 +285,7 @@ export default function PrintableInvoice({
           <tfoot>
             <tr className="pi-total-row">
               <td colSpan="8" style={{ textAlign: 'left', fontWeight: 'bold' }}>
-                TOTAL:
+                {isUnpaid ? 'TOTAL OUTSTANDING AMOUNT TO PAY:' : 'TOTAL:'}
               </td>
               <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalTax)}</td>
               <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalAmount)}</td>
@@ -293,7 +298,7 @@ export default function PrintableInvoice({
       <div className="pi-words-and-sign">
         <div className="pi-words-col">
           <div className="pi-words-lbl"><strong>Amount in Words:</strong></div>
-          <div className="pi-words-val">{formatINR(totalAmount)} (Inclusive of all taxes)</div>
+          <div className="pi-words-val">{formatINR(totalAmount)} {isUnpaid ? '(Total Outstanding Balance)' : '(Inclusive of all taxes)'}</div>
           <div className="pi-rc-text">Whether tax is payable under reverse charge - No</div>
         </div>
 
@@ -313,26 +318,26 @@ export default function PrintableInvoice({
       {/* ── Payment Transaction Grid ─────────────────────────────── */}
       <div className="pi-txn-grid">
         <div className="pi-txn-cell">
-          <div className="pi-txn-lbl">Payment Transaction ID:</div>
-          <div className="pi-txn-val">{txnId}</div>
+          <div className="pi-txn-lbl">{isUnpaid ? 'Clearance Status:' : 'Payment Transaction ID:'}</div>
+          <div className="pi-txn-val">{isUnpaid ? 'Pending Lab Clearance' : txnId}</div>
         </div>
         <div className="pi-txn-cell">
           <div className="pi-txn-lbl">Date &amp; Time:</div>
           <div className="pi-txn-val">{invoiceDate}, 10:00:00 hrs</div>
         </div>
         <div className="pi-txn-cell pi-txn-val-box">
-          <div className="pi-txn-lbl">Invoice Value:</div>
+          <div className="pi-txn-lbl">{isUnpaid ? 'Amount Due:' : 'Invoice Value:'}</div>
           <div className="pi-txn-val-bold">{formatINR(totalAmount)}</div>
         </div>
         <div className="pi-txn-cell">
           <div className="pi-txn-lbl">Mode of Payment:</div>
-          <div className="pi-txn-val">{paymentMode}</div>
+          <div className="pi-txn-val">{isUnpaid ? 'Direct UPI / Cheque / Cash' : paymentMode}</div>
         </div>
       </div>
 
       {/* ── Official Fineprint / Footnote ─────────────────────────── */}
       <div className="pi-fineprint">
-        <div>Please note that this invoice is not a demand for payment.</div>
+        <div>{isUnpaid ? 'Please clear outstanding dues promptly to maintain uninterrupted laboratory milling service.' : 'Please note that this invoice is not a demand for payment.'}</div>
         <div>Regd. Office: Dentzy Dental Laboratory, Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
         <div>Telephone: +91 9503668112 | Email: support@dentzy.in | Website: dentzy-testing.pages.dev</div>
         <div>Dentzy Dental Laboratory LLP. Clinical dental prosthetics &amp; CAD/CAM milling services.</div>
@@ -363,7 +368,7 @@ export default function PrintableInvoice({
       <div className="pi-modal-shell" onClick={(e) => e.stopPropagation()}>
         <div className="pi-screen-bar no-print">
           <div className="pi-screen-title">
-            <span>Tax Invoice / Cash Memo</span>
+            <span>{isUnpaid ? 'Statement of Outstanding Dues' : 'Tax Invoice / Cash Memo'}</span>
           </div>
           <div className="pi-screen-actions">
             <button type="button" onClick={handleShareWhatsApp} className="pi-btn-action">
@@ -374,7 +379,11 @@ export default function PrintableInvoice({
             </button>
             {onClose && (
               <button type="button" onClick={onClose} className="pi-btn-action" aria-label="Close">
-                ✕ Close
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }}>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>Close</span>
               </button>
             )}
           </div>

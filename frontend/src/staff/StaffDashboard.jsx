@@ -1011,6 +1011,34 @@ const StaffDashboard = () => {
                           >
                             + Select {staffPayMonth} Orders ({filteredStaffDentistOrders.length})
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const dId = selectedDentist.id || selectedDentist._id;
+                              const mQuery = staffPayMonth && staffPayMonth !== 'all' ? `&month=${encodeURIComponent(staffPayMonth)}` : '';
+                              window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
+                            }}
+                            style={{
+                              background: '#1e5038',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7 10 12 15 17 10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download Pending Bill
+                          </button>
                         </>
                       )}
                       {selectedStaffPaymentIds.length > 0 && (
