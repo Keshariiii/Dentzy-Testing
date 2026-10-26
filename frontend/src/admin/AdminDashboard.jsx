@@ -38,6 +38,7 @@ const STATUS_BADGE = {
 const AdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { showToast } = useToast();
 
   // Stable ref for authFetch — guaranteed initialized before any callback
   const authFetchRef = useRef(authFetch);
@@ -146,7 +147,7 @@ const AdminDashboard = () => {
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
-  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState({ enabled: false, target: 'both' });
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   const handleMaintenanceConfigChanged = useCallback((updated) => {
@@ -478,8 +479,6 @@ const AdminDashboard = () => {
       clearTimeout(retryTimeout);
     };
   }, [admin?.username, ADMIN_API]);
-
-  const { showToast } = useToast();
 
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
@@ -881,8 +880,8 @@ const AdminDashboard = () => {
             }} />
             <span>
               Maintenance Active: {
-                maintenanceBadgeConfig.target === 'both' ? 'Dentists & Staff' :
-                maintenanceBadgeConfig.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
+                maintenanceBadgeConfig?.target === 'both' ? 'Dentists & Staff' :
+                maintenanceBadgeConfig?.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
               }
             </span>
           </button>

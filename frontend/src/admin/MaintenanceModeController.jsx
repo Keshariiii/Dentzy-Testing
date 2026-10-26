@@ -1,6 +1,6 @@
 'use client';
 // ponytail: Bespoke 21st.dev Maintenance Mode Controller for Admin with safety modal and zero emojis
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BaseModal from '../components/ui/BaseModal';
 import { Ico } from '../components/common/DashboardIcons';
 
@@ -390,14 +390,14 @@ export default function MaintenanceModeController({
           <label style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>
             Custom Announcement Message
           </label>
-          <span style={{ fontSize: '0.75rem', color: config.customMessage.length > 450 ? '#dc2626' : '#708c80', fontWeight: 600 }}>
-            {config.customMessage.length}/500
+          <span style={{ fontSize: '0.75rem', color: (config?.customMessage || '').length > 450 ? '#dc2626' : '#708c80', fontWeight: 600 }}>
+            {(config?.customMessage || '').length}/500
           </span>
         </div>
         <textarea
           rows={3}
           maxLength={500}
-          value={config.customMessage}
+          value={config?.customMessage || ''}
           onChange={(e) => setConfig({ ...config, customMessage: e.target.value })}
           placeholder="e.g., We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster."
           style={{
@@ -429,7 +429,7 @@ export default function MaintenanceModeController({
         <input
           type="text"
           maxLength={150}
-          value={config.estimatedTime}
+          value={config?.estimatedTime || ''}
           onChange={(e) => setConfig({ ...config, estimatedTime: e.target.value })}
           placeholder="Expected back online: Today at 6:00 PM IST"
           style={{
@@ -579,7 +579,7 @@ export default function MaintenanceModeController({
             </>
           ) : (
             <>
-              <Ico.check size={16} />
+              {Ico.check ? Ico.check(16) : null}
               <span>Save Maintenance Settings</span>
             </>
           )}

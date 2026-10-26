@@ -61,6 +61,7 @@ const ADMIN_NAV_BASE = [
 const MobileAdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { showToast } = useToast();
 
   // Stable ref for authFetch — guaranteed initialized before any callback
   const authFetchRef = useRef(authFetch);
@@ -182,7 +183,7 @@ const MobileAdminDashboard = () => {
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
-  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState({ enabled: false, target: 'both' });
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   const handleMaintenanceConfigChanged = useCallback((updated) => {
@@ -244,7 +245,6 @@ const MobileAdminDashboard = () => {
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
   const [liveNotifs, setLiveNotifs]       = useState([]);
-  const { showToast } = useToast();
   const [confirmConfig, setConfirmConfig] = useState(null);
   const [error, setError]                 = useState(null);
 
@@ -922,8 +922,8 @@ const MobileAdminDashboard = () => {
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#dc2626', animation: 'dzPulseDot 1.5s infinite ease-in-out', flexShrink: 0 }} />
           <span>
             Maintenance Active: {
-              maintenanceBadgeConfig.target === 'both' ? 'Dentists & Staff' :
-              maintenanceBadgeConfig.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
+              maintenanceBadgeConfig?.target === 'both' ? 'Dentists & Staff' :
+              maintenanceBadgeConfig?.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
             }
           </span>
         </div>
