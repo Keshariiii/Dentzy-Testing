@@ -153,33 +153,89 @@ const MobileAdminDashboard = () => {
 
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
-  const [noticeMessages, setNoticeMessages] = useState([]);
+  const [noticeMessages, setNoticeMessages] = useState([
+    'Welcome to Dentzy Clinical Lab Portal',
+    'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
+    'New: Zirconia monolithic crowns with multi-shade gradients now available',
+    'Submit STL files for faster digital impression processing',
+    'Invoices are generated upon case dispatch — check the Payments tab',
+    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'Lab support: Mon-Sat, 9 AM to 6 PM IST',
+  ]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
   const [noticeSaving, setNoticeSaving] = useState(false);
   const [noticeLoaded, setNoticeLoaded] = useState(false);
 
   // Staff notice bar settings state
   const [staffNoticeEnabled, setStaffNoticeEnabled] = useState(true);
-  const [staffNoticeMessages, setStaffNoticeMessages] = useState([]);
+  const [staffNoticeMessages, setStaffNoticeMessages] = useState([
+    'Welcome to Dentzy Lab Operations Portal',
+    'Ensure all case scans & QC checklists are logged before dispatch',
+    'Priority cases marked Urgent must be completed within 24 hours',
+    'Standard daily shift handover meeting at 6:00 PM',
+    'Lab Support & Rush Desk hotline: +91 9503668112',
+  ]);
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
   const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+
+  const handleMaintenanceConfigChanged = useCallback((updated) => {
+    setMaintenanceBadgeConfig(updated);
+  }, []);
+
+  const fetchAllSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      const [maintRes, noticeRes, staffNoticeRes] = await Promise.allSettled([
+        authFetch(`${ADMIN_API}/settings/maintenance`),
+        authFetch(`${ADMIN_API}/settings/notice`),
+        authFetch(`${ADMIN_API}/settings/staff-notice`),
+      ]);
+
+      if (maintRes.status === 'fulfilled' && maintRes.value?.ok) {
+        try {
+          const d = await maintRes.value.json();
+          setMaintenanceBadgeConfig(d);
+        } catch {}
+      }
+
+      if (noticeRes.status === 'fulfilled' && noticeRes.value?.ok) {
+        try {
+          const d = await noticeRes.value.json();
+          setNoticeEnabled(d.enabled !== false);
+          const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+          if (msgs && msgs.length > 0) setNoticeMessages(msgs);
+        } catch {}
+      }
+
+      if (staffNoticeRes.status === 'fulfilled' && staffNoticeRes.value?.ok) {
+        try {
+          const d = await staffNoticeRes.value.json();
+          setStaffNoticeEnabled(d.enabled !== false);
+          const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+          if (msgs && msgs.length > 0) setStaffNoticeMessages(msgs);
+        } catch {}
+      }
+    } catch (err) {
+      console.error('Mobile settings fetch error:', err);
+    } finally {
+      setSettingsLoading(false);
+      setNoticeLoaded(true);
+      setStaffNoticeLoaded(true);
+    }
+  }, [authFetch, ADMIN_API]);
 
   useEffect(() => {
-    let isMounted = true;
-    const loadMaint = async () => {
-      try {
-        const res = await authFetch(`${ADMIN_API}/settings/maintenance`);
-        if (res.ok && isMounted) {
-          const d = await res.json();
-          setMaintenanceBadgeConfig(d);
-        }
-      } catch {}
-    };
-    loadMaint();
-    return () => { isMounted = false; };
-  }, [ADMIN_API, authFetch]);
+    fetchAllSettings();
+  }, [fetchAllSettings]);
+
+  useEffect(() => {
+    if (adminView === 'settings') {
+      fetchAllSettings();
+    }
+  }, [adminView, fetchAllSettings]);
 
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
@@ -224,13 +280,15 @@ const MobileAdminDashboard = () => {
   const fetchNotice = useCallback(async () => {
     try {
       const res = await authFetch(`${ADMIN_API}/settings/notice`);
-      if (res.ok) {
+      if (res && res.ok) {
         const d = await res.json();
         setNoticeEnabled(d.enabled !== false);
-        setNoticeMessages(d.messages || []);
-        setNoticeLoaded(true);
+        const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+        if (msgs && msgs.length > 0) setNoticeMessages(msgs);
       }
-    } catch {}
+    } catch {} finally {
+      setNoticeLoaded(true);
+    }
   }, [authFetch, ADMIN_API]);
 
   const handleNoticeSave = async () => {
@@ -240,28 +298,31 @@ const MobileAdminDashboard = () => {
         method: 'PUT',
         body: JSON.stringify({ enabled: noticeEnabled, messages: noticeMessages }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res?.json?.().catch(() => ({})) || {};
+      if (res && res.ok) {
         showToast('Notice bar updated successfully.', 'success');
       } else {
         showToast(data.message || 'Failed to update notice bar.', 'error');
       }
     } catch {
       showToast('Network error.', 'error');
+    } finally {
+      setNoticeSaving(false);
     }
-    setNoticeSaving(false);
   };
 
   const fetchStaffNotice = useCallback(async () => {
     try {
       const res = await authFetch(`${ADMIN_API}/settings/staff-notice`);
-      if (res.ok) {
+      if (res && res.ok) {
         const d = await res.json();
         setStaffNoticeEnabled(d.enabled !== false);
-        setStaffNoticeMessages(d.messages || []);
-        setStaffNoticeLoaded(true);
+        const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+        if (msgs && msgs.length > 0) setStaffNoticeMessages(msgs);
       }
-    } catch {}
+    } catch {} finally {
+      setStaffNoticeLoaded(true);
+    }
   }, [authFetch, ADMIN_API]);
 
   const handleStaffNoticeSave = async () => {
@@ -271,16 +332,17 @@ const MobileAdminDashboard = () => {
         method: 'PUT',
         body: JSON.stringify({ enabled: staffNoticeEnabled, messages: staffNoticeMessages }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res?.json?.().catch(() => ({})) || {};
+      if (res && res.ok) {
         showToast('Staff notice bar updated successfully.', 'success');
       } else {
         showToast(data.message || 'Failed to update staff notice bar.', 'error');
       }
     } catch {
       showToast('Network error.', 'error');
+    } finally {
+      setStaffNoticeSaving(false);
     }
-    setStaffNoticeSaving(false);
   };
 
   /* -- Data fetching ----------------------------------------------------- */
@@ -1956,11 +2018,11 @@ const MobileAdminDashboard = () => {
                 </div>
 
                 {/* Live Preview */}
-                {noticeMessages.length > 0 && (
+                {(Array.isArray(noticeMessages) && noticeMessages.length > 0) && (
                   <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                     <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
                     <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
-                      <TwentyFirstNoticeBar messages={noticeMessages} />
+                      <TwentyFirstNoticeBar messages={noticeMessages || []} />
                     </div>
                   </div>
                 )}
@@ -1977,7 +2039,7 @@ const MobileAdminDashboard = () => {
                       onChange={e => setNoticeNewMsg(e.target.value)}
                       onKeyDown={e => {
                         if (e.key === 'Enter' && noticeNewMsg.trim()) {
-                          setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]);
+                          setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]);
                           setNoticeNewMsg('');
                         }
                       }}
@@ -1990,7 +2052,7 @@ const MobileAdminDashboard = () => {
                       title="Add Message"
                       ariaLabel="Add Message"
                       disabled={!noticeNewMsg.trim()}
-                      onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
+                      onClick={() => { setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
                       variant="primary"
                       size="lg"
                     />
@@ -1998,7 +2060,7 @@ const MobileAdminDashboard = () => {
 
                   {/* Draggable Reorderable List (21st.dev) */}
                   <TwentyFirstNoticeList
-                    messages={noticeMessages}
+                    messages={noticeMessages || []}
                     onChange={setNoticeMessages}
                   />
 
@@ -2059,11 +2121,11 @@ const MobileAdminDashboard = () => {
                 </div>
 
                 {/* Live Preview */}
-                {staffNoticeMessages.length > 0 && (
+                {(Array.isArray(staffNoticeMessages) && staffNoticeMessages.length > 0) && (
                   <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                     <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
                     <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
-                      <TwentyFirstNoticeBar messages={staffNoticeMessages} />
+                      <TwentyFirstNoticeBar messages={staffNoticeMessages || []} />
                     </div>
                   </div>
                 )}
@@ -2080,7 +2142,7 @@ const MobileAdminDashboard = () => {
                       onChange={e => setStaffNoticeNewMsg(e.target.value)}
                       onKeyDown={e => {
                         if (e.key === 'Enter' && staffNoticeNewMsg.trim()) {
-                          setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]);
+                          setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]);
                           setStaffNoticeNewMsg('');
                         }
                       }}
@@ -2093,7 +2155,7 @@ const MobileAdminDashboard = () => {
                       title="Add Message"
                       ariaLabel="Add Message"
                       disabled={!staffNoticeNewMsg.trim()}
-                      onClick={() => { setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
+                      onClick={() => { setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
                       variant="primary"
                       size="lg"
                     />
@@ -2101,7 +2163,7 @@ const MobileAdminDashboard = () => {
 
                   {/* Draggable Reorderable List (21st.dev) */}
                   <TwentyFirstNoticeList
-                    messages={staffNoticeMessages}
+                    messages={staffNoticeMessages || []}
                     onChange={setStaffNoticeMessages}
                   />
 
@@ -2201,7 +2263,7 @@ const MobileAdminDashboard = () => {
                   ADMIN_API={ADMIN_API}
                   authFetch={authFetch}
                   showToast={showToast}
-                  onConfigChanged={(updated) => setMaintenanceBadgeConfig(updated)}
+                  onConfigChanged={handleMaintenanceConfigChanged}
                 />
               </div>
             )}

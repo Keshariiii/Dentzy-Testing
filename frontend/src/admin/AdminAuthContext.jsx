@@ -32,11 +32,14 @@ export const AdminAuthProvider = ({ children }) => {
       // Verify the session against the server
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       try {
         const res = await fetch(`${getAdminUrl()}/me`, {
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           credentials: 'include',
         });
 
@@ -47,10 +50,15 @@ export const AdminAuthProvider = ({ children }) => {
           if (isMounted) {
             setAdmin(data.admin);
             localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
+            if (data.token) {
+              localStorage.setItem('dentzy_admin_token', data.token);
+            }
           }
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_admin_info');
+            localStorage.removeItem('dentzy_admin_token');
+            sessionStorage.removeItem('dentzy_admin_token');
           }
           if (isMounted) setAdmin(null);
         }
@@ -73,6 +81,9 @@ export const AdminAuthProvider = ({ children }) => {
       body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_admin_info', JSON.stringify(data.admin));
+    if (data.token) {
+      localStorage.setItem('dentzy_admin_token', data.token);
+    }
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_user');
     setAdmin(data.admin);
@@ -82,30 +93,42 @@ export const AdminAuthProvider = ({ children }) => {
   // ── Admin logout ──────────────────────────────────────────────────────────
   const adminLogout = useCallback(async () => {
     try {
-      await apiFetch(`${getAdminUrl()}/logout`, { method: 'POST' });
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
+      await apiFetch(`${getAdminUrl()}/logout`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_admin_info');
+      localStorage.removeItem('dentzy_admin_token');
+      sessionStorage.removeItem('dentzy_admin_token');
     }
     setAdmin(null);
   }, []);
 
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    };
+
     try {
       const res = await fetch(url, {
         ...options,
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {}),
-        },
+        headers,
       });
 
       // Auto-logout on 401 / 403 — expired or revoked token
       if (res.status === 401 || res.status === 403) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('dentzy_admin_info');
+          localStorage.removeItem('dentzy_admin_token');
+          sessionStorage.removeItem('dentzy_admin_token');
         }
         // Don't call setAdmin here — it causes an infinite re-render loop.
         // Let the dashboard page's own useEffect handle the redirect.

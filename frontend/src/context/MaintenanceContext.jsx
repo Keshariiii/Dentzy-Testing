@@ -24,8 +24,14 @@ export const MaintenanceProvider = ({ children }) => {
   const checkStatus = useCallback(async () => {
     setChecking(true);
     try {
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
+      const headers = {
+        'Cache-Control': 'no-cache',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      };
       const res = await fetch(`/api/maintenance/status?_t=${Date.now()}`, {
-        headers: { 'Cache-Control': 'no-cache' },
+        credentials: 'include',
+        headers,
       });
       if (res.ok) {
         const data = await res.json();
@@ -38,7 +44,7 @@ export const MaintenanceProvider = ({ children }) => {
           showEmergencyContact: data.showEmergencyContact !== false,
           hotline: data.hotline || '+91 95036 68112',
           whatsapp: data.whatsapp || '919503668112',
-          updatedAt: data.updatedAt || null,
+          updatedAt: data.updatedAt || data.updated_at || null,
         }));
         setLastChecked(new Date());
         return { isLive: !data.enabled, data };
@@ -51,10 +57,13 @@ export const MaintenanceProvider = ({ children }) => {
     return { isLive: !maintenance.enabled, data: maintenance };
   }, [maintenance.enabled]);
 
-  // Initial check on mount (skip for admin routes)
+  // Initial check on mount (skip for admin and login routes)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-      return;
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin') || path.startsWith('/login')) {
+        return;
+      }
     }
     checkStatus();
   }, [checkStatus]);
@@ -62,6 +71,12 @@ export const MaintenanceProvider = ({ children }) => {
   // ponytail: Global 503 custom event listener smoothly transitions user without promise crashes
   useEffect(() => {
     const handleMaintenanceEvent = (event) => {
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path.startsWith('/admin') || path.startsWith('/login')) {
+          return;
+        }
+      }
       const detail = event.detail;
       if (!detail) return;
       setMaintenance(prev => ({
@@ -74,7 +89,7 @@ export const MaintenanceProvider = ({ children }) => {
         showEmergencyContact: detail.showEmergencyContact !== false,
         hotline: detail.hotline || prev.hotline,
         whatsapp: detail.whatsapp || prev.whatsapp,
-        updatedAt: detail.updatedAt || prev.updatedAt,
+        updatedAt: detail.updatedAt || detail.updated_at || prev.updatedAt,
       }));
     };
 
@@ -85,6 +100,12 @@ export const MaintenanceProvider = ({ children }) => {
   }, []);
 
   const isRoleBlocked = useCallback((role) => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin') || path.startsWith('/login')) {
+        return false;
+      }
+    }
     if (!maintenance.enabled) return false;
     if (role === 'admin') return false; // Admin is immune
     if (maintenance.target === 'both') return true;

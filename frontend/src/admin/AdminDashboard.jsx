@@ -118,32 +118,88 @@ const AdminDashboard = () => {
   const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
-  const [noticeMessages, setNoticeMessages] = useState([]);
+  const [noticeMessages, setNoticeMessages] = useState([
+    'Welcome to Dentzy Clinical Lab Portal',
+    'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
+    'New: Zirconia monolithic crowns with multi-shade gradients now available',
+    'Submit STL files for faster digital impression processing',
+    'Invoices are generated upon case dispatch — check the Payments tab',
+    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'Lab support: Mon-Sat, 9 AM to 6 PM IST',
+  ]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
   const [noticeSaving, setNoticeSaving] = useState(false);
   const [noticeLoaded, setNoticeLoaded] = useState(false);
   // Staff broadcast notice state
   const [staffNoticeEnabled, setStaffNoticeEnabled] = useState(true);
-  const [staffNoticeMessages, setStaffNoticeMessages] = useState([]);
+  const [staffNoticeMessages, setStaffNoticeMessages] = useState([
+    'Welcome to Dentzy Lab Operations Portal',
+    'Ensure all case scans & QC checklists are logged before dispatch',
+    'Priority cases marked Urgent must be completed within 24 hours',
+    'Standard daily shift handover meeting at 6:00 PM',
+    'Lab Support & Rush Desk hotline: +91 9503668112',
+  ]);
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
   const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+
+  const handleMaintenanceConfigChanged = useCallback((updated) => {
+    setMaintenanceBadgeConfig(updated);
+  }, []);
+
+  const fetchAllSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      const [maintRes, noticeRes, staffNoticeRes] = await Promise.allSettled([
+        authFetchRef.current(`${ADMIN_API}/settings/maintenance`),
+        authFetchRef.current(`${ADMIN_API}/settings/notice`),
+        authFetchRef.current(`${ADMIN_API}/settings/staff-notice`),
+      ]);
+
+      if (maintRes.status === 'fulfilled' && maintRes.value?.ok) {
+        try {
+          const d = await maintRes.value.json();
+          setMaintenanceBadgeConfig(d);
+        } catch {}
+      }
+
+      if (noticeRes.status === 'fulfilled' && noticeRes.value?.ok) {
+        try {
+          const d = await noticeRes.value.json();
+          setNoticeEnabled(d.enabled !== false);
+          const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+          if (msgs && msgs.length > 0) setNoticeMessages(msgs);
+        } catch {}
+      }
+
+      if (staffNoticeRes.status === 'fulfilled' && staffNoticeRes.value?.ok) {
+        try {
+          const d = await staffNoticeRes.value.json();
+          setStaffNoticeEnabled(d.enabled !== false);
+          const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+          if (msgs && msgs.length > 0) setStaffNoticeMessages(msgs);
+        } catch {}
+      }
+    } catch (err) {
+      console.error('Settings fetch error:', err);
+    } finally {
+      setSettingsLoading(false);
+      setNoticeLoaded(true);
+      setStaffNoticeLoaded(true);
+    }
+  }, [ADMIN_API]);
 
   useEffect(() => {
-    let isMounted = true;
-    const loadMaint = async () => {
-      try {
-        const res = await authFetchRef.current(`${ADMIN_API}/settings/maintenance`);
-        if (res.ok && isMounted) {
-          const d = await res.json();
-          setMaintenanceBadgeConfig(d);
-        }
-      } catch {}
-    };
-    loadMaint();
-    return () => { isMounted = false; };
-  }, [ADMIN_API]);
+    fetchAllSettings();
+  }, [fetchAllSettings]);
+
+  useEffect(() => {
+    if (adminView === 'settings') {
+      fetchAllSettings();
+    }
+  }, [adminView, fetchAllSettings]);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -208,13 +264,15 @@ const AdminDashboard = () => {
   const fetchNotice = useCallback(async () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/settings/notice`);
-      if (res.ok) {
+      if (res && res.ok) {
         const d = await res.json();
         setNoticeEnabled(d.enabled !== false);
-        setNoticeMessages(d.messages || []);
-        setNoticeLoaded(true);
+        const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+        if (msgs && msgs.length > 0) setNoticeMessages(msgs);
       }
-    } catch { }
+    } catch { } finally {
+      setNoticeLoaded(true);
+    }
   }, [ADMIN_API]);
 
   const handleNoticeSave = useCallback(async () => {
@@ -225,29 +283,32 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: noticeEnabled, messages: noticeMessages }),
       });
-      if (res.ok) {
+      if (res && res.ok) {
         showToast('Notice bar updated.', 'success');
       } else {
-        const err = await res.json().catch(() => ({}));
+        const err = await res?.json?.().catch(() => ({})) || {};
         showToast(err.message || 'Failed to save.', 'error');
       }
     } catch {
       showToast('Failed to save notice.', 'error');
+    } finally {
+      setNoticeSaving(false);
     }
-    setNoticeSaving(false);
-  }, [ADMIN_API, noticeEnabled, noticeMessages]);
+  }, [ADMIN_API, noticeEnabled, noticeMessages, showToast]);
 
   /* -- Staff notice bar fetch + save ------------------------------------- */
   const fetchStaffNotice = useCallback(async () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/settings/staff-notice`);
-      if (res.ok) {
+      if (res && res.ok) {
         const d = await res.json();
         setStaffNoticeEnabled(d.enabled !== false);
-        setStaffNoticeMessages(d.messages || []);
-        setStaffNoticeLoaded(true);
+        const msgs = Array.isArray(d.messages) ? d.messages : (d.message ? [d.message] : null);
+        if (msgs && msgs.length > 0) setStaffNoticeMessages(msgs);
       }
-    } catch {}
+    } catch {} finally {
+      setStaffNoticeLoaded(true);
+    }
   }, [ADMIN_API]);
 
   const handleStaffNoticeSave = useCallback(async () => {
@@ -258,17 +319,18 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: staffNoticeEnabled, messages: staffNoticeMessages }),
       });
-      if (res.ok) {
+      if (res && res.ok) {
         showToast('Staff notice bar updated.', 'success');
       } else {
-        const err = await res.json().catch(() => ({}));
+        const err = await res?.json?.().catch(() => ({})) || {};
         showToast(err.message || 'Failed to save staff notice.', 'error');
       }
     } catch {
       showToast('Failed to save staff notice.', 'error');
+    } finally {
+      setStaffNoticeSaving(false);
     }
-    setStaffNoticeSaving(false);
-  }, [ADMIN_API, staffNoticeEnabled, staffNoticeMessages]);
+  }, [ADMIN_API, staffNoticeEnabled, staffNoticeMessages, showToast]);
   const fetchStats = useCallback(async () => {
     try {
       const res = await authFetchRef.current(`${ADMIN_API}/stats`);
@@ -1733,11 +1795,11 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Live Preview */}
-                        {noticeMessages.length > 0 && (
+                        {(Array.isArray(noticeMessages) && noticeMessages.length > 0) && (
                           <div style={{ marginBottom: '24px' }}>
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
                             <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
-                              <TwentyFirstNoticeBar messages={noticeMessages} />
+                              <TwentyFirstNoticeBar messages={noticeMessages || []} />
                             </div>
                           </div>
                         )}
@@ -1750,7 +1812,7 @@ const AdminDashboard = () => {
                             onChange={e => setNoticeNewMsg(e.target.value)}
                             onKeyDown={e => {
                               if (e.key === 'Enter' && noticeNewMsg.trim()) {
-                                setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]);
+                                setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]);
                                 setNoticeNewMsg('');
                               }
                             }}
@@ -1763,7 +1825,7 @@ const AdminDashboard = () => {
                             title="Add Message"
                             ariaLabel="Add Message"
                             disabled={!noticeNewMsg.trim()}
-                            onClick={() => { setNoticeMessages(prev => [...prev, noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
+                            onClick={() => { setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
                             variant="primary"
                             size="lg"
                           />
@@ -1772,7 +1834,7 @@ const AdminDashboard = () => {
                         {/* Draggable Reorderable List (21st.dev) */}
                         <div style={{ marginBottom: '24px' }}>
                           <TwentyFirstNoticeList
-                            messages={noticeMessages}
+                            messages={noticeMessages || []}
                             onChange={setNoticeMessages}
                           />
                         </div>
@@ -1834,11 +1896,11 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Live Preview */}
-                        {staffNoticeMessages.length > 0 && (
+                        {(Array.isArray(staffNoticeMessages) && staffNoticeMessages.length > 0) && (
                           <div style={{ marginBottom: '24px' }}>
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
                             <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
-                              <TwentyFirstNoticeBar messages={staffNoticeMessages} />
+                              <TwentyFirstNoticeBar messages={staffNoticeMessages || []} />
                             </div>
                           </div>
                         )}
@@ -1851,7 +1913,7 @@ const AdminDashboard = () => {
                             onChange={e => setStaffNoticeNewMsg(e.target.value)}
                             onKeyDown={e => {
                               if (e.key === 'Enter' && staffNoticeNewMsg.trim()) {
-                                setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]);
+                                setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]);
                                 setStaffNoticeNewMsg('');
                               }
                             }}
@@ -1864,7 +1926,7 @@ const AdminDashboard = () => {
                             title="Add Message"
                             ariaLabel="Add Message"
                             disabled={!staffNoticeNewMsg.trim()}
-                            onClick={() => { setStaffNoticeMessages(prev => [...prev, staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
+                            onClick={() => { setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
                             variant="primary"
                             size="lg"
                           />
@@ -1873,7 +1935,7 @@ const AdminDashboard = () => {
                         {/* Draggable Reorderable List (21st.dev) */}
                         <div style={{ marginBottom: '24px' }}>
                           <TwentyFirstNoticeList
-                            messages={staffNoticeMessages}
+                            messages={staffNoticeMessages || []}
                             onChange={setStaffNoticeMessages}
                           />
                         </div>
@@ -1974,7 +2036,7 @@ const AdminDashboard = () => {
                         ADMIN_API={ADMIN_API}
                         authFetch={authFetchRef.current}
                         showToast={showToast}
-                        onConfigChanged={(updated) => setMaintenanceBadgeConfig(updated)}
+                        onConfigChanged={handleMaintenanceConfigChanged}
                       />
                     )}
 

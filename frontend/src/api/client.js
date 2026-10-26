@@ -29,8 +29,13 @@ export function normalizeApiUrl(url) {
  * Throws a structured error on non-2xx responses or network failures.
  */
 export async function apiFetch(url, options = {}) {
+  const isClient = typeof window !== 'undefined';
+  const adminToken = isClient ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
+  const isRequestAdmin = typeof url === 'string' && url.includes('/api/admin');
+
   const headers = {
     'Content-Type': 'application/json',
+    ...(adminToken && isRequestAdmin ? { 'Authorization': `Bearer ${adminToken}` } : {}),
     ...(options.headers || {}),
   };
 
@@ -56,11 +61,9 @@ export async function apiFetch(url, options = {}) {
   if (!res.ok) {
     // ponytail: Centralize 503 interception so any in-flight or initial portal action transitions smoothly without crashing
     if (res.status === 503 && (data?.code === 'MAINTENANCE_MODE' || data?.maintenance === true)) {
-      const isClient = typeof window !== 'undefined';
-      const isCurrentAdmin = isClient && window.location.pathname.startsWith('/admin');
-      const isRequestAdmin = typeof url === 'string' && url.includes('/api/admin');
+      const isExemptRoute = isClient && (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/login'));
 
-      if (!isCurrentAdmin && !isRequestAdmin && isClient) {
+      if (!isExemptRoute && !isRequestAdmin && isClient) {
         window.dispatchEvent(new CustomEvent('dentzy:maintenance', { detail: data }));
       }
     }

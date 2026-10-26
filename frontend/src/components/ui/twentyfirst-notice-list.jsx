@@ -227,25 +227,27 @@ function NoticeItem({
 export default function TwentyFirstNoticeList({ messages = [], onChange }) {
   // Map strings to objects with stable unique IDs
   const idGenRef = useRef(1);
+  const safeInitial = Array.isArray(messages) ? messages : (typeof messages === 'string' && messages ? [messages] : []);
   const [items, setItems] = useState(() =>
-    messages.map((text) => ({ id: `notice-item-${idGenRef.current++}`, text }))
+    safeInitial.map((text) => ({ id: `notice-item-${idGenRef.current++}`, text }))
   );
 
   // Sync internal items when parent messages change externally (e.g. initial load, defaults, add)
   useEffect(() => {
+    const list = Array.isArray(messages) ? messages : (typeof messages === 'string' && messages ? [messages] : []);
     setItems((prevItems) => {
       // Check if text sequence matches current items
-      const currentTexts = prevItems.map((i) => i.text);
+      const currentTexts = (prevItems || []).map((i) => i.text);
       if (
-        currentTexts.length === messages.length &&
-        currentTexts.every((txt, idx) => txt === messages[idx])
+        currentTexts.length === list.length &&
+        currentTexts.every((txt, idx) => txt === list[idx])
       ) {
         return prevItems; // No change needed
       }
 
       // Rebuild with stable IDs where possible
-      return messages.map((text, idx) => {
-        if (prevItems[idx] && prevItems[idx].text === text) {
+      return list.map((text, idx) => {
+        if (prevItems && prevItems[idx] && prevItems[idx].text === text) {
           return prevItems[idx];
         }
         return { id: `notice-item-${idGenRef.current++}`, text };
@@ -324,7 +326,7 @@ export default function TwentyFirstNoticeList({ messages = [], onChange }) {
         width: '100%',
       }}
     >
-      {items.map((item) => (
+      {(items || []).map((item) => (
         <NoticeItem
           key={item.id}
           item={item}

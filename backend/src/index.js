@@ -75,6 +75,7 @@ app.get('/api/maintenance/status', async (c) => {
     customMessage: 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.',
     estimatedTime: 'Expected back online: Today at 6:00 PM IST',
     showEmergencyContact: true,
+    updated_at: null,
     updatedAt: null,
   };
 
@@ -90,7 +91,8 @@ app.get('/api/maintenance/status', async (c) => {
         customMessage: typeof parsed.customMessage === 'string' && parsed.customMessage.trim() ? parsed.customMessage.trim() : maintenance.customMessage,
         estimatedTime: typeof parsed.estimatedTime === 'string' && parsed.estimatedTime.trim() ? parsed.estimatedTime.trim() : maintenance.estimatedTime,
         showEmergencyContact: parsed.showEmergencyContact !== false,
-        updatedAt: row.updated_at,
+        updated_at: row.updated_at || null,
+        updatedAt: row.updated_at || null,
       };
     }
   } catch {}

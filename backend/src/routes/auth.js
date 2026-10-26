@@ -11,12 +11,18 @@ import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } f
 const auth = new Hono();
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
-const isProd = () => true; // Workers are always "production" edge
-const cookieHeader = (name, value, maxAge) => {
-  const parts = [`${name}=${value}`, 'HttpOnly', 'Path=/', `Max-Age=${Math.floor(maxAge / 1000)}`, 'SameSite=Lax', 'Secure'];
-  return parts.join('; ');
+const cookieHeader = (name, value, maxAge, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
 };
-const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+const clearCookieHeader = (name, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
+};
 
 const safeUserObj = (u) => ({
   id: u.id, name: u.name, email: u.email,
@@ -221,7 +227,7 @@ auth.post('/login', validate(loginSchema), async (c) => {
 
     auditLog('USER_LOGIN', { userId: user.id });
 
-    c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
+    c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
     return c.json({ user: safeUserObj(user) });
   } catch (error) {
     logger.error('Login error', { error: error.message });
@@ -267,7 +273,7 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
 
       const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
       auditLog('USER_LOGIN_GOOGLE', { userId: user.id, email: user.email });
-      c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
+      c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
       return c.json({ user: safeUserObj(user), token });
     }
 
@@ -319,14 +325,14 @@ auth.get('/me', verifyUser(), async (c) => {
   
   // Sliding Session: Issue a fresh 30-day token on every /me fetch
   const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
-  c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000));
+  c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
   
   return c.json({ user });
 });
 
 // POST /api/auth/logout
 auth.post('/logout', (c) => {
-  c.header('Set-Cookie', clearCookieHeader('dentzy_jwt'));
+  c.header('Set-Cookie', clearCookieHeader('dentzy_jwt', c.env));
   return c.json({ message: 'Logged out successfully.' });
 });
 

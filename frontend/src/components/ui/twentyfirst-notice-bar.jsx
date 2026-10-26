@@ -34,7 +34,7 @@ export function TwentyFirstNoticeBar({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
 
-  const cleanMessages = (messages || []).filter(Boolean);
+  const cleanMessages = (Array.isArray(messages) ? messages : (typeof messages === 'string' && messages ? [messages] : [])).filter(Boolean);
 
   if (cleanMessages.length === 0) {
     return null;

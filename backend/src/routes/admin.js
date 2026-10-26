@@ -32,9 +32,18 @@ async function getDoctorDebt(db, dentistId) {
 }
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
-const cookieHeader = (name, value, maxAge) =>
-  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
-const clearCookieHeader = (name) => `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+const cookieHeader = (name, value, maxAge, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
+};
+const clearCookieHeader = (name, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
+};
 
 // -- Timing-safe compare -------------------------------------------------------------------
 // ponytail: SHA-256 digest comparison -- no length leak, Cloudflare Workers crypto.subtle
@@ -83,13 +92,13 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
   const token = await signJWT({ role: 'admin', username }, c.env.ADMIN_JWT_SECRET, '8h');
 
   auditLog('ADMIN_LOGIN', { username });
-  c.header('Set-Cookie', cookieHeader('dentzy_admin_jwt', token, 8 * 60 * 60 * 1000));
-  return c.json({ admin: { username, role: 'admin' } });
+  c.header('Set-Cookie', cookieHeader('dentzy_admin_jwt', token, 8 * 60 * 60 * 1000, c.env));
+  return c.json({ admin: { username, role: 'admin' }, token });
 });
 
 // POST /api/admin/logout
 admin.post('/logout', (c) => {
-  c.header('Set-Cookie', clearCookieHeader('dentzy_admin_jwt'));
+  c.header('Set-Cookie', clearCookieHeader('dentzy_admin_jwt', c.env));
   return c.json({ message: 'Admin logged out successfully.' });
 });
 
@@ -1168,6 +1177,22 @@ const DEFAULT_STAFF_NOTICE_MESSAGES = [
   'Lab Support & Rush Desk hotline: +91 9503668112',
 ];
 
+// ── App Settings D1 Table Auto-Ensure Helper ─────────────────────────────────
+export async function ensureAppSettingsTable(db) {
+  try {
+    await db.prepare(
+      `CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        updated_by TEXT DEFAULT 'admin'
+      )`
+    ).run();
+  } catch (err) {
+    logger.warn('ensureAppSettingsTable check error', { error: err.message });
+  }
+}
+
 function parseNotice(row, defaults) {
   if (row?.value) {
     try {
@@ -1178,12 +1203,23 @@ function parseNotice(row, defaults) {
       return {
         enabled: parsed.enabled !== false,
         messages,
-        updated_at: row.updated_at,
-        updated_by: row.updated_by,
+        message: messages[0] || '',
+        updated_at: row.updated_at || null,
+        updatedAt: row.updated_at || null,
+        updated_by: row.updated_by || null,
+        updatedBy: row.updated_by || null,
       };
     } catch {}
   }
-  return { enabled: true, messages: defaults, updated_at: null, updated_by: null };
+  return {
+    enabled: true,
+    messages: defaults,
+    message: defaults[0] || '',
+    updated_at: null,
+    updatedAt: null,
+    updated_by: null,
+    updatedBy: null,
+  };
 }
 
 function cleanNoticeMessages(messages, legacyMessage) {
@@ -1208,19 +1244,21 @@ function cleanNoticeMessages(messages, legacyMessage) {
 // GET /api/admin/settings/notice — fetch dentist notice bar config
 admin.get('/settings/notice', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const row = await c.env.DB.prepare(
       "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'dentist_notice_bar'"
     ).first();
     return c.json(parseNotice(row, DEFAULT_NOTICE_MESSAGES));
   } catch (err) {
     logger.error('Admin notice get error', { error: err.message });
-    return c.json({ message: 'Failed to load notice settings.' }, 500);
+    return c.json(parseNotice(null, DEFAULT_NOTICE_MESSAGES));
   }
 });
 
 // PUT /api/admin/settings/notice — update dentist notice bar config
 admin.put('/settings/notice', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const body = await c.req.json();
     if (typeof body.enabled !== 'boolean') {
       return c.json({ message: '"enabled" must be a boolean.' }, 400);
@@ -1240,7 +1278,16 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
     ).bind(value, ts, updatedBy).run();
 
     auditLog('ADMIN_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled: body.enabled });
-    return c.json({ message: 'Notice bar updated.', enabled: body.enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
+    return c.json({
+      success: true,
+      enabled: body.enabled,
+      messages: cleaned,
+      message: cleaned[0] || '',
+      updated_at: ts,
+      updatedAt: ts,
+      updated_by: updatedBy,
+      updatedBy,
+    });
   } catch (err) {
     logger.error('Admin notice update error', { error: err.message });
     return c.json({ message: err.message || 'Failed to update notice settings.' }, 400);
@@ -1250,19 +1297,21 @@ admin.put('/settings/notice', verifyAdmin(), async (c) => {
 // GET /api/admin/settings/staff-notice — fetch staff broadcast notice
 admin.get('/settings/staff-notice', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const row = await c.env.DB.prepare(
       "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'staff_notice_bar'"
     ).first();
     return c.json(parseNotice(row, DEFAULT_STAFF_NOTICE_MESSAGES));
   } catch (err) {
     logger.error('Admin staff notice get error', { error: err.message });
-    return c.json({ message: 'Failed to load staff notice settings.' }, 500);
+    return c.json(parseNotice(null, DEFAULT_STAFF_NOTICE_MESSAGES));
   }
 });
 
 // PUT /api/admin/settings/staff-notice — update staff broadcast notice
 admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const body = await c.req.json();
     if (typeof body.enabled !== 'boolean') {
       return c.json({ message: '"enabled" must be a boolean.' }, 400);
@@ -1282,7 +1331,16 @@ admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
     ).bind(value, ts, updatedBy).run();
 
     auditLog('ADMIN_STAFF_NOTICE_UPDATED', { updated_by: updatedBy, count: cleaned.length, enabled: body.enabled });
-    return c.json({ message: 'Staff notice bar updated.', enabled: body.enabled, messages: cleaned, updated_at: ts, updated_by: updatedBy });
+    return c.json({
+      success: true,
+      enabled: body.enabled,
+      messages: cleaned,
+      message: cleaned[0] || '',
+      updated_at: ts,
+      updatedAt: ts,
+      updated_by: updatedBy,
+      updatedBy,
+    });
   } catch (err) {
     logger.error('Admin staff notice update error', { error: err.message });
     return c.json({ message: err.message || 'Failed to update staff notice settings.' }, 400);
@@ -1309,30 +1367,40 @@ function parseMaintenance(row) {
         customMessage: typeof parsed.customMessage === 'string' && parsed.customMessage.trim() ? parsed.customMessage.trim() : DEFAULT_MAINTENANCE_CONFIG.customMessage,
         estimatedTime: typeof parsed.estimatedTime === 'string' && parsed.estimatedTime.trim() ? parsed.estimatedTime.trim() : DEFAULT_MAINTENANCE_CONFIG.estimatedTime,
         showEmergencyContact: parsed.showEmergencyContact !== false,
-        updated_at: row.updated_at,
-        updated_by: row.updated_by,
+        updated_at: row.updated_at || null,
+        updatedAt: row.updated_at || null,
+        updated_by: row.updated_by || null,
+        updatedBy: row.updated_by || null,
       };
     } catch {}
   }
-  return { ...DEFAULT_MAINTENANCE_CONFIG, updated_at: null, updated_by: null };
+  return {
+    ...DEFAULT_MAINTENANCE_CONFIG,
+    updated_at: null,
+    updatedAt: null,
+    updated_by: null,
+    updatedBy: null,
+  };
 }
 
 // GET /api/admin/settings/maintenance — fetch maintenance mode configuration
 admin.get('/settings/maintenance', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const row = await c.env.DB.prepare(
       "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'maintenance_mode'"
     ).first();
     return c.json(parseMaintenance(row));
   } catch (err) {
     logger.error('Admin maintenance settings get error', { error: err.message });
-    return c.json({ message: 'Failed to load maintenance settings.' }, 500);
+    return c.json(parseMaintenance(null));
   }
 });
 
 // PUT /api/admin/settings/maintenance — update maintenance mode configuration
 admin.put('/settings/maintenance', verifyAdmin(), async (c) => {
   try {
+    await ensureAppSettingsTable(c.env.DB);
     const body = await c.req.json();
     const result = updateMaintenanceSchema.safeParse(body);
     if (!result.success) {
@@ -1371,7 +1439,9 @@ admin.put('/settings/maintenance', verifyAdmin(), async (c) => {
       estimatedTime: estimatedTime || DEFAULT_MAINTENANCE_CONFIG.estimatedTime,
       showEmergencyContact,
       updated_at: ts,
+      updatedAt: ts,
       updated_by: updatedBy,
+      updatedBy,
     });
   } catch (err) {
     logger.error('Admin maintenance update error', { error: err.message });

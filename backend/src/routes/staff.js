@@ -21,10 +21,18 @@ function safeWait(c, promise) {
 }
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
-const cookieHeader = (name, value, maxAge) =>
-  `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax; Secure`;
-const clearCookieHeader = (name) =>
-  `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+const cookieHeader = (name, value, maxAge, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
+};
+const clearCookieHeader = (name, env) => {
+  const isProd = env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  const secure = isProd ? '; Secure' : '';
+  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
+};
 
 // POST /api/staff/login
 staff.post('/login', validate(staffLoginSchema), async (c) => {
@@ -69,7 +77,7 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   );
 
   auditLog('STAFF_LOGIN', { username: row.username });
-  c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 8 * 60 * 60 * 1000));
+  c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 8 * 60 * 60 * 1000, c.env));
   return c.json({
     staff: {
       id: row.id,
@@ -83,7 +91,7 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
 
 // POST /api/staff/logout
 staff.post('/logout', (c) => {
-  c.header('Set-Cookie', clearCookieHeader('dentzy_staff_jwt'));
+  c.header('Set-Cookie', clearCookieHeader('dentzy_staff_jwt', c.env));
   return c.json({ message: 'Staff logged out successfully.' });
 });
 

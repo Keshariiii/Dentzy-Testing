@@ -70,33 +70,55 @@ export default function MaintenanceModeController({
   const [config, setConfig] = useState({
     enabled: false,
     target: 'both',
-    customMessage: 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.',
-    estimatedTime: 'Expected back online: Today at 6:00 PM IST',
+    customMessage: '',
+    estimatedTime: '',
     showEmergencyContact: true,
     updated_at: null,
     updated_by: null,
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
+  const onConfigChangedRef = useRef(onConfigChanged);
+  useEffect(() => {
+    onConfigChangedRef.current = onConfigChanged;
+  }, [onConfigChanged]);
+
+  const authFetchRef = useRef(authFetch);
+  useEffect(() => {
+    authFetchRef.current = authFetch;
+  }, [authFetch]);
 
   // Fetch current maintenance settings
   const fetchSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${ADMIN_API}/settings/maintenance`);
-      if (res.ok) {
+      const fetchFn = authFetchRef.current || authFetch;
+      const res = await fetchFn(`${ADMIN_API}/settings/maintenance`);
+      if (res && res.ok) {
         const data = await res.json();
-        setConfig(data);
-        if (typeof onConfigChanged === 'function') onConfigChanged(data);
+        setConfig(prev => ({
+          ...prev,
+          enabled: Boolean(data?.enabled),
+          target: ['dentists', 'staff', 'both'].includes(data?.target) ? data.target : 'both',
+          customMessage: typeof data?.customMessage === 'string' ? data.customMessage : prev.customMessage,
+          estimatedTime: typeof data?.estimatedTime === 'string' ? data.estimatedTime : prev.estimatedTime,
+          showEmergencyContact: data?.showEmergencyContact !== false,
+          updated_at: data?.updated_at || data?.updatedAt || null,
+          updated_by: data?.updated_by || data?.updatedBy || null,
+        }));
+        if (typeof onConfigChangedRef.current === 'function') {
+          onConfigChangedRef.current(data);
+        }
       }
     } catch {
       if (typeof showToast === 'function') showToast('Failed to load maintenance settings.', 'error');
     } finally {
       setLoading(false);
     }
-  }, [ADMIN_API, authFetch, onConfigChanged, showToast]);
+  }, [ADMIN_API, authFetch, showToast]);
 
   useEffect(() => {
     fetchSettings();
@@ -114,25 +136,26 @@ export default function MaintenanceModeController({
     };
 
     try {
-      const res = await authFetch(`${ADMIN_API}/settings/maintenance`, {
+      const fetchFn = authFetchRef.current || authFetch;
+      const res = await fetchFn(`${ADMIN_API}/settings/maintenance`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
+      if (res && res.ok) {
         const data = await res.json();
         const updated = {
           ...config,
           ...payload,
-          updated_at: data.updated_at,
-          updated_by: data.updated_by,
+          updated_at: data.updated_at || data.updatedAt,
+          updated_by: data.updated_by || data.updatedBy,
         };
         setConfig(updated);
-        if (typeof onConfigChanged === 'function') onConfigChanged(updated);
+        if (typeof onConfigChangedRef.current === 'function') onConfigChangedRef.current(updated);
         if (typeof showToast === 'function') showToast('Maintenance settings saved successfully.', 'success');
       } else {
-        const err = await res.json().catch(() => ({}));
+        const err = await res?.json?.().catch(() => ({})) || {};
         if (typeof showToast === 'function') showToast(err.message || 'Failed to save maintenance settings.', 'error');
       }
     } catch {
@@ -141,7 +164,7 @@ export default function MaintenanceModeController({
       setSaving(false);
       setConfirmModalOpen(false);
     }
-  }, [ADMIN_API, authFetch, config, onConfigChanged, showToast]);
+  }, [ADMIN_API, authFetch, config, showToast]);
 
   // Master power toggle click handler
   const handleToggleClick = () => {
@@ -179,15 +202,6 @@ export default function MaintenanceModeController({
     if (tgt === 'staff') return 'Staff Only';
     return 'Both Dentists & Staff';
   };
-
-  if (loading) {
-    return (
-      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '36px', textAlign: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-        <SpinnerIcon size={24} />
-        <div style={{ marginTop: '12px', color: '#6b8a7a', fontSize: '0.88rem', fontWeight: 600 }}>Loading maintenance configuration...</div>
-      </div>
-    );
-  }
 
   return (
     <div style={{
@@ -229,14 +243,18 @@ export default function MaintenanceModeController({
           fontSize: '0.82rem',
           fontWeight: 700,
         }}>
-          <span style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: config.enabled ? '#dc2626' : '#16a34a',
-            animation: config.enabled ? 'dzPulseDot 1.5s infinite ease-in-out' : 'none',
-          }} />
-          <span>{config.enabled ? 'Maintenance Mode Active' : 'Live (Normal Operation)'}</span>
+          {loading ? (
+            <SpinnerIcon size={12} />
+          ) : (
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: config.enabled ? '#dc2626' : '#16a34a',
+              animation: config.enabled ? 'dzPulseDot 1.5s infinite ease-in-out' : 'none',
+            }} />
+          )}
+          <span>{loading ? 'Syncing...' : config.enabled ? 'Maintenance Mode Active' : 'Live (Normal Operation)'}</span>
         </div>
       </div>
 
