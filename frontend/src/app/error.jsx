@@ -5,10 +5,19 @@
  * Catches unhandled React errors within the layout shell.
  * Responsive for mobile (<768px) and desktop screens.
  */
+import { useEffect, useState } from 'react';
 import '../styles/error-pages.css';
 
 export default function Error({ error, reset }) {
+  const [isAdminPath, setIsAdminPath] = useState(false);
   const refId = 'DZ-ERR-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+
+  useEffect(() => {
+    console.error('[Root Error Boundary caught]:', error);
+    if (typeof window !== 'undefined') {
+      setIsAdminPath(window.location.pathname.startsWith('/admin'));
+    }
+  }, [error]);
 
   return (
     <div className="dz-error-page">
@@ -32,9 +41,15 @@ export default function Error({ error, reset }) {
           <button onClick={() => reset()} className="dz-error-btn dz-error-btn--primary">
             Try Again
           </button>
-          <a href="/dashboard" className="dz-error-btn dz-error-btn--secondary">
-            Return to Dashboard
-          </a>
+          {isAdminPath ? (
+            <a href="/login?role=admin" className="dz-error-btn dz-error-btn--secondary">
+              Admin Login
+            </a>
+          ) : (
+            <a href="/login" className="dz-error-btn dz-error-btn--secondary">
+              Go to Login
+            </a>
+          )}
           <a href="tel:+919503668112" className="dz-error-btn dz-error-btn--ghost">
             Call Lab Support (+91 95036 68112)
           </a>

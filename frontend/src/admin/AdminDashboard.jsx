@@ -39,6 +39,10 @@ const AdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
+  // Stable ref for authFetch — guaranteed initialized before any callback
+  const authFetchRef = useRef(authFetch);
+  useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
+
   const [activeTab, setActiveTab] = useState('all');
   const [rawAdminView, setAdminView] = useDashboardUrlState('view', 'dentists'); // 'dentists' | 'staff' | 'settings'
   const [rawDentistSubView, setDentistSubView] = useDashboardUrlState('sub', 'users'); // 'users' | 'orders' | 'payments'
@@ -233,10 +237,6 @@ const AdminDashboard = () => {
       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
     } catch { /* audio blocked */ }
   }, []);
-
-  // Stable ref for authFetch — breaks the circular dependency
-  const authFetchRef = useRef(authFetch);
-  useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
 
   const fetchAllOrders = useCallback(async () => {
     setLoadingOrders(true);

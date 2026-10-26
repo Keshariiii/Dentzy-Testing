@@ -62,6 +62,10 @@ const MobileAdminDashboard = () => {
   const router = useRouter();
   const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
 
+  // Stable ref for authFetch — guaranteed initialized before any callback
+  const authFetchRef = useRef(authFetch);
+  useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
+
   // Primary view: 'dentists' | 'staff' | 'settings' (URL synced)
   const [rawAdminView, setAdminView] = useDashboardUrlState('view', 'dentists');
   // Dentist sub-view: null (landing) | 'users' | 'orders' | 'payments' (URL synced)
@@ -346,8 +350,6 @@ const MobileAdminDashboard = () => {
   };
 
   /* -- Data fetching ----------------------------------------------------- */
-  const authFetchRef = useRef(authFetch);
-  useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
 
   const fetchStats = useCallback(async () => {
     try {
