@@ -133,14 +133,14 @@ export type PasswordStrengthProps = {
 
 const TONES = {
   none: {
-    bar: "bg-stone-300 dark:bg-white/20",
-    text: "text-stone-500 dark:text-stone-400",
+    bar: "bg-slate-200",
+    text: "text-slate-500",
   },
-  danger: { bar: "bg-red-500", text: "text-red-600 dark:text-red-400" },
-  caution: { bar: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
+  danger: { bar: "bg-red-500", text: "text-red-600 font-semibold" },
+  caution: { bar: "bg-amber-500", text: "text-amber-600 font-semibold" },
   safe: {
-    bar: "bg-emerald-500",
-    text: "text-emerald-600 dark:text-emerald-400",
+    bar: "bg-emerald-600",
+    text: "text-emerald-700 font-semibold",
   },
 } as const;
 
@@ -186,10 +186,10 @@ export function PasswordStrength({
         {Array.from({ length: max }, (_, i) => (
           <div
             key={i}
-            className="relative h-1.5 overflow-hidden rounded-[2px] bg-stone-200 dark:bg-white/12"
+            className="relative h-2 overflow-hidden rounded-[3px] bg-slate-200/90"
           >
             <motion.span
-              className={`absolute inset-0 origin-left rounded-[2px] transition-colors duration-200 ${tone.bar}`}
+              className={`absolute inset-0 origin-left rounded-[3px] transition-colors duration-200 ${tone.bar}`}
               initial={false}
               animate={{ scaleX: i < score ? 1 : 0 }}
               transition={
@@ -201,7 +201,7 @@ export function PasswordStrength({
       </div>
 
       <div className="mt-2 flex h-5 items-center justify-between gap-3">
-        <span className="inline-grid text-[12.5px] font-medium leading-5">
+        <span className="inline-grid text-[13px] font-semibold leading-5 tracking-tight">
           {labels.map((text, i) => (
             <motion.span
               key={text}
@@ -220,7 +220,7 @@ export function PasswordStrength({
 
         <motion.span
           aria-hidden
-          className="whitespace-nowrap text-[11.5px] leading-5 text-amber-600 dark:text-amber-400"
+          className="whitespace-nowrap text-[11px] font-semibold leading-5 text-amber-800 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-full"
           initial={false}
           animate={{ opacity: guessable ? 1 : 0 }}
           transition={reduced ? INSTANT : CROSSFADE}
@@ -230,12 +230,12 @@ export function PasswordStrength({
       </div>
 
       {showRules && (
-        <ul className="mt-3 grid gap-1.5">
+        <ul className="mt-3 grid gap-2">
           {evaluated.map((rule) => (
-            <li key={rule.id} className="flex items-center gap-2">
-              <span className="relative grid size-[14px] shrink-0 place-items-center rounded-[4px] border border-stone-200 text-white dark:border-white/[0.16] dark:text-stone-900">
+            <li key={rule.id} className="flex items-center gap-2.5">
+              <span className="relative grid size-[15px] shrink-0 place-items-center rounded-[4px] border border-slate-300 bg-white">
                 <motion.span
-                  className="absolute inset-0 rounded-[3px] bg-emerald-500"
+                  className="absolute inset-0 rounded-[3px] bg-emerald-600"
                   initial={false}
                   animate={{ opacity: rule.met ? 1 : 0 }}
                   transition={reduced ? INSTANT : CROSSFADE}
@@ -244,7 +244,7 @@ export function PasswordStrength({
                   viewBox="0 0 12 12"
                   fill="none"
                   aria-hidden
-                  className="relative size-[9px]"
+                  className="relative size-[10px]"
                   initial={false}
                   animate={{
                     opacity: rule.met ? 1 : 0,
@@ -254,18 +254,18 @@ export function PasswordStrength({
                 >
                   <path
                     d="M2 6.2 4.7 8.9 10 3.3"
-                    stroke="currentColor"
-                    strokeWidth={1.9}
+                    stroke="#ffffff"
+                    strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </motion.svg>
               </span>
               <span
-                className={`text-[12.5px] leading-5 transition-colors duration-200 ${
+                className={`text-[13px] leading-snug transition-colors duration-150 ${
                   rule.met
-                    ? "text-stone-700 dark:text-stone-200"
-                    : "text-stone-500 dark:text-stone-400"
+                    ? "text-[#1e2824] font-semibold"
+                    : "text-[#556960] font-normal"
                 }`}
               >
                 {rule.label}

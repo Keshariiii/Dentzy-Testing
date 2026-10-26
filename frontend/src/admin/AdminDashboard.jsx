@@ -1900,15 +1900,45 @@ const AdminDashboard = () => {
 
                     {/* Sub-Page 4: Administrator Account */}
                     {settingsSubView === 'account' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                         <div>
                           <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Administrator Account</div>
                           <div style={{ fontSize: '0.85rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
                         </div>
                         <button
-                          className="ad-logout"
+                          type="button"
                           onClick={handleLogout}
-                          style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', padding: '10px 22px', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          style={{
+                            background: '#fff5f5',
+                            color: '#dc2626',
+                            border: '1px solid #fecaca',
+                            borderRadius: '10px',
+                            padding: '9px 18px',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '0.86rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            boxShadow: '0 1px 2px rgba(220, 38, 38, 0.05)',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#fee2e2';
+                            e.currentTarget.style.borderColor = '#f87171';
+                            e.currentTarget.style.color = '#b91c1c';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 3px 8px rgba(220, 38, 38, 0.12)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#fff5f5';
+                            e.currentTarget.style.borderColor = '#fecaca';
+                            e.currentTarget.style.color = '#dc2626';
+                            e.currentTarget.style.transform = 'none';
+                            e.currentTarget.style.boxShadow = '0 1px 2px rgba(220, 38, 38, 0.05)';
+                          }}
                         >
                           {Ico.logout(16)} Logout
                         </button>
