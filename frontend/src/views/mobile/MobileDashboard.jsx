@@ -125,7 +125,8 @@ const MobileDashboard = () => {
   const [error,       setError]       = useState(null);
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [unpaidMonthFilter, setUnpaidMonthFilter] = useState('');
+  const currentMonthISO = new Date().toISOString().slice(0, 7);
+  const [unpaidMonthFilter, setUnpaidMonthFilter] = useState(currentMonthISO);
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
 
@@ -480,15 +481,17 @@ const MobileDashboard = () => {
           </div>
         )}
 
-        {/* Recent Active Cases */}
-        {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (
-          <div className="m-recent-cases" style={{ marginTop: '20px' }}>
-            <div className="m-recent-cases-header">
-              <span className="m-section-h" style={{ marginBottom: 0 }}>Recent Cases</span>
+        {/* Recent Orders — Always displayed for everyone */}
+        <div className="m-recent-cases" style={{ marginTop: '20px' }}>
+          <div className="m-recent-cases-header">
+            <span className="m-section-h" style={{ marginBottom: 0 }}>Recent Orders</span>
+            {orders.length > 0 && (
               <button onClick={() => setActiveTab('orders')} className="m-view-all-btn">View All →</button>
-            </div>
+            )}
+          </div>
+          {orders.length > 0 ? (
             <div className="m-recent-cases-list">
-              {orders.filter(o => o.status !== 'Completed').slice(0, 4).map(order => (
+              {orders.slice(0, 5).map(order => (
                 <div key={order._id || order.id} className="m-recent-row" onClick={() => setSelectedOrder(order)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 2px' }}>
                   <div style={{ flex: 1 }}>
                     <div className="m-recent-row-top">
@@ -508,8 +511,19 @@ const MobileDashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{ padding: '20px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da', margin: '8px 0' }}>
+              <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Place First Order
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Support Bar */}
         <div className="m-support-bar" id="m-support-bar">
@@ -738,6 +752,9 @@ const MobileDashboard = () => {
               <input
                 type="month"
                 value={unpaidMonthFilter}
+                placeholder="Select Month"
+                data-empty={!unpaidMonthFilter}
+                onClick={(e) => e.currentTarget.showPicker?.()}
                 onChange={(e) => setUnpaidMonthFilter(e.target.value)}
                 style={{
                   flex: 1,
@@ -752,7 +769,7 @@ const MobileDashboard = () => {
                 }}
                 title="Filter unpaid statement by month"
               />
-              {unpaidMonthFilter && (
+              {unpaidMonthFilter ? (
                 <button
                   type="button"
                   onClick={() => setUnpaidMonthFilter('')}
@@ -768,7 +785,25 @@ const MobileDashboard = () => {
                     minHeight: '40px',
                   }}
                 >
-                  All
+                  All Unpaid
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setUnpaidMonthFilter(currentMonthISO)}
+                  style={{
+                    background: '#e8f5ee',
+                    border: '1px solid rgba(30, 80, 56, 0.2)',
+                    borderRadius: '8px',
+                    padding: '8px 10px',
+                    fontSize: '0.75rem',
+                    color: '#1e5038',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    minHeight: '40px',
+                  }}
+                >
+                  This Month
                 </button>
               )}
             </div>
@@ -1033,9 +1068,15 @@ const MobileDashboard = () => {
             </div>
             <div className="m-form-group">
               <label>Date of Birth</label>
-              <input type="date" value={profileForm.dob}
+              <input
+                type="date"
+                value={profileForm.dob}
+                placeholder="Select Date of Birth"
+                data-empty={!profileForm.dob}
+                onClick={(e) => e.currentTarget.showPicker?.()}
                 max={new Date().toISOString().split('T')[0]}
-                onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))} />
+                onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
+              />
             </div>
             <div className="m-form-group">
               <label>Phone</label>

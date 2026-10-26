@@ -594,6 +594,9 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                     <input
                       id="ddm-month-filter"
                       type="month"
+                      placeholder="Select Month"
+                      data-empty={payMonth === 'all' || !payMonth}
+                      onClick={e => e.currentTarget.showPicker?.()}
                       value={payMonth === 'all' ? '' : payMonth}
                       onChange={e => setPayMonth(e.target.value || 'all')}
                       style={{

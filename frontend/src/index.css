@@ -296,3 +296,66 @@ body,
   height: 0px !important;
   background: transparent !important;
 }
+
+/* ── Global Date & Month Inputs Polish ────────────────────────────────── */
+input[type="date"],
+input[type="month"] {
+  position: relative;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Hide raw browser dashes when empty and not focused */
+input[type="date"]:not(:focus):not([value])::-webkit-datetime-edit,
+input[type="date"]:not(:focus)[value=""]::-webkit-datetime-edit,
+input[type="date"]:not(:focus)[data-empty="true"]::-webkit-datetime-edit,
+input[type="month"]:not(:focus):not([value])::-webkit-datetime-edit,
+input[type="month"]:not(:focus)[value=""]::-webkit-datetime-edit,
+input[type="month"]:not(:focus)[data-empty="true"]::-webkit-datetime-edit {
+  color: transparent;
+}
+
+/* Custom placeholder when empty */
+input[type="date"]:not(:focus):not([value])::before,
+input[type="date"]:not(:focus)[value=""]::before,
+input[type="date"]:not(:focus)[data-empty="true"]::before {
+  content: attr(placeholder);
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: inherit;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+input[type="month"]:not(:focus):not([value])::before,
+input[type="month"]:not(:focus)[value=""]::before,
+input[type="month"]:not(:focus)[data-empty="true"]::before {
+  content: attr(placeholder);
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: inherit;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* Calendar picker indicator styling */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  filter: invert(24%) sepia(30%) saturate(1250%) hue-rotate(105deg) brightness(90%) contrast(90%);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+

@@ -431,6 +431,9 @@ export default function CreateOrderModal({
                 <input
                   type="date"
                   className="com-input"
+                  placeholder="Select Due Date"
+                  data-empty={!dueDate}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
                 />

@@ -72,7 +72,11 @@ export default function StaffOrderModal({ order, onClose, onSave, saving }) {
               <input
                 type="date"
                 value={(form.dueDate || '').slice(0, 10)}
+                placeholder="Select Due Date"
+                data-empty={!(form.dueDate || '').slice(0, 10)}
+                onClick={e => e.currentTarget.showPicker?.()}
                 onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+                style={{ cursor: 'pointer' }}
               />
             </div>
           </div>

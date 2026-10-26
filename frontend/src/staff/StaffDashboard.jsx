@@ -1060,6 +1060,9 @@ const StaffDashboard = () => {
                       <input
                         id="staff-month-filter"
                         type="month"
+                        placeholder="Select Month"
+                        data-empty={staffPayMonth === 'all' || !staffPayMonth}
+                        onClick={e => e.currentTarget.showPicker?.()}
                         value={staffPayMonth === 'all' ? '' : staffPayMonth}
                         onChange={e => setStaffPayMonth(e.target.value || 'all')}
                         style={{
@@ -1387,12 +1390,15 @@ const StaffDashboard = () => {
                 <input
                   type="month"
                   value={staffPayMonthFilter === 'all' ? '' : staffPayMonthFilter}
+                  placeholder="Select Month"
+                  data-empty={staffPayMonthFilter === 'all' || !staffPayMonthFilter}
+                  onClick={e => e.currentTarget.showPicker?.()}
                   onChange={e => {
                     setStaffPayMonthFilter(e.target.value || 'all');
                     setSelectedStaffPaymentIds([]);
                   }}
                   className="sd-search"
-                  style={{ height: '36px', padding: '0 8px', fontSize: '0.82rem', width: 'auto' }}
+                  style={{ height: '36px', padding: '0 8px', fontSize: '0.82rem', width: 'auto', cursor: 'pointer' }}
                   aria-label="Filter by Month"
                 />
                 {staffPayMonthFilter !== 'all' && (
@@ -1819,8 +1825,12 @@ const StaffDashboard = () => {
                   <input
                     type="date"
                     value={profileForm.dob}
+                    placeholder="Select Date of Birth"
+                    data-empty={!profileForm.dob}
+                    onClick={e => e.currentTarget.showPicker?.()}
                     onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
                     max={new Date().toISOString().split('T')[0]}
+                    style={{ cursor: 'pointer' }}
                   />
                 </div>
                 {profileMsg.text && (

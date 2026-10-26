@@ -251,6 +251,9 @@ export default function AdminPaymentsListView({
             <input
               type="month"
               value={payFilterMonth === 'all' ? '' : payFilterMonth}
+              placeholder="Select Month"
+              data-empty={payFilterMonth === 'all' || !payFilterMonth}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => setPayFilterMonth(e.target.value || 'all')}
               className={isMobile ? 'ma-sort-select' : 'ad-sort-select'}
               style={{ fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}

@@ -358,15 +358,17 @@ const DentistDashboard = () => {
 
 
 
-        {/* Recent Active Cases */}
-        {orders.filter(o => o.status !== 'Completed').slice(0, 4).length > 0 && (
-          <div className="ud-recent-cases">
-            <div className="ud-recent-cases-header">
-              <span className="ud-section-title">Recent Active Cases</span>
+        {/* Recent Orders — Always displayed for everyone */}
+        <div className="ud-recent-cases">
+          <div className="ud-recent-cases-header">
+            <span className="ud-section-title">Recent Orders</span>
+            {orders.length > 0 && (
               <button onClick={() => setActiveTab('orders')} className="ud-view-all-link">View All →</button>
-            </div>
+            )}
+          </div>
+          {orders.length > 0 ? (
             <div className="ud-recent-cases-list">
-              {orders.filter(o => o.status !== 'Completed').slice(0, 4).map(order => (
+              {orders.slice(0, 5).map(order => (
                 <div key={order._id || order.id} className="ud-recent-case-row" onClick={() => setSelectedOrder(order)}>
                   <div className="ud-recent-case-left">
                     <span className="ud-case-id-mono">{order.caseId}</span>
@@ -380,8 +382,19 @@ const DentistDashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="ud-recent-empty" style={{ padding: '24px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da' }}>
+              <p style={{ margin: '0 0 12px', fontSize: '0.88rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Place First Order
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Support Bar */}
         <div className="ud-support-bar">
@@ -695,6 +708,9 @@ const DentistDashboard = () => {
                 id="settings-dob"
                 type="date"
                 value={profileForm.dob}
+                placeholder="Select Date of Birth"
+                data-empty={!profileForm.dob}
+                onClick={e => e.currentTarget.showPicker?.()}
                 onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
                 max={new Date().toISOString().split('T')[0]}
                 className="ud-settings-input"
@@ -1018,7 +1034,8 @@ const DentistDashboard = () => {
    PAYMENTS TABLE SUB-COMPONENT
 ============================================================================= */
 const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
-  const [statementMonth, setStatementMonth] = React.useState('');
+  const currentMonthISO = new Date().toISOString().slice(0, 7);
+  const [statementMonth, setStatementMonth] = React.useState(currentMonthISO);
 
   const totalUnpaid = stats?.payments?.totalUnpaid || 0;
   const unpaidCount = (stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0);
@@ -1090,6 +1107,9 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
             <input
               type="month"
               value={statementMonth}
+              placeholder="Select Month"
+              data-empty={!statementMonth}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => setStatementMonth(e.target.value)}
               style={{
                 padding: '6px 10px',
@@ -1099,10 +1119,11 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 fontWeight: 600,
                 color: '#1a3028',
                 background: '#f8faf9',
+                cursor: 'pointer',
               }}
               aria-label="Select Statement Month"
             />
-            {statementMonth && (
+            {statementMonth ? (
               <button
                 type="button"
                 onClick={() => setStatementMonth('')}
@@ -1118,6 +1139,23 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 }}
               >
                 All Unpaid
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setStatementMonth(currentMonthISO)}
+                style={{
+                  background: '#e8f5ee',
+                  border: '1px solid rgba(30, 80, 56, 0.2)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '0.78rem',
+                  color: '#1e5038',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                This Month
               </button>
             )}
             <button

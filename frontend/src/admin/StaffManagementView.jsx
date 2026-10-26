@@ -524,8 +524,8 @@ const StaffManagementView = ({
               />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h4 style={{ margin: 0, color: '#1a3028' }}>{selectedStaffForHistory.displayName} - Attendance History</h4>
-                <input type="month" value={attendanceMonth} onChange={e => setAttendanceMonth(e.target.value)}
-                  style={{ ...inputStyle, width: 'auto', maxWidth: '180px' }} />
+                <input type="month" value={attendanceMonth} placeholder="Select Month" data-empty={!attendanceMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceMonth(e.target.value)}
+                  style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
               </div>
               {attendanceHistory.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: '#708c80' }}>No records for this month.</div>
@@ -671,8 +671,8 @@ const StaffManagementView = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Staff Leaderboard</h3>
-            <input type="month" value={metricsMonth} onChange={e => setMetricsMonth(e.target.value)}
-              style={{ ...inputStyle, width: 'auto', maxWidth: '180px' }} />
+            <input type="month" value={metricsMonth} placeholder="Select Month" data-empty={!metricsMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setMetricsMonth(e.target.value)}
+              style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
           </div>
 
           {loadingMetrics ? (
@@ -791,7 +791,7 @@ const StaffManagementView = ({
             <div className="ad-pay-modal-body">
               <div className="ad-pay-form-group">
                 <label>Date</label>
-                <input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)} />
+                <input type="date" value={attendanceDate} placeholder="Select Date" data-empty={!attendanceDate} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceDate(e.target.value)} style={{ cursor: 'pointer' }} />
               </div>
               <div className="ad-pay-form-group">
                 <label>Status</label>

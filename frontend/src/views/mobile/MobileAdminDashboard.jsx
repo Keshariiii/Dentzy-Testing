@@ -1329,6 +1329,9 @@ const MobileAdminDashboard = () => {
                 <input
                   id="ma-month-picker"
                   type="month"
+                  placeholder="Select Month"
+                  data-empty={payFilterMonth === 'all' || !payFilterMonth}
+                  onClick={e => e.currentTarget.showPicker?.()}
                   value={payFilterMonth === 'all' ? '' : payFilterMonth}
                   onChange={e => setPayFilterMonth(e.target.value || 'all')}
                   style={{
