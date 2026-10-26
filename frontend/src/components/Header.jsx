@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { LogIn, LogOut, User } from 'lucide-react';
+import { MenuCloseIcon } from './ui/animated-state-icons';
 import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
 import './Header.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -94,7 +95,7 @@ const Header = () => {
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             title={menuOpen ? 'Close Menu' : 'Open Menu'}
           >
-            {menuOpen ? <X size={24} color="var(--dz-color-primary, #1e5038)" /> : <Menu size={24} color="var(--dz-color-primary, #1e5038)" />}
+            <MenuCloseIcon active={menuOpen} size={24} color="var(--dz-color-primary, #1e5038)" />
           </button>
 
           <nav className={`nav ${menuOpen ? 'open' : ''}`}>

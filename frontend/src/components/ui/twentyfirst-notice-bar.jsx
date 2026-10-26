@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { Bell, ChevronRight, Copy, Check, Headphones } from 'lucide-react';
+import { ChevronRight, Headphones } from 'lucide-react';
+import { NotificationIcon, CopiedIcon } from './animated-state-icons';
 import { cn } from '../../lib/utils';
 import { TwentyFirstBadge } from './twentyfirst-badge';
 import BaseModal from './BaseModal';
@@ -186,7 +187,7 @@ export function TwentyFirstNoticeBar({
             >
               {/* Notice Bell Icon */}
               <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary-muted/20 flex items-center justify-center text-primary-dark mt-0.5">
-                <Bell className="w-4 h-4 text-[#1e5038]" />
+                <NotificationIcon size={18} color="#1e5038" duration={3200} />
               </div>
 
               {/* Message Content */}
@@ -212,11 +213,7 @@ export function TwentyFirstNoticeBar({
                 title="Copy notice text"
                 aria-label="Copy notice text"
               >
-                {copiedIndex === idx ? (
-                  <Check className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
+                <CopiedIcon active={copiedIndex === idx} size={18} color={copiedIndex === idx ? '#059669' : '#94a3b8'} />
               </button>
             </div>
           ))}

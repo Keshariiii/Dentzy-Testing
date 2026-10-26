@@ -10,8 +10,18 @@ const dentzyLogo = '/dentzy-logo-v2.png';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import './MobileLogin.css';
+import PasswordStrength from '../../components/ui/password-strength';
+import { EyeToggleIcon } from '../../components/ui/animated-state-icons';
 
 const API_URL = getAuthUrl();
+
+const PASSWORD_RULES = [
+  { id: 'length',  label: 'At least 8 characters',             test: (p) => p.length >= 8 },
+  { id: 'upper',   label: 'At least 1 uppercase letter (A–Z)', test: (p) => /[A-Z]/.test(p) },
+  { id: 'lower',   label: 'At least 1 lowercase letter (a–z)', test: (p) => /[a-z]/.test(p) },
+  { id: 'number',  label: 'At least 1 number (0–9)',           test: (p) => /[0-9]/.test(p) },
+  { id: 'special', label: 'At least 1 special character',       test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
 
 const MobileForgotPassword = () => {
   const router = useRouter();
@@ -356,11 +366,17 @@ const MobileForgotPassword = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
                   >
-                    {showPassword ? 'Hide' : 'Show'}
+                    <EyeToggleIcon active={showPassword} size={18} color="#94a3b8" />
                   </button>
                 </div>
+                {password.length > 0 && (
+                  <div className="mt-2 mb-3 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
+                    <PasswordStrength value={password} rules={PASSWORD_RULES} />
+                  </div>
+                )}
               </div>
 
               <div className="m-auth-input-group">
