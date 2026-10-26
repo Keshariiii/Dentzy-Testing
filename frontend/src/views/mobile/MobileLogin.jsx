@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminAuth } from '../../admin/AdminAuthContext';
 import { useStaffAuth } from '../../staff/StaffAuthContext';
+import { useMaintenance } from '../../context/MaintenanceContext';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css';
 
@@ -20,6 +21,7 @@ const MobileLogin = () => {
   const { login }      = useAuth();
   const { adminLogin } = useAdminAuth();
   const { staffLogin } = useStaffAuth();
+  const { maintenance, isDentistBlocked, isStaffBlocked, checkStatus, checking } = useMaintenance();
 
   const initialRole = searchParams?.get('role') || 'dentist';
   const [activeRole, setActiveRole] = useState(
@@ -152,6 +154,88 @@ const MobileLogin = () => {
         <p className="m-auth-subtitle">
           {isDentist ? 'Sign in to your dental lab portal' : isAdmin ? 'Restricted -- authorized personnel only' : 'Lab staff access -- credentials from admin'}
         </p>
+
+        {isDentist && isDentistBlocked && (
+          <div style={{
+            background: '#f0f7f3',
+            border: '1px solid #d8e6df',
+            borderRadius: '12px',
+            padding: '14px',
+            margin: '12px 0 16px',
+            textAlign: 'left',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+              Scheduled Clinical Portal Maintenance
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+              {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
+            </div>
+            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
+              {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+            </div>
+            <div style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={checkStatus}
+                disabled={checking}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  background: '#1e5038',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: checking ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {checking ? 'Checking...' : 'Check If Live'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isStaff && isStaffBlocked && (
+          <div style={{
+            background: '#f0f7f3',
+            border: '1px solid #d8e6df',
+            borderRadius: '12px',
+            padding: '14px',
+            margin: '12px 0 16px',
+            textAlign: 'left',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+              Lab Operations Portal Maintenance
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+              {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
+            </div>
+            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
+              {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+            </div>
+            <div style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={checkStatus}
+                disabled={checking}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  background: '#1e5038',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: checking ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {checking ? 'Checking...' : 'Check If Live'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="m-auth-error">

@@ -40,6 +40,15 @@ export const StaffAuthProvider = ({ children }) => {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
           }
+        } else if (res.status === 503) {
+          try {
+            const data = await res.json();
+            if (data?.code === 'MAINTENANCE_MODE' || data?.maintenance) {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('dentzy:maintenance', { detail: data }));
+              }
+            }
+          } catch {}
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined')
             localStorage.removeItem('dentzy_staff_info');

@@ -138,3 +138,13 @@ CREATE TABLE IF NOT EXISTS app_settings (
 -- New tables: delivery_tasks, intern_tasks
 -- New indexes: idx_payments_case_owner, idx_orders_created_desc
 -- New app_settings key: staff_notice_bar
+
+-- Seed maintenance_mode default setting
+INSERT OR IGNORE INTO app_settings (key, value, updated_at, updated_by)
+VALUES (
+    'maintenance_mode',
+    '{"enabled":false,"target":"both","customMessage":"We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.","estimatedTime":"Expected back online: Today at 6:00 PM IST","showEmergencyContact":true}',
+    datetime('now'),
+    'system'
+);
+

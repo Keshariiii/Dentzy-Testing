@@ -8,6 +8,7 @@ import staff from './routes/staff.js';
 import { sendEmail } from './utils/email.js';
 import { verifyAnyAuth } from './middleware/auth.js';
 import { calculateOrderAmount } from './utils/pricing.js';
+import { maintenanceGuard } from './middleware/maintenance.js';
 
 const app = new Hono();
 
@@ -64,6 +65,46 @@ app.get('/api/health', async (c) => {
   } catch { }
   return c.json({ status: 'ok', db: dbOk ? 'connected' : 'error', time: new Date().toISOString() });
 });
+
+// ── Public Maintenance Status (Never Blocked) ─────────────────────────────────
+// ponytail: Public read of maintenance config so clients can check live status and reconnect
+app.get('/api/maintenance/status', async (c) => {
+  let maintenance = {
+    enabled: false,
+    target: 'both',
+    customMessage: 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.',
+    estimatedTime: 'Expected back online: Today at 6:00 PM IST',
+    showEmergencyContact: true,
+    updatedAt: null,
+  };
+
+  try {
+    const row = await c.env.DB.prepare(
+      "SELECT value, updated_at FROM app_settings WHERE key = 'maintenance_mode'"
+    ).first();
+    if (row?.value) {
+      const parsed = JSON.parse(row.value);
+      maintenance = {
+        enabled: Boolean(parsed.enabled),
+        target: ['dentists', 'staff', 'both'].includes(parsed.target) ? parsed.target : 'both',
+        customMessage: typeof parsed.customMessage === 'string' && parsed.customMessage.trim() ? parsed.customMessage.trim() : maintenance.customMessage,
+        estimatedTime: typeof parsed.estimatedTime === 'string' && parsed.estimatedTime.trim() ? parsed.estimatedTime.trim() : maintenance.estimatedTime,
+        showEmergencyContact: parsed.showEmergencyContact !== false,
+        updatedAt: row.updated_at,
+      };
+    }
+  } catch {}
+
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+  return c.json({
+    ...maintenance,
+    serverTime: new Date().toISOString(),
+  });
+});
+
+// ── Fast Global Maintenance Middleware ───────────────────────────────────────
+// ponytail: Guard runs after public endpoints and before protected application routes
+app.use('*', maintenanceGuard());
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.route('/api/auth', auth);

@@ -57,6 +57,15 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('dentzy_user', JSON.stringify(fresh));
             setUser(fresh);
           }
+        } else if (res.status === 503) {
+          try {
+            const data = await res.json();
+            if (data?.code === 'MAINTENANCE_MODE' || data?.maintenance) {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('dentzy:maintenance', { detail: data }));
+              }
+            }
+          } catch {}
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_user');

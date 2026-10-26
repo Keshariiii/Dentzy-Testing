@@ -3,6 +3,8 @@
  * Dashboard page — Protected route. Redirects to /login if not authenticated.
  */
 import { useAuth } from '../../context/AuthContext';
+import { useMaintenance } from '../../context/MaintenanceContext';
+import MaintenanceScreen from '../../components/MaintenanceScreen';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import ResponsiveLayout from '../../layouts/ResponsiveLayout';
@@ -11,6 +13,7 @@ import MobileDashboard from '../../views/mobile/MobileDashboard';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
+  const { isDentistBlocked } = useMaintenance();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,6 +21,11 @@ export default function DashboardPage() {
       router.replace('/login');
     }
   }, [user, loading, router]);
+
+  // ponytail: Smooth transition to clinical maintenance screen when dentist portal is locked
+  if (isDentistBlocked) {
+    return <MaintenanceScreen role="dentist" />;
+  }
 
   if (loading || !user) {
     return (

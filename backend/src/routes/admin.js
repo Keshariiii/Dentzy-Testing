@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyAdmin } from '../middleware/auth.js';
-import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema, createStaffSchema } from '../validators/admin.js';
+import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema, createStaffSchema, updateMaintenanceSchema } from '../validators/admin.js';
 import { signJWT, hashPassword } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
@@ -1286,6 +1286,96 @@ admin.put('/settings/staff-notice', verifyAdmin(), async (c) => {
   } catch (err) {
     logger.error('Admin staff notice update error', { error: err.message });
     return c.json({ message: err.message || 'Failed to update staff notice settings.' }, 400);
+  }
+});
+
+// ── Maintenance Mode Settings (Admin) ─────────────────────────────────────────
+// ponytail: Lean configuration schema with safe defaults and zero redundant fields
+const DEFAULT_MAINTENANCE_CONFIG = {
+  enabled: false,
+  target: 'both',
+  customMessage: 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.',
+  estimatedTime: 'Expected back online: Today at 6:00 PM IST',
+  showEmergencyContact: true,
+};
+
+function parseMaintenance(row) {
+  if (row?.value) {
+    try {
+      const parsed = JSON.parse(row.value);
+      return {
+        enabled: Boolean(parsed.enabled),
+        target: ['dentists', 'staff', 'both'].includes(parsed.target) ? parsed.target : 'both',
+        customMessage: typeof parsed.customMessage === 'string' && parsed.customMessage.trim() ? parsed.customMessage.trim() : DEFAULT_MAINTENANCE_CONFIG.customMessage,
+        estimatedTime: typeof parsed.estimatedTime === 'string' && parsed.estimatedTime.trim() ? parsed.estimatedTime.trim() : DEFAULT_MAINTENANCE_CONFIG.estimatedTime,
+        showEmergencyContact: parsed.showEmergencyContact !== false,
+        updated_at: row.updated_at,
+        updated_by: row.updated_by,
+      };
+    } catch {}
+  }
+  return { ...DEFAULT_MAINTENANCE_CONFIG, updated_at: null, updated_by: null };
+}
+
+// GET /api/admin/settings/maintenance — fetch maintenance mode configuration
+admin.get('/settings/maintenance', verifyAdmin(), async (c) => {
+  try {
+    const row = await c.env.DB.prepare(
+      "SELECT value, updated_at, updated_by FROM app_settings WHERE key = 'maintenance_mode'"
+    ).first();
+    return c.json(parseMaintenance(row));
+  } catch (err) {
+    logger.error('Admin maintenance settings get error', { error: err.message });
+    return c.json({ message: 'Failed to load maintenance settings.' }, 500);
+  }
+});
+
+// PUT /api/admin/settings/maintenance — update maintenance mode configuration
+admin.put('/settings/maintenance', verifyAdmin(), async (c) => {
+  try {
+    const body = await c.req.json();
+    const result = updateMaintenanceSchema.safeParse(body);
+    if (!result.success) {
+      const firstError = result.error?.issues?.[0]?.message || result.error?.errors?.[0]?.message || 'Invalid maintenance configuration.';
+      return c.json({ message: firstError }, 400);
+    }
+
+    const { enabled, target, customMessage, estimatedTime, showEmergencyContact } = result.data;
+    const value = JSON.stringify({
+      enabled,
+      target,
+      customMessage: customMessage || DEFAULT_MAINTENANCE_CONFIG.customMessage,
+      estimatedTime: estimatedTime || DEFAULT_MAINTENANCE_CONFIG.estimatedTime,
+      showEmergencyContact,
+    });
+    const ts = now();
+    const updatedBy = c.get('admin').username;
+
+    // ponytail: single upsert with ON CONFLICT prevents race conditions and duplicate keys
+    await c.env.DB.prepare(
+      `INSERT INTO app_settings (key, value, updated_at, updated_by)
+       VALUES ('maintenance_mode', ?, ?, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = excluded.updated_at,
+         updated_by = excluded.updated_by`
+    ).bind(value, ts, updatedBy).run();
+
+    auditLog('ADMIN_MAINTENANCE_MODE_UPDATED', { updated_by: updatedBy, enabled, target });
+
+    return c.json({
+      message: 'Maintenance settings updated.',
+      enabled,
+      target,
+      customMessage: customMessage || DEFAULT_MAINTENANCE_CONFIG.customMessage,
+      estimatedTime: estimatedTime || DEFAULT_MAINTENANCE_CONFIG.estimatedTime,
+      showEmergencyContact,
+      updated_at: ts,
+      updated_by: updatedBy,
+    });
+  } catch (err) {
+    logger.error('Admin maintenance update error', { error: err.message });
+    return c.json({ message: err.message || 'Failed to update maintenance settings.' }, 400);
   }
 });
 

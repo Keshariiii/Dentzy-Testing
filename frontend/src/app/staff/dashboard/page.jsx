@@ -5,12 +5,15 @@
  * so no need for separate PC/Mobile views or ResponsiveLayout.
  */
 import { useStaffAuth } from '../../../staff/StaffAuthContext';
+import { useMaintenance } from '../../../context/MaintenanceContext';
+import MaintenanceScreen from '../../../components/MaintenanceScreen';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import StaffDashboard from '../../../staff/StaffDashboard';
 
 export default function StaffDashboardPage() {
   const { staff, loading } = useStaffAuth();
+  const { isStaffBlocked } = useMaintenance();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,6 +21,11 @@ export default function StaffDashboardPage() {
       router.replace('/login?role=staff');
     }
   }, [staff, loading, router]);
+
+  // ponytail: Smooth transition to lab maintenance screen when staff portal is locked
+  if (isStaffBlocked) {
+    return <MaintenanceScreen role="staff" />;
+  }
 
   if (loading || !staff) {
     return (

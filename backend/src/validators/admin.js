@@ -64,4 +64,13 @@ export const createStaffSchema = z.object({
   designation: z.string().min(1, 'Designation is required.').max(50).default('Lab Assistant'),
 });
 
+// ponytail: validate maintenance mode configuration at edge boundary with minimal overhead
+export const updateMaintenanceSchema = z.object({
+  enabled: z.boolean({ required_error: '"enabled" must be a boolean.' }),
+  target: z.enum(['dentists', 'staff', 'both'], { errorMap: () => ({ message: 'Target must be "dentists", "staff", or "both".' }) }),
+  customMessage: z.string().trim().max(500, 'Custom message must be 500 characters or less.').optional().default(''),
+  estimatedTime: z.string().trim().max(150, 'Estimated time must be 150 characters or less.').optional().default(''),
+  showEmergencyContact: z.boolean().optional().default(true),
+});
+
 export { DESIGNATIONS };

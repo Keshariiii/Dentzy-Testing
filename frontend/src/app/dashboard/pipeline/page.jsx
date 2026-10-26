@@ -15,6 +15,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
+import { useMaintenance } from '../../../context/MaintenanceContext';
+import MaintenanceScreen from '../../../components/MaintenanceScreen';
 import { PipelineSteps } from '../../../components/common/ProductionPipeline';
 import OrderDetailModal from '../../../components/OrderDetailModal';
 import { Skeleton, SkeletonGroup } from '../../../components/Skeleton';
@@ -45,6 +47,11 @@ const FILTERS = [
 export default function PipelinePage() {
   const router = useRouter();
   const { user, loading: authLoading, authFetch, DASH_URL } = useAuth();
+  const { isDentistBlocked } = useMaintenance();
+
+  if (isDentistBlocked) {
+    return <MaintenanceScreen role="dentist" />;
+  }
 
   const [orders, setOrders]             = useState([]);
   const [loading, setLoading]           = useState(true);

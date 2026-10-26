@@ -7,6 +7,7 @@ import OrderDetailModal from '../components/OrderDetailModal';
 import PaymentDetailModal from '../components/PaymentDetailModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import StaffManagementView from './StaffManagementView';
+import MaintenanceModeController from './MaintenanceModeController';
 import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
@@ -127,6 +128,22 @@ const AdminDashboard = () => {
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
+  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadMaint = async () => {
+      try {
+        const res = await authFetchRef.current(`${ADMIN_API}/settings/maintenance`);
+        if (res.ok && isMounted) {
+          const d = await res.json();
+          setMaintenanceBadgeConfig(d);
+        }
+      } catch {}
+    };
+    loadMaint();
+    return () => { isMounted = false; };
+  }, [ADMIN_API]);
   // Staff view state
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -765,6 +782,49 @@ const AdminDashboard = () => {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+
+{/* Maintenance Active Persistent Header Badge */}
+        {maintenanceBadgeConfig?.enabled && (
+          <button
+            type="button"
+            onClick={() => {
+              setAdminView('settings');
+              setSettingsSubView('maintenance');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: '#fee2e2',
+              border: '1px solid #fca5a5',
+              color: '#991b1b',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
+              margin: '0 12px',
+              whiteSpace: 'nowrap',
+            }}
+            title="Click to manage maintenance mode"
+          >
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#dc2626',
+              animation: 'dzPulseDot 1.5s infinite ease-in-out',
+              display: 'inline-block',
+            }} />
+            <span>
+              Maintenance Active: {
+                maintenanceBadgeConfig.target === 'both' ? 'Dentists & Staff' :
+                maintenanceBadgeConfig.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
+              }
+            </span>
+          </button>
+        )}
 
         {/* Admin info */}
         <button
@@ -1605,6 +1665,12 @@ const AdminDashboard = () => {
                         icon={Ico.bell ? Ico.bell(22) : Ico.settings(22)}
                         onClick={() => { setSettingsSubView('staff-notice'); if (!staffNoticeLoaded) fetchStaffNotice(); }}
                       />                      <TwentyFirstNavCard
+                        label="Maintenance Mode Controller"
+                        desc="Control portal downtime with audience targeting, custom messages, and live checks"
+                        icon={Ico.shield ? Ico.shield(22) : Ico.lock(22)}
+                        onClick={() => setSettingsSubView('maintenance')}
+                      />
+                      <TwentyFirstNavCard
                         label="Administrator Account"
                         desc="View active session, security options, and account logout"
                         icon={Ico.user ? Ico.user(22) : Ico.settings(22)}
@@ -1634,6 +1700,7 @@ const AdminDashboard = () => {
                           {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
                           {settingsSubView === 'users' && 'User Accounts Overview'}
                           {settingsSubView === 'account' && 'Administrator Account'}
+                          {settingsSubView === 'maintenance' && 'Maintenance Mode Controller'}
                           {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
                         </h2>
                         <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
@@ -1899,6 +1966,16 @@ const AdminDashboard = () => {
                           </div>
                         </div>
                       </div>
+                    )}
+
+                    {/* Sub-Page: Maintenance Mode Controller */}
+                    {settingsSubView === 'maintenance' && (
+                      <MaintenanceModeController
+                        ADMIN_API={ADMIN_API}
+                        authFetch={authFetchRef.current}
+                        showToast={showToast}
+                        onConfigChanged={(updated) => setMaintenanceBadgeConfig(updated)}
+                      />
                     )}
 
                     {/* Sub-Page 4: Administrator Account */}

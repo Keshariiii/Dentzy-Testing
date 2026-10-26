@@ -17,6 +17,7 @@ import PrintableInvoice from '../../components/common/PrintableInvoice';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
+import MaintenanceModeController from '../../admin/MaintenanceModeController';
 import { formatINR, formatDate } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
@@ -163,6 +164,22 @@ const MobileAdminDashboard = () => {
   const [staffNoticeNewMsg, setStaffNoticeNewMsg] = useState('');
   const [staffNoticeSaving, setStaffNoticeSaving] = useState(false);
   const [staffNoticeLoaded, setStaffNoticeLoaded] = useState(false);
+  const [maintenanceBadgeConfig, setMaintenanceBadgeConfig] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadMaint = async () => {
+      try {
+        const res = await authFetch(`${ADMIN_API}/settings/maintenance`);
+        if (res.ok && isMounted) {
+          const d = await res.json();
+          setMaintenanceBadgeConfig(d);
+        }
+      } catch {}
+    };
+    loadMaint();
+    return () => { isMounted = false; };
+  }, [ADMIN_API, authFetch]);
 
   // Common state
   const [actionLoading, setActionLoading] = useState(null);
@@ -814,6 +831,39 @@ const MobileAdminDashboard = () => {
 
 
 
+
+      {/* Persistent Maintenance Mode Banner */}
+      {maintenanceBadgeConfig?.enabled && (
+        <div
+          onClick={() => {
+            setAdminView('settings');
+            setSettingsSubView('maintenance');
+          }}
+          style={{
+            margin: '8px 16px',
+            padding: '10px 14px',
+            borderRadius: '10px',
+            background: '#fee2e2',
+            border: '1px solid #fca5a5',
+            color: '#991b1b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(220, 38, 38, 0.12)',
+          }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#dc2626', animation: 'dzPulseDot 1.5s infinite ease-in-out', flexShrink: 0 }} />
+          <span>
+            Maintenance Active: {
+              maintenanceBadgeConfig.target === 'both' ? 'Dentists & Staff' :
+              maintenanceBadgeConfig.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
+            }
+          </span>
+        </div>
+      )}
 
       {/* Live Notification Banners */}
       {liveNotifs.length > 0 && (
@@ -1822,6 +1872,12 @@ const MobileAdminDashboard = () => {
                 onClick={() => setSettingsSubView('users')}
               />
               <TwentyFirstNavCard
+                label="Maintenance Mode Controller"
+                desc="Audience targeting, custom message, and live recovery"
+                icon={Ico.shield ? Ico.shield(20) : Ico.lock(20)}
+                onClick={() => setSettingsSubView('maintenance')}
+              />
+              <TwentyFirstNavCard
                 label="Administrator Account"
                 desc={`Active session (${admin?.username || 'admin'}) and logout`}
                 icon={Ico.user ? Ico.user(20) : Ico.settings(20)}
@@ -1868,6 +1924,7 @@ const MobileAdminDashboard = () => {
                   {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
                   {settingsSubView === 'users' && 'User Accounts Overview'}
                   {settingsSubView === 'account' && 'Administrator Account'}
+                  {settingsSubView === 'maintenance' && 'Maintenance Mode Controller'}
                 </h2>
                 <p style={{ color: '#6b8a7a', fontSize: '0.78rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
               </div>
@@ -2134,6 +2191,18 @@ const MobileAdminDashboard = () => {
                     {stats.rejected || 0}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Sub-view: Maintenance Mode Controller */}
+            {settingsSubView === 'maintenance' && (
+              <div style={{ width: '100%' }}>
+                <MaintenanceModeController
+                  ADMIN_API={ADMIN_API}
+                  authFetch={authFetch}
+                  showToast={showToast}
+                  onConfigChanged={(updated) => setMaintenanceBadgeConfig(updated)}
+                />
               </div>
             )}
 

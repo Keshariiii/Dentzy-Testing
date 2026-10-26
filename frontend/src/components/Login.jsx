@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAdminAuth } from '../admin/AdminAuthContext';
 import { useStaffAuth } from '../staff/StaffAuthContext';
+import { useMaintenance } from '../context/MaintenanceContext';
 import { EyeToggleIcon } from './ui/animated-state-icons';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Login.css';
@@ -75,6 +76,7 @@ const Login = ({ defaultRole }) => {
   const { login }      = useAuth();
   const { adminLogin } = useAdminAuth();
   const { staffLogin } = useStaffAuth();
+  const { maintenance, isDentistBlocked, isStaffBlocked, checkStatus, checking } = useMaintenance();
 
   // Determine initial role from prop, query param, or default to 'dentist'
   const initialRole = defaultRole || searchParams?.get('role') || 'dentist';
@@ -134,6 +136,15 @@ const Login = ({ defaultRole }) => {
     e.preventDefault();
     setError('');
     setErrorAction(null);
+
+    if (activeRole === 'dentist' && isDentistBlocked) {
+      setError('Dentzy Clinical Portal is undergoing scheduled maintenance. Your patient files and orders are completely safe.');
+      return;
+    }
+    if (activeRole === 'staff' && isStaffBlocked) {
+      setError('Dentzy Lab Operations Portal is undergoing scheduled maintenance.');
+      return;
+    }
 
     if (activeRole === 'dentist') {
       if (!dentistForm.email || !dentistForm.password) {
@@ -275,6 +286,106 @@ const Login = ({ defaultRole }) => {
             {isDentist ? 'Dentist Login' : isAdmin ? 'Admin Login' : 'Staff Login'}
           </h2>
 
+{/* ── Role Maintenance Banner ── */}
+          {isDentist && isDentistBlocked && (
+            <div style={{
+              background: '#f0f7f3',
+              border: '1px solid #d8e6df',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '18px',
+              boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+                Scheduled Clinical Portal Maintenance
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+                {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
+                {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={checkStatus}
+                  disabled={checking}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    background: '#1e5038',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: checking ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {checking ? 'Checking...' : 'Check If Live'}
+                </button>
+                {maintenance.showEmergencyContact !== false && (
+                  <a
+                    href="tel:+919503668112"
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      background: '#e8f5ee',
+                      color: '#1e5038',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Emergency: +91 95036 68112
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {isStaff && isStaffBlocked && (
+            <div style={{
+              background: '#f0f7f3',
+              border: '1px solid #d8e6df',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '18px',
+              boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+                Lab Operations Portal Maintenance
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+                {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
+                {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+              </div>
+              <div style={{ marginTop: '12px' }}>
+                <button
+                  type="button"
+                  onClick={checkStatus}
+                  disabled={checking}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    background: '#1e5038',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: checking ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {checking ? 'Checking...' : 'Check If Live'}
+                </button>
+              </div>
+            </div>
+          )}
           {/* ── Login Form ────────────────────────── */}
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
 
