@@ -26,3 +26,9 @@ export const formatOrderDateTime = (isoDate) => {
     year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true,
   }).format(date);
 };
+
+export const formatDoctorName = (name) => {
+  if (!name || !name.trim() || /^doctor$/i.test(name.trim())) return 'Doctor';
+  const clean = name.trim().replace(/^(dr\s*\.?\s*)+/i, '');
+  return clean ? `Dr. ${clean.charAt(0).toUpperCase() + clean.slice(1)}` : 'Doctor';
+};

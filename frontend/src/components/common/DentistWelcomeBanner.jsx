@@ -2,6 +2,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight, UserCheck, FilePlus2, Activity } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { formatDoctorName } from '../../utils/format';
 
 /**
  * DentistWelcomeBanner — Shared First-Time Onboarding Banner (PC & Mobile)
@@ -35,7 +36,7 @@ export function DentistWelcomeBanner({
             <Sparkles size={18} />
           </div>
           <h3 className="text-base sm:text-lg font-bold text-dark tracking-tight m-0">
-            Welcome, Dr. {userName}!
+            Welcome, {formatDoctorName(userName)}!
           </h3>
         </div>
       </div>

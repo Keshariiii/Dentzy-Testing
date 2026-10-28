@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
-import { formatINR, formatDate } from '../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
 import BaseModal from './ui/BaseModal';
@@ -286,7 +286,7 @@ const DentistDashboard = () => {
         {/* Greeting Row */}
         <div className="ud-dash-top">
           <div>
-            <h2 className="ud-greeting">Hello, {userName}</h2>
+            <h2 className="ud-greeting">Hello, {formatDoctorName(userName)}</h2>
             <p className="ud-greet-sub">Here's your clinical practice overview.</p>
           </div>
           <span className="ud-date-pill">{today}</span>

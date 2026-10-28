@@ -21,7 +21,7 @@ import PaymentDetailModal from '../../components/PaymentDetailModal';
 import BaseModal from '../../components/ui/BaseModal';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
-import { formatINR, formatDate } from '../../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
@@ -377,7 +377,7 @@ const MobileDashboard = () => {
         {/* Greeting */}
         <div className="m-overview-greeting">
           <div>
-            <h2 className="m-dash-hello">Hello, {userName}</h2>
+            <h2 className="m-dash-hello">Hello, {formatDoctorName(userName)}</h2>
             <p className="m-dash-date">{today}</p>
           </div>
         </div>
