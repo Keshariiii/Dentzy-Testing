@@ -685,16 +685,17 @@
   letter-spacing: 0.15em;
 }
 
-/* ── Contact Form Card (PC Parity for Mobile) ── */
+/* ── Contact Form Card (Adaptive Light & Dark Modes) ── */
 .m-contact-form-section { padding: 24px 16px; }
 
 .m-contact-card {
-  background: #141715;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card, #ffffff);
+  border: 1px solid rgba(124, 144, 130, 0.22);
   border-radius: 20px;
   padding: 24px 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(30, 80, 56, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   margin-bottom: 24px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .m-contact-form {
@@ -721,52 +722,38 @@
 .m-cf-label {
   font-size: 0.86rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--foreground, #1a1f2e);
   display: block;
+  transition: color 0.2s ease;
 }
 
 .m-cf-input {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(124, 144, 130, 0.25);
   border-radius: 12px;
-  font-size: 0.88rem;
+  font-size: 16px; /* Prevents auto-zoom on mobile iOS/Android */
   font-family: inherit;
-  color: #ffffff;
-  background: #1a1d1b;
+  color: var(--foreground, #1a1f2e);
+  background: var(--muted, #f8faf8);
   box-sizing: border-box;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 }
 
 .m-cf-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--muted-foreground, #94a3b8);
+  opacity: 0.8;
 }
 
 .m-cf-input:focus {
   outline: none;
-  border-color: #7c9082;
-  box-shadow: 0 0 0 1px #7c9082;
-}
-
-.m-contact-card .m-cf-input,
-.dark .m-contact-card .m-cf-input,
-.m-contact-card .m-cf-textarea,
-.dark .m-contact-card .m-cf-textarea {
-  background: #1a1d1b !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-}
-
-.m-contact-card .m-cf-input:focus,
-.dark .m-contact-card .m-cf-input:focus,
-.m-contact-card .m-cf-textarea:focus,
-.dark .m-contact-card .m-cf-textarea:focus {
-  border-color: #7c9082 !important;
-  box-shadow: 0 0 0 1px #7c9082 !important;
+  border-color: var(--primary, #7c9082);
+  box-shadow: 0 0 0 2px rgba(124, 144, 130, 0.2);
+  background: var(--card, #ffffff);
 }
 
 .m-cf-textarea {
@@ -779,8 +766,8 @@
   padding: 13px 18px;
   border: none;
   border-radius: 12px;
-  background: #7c9082;
-  color: #ffffff;
+  background: var(--primary, #7c9082);
+  color: var(--primary-foreground, #ffffff);
   font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
@@ -789,12 +776,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background-color 0.2s, transform 0.15s;
+  box-shadow: 0 4px 14px rgba(124, 144, 130, 0.35);
+  transition: background-color 0.2s, transform 0.15s, opacity 0.2s;
   margin-top: 4px;
 }
 
 .m-cf-btn:hover {
-  background: #6a7e70;
+  background: var(--dz-color-primary-dark, #5a6b5e);
 }
 
 .m-cf-btn:active {
@@ -821,8 +809,8 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #7c9082;
-  color: #ffffff;
+  background: var(--primary, #7c9082);
+  color: var(--primary-foreground, #ffffff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -832,16 +820,18 @@
 .m-cf-thankyou-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--foreground, #1a1f2e);
   margin: 0;
+  transition: color 0.2s ease;
 }
 
 .m-cf-thankyou-desc {
   font-size: 0.88rem;
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted-foreground, #64748b);
   max-width: 290px;
   margin: 0;
+  transition: color 0.2s ease;
 }
 
 .m-cf-thankyou-btn {
@@ -849,20 +839,21 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: #1a1d1b;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--muted, #f8faf8);
+  border: 1px solid rgba(124, 144, 130, 0.3);
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--foreground, #1a1f2e);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
   margin-top: 8px;
 }
 
 .m-cf-thankyou-btn:hover {
-  background: #232724;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--card, #ffffff);
+  border-color: var(--primary, #7c9082);
+  color: var(--primary, #7c9082);
 }
 
 .m-cf-thankyou-btn:active {
@@ -878,6 +869,56 @@
 
 .m-cf-msg--success { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
 .m-cf-msg--error   { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
+
+/* ── Dark Mode Overrides for Contact Form Card ── */
+.dark .m-contact-card {
+  background: #141715 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark .m-cf-label {
+  color: #ffffff !important;
+}
+
+.dark .m-cf-input,
+.dark .m-cf-textarea {
+  background: #1a1d1b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.dark .m-cf-input::placeholder,
+.dark .m-cf-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.dark .m-cf-input:focus,
+.dark .m-cf-textarea:focus {
+  border-color: #7c9082 !important;
+  box-shadow: 0 0 0 1px #7c9082 !important;
+  background: #1a1d1b !important;
+}
+
+.dark .m-cf-thankyou-title {
+  color: #ffffff !important;
+}
+
+.dark .m-cf-thankyou-desc {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.dark .m-cf-thankyou-btn {
+  background: #1a1d1b !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.dark .m-cf-thankyou-btn:hover {
+  background: #232724 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
 
 /* ── Contact Info (Card-free Editorial Layout) ── */
 .m-contact-info-grid {
@@ -1044,12 +1085,6 @@
   background: var(--card) !important;
   border-color: var(--border) !important;
   color: var(--card-foreground);
-}
-.dark .m-cf-input,
-.dark .m-cf-textarea {
-  background: var(--input) !important;
-  border-color: var(--border) !important;
-  color: var(--foreground) !important;
 }
 .dark .m-intro-text,
 .dark .m-details-intro p,
