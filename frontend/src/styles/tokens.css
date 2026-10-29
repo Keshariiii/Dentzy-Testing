@@ -257,7 +257,7 @@
   --dz-shadow-xl:             0 16px 48px rgba(0, 0, 0, 0.8);
 }
 
-@theme inline {
+:root {
   --color-card: var(--card);
   --color-ring: var(--ring);
   --color-input: var(--input);
