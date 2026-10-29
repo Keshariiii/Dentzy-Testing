@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 const ThemeContext = createContext({
   theme: 'system',
   resolvedTheme: 'light',
-  setTheme: () => {},
+  setTheme: (_theme) => {},
   toggleTheme: () => {},
 });
 

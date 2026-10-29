@@ -18,7 +18,7 @@ import PrintableInvoice from '../components/common/PrintableInvoice';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import StaffNoticeBar from '../components/common/StaffNoticeBar';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import ThemeSettingsCard from '../components/ui/ThemeSettingsCard';
+import Dropdown14 from '../components/ui/dropdown-14';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
 import './StaffDashboard.css';
@@ -1742,11 +1742,6 @@ const StaffDashboard = () => {
         <main className="sd-main">
           <h2 className="sd-section-title" style={{ marginBottom: '20px' }}>Account Settings</h2>
 
-          {/* Theme & Appearance */}
-          <div style={{ marginBottom: '20px' }}>
-            <ThemeSettingsCard />
-          </div>
-
           {/* Profile Card */}
           <div className="sd-settings-card">
             <div className="sd-settings-card-head">
@@ -1838,6 +1833,15 @@ const StaffDashboard = () => {
                     max={new Date().toISOString().split('T')[0]}
                     style={{ cursor: 'pointer' }}
                   />
+                </div>
+                <div className="sd-field" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--muted)', borderRadius: '10px', marginTop: '6px' }}>
+                  <div>
+                    <label style={{ margin: 0, fontWeight: 600, color: 'var(--foreground)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {Ico.sun ? Ico.sun(14) : null} Theme & Appearance
+                    </label>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>Choose light, dark, or system preference</span>
+                  </div>
+                  <Dropdown14 />
                 </div>
                 {profileMsg.text && (
                   <div className={`sd-form-msg sd-form-msg--${profileMsg.type}`}>

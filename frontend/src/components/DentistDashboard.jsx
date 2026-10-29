@@ -24,7 +24,7 @@ import { TICKER_MESSAGES } from './dashboard/shared/constants';
 import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
-import ThemeSettingsCard from './ui/ThemeSettingsCard';
+import Dropdown14 from './ui/dropdown-14';
 
 /* =============================================================================
    NAV ITEMS
@@ -620,11 +620,6 @@ const DentistDashboard = () => {
     <div className="ud-content-inner">
       <h2 className="ud-settings-title">Account Settings</h2>
 
-      {/* Theme & Appearance */}
-      <div style={{ marginBottom: '24px' }}>
-        <ThemeSettingsCard />
-      </div>
-
       {/* Profile Card */}
       <div className="ud-settings-card">
         <div className="ud-settings-card-head">
@@ -766,6 +761,15 @@ const DentistDashboard = () => {
                 rows={2}
                 className="ud-settings-input ud-settings-textarea"
               />
+            </div>
+            <div className="ud-settings-field" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--muted)', borderRadius: '10px', marginTop: '6px' }}>
+              <div>
+                <label style={{ margin: 0, fontWeight: 600, color: 'var(--foreground)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {Icons.sun ? Icons.sun(14) : null} Theme & Appearance
+                </label>
+                <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>Choose light, dark, or system preference</span>
+              </div>
+              <Dropdown14 />
             </div>
             {profileMsg.text && (
               <div className={`ud-settings-msg ${profileMsg.type === 'success' ? 'ud-settings-msg--success' : 'ud-settings-msg--error'}`}>

@@ -35,7 +35,7 @@ import { Icon, Icons } from '../../components/common/DashboardIcons';
 import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
-import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
+import Dropdown14 from '../../components/ui/dropdown-14';
 
 const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
 const getOrderPrice = (o) => {
@@ -1018,11 +1018,6 @@ const MobileDashboard = () => {
     <div className="m-tab-content">
       <h2 className="m-tab-title">Account Settings</h2>
 
-      {/* Theme & Appearance */}
-      <div style={{ marginBottom: '16px' }}>
-        <ThemeSettingsCard />
-      </div>
-
       {/* Profile Card */}
       <div className="m-settings-card">
         <div className="m-settings-card__head">
@@ -1098,6 +1093,15 @@ const MobileDashboard = () => {
               <label>Address</label>
               <textarea rows="2" value={profileForm.address} maxLength={300} placeholder="Clinic address"
                 onChange={e => setProfileForm(p => ({ ...p, address: e.target.value }))} />
+            </div>
+            <div className="m-form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--muted)', borderRadius: '10px' }}>
+              <div>
+                <label style={{ margin: 0, fontWeight: 600, color: 'var(--foreground)', fontSize: '0.85rem' }}>
+                  Theme & Appearance
+                </label>
+                <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Light, dark, or system</span>
+              </div>
+              <Dropdown14 />
             </div>
             <div className="m-form-actions">
               <button type="submit" className="m-btn m-btn--primary" disabled={profileSaving}>

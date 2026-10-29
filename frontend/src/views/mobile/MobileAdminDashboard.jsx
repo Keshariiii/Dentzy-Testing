@@ -31,7 +31,7 @@ import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav
 import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNoticeList from '../../components/ui/twentyfirst-notice-list';
-import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
+import Dropdown14 from '../../components/ui/dropdown-14';
 
 const DENTIST_TABS = [
   { key: 'all',      label: 'All' },
@@ -156,6 +156,7 @@ const MobileAdminDashboard = () => {
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
+  const [isEditingAdminSettings, setIsEditingAdminSettings] = useState(false);
 
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
@@ -1905,9 +1906,6 @@ const MobileAdminDashboard = () => {
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--foreground)', margin: '0 0 4px' }}>Settings & Analytics</h2>
               <p style={{ color: 'var(--muted-foreground)', fontSize: '0.82rem', margin: 0 }}>Select a portal management card below</p>
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <ThemeSettingsCard />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
               <TwentyFirstNavCard
                 label="Dentist Portal Notice Bar"
@@ -2277,10 +2275,45 @@ const MobileAdminDashboard = () => {
             {/* Sub-view 4: Administrator Account */}
             {settingsSubView === 'account' && (
               <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--foreground)' }}>Administrator Account</div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--foreground)' }}>Administrator Account</div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
+                  </div>
+                  {!isEditingAdminSettings && (
+                    <TwentyFirstIconButton
+                      icon={Ico.pencil ? Ico.pencil(15) : '✎'}
+                      title="Edit Settings"
+                      ariaLabel="Edit Settings"
+                      onClick={() => setIsEditingAdminSettings(true)}
+                      size="sm"
+                      variant="soft"
+                    />
+                  )}
                 </div>
+
+                {isEditingAdminSettings && (
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--muted)', borderRadius: '10px' }}>
+                      <div>
+                        <label style={{ margin: 0, fontWeight: 700, color: 'var(--foreground)', fontSize: '0.86rem' }}>
+                          Theme & Appearance
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Light, dark, or system</span>
+                      </div>
+                      <Dropdown14 />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAdminSettings(false)}
+                      className="btn"
+                      style={{ width: '100%', minHeight: '40px', borderRadius: '10px', fontSize: '0.86rem', fontWeight: 600, background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
                 <button
                   className="btn"
                   onClick={handleLogout}

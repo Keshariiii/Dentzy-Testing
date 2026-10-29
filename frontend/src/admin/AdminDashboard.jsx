@@ -17,7 +17,7 @@ import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import ThemeSettingsCard from '../components/ui/ThemeSettingsCard';
+import Dropdown14 from '../components/ui/dropdown-14';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -122,6 +122,7 @@ const AdminDashboard = () => {
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
   const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
+  const [isEditingAdminSettings, setIsEditingAdminSettings] = useState(false);
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
   const [noticeMessages, setNoticeMessages] = useState([
@@ -1699,11 +1700,6 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Theme & Appearance */}
-                    <div style={{ marginBottom: '20px' }}>
-                      <ThemeSettingsCard />
-                    </div>
-
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '16px' }}>
                       <TwentyFirstNavCard
                         label="Dentist Portal Notice Bar"
@@ -2047,48 +2043,86 @@ const AdminDashboard = () => {
 
                     {/* Sub-Page 4: Administrator Account */}
                     {settingsSubView === 'account' && (
-                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
-                        <div>
-                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--foreground)' }}>Administrator Account</div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--foreground)' }}>Administrator Account</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {!isEditingAdminSettings && (
+                              <TwentyFirstIconButton
+                                icon={Ico.pencil ? Ico.pencil(15) : '✎'}
+                                title="Edit Settings"
+                                ariaLabel="Edit Settings"
+                                onClick={() => setIsEditingAdminSettings(true)}
+                                size="sm"
+                                variant="soft"
+                              />
+                            )}
+                            <button
+                              type="button"
+                              onClick={handleLogout}
+                              style={{
+                                background: '#fff5f5',
+                                color: '#dc2626',
+                                border: '1px solid #fecaca',
+                                borderRadius: '10px',
+                                padding: '9px 18px',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                fontSize: '0.86rem',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                boxShadow: '0 1px 2px rgba(220, 38, 38, 0.05)',
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#fee2e2';
+                                e.currentTarget.style.borderColor = '#f87171';
+                                e.currentTarget.style.color = '#b91c1c';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = '0 3px 8px rgba(220, 38, 38, 0.12)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#fff5f5';
+                                e.currentTarget.style.borderColor = '#fecaca';
+                                e.currentTarget.style.color = '#dc2626';
+                                e.currentTarget.style.transform = 'none';
+                                e.currentTarget.style.boxShadow = '0 1px 2px rgba(220, 38, 38, 0.05)';
+                              }}
+                            >
+                              {Ico.logout(16)} Logout
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleLogout}
-                          style={{
-                            background: '#fff5f5',
-                            color: '#dc2626',
-                            border: '1px solid #fecaca',
-                            borderRadius: '10px',
-                            padding: '9px 18px',
-                            cursor: 'pointer',
-                            fontWeight: 600,
-                            fontSize: '0.86rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            boxShadow: '0 1px 2px rgba(220, 38, 38, 0.05)',
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#fee2e2';
-                            e.currentTarget.style.borderColor = '#f87171';
-                            e.currentTarget.style.color = '#b91c1c';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 3px 8px rgba(220, 38, 38, 0.12)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#fff5f5';
-                            e.currentTarget.style.borderColor = '#fecaca';
-                            e.currentTarget.style.color = '#dc2626';
-                            e.currentTarget.style.transform = 'none';
-                            e.currentTarget.style.boxShadow = '0 1px 2px rgba(220, 38, 38, 0.05)';
-                          }}
-                        >
-                          {Ico.logout(16)} Logout
-                        </button>
+
+                        {isEditingAdminSettings && (
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--muted)', borderRadius: '12px' }}>
+                              <div>
+                                <label style={{ margin: 0, fontWeight: 700, color: 'var(--foreground)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {Ico.sun ? Ico.sun(15) : null} Theme & Appearance
+                                </label>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>Choose light, dark, or system preference for the admin portal</span>
+                              </div>
+                              <Dropdown14 />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setIsEditingAdminSettings(false)}
+                                className="btn"
+                                style={{ padding: '8px 18px', borderRadius: '10px', fontSize: '0.86rem', fontWeight: 600, background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+                              >
+                                Done
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
