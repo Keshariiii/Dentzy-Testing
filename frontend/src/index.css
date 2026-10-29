@@ -371,3 +371,17 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
   filter: invert(85%) sepia(10%) saturate(400%) hue-rotate(95deg);
 }
 
+/* ── Dark Mode Dentzy Logo Optimization ───────────────────────────────── */
+.dark img[src*="dentzy-logo"],
+.dark .logo-img,
+.dark .ad-logo-img,
+.dark .ud-logo-img,
+.dark .sd-logo,
+.dark .plp-logo-img,
+.dark .m-header__logo,
+.dark .dz-footer__logo-img,
+.dark .auth-header-logo img,
+.dark .m-auth-logo img {
+  content: url('/dentzy-logo-dark.png');
+}
+
