@@ -131,7 +131,7 @@ const AdminDashboard = () => {
     'New: Zirconia monolithic crowns with multi-shade gradients now available',
     'Submit STL files for faster digital impression processing',
     'Invoices are generated upon case dispatch — check the Payments tab',
-    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'All cases backed by the Dentzy 5-10 Year Quality Guarantee',
     'Lab support: Mon-Sat, 9 AM to 6 PM IST',
   ]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
@@ -1850,7 +1850,7 @@ const AdminDashboard = () => {
                                 'New: Zirconia monolithic crowns with multi-shade gradients now available',
                                 'Submit STL files for faster digital impression processing',
                                 'Invoices are generated upon case dispatch — check the Payments tab',
-                                'All cases backed by the Dentzy 1-Year Quality Guarantee',
+                                'All cases backed by the Dentzy 5-10 Year Quality Guarantee',
                                 'Lab support: Mon-Sat, 9 AM to 6 PM IST',
                               ]);
                               setNoticeEnabled(true);
