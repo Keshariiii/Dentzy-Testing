@@ -1,7 +1,7 @@
 /**
  * BaseModal.css — Dentzy Design System
  * Glassmorphic, accessible, responsive modal styles.
- * PC: centered card. Mobile: bottom sheet with swipe handle.
+ * Theme-aware with full light & dark mode token support.
  */
 
 .dz-modal-root {
@@ -18,7 +18,7 @@
 .dz-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 20, 0.55);
+  background-color: var(--dz-color-bg-overlay, rgba(10, 10, 10, 0.65));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 1;
@@ -47,15 +47,17 @@
 .dz-modal-container {
   position: relative;
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: var(--card, #ffffff);
+  border: 1px solid var(--border, #e8e6e1);
   border-radius: 1.25rem;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 20, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   max-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 3;
+  color: var(--foreground, #1a1f2e);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Mobile bottom sheet card */
@@ -64,7 +66,6 @@
   max-height: 92vh;
   max-height: 92dvh;
   touch-action: none;
-  /* Safe area padding for notched devices */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -86,13 +87,14 @@
   width: 36px;
   height: 4px;
   border-radius: 9999px;
-  background: #cbd5e1;
-  transition: background 0.15s, width 0.15s;
+  background: var(--muted-foreground, #6b7280);
+  opacity: 0.4;
+  transition: opacity 0.15s, width 0.15s;
 }
 
 .dz-modal-swipe-handle:hover .dz-modal-swipe-pill,
 .dz-modal-swipe-handle:active .dz-modal-swipe-pill {
-  background: #94a3b8;
+  opacity: 0.8;
   width: 44px;
 }
 
@@ -102,8 +104,8 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--dz-color-border-light, #f0f2f1);
-  background: #ffffff;
+  border-bottom: 1px solid var(--border, #e8e6e1);
+  background: var(--card, #ffffff);
   gap: 1rem;
   flex-shrink: 0;
 }
@@ -129,14 +131,14 @@
 .dz-modal-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--dz-color-text-primary, #1e2824);
+  color: var(--foreground, #1a1f2e);
   margin: 0;
   letter-spacing: -0.015em;
 }
 
 .dz-modal-subtitle {
   font-size: 0.85rem;
-  color: var(--dz-color-text-muted, #64748b);
+  color: var(--muted-foreground, #6b7280);
   margin: 0;
 }
 
@@ -147,16 +149,17 @@
   width: 2rem;
   height: 2rem;
   border-radius: 0.5rem;
-  background: #f8faf9;
-  border: 1px solid #e2e8f0;
+  background: var(--muted, #e8e6e1);
+  border: 1px solid var(--border, #e8e6e1);
+  color: var(--muted-foreground, #6b7280);
   cursor: pointer;
   transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .dz-modal-close-btn:hover {
-  background: #eef2f0;
-  border-color: #cbd5e1;
+  background: var(--accent, #bfc9bb);
+  color: var(--foreground, #1a1f2e);
   transform: scale(1.05);
 }
 
@@ -169,7 +172,7 @@
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1 1 auto;
-  color: var(--dz-color-text-body, #444444);
+  color: var(--foreground, #1a1f2e);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -184,8 +187,8 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--dz-color-border-light, #f0f2f1);
-  background: var(--dz-color-bg-surface-alt, #f8faf9);
+  border-top: 1px solid var(--border, #e8e6e1);
+  background: var(--muted, #f8f7f4);
   flex-shrink: 0;
 }
 

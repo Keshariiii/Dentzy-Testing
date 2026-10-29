@@ -24,6 +24,7 @@ import { TICKER_MESSAGES } from './dashboard/shared/constants';
 import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
+import ThemeSettingsCard from './ui/ThemeSettingsCard';
 
 /* =============================================================================
    NAV ITEMS
@@ -618,6 +619,11 @@ const DentistDashboard = () => {
   const renderSettings = () => (
     <div className="ud-content-inner">
       <h2 className="ud-settings-title">Account Settings</h2>
+
+      {/* Theme & Appearance */}
+      <div style={{ marginBottom: '24px' }}>
+        <ThemeSettingsCard />
+      </div>
 
       {/* Profile Card */}
       <div className="ud-settings-card">

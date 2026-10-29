@@ -889,3 +889,32 @@
 
 /* ── Bottom spacer ──────────────────────────── */
 .m-bottom-spacer { height: 80px; }
+
+/* ================================================================
+   MOBILE HOME — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .m-home {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .m-section {
+  background-color: var(--background);
+}
+
+.dark .m-card,
+.dark .m-service-card,
+.dark .m-process-card,
+.dark .m-why-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+
+.dark .m-section-title {
+  color: var(--foreground);
+}
+
+.dark .m-section-desc {
+  color: var(--muted-foreground);
+}

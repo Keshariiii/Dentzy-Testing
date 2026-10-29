@@ -1910,3 +1910,74 @@
   box-shadow: none !important;
   border: 1px solid rgba(30, 77, 59, 0.1) !important;
 }
+
+/* ================================================================
+   DENTIST DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   ================================================================ */
+.dark .ud-layout {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .ud-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+
+.dark .ud-sidebar {
+  background: var(--sidebar);
+  border-right-color: var(--sidebar-border);
+}
+
+.dark .ud-settings-card,
+.dark .ud-orders-card,
+.dark .ud-card,
+.dark .ud-stat-card,
+.dark .ud-overview-card,
+.dark .ud-partnership-card,
+.dark .ud-table-wrap {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+
+.dark .ud-settings-input,
+.dark .ud-search-input {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .ud-settings-input:focus,
+.dark .ud-search-input:focus {
+  border-color: var(--ring);
+}
+
+.dark .ud-table th {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-bottom-color: var(--border);
+}
+
+.dark .ud-table td {
+  border-bottom-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .ud-table tbody tr:hover {
+  background: var(--muted);
+}
+
+.dark .ud-recent-case-row {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.dark .ud-recent-case-row:hover {
+  background: var(--muted);
+}
+
+.dark .ud-recent-case-badge {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}

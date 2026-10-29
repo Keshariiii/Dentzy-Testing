@@ -2,22 +2,17 @@
  * ================================================================
  *  DENTZY — Skeleton Loading Animations
  * ================================================================
- *
  *  Shimmer animation system for data-fetching placeholder states.
- *
- *  Usage:
- *    <div className="skeleton skeleton--text" />
- *    <div className="skeleton skeleton--circle" />
- *    <div className="skeleton skeleton--rect" style={{ height: '120px' }} />
+ *  Fully theme-aware with support for OLED dark surfaces.
  */
 
 /* ── Shimmer Keyframes ─────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0% {
-    background-position: -400px 0;
+    background-position: -600px 0;
   }
   100% {
-    background-position: 400px 0;
+    background-position: 600px 0;
   }
 }
 
@@ -25,13 +20,13 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--dz-color-border-light, #f0f2f1) 0%,
-    var(--dz-color-bg-surface-alt, #f8faf9) 40%,
-    var(--dz-color-border-light, #f0f2f1) 80%
+    var(--muted, #e8e6e1) 0%,
+    var(--border, #bfc9bb) 40%,
+    var(--muted, #e8e6e1) 80%
   );
   background-size: 800px 100%;
-  animation: skeleton-shimmer 1.6s ease-in-out infinite;
-  border-radius: var(--dz-radius-sm, 6px);
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  border-radius: var(--radius, 0.35rem);
 }
 
 /* ── Shape Variants ────────────────────────────────────────────── */

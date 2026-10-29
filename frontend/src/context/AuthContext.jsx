@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getAuthUrl, getDashUrl } from '../api/client';
+import { useTheme } from './ThemeContext';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
+  const { setTheme }          = useTheme();
   const API_URL               = useMemo(() => getAuthUrl(), []);
   const DASH_URL              = useMemo(() => getDashUrl(), []);
 
@@ -25,7 +27,11 @@ export const AuthProvider = ({ children }) => {
 
       // Optimistically restore from localStorage (display data only, not a token)
       try {
-        if (isMounted) setUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        if (isMounted) setUser(parsed);
+        if (parsed?.themePreference && typeof setTheme === 'function') {
+          setTheme(parsed.themePreference);
+        }
       } catch { /* ignore */ }
 
       // Verify against server
@@ -45,17 +51,21 @@ export const AuthProvider = ({ children }) => {
           const data = await res.json();
           if (data.user && isMounted) {
             const fresh = {
-              id:         data.user._id || data.user.id,
-              name:       data.user.name,
-              email:      data.user.email,
-              dob:        data.user.dob        || null,
-              phone:      data.user.phone      || '',
-              clinicName: data.user.clinicName || '',
-              address:    data.user.address    || '',
-              createdAt:  data.user.createdAt,
+              id:              data.user._id || data.user.id,
+              name:            data.user.name,
+              email:           data.user.email,
+              dob:             data.user.dob        || null,
+              phone:           data.user.phone      || '',
+              clinicName:      data.user.clinicName || '',
+              address:         data.user.address    || '',
+              themePreference: data.user.themePreference || 'system',
+              createdAt:       data.user.createdAt,
             };
             localStorage.setItem('dentzy_user', JSON.stringify(fresh));
             setUser(fresh);
+            if (fresh.themePreference && typeof setTheme === 'function') {
+              setTheme(fresh.themePreference);
+            }
           }
         } else if (res.status === 503) {
           try {
@@ -82,7 +92,7 @@ export const AuthProvider = ({ children }) => {
 
     hydrate();
     return () => { isMounted = false; };
-  }, []);
+  }, [setTheme]);
 
   // Authenticated fetch for /api/dashboard/* routes
   const authFetch = useCallback(async (url, options = {}) => {
@@ -140,9 +150,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
+      if (data.user.themePreference && typeof setTheme === 'function') {
+        setTheme(data.user.themePreference);
+      }
     }
     return data.user;
-  }, []);
+  }, [setTheme]);
 
   // Login function
   const login = useCallback(async (email, password, rememberMe = false) => {
@@ -153,9 +166,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
+      if (data.user.themePreference && typeof setTheme === 'function') {
+        setTheme(data.user.themePreference);
+      }
     }
     return data.user;
-  }, []);
+  }, [setTheme]);
 
   // Google OAuth Login / Auto-Registration
   const googleLogin = useCallback(async (credential) => {
@@ -166,9 +182,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
+      if (data.user.themePreference && typeof setTheme === 'function') {
+        setTheme(data.user.themePreference);
+      }
     }
     return data;
-  }, []);
+  }, [setTheme]);
 
   // Logout
   const logout = useCallback(async () => {

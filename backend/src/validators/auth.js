@@ -75,6 +75,7 @@ export const updateProfileSchema = z.object({
   phone: z.string().trim().max(20, 'Phone number is too long.').optional().default(''),
   clinicName: z.string().trim().max(100, 'Clinic name must be 100 characters or less.').optional().default(''),
   address: z.string().trim().max(300, 'Address must be 300 characters or less.').optional().default(''),
+  themePreference: z.enum(['light', 'dark', 'system']).optional(),
 });
 
 export const changePasswordSchema = z.object({

@@ -932,3 +932,32 @@
   box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05) !important;
   border: 1px solid #f1f5f9 !important;
 }
+
+/* ================================================================
+   MOBILE ADMIN DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   ================================================================ */
+.dark .ma-layout,
+.dark .ma-main {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .ma-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+
+.dark .ma-card,
+.dark .ma-dentist-card,
+.dark .ma-order-card,
+.dark .ma-stat-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+
+.dark .ma-search-input {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--foreground);
+}

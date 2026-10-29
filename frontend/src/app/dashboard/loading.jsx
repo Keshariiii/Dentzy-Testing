@@ -1,24 +1,40 @@
 'use client';
-
-import { SkeletonGroup, StatCardSkeleton, OrderSkeleton } from '../../components/Skeleton';
+import { SkeletonGroup, Skeleton, StatCardSkeleton, OrderSkeleton } from '../../components/Skeleton';
 
 /**
  * Route-level loading state for the dentist dashboard.
- * Uses the existing Skeleton components for a polished loading experience.
+ * Uses content-matched Skeletons for zero layout shift.
  */
 export default function DashboardLoading() {
   return (
     <SkeletonGroup>
-      <div style={{
-        minHeight: '100vh',
-        background: 'var(--dz-color-bg-page, #f4f7f5)',
-        padding: '24px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-      }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'var(--background, #f8f7f4)',
+          padding: '24px 20px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <Skeleton width="180px" height="28px" borderRadius="8px" />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Skeleton width="36px" height="36px" borderRadius="10px" />
+            <Skeleton width="36px" height="36px" borderRadius="10px" />
+          </div>
+        </div>
+
         <div style={{ marginBottom: '24px' }}>
           <StatCardSkeleton count={4} />
         </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <Skeleton width="100px" height="32px" borderRadius="9999px" />
+          <Skeleton width="100px" height="32px" borderRadius="9999px" />
+          <Skeleton width="100px" height="32px" borderRadius="9999px" />
+        </div>
+
         <OrderSkeleton count={5} />
       </div>
     </SkeletonGroup>

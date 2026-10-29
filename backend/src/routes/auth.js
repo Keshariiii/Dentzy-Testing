@@ -27,6 +27,7 @@ const clearCookieHeader = (name, env) => {
 const safeUserObj = (u) => ({
   id: u.id, name: u.name, email: u.email,
   dob: u.dob || null, phone: u.phone || '', clinicName: u.clinicName || '', address: u.address || '',
+  themePreference: u.themePreference || 'system',
   createdAt: u.createdAt,
 });
 
@@ -161,8 +162,8 @@ auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) =
     const ts = now();
     const hashed = await hashPassword(password);
     await c.env.DB.prepare(
-      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, name, email, hashed, 'pending', '', null, '', '', '', ts, ts).run();
+      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, themePreference, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, name, email, hashed, 'pending', '', null, '', '', '', 'system', ts, ts).run();
 
     auditLog('USER_REGISTERED', { userId: id, status: 'pending' });
 
@@ -285,8 +286,8 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
     const userName = name || 'Dentist';
 
     await c.env.DB.prepare(
-      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, userName, normalizedEmail, hashed, 'pending', '', null, '', '', '', ts, ts).run();
+      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, themePreference, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, userName, normalizedEmail, hashed, 'pending', '', null, '', '', '', 'system', ts, ts).run();
 
     auditLog('USER_REGISTERED_GOOGLE', { userId: id, status: 'pending', email: normalizedEmail });
 
@@ -327,7 +328,7 @@ auth.get('/me', verifyUser(), async (c) => {
   const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
   c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
   
-  return c.json({ user });
+  return c.json({ user: safeUserObj(user) });
 });
 
 // POST /api/auth/logout
@@ -494,6 +495,7 @@ auth.put('/profile', verifyUser(), validate(updateProfileSchema), async (c) => {
   }
   if (body.clinicName !== undefined) { sets.push('clinicName = ?'); vals.push(body.clinicName.trim()); }
   if (body.address !== undefined) { sets.push('address = ?'); vals.push(body.address.trim()); }
+  if (body.themePreference !== undefined) { sets.push('themePreference = ?'); vals.push(body.themePreference); }
 
   if (sets.length === 0) return c.json({ message: 'No changes provided.' }, 400);
 
@@ -503,7 +505,7 @@ auth.put('/profile', verifyUser(), validate(updateProfileSchema), async (c) => {
   try {
     await c.env.DB.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
     const updated = await c.env.DB.prepare(
-      'SELECT id, name, email, dob, phone, clinicName, address, createdAt FROM users WHERE id = ?'
+      'SELECT id, name, email, dob, phone, clinicName, address, themePreference, createdAt FROM users WHERE id = ?'
     ).bind(user.id).first();
 
     auditLog('PROFILE_UPDATED', { userId: user.id });

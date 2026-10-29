@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getStaffUrl } from '../api/client';
+import { useTheme } from '../context/ThemeContext';
 
-const StaffAuthContext = createContext(null);
+export const StaffAuthContext = createContext(null);
 
 export const StaffAuthProvider = ({ children }) => {
-  const [staff, setStaff] = useState(null);
+  const [staff, setStaff]     = useState(null);
   const [loading, setLoading] = useState(true);
-  const STAFF_API = useMemo(() => getStaffUrl(), []);
+  const { setTheme }          = useTheme();
+  const STAFF_API             = useMemo(() => getStaffUrl(), []);
 
   // ── Session hydration on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -19,7 +21,11 @@ export const StaffAuthProvider = ({ children }) => {
       if (!saved) { if (isMounted) setLoading(false); return; }
 
       try {
-        if (isMounted) setStaff(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (isMounted) setStaff(parsed);
+        if (parsed?.themePreference && typeof setTheme === 'function') {
+          setTheme(parsed.themePreference);
+        }
       } catch {
         if (typeof window !== 'undefined')
           localStorage.removeItem('dentzy_staff_info');
@@ -39,6 +45,9 @@ export const StaffAuthProvider = ({ children }) => {
           if (isMounted) {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
+            if (data.staff?.themePreference && typeof setTheme === 'function') {
+              setTheme(data.staff.themePreference);
+            }
           }
         } else if (res.status === 503) {
           try {
@@ -62,7 +71,7 @@ export const StaffAuthProvider = ({ children }) => {
     };
     hydrate();
     return () => { isMounted = false; };
-  }, []);
+  }, [setTheme]);
 
   // ── Staff login ───────────────────────────────────────────────────────────
   const staffLogin = useCallback(async (username, password) => {
@@ -75,8 +84,11 @@ export const StaffAuthProvider = ({ children }) => {
     localStorage.removeItem('dentzy_user');
     localStorage.removeItem('dentzy_admin_info');
     setStaff(data.staff);
+    if (data.staff?.themePreference && typeof setTheme === 'function') {
+      setTheme(data.staff.themePreference);
+    }
     return data.staff;
-  }, []);
+  }, [setTheme]);
 
   // ── Staff logout ──────────────────────────────────────────────────────────
   const staffLogout = useCallback(async () => {

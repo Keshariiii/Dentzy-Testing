@@ -61,3 +61,25 @@
     color: var(--dz-color-text-muted);
     line-height: var(--dz-line-height-normal, 1.5);
 }
+
+/* ================================================================
+   SERVICES — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .services {
+    background-color: var(--background);
+}
+
+.dark .service-card {
+    background: var(--card);
+    border-color: var(--border);
+    color: var(--card-foreground);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.dark .service-content h3 {
+    color: var(--foreground);
+}
+
+.dark .service-content p {
+    color: var(--muted-foreground);
+}

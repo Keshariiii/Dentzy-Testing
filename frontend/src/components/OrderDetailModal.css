@@ -542,3 +542,26 @@
     grid-template-columns: repeat(2, 1fr); /* #43 — Keep 2-col on mobile, content is small */
   }
 }
+
+/* ================================================================
+   ORDER DETAIL MODAL — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .odm-modal-wrap,
+.dark .odm-modal,
+.dark .odm-card,
+.dark .odm-section {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .odm-title,
+.dark .odm-label,
+.dark .odm-value {
+  color: var(--foreground);
+}
+
+.dark .odm-sub,
+.dark .odm-desc {
+  color: var(--muted-foreground);
+}

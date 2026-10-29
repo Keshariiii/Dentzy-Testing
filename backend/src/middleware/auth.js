@@ -29,7 +29,7 @@ export const verifyUser = () => async (c, next) => {
     const payload = await verifyJWT(token, c.env.JWT_SECRET);
     // Check user exists and is approved
     const user = await c.env.DB.prepare(
-      'SELECT id, name, email, status, dob, phone, clinicName, address, createdAt, updatedAt FROM users WHERE id = ?'
+      'SELECT id, name, email, status, dob, phone, clinicName, address, themePreference, createdAt, updatedAt FROM users WHERE id = ?'
     ).bind(payload.id).first();
     if (!user) return c.json({ message: 'User not found.' }, 401);
     if (user.status !== 'approved') return c.json({ message: 'Your account is not approved yet.' }, 403);
@@ -62,11 +62,11 @@ export const verifyStaff = () => async (c, next) => {
     const payload = await verifyJWT(token, c.env.STAFF_JWT_SECRET);
     if (payload.role !== 'staff') throw new Error('Not staff');
     const staff = await c.env.DB.prepare(
-      'SELECT id, username, displayName, status FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, status, themePreference FROM staff WHERE id = ?'
     ).bind(payload.id).first();
     if (!staff) return c.json({ message: 'Staff not found.' }, 401);
     if (staff.status !== 'active') return c.json({ message: 'Staff account is inactive.' }, 403);
-    c.set('staff', { ...payload, displayName: staff.displayName });
+    c.set('staff', { ...payload, displayName: staff.displayName, themePreference: staff.themePreference || 'system' });
     await next();
   } catch {
     return c.json({ message: 'Invalid or expired staff token.' }, 401);

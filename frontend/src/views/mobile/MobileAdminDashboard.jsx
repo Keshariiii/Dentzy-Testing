@@ -31,6 +31,7 @@ import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav
 import { TwentyFirstNavCard } from '../../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNoticeList from '../../components/ui/twentyfirst-notice-list';
+import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 
 const DENTIST_TABS = [
   { key: 'all',      label: 'All' },
@@ -1901,8 +1902,11 @@ const MobileAdminDashboard = () => {
         <main className="ma-main" style={{ paddingTop: '16px', paddingBottom: '90px' }}>
           <div style={{ maxWidth: '520px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--dz-color-charcoal, #1a3028)', margin: '0 0 4px' }}>Settings & Analytics</h2>
-              <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: 0 }}>Select a portal management card below</p>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--foreground)', margin: '0 0 4px' }}>Settings & Analytics</h2>
+              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.82rem', margin: 0 }}>Select a portal management card below</p>
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <ThemeSettingsCard />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
               <TwentyFirstNavCard

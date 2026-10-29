@@ -505,3 +505,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+   PAYMENT DETAIL MODAL — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .pdm-modal,
+.dark .pdm-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .pdm-title,
+.dark .pdm-label,
+.dark .pdm-amount {
+  color: var(--foreground);
+}
+
+.dark .pdm-meta {
+  color: var(--muted-foreground);
+}

@@ -35,6 +35,7 @@ import { Icon, Icons } from '../../components/common/DashboardIcons';
 import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
+import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 
 const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
 const getOrderPrice = (o) => {
@@ -1016,6 +1017,11 @@ const MobileDashboard = () => {
   const renderSettings = () => (
     <div className="m-tab-content">
       <h2 className="m-tab-title">Account Settings</h2>
+
+      {/* Theme & Appearance */}
+      <div style={{ marginBottom: '16px' }}>
+        <ThemeSettingsCard />
+      </div>
 
       {/* Profile Card */}
       <div className="m-settings-card">

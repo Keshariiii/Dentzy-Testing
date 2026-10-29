@@ -5,16 +5,8 @@ import { cn } from '../../lib/utils';
 
 /**
  * TwentyFirstSegmentedTabs — 21st.dev
- *
- * Fluid segmented horizontal tabs with Framer Motion layoutId
- * sliding pill. Touch-friendly, compact for mobile.
- *
- * @param {object}  props
- * @param {Array<{key:string, label:string, count?:number}>} props.tabs
- * @param {string}  props.activeKey        – Currently active tab key
- * @param {function} props.onTabChange     – (key: string) => void
- * @param {string}  [props.className]
- * @param {string}  [props.layoutId='segmented-pill'] – Unique Framer layoutId
+ * Fluid segmented horizontal tabs with Framer Motion layoutId sliding pill.
+ * Theme-aware, supports light & dark modes with CSS custom properties.
  */
 export function TwentyFirstSegmentedTabs({
   tabs,
@@ -27,9 +19,9 @@ export function TwentyFirstSegmentedTabs({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-full bg-page p-1',
-        'border border-border-light',
-        'overflow-x-auto scrollbar-none',
+        'inline-flex items-center gap-1 rounded-full bg-muted/70 p-1',
+        'border border-border',
+        'overflow-x-auto scrollbar-none transition-colors duration-200',
         className,
       )}
       role="tablist"
@@ -46,21 +38,22 @@ export function TwentyFirstSegmentedTabs({
             className={cn(
               'relative z-10 px-3 py-1.5 text-xs font-semibold rounded-full',
               'whitespace-nowrap transition-colors duration-200',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
               'cursor-pointer select-none',
               isActive
-                ? 'text-white'
-                : 'text-charcoal/60 hover:text-charcoal',
+                ? 'text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full bg-primary"
+                className="absolute inset-0 rounded-full bg-primary shadow-sm"
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}
             <span className="relative z-10 flex items-center gap-1.5">
+              {tab.icon && <span className="flex-shrink-0">{tab.icon}</span>}
               {tab.label}
               {tab.count != null && (
                 <span
@@ -68,8 +61,8 @@ export function TwentyFirstSegmentedTabs({
                     'inline-flex items-center justify-center min-w-[18px] h-[18px] px-1',
                     'text-[10px] font-bold rounded-full',
                     isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-charcoal/8 text-charcoal/50',
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-background/80 text-muted-foreground border border-border/50',
                   )}
                 >
                   {tab.count}

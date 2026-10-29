@@ -18,6 +18,7 @@ import PrintableInvoice from '../components/common/PrintableInvoice';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import StaffNoticeBar from '../components/common/StaffNoticeBar';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
+import ThemeSettingsCard from '../components/ui/ThemeSettingsCard';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
 import './StaffDashboard.css';
@@ -1740,6 +1741,11 @@ const StaffDashboard = () => {
       {activeView === 'settings' && (
         <main className="sd-main">
           <h2 className="sd-section-title" style={{ marginBottom: '20px' }}>Account Settings</h2>
+
+          {/* Theme & Appearance */}
+          <div style={{ marginBottom: '20px' }}>
+            <ThemeSettingsCard />
+          </div>
 
           {/* Profile Card */}
           <div className="sd-settings-card">

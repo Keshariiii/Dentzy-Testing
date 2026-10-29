@@ -421,3 +421,34 @@
 .m-auth-divider span {
   padding: 0 10px;
 }
+
+/* ================================================================
+   MOBILE LOGIN — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .m-auth-page {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .m-auth-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .m-auth-input {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .m-role-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .m-role-card.active {
+  background: var(--accent);
+  border-color: var(--primary);
+}

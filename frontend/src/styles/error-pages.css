@@ -131,3 +131,23 @@
   min-height: 44px;
   padding: 0.6rem 1rem;
 }
+
+/* Dark mode adaptation */
+.dark .dz-error-page {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .dz-error-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .dz-error-title {
+  color: var(--foreground);
+}
+
+.dark .dz-error-msg {
+  color: var(--muted-foreground);
+}

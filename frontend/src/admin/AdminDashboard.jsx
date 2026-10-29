@@ -17,6 +17,7 @@ import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
+import ThemeSettingsCard from '../components/ui/ThemeSettingsCard';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -1693,9 +1694,14 @@ const AdminDashboard = () => {
                         {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
                       </button>
                       <div className="ad-section-header" style={{ marginBottom: 0 }}>
-                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
-                        <p style={{ color: '#6b8a7a', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--foreground)', margin: 0 }}>Settings & Analytics</h2>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
                       </div>
+                    </div>
+
+                    {/* Theme & Appearance */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <ThemeSettingsCard />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '16px' }}>

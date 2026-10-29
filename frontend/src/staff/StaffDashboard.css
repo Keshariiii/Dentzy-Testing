@@ -1037,3 +1037,58 @@
     border: 1px solid #f1f5f9;
   }
 }
+
+/* ================================================================
+   STAFF DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   ================================================================ */
+.dark .sd-layout,
+.dark .sd-main,
+.dark .sd-body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .sd-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+
+.dark .sd-sidebar {
+  background: var(--sidebar);
+  border-right-color: var(--sidebar-border);
+}
+
+.dark .sd-card,
+.dark .sd-order-card,
+.dark .sd-stat-card,
+.dark .sd-settings-card,
+.dark .sd-inv-card,
+.dark .sd-dentist-card,
+.dark .sd-table-wrap {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+
+.dark .sd-search-input,
+.dark .sd-settings-input,
+.dark .sd-input {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .sd-table th {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-bottom-color: var(--border);
+}
+
+.dark .sd-table td {
+  border-bottom-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .sd-table tbody tr:hover {
+  background: var(--muted);
+}

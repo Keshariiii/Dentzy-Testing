@@ -6,12 +6,7 @@ import { cn } from '../../lib/utils';
 
 /**
  * TwentyFirstSidebar — 21st.dev Collapsible Sidebar
- *
- * Premium 3-lines hamburger sidebar for PC dashboards:
- * - Smooth width animation between expanded (260px) and collapsed (72px)
- * - Framer Motion layoutId sliding active indicator pill
- * - Tooltip on hover when collapsed
- * - Brand logo area, nav items, and footer profile/logout
+ * Theme-aware, supports light & dark modes with CSS custom properties.
  */
 export function TwentyFirstSidebar({
   items = [],
@@ -30,8 +25,8 @@ export function TwentyFirstSidebar({
   return (
     <motion.aside
       className={cn(
-        'h-screen flex flex-col bg-white border-r border-gray-200/80',
-        'relative z-20 select-none flex-shrink-0',
+        'h-screen flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border',
+        'relative z-20 select-none flex-shrink-0 transition-colors duration-200',
         className,
       )}
       animate={{ width: isCollapsed ? 72 : 260 }}
@@ -39,15 +34,15 @@ export function TwentyFirstSidebar({
     >
       {/* Header: Toggle + Brand */}
       <div className={cn(
-        'flex items-center h-16 px-3 border-b border-gray-100 flex-shrink-0',
+        'flex items-center h-16 px-3 border-b border-sidebar-border flex-shrink-0',
         isCollapsed ? 'justify-center' : 'gap-3',
       )}>
         <button
           onClick={onToggleCollapse}
           className={cn(
             'flex items-center justify-center w-10 h-10 rounded-xl',
-            'hover:bg-[#708c80]/8 transition-colors cursor-pointer',
-            'text-[#1e2824]',
+            'hover:bg-sidebar-accent transition-colors cursor-pointer',
+            'text-sidebar-foreground',
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -72,11 +67,11 @@ export function TwentyFirstSidebar({
             transition={{ delay: 0.1 }}
           >
             {brandLogo || (
-              <div className="w-8 h-8 rounded-lg bg-[#1e5038] flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
                 D
               </div>
             )}
-            <span className="font-bold text-[#1e2824] text-base tracking-tight whitespace-nowrap">
+            <span className="font-bold text-sidebar-foreground text-base tracking-tight whitespace-nowrap">
               {brandName}
             </span>
           </motion.div>
@@ -101,8 +96,8 @@ export function TwentyFirstSidebar({
                     'cursor-pointer relative z-10',
                     isCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5',
                     isActive
-                      ? 'text-[#1e5038] font-semibold'
-                      : 'text-gray-500 hover:text-[#1e2824]',
+                      ? 'text-primary font-semibold'
+                      : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
                   )}
                   title={isCollapsed ? item.label : undefined}
                   aria-label={item.label}
@@ -111,7 +106,7 @@ export function TwentyFirstSidebar({
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active-pill"
-                      className="absolute inset-0 rounded-xl bg-[#708c80]/10 border border-[#708c80]/15"
+                      className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/20"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
@@ -135,7 +130,7 @@ export function TwentyFirstSidebar({
 
                   {/* Count badge */}
                   {item.count != null && !isCollapsed && (
-                    <span className="relative z-10 ml-auto text-[10px] font-bold bg-[#1e5038] text-white rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                    <span className="relative z-10 ml-auto text-[10px] font-bold bg-primary text-primary-foreground rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
                       {item.count}
                     </span>
                   )}
@@ -145,7 +140,7 @@ export function TwentyFirstSidebar({
                 <AnimatePresence>
                   {isCollapsed && isHovered && (
                     <motion.div
-                      className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 px-2.5 py-1.5 rounded-lg bg-[#1e2824] text-white text-xs font-medium whitespace-nowrap shadow-lg"
+                      className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 px-2.5 py-1.5 rounded-lg bg-popover text-popover-foreground border border-border text-xs font-medium whitespace-nowrap shadow-lg"
                       initial={{ opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -4 }}
@@ -153,7 +148,7 @@ export function TwentyFirstSidebar({
                     >
                       {item.label}
                       {item.count != null && (
-                        <span className="ml-1.5 text-[10px] text-white/60">({item.count})</span>
+                        <span className="ml-1.5 text-[10px] opacity-70">({item.count})</span>
                       )}
                     </motion.div>
                   )}
@@ -166,17 +161,17 @@ export function TwentyFirstSidebar({
 
       {/* Footer: User Profile + Logout */}
       <div className={cn(
-        'border-t border-gray-100 flex-shrink-0',
+        'border-t border-sidebar-border flex-shrink-0',
         isCollapsed ? 'p-2' : 'p-3',
       )}>
         {userProfile && !isCollapsed && (
           <div className="flex items-center gap-2.5 mb-2 px-1">
-            <div className="w-8 h-8 rounded-full bg-[#708c80]/15 flex items-center justify-center text-[#1e5038] font-bold text-xs flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-xs flex-shrink-0">
               {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-[#1e2824] truncate">{userProfile.name}</p>
-              <p className="text-[10px] text-gray-400 truncate">{userProfile.role || 'Admin'}</p>
+              <p className="text-xs font-semibold text-sidebar-foreground truncate">{userProfile.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{userProfile.role || 'Admin'}</p>
             </div>
           </div>
         )}
@@ -186,7 +181,7 @@ export function TwentyFirstSidebar({
             onClick={onLogout}
             className={cn(
               'w-full flex items-center gap-2.5 rounded-xl transition-colors duration-150',
-              'text-gray-400 hover:text-red-500 hover:bg-red-50 cursor-pointer',
+              'text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer',
               isCollapsed ? 'justify-center py-3 px-0' : 'px-3 py-2.5',
             )}
             title={isCollapsed ? 'Logout' : undefined}

@@ -285,3 +285,15 @@
         font-size: 0.95rem;
     }
 }
+
+/* ================================================================
+   CONTACT FORM — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .contact-form-section {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+.dark .contact-form-title {
+    color: var(--foreground);
+}

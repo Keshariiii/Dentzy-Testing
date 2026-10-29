@@ -1362,3 +1362,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+   ADMIN DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   ================================================================ */
+.dark .ad-layout,
+.dark .ad-main,
+.dark .ad-body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .ad-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+
+.dark .ad-sidebar {
+  background: var(--sidebar);
+  border-right-color: var(--sidebar-border);
+}
+
+.dark .ad-card,
+.dark .ad-stat-card,
+.dark .ad-table-wrap,
+.dark .ad-staff-card,
+.dark .ad-kpi-card {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+
+.dark .ad-table th {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-bottom-color: var(--border);
+}
+
+.dark .ad-table td {
+  border-bottom-color: var(--border);
+  color: var(--foreground);
+}
+
+.dark .ad-table tbody tr:hover {
+  background: var(--muted);
+}
+
+.dark .ad-search-input,
+.dark .ad-input {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--foreground);
+}

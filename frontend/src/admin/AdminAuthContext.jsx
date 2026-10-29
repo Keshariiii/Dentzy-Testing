@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getAdminUrl } from '../api/client';
+import { useTheme } from '../context/ThemeContext';
 
-const AdminAuthContext = createContext(null);
+export const AdminAuthContext = createContext(null);
 
 export const AdminAuthProvider = ({ children }) => {
   const [admin, setAdmin]     = useState(null);
   const [loading, setLoading] = useState(true);
+  const { setTheme }          = useTheme();
   const ADMIN_API             = useMemo(() => getAdminUrl(), []);
 
   // ── Session hydration on mount ─────────────────────────────────────────────
@@ -53,6 +55,9 @@ export const AdminAuthProvider = ({ children }) => {
             if (data.token) {
               localStorage.setItem('dentzy_admin_token', data.token);
             }
+            if (data.themePreference && typeof setTheme === 'function') {
+              setTheme(data.themePreference);
+            }
           }
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined') {
@@ -72,7 +77,7 @@ export const AdminAuthProvider = ({ children }) => {
 
     hydrate();
     return () => { isMounted = false; };
-  }, []);
+  }, [setTheme]);
 
   // ── Admin login ───────────────────────────────────────────────────────────
   const adminLogin = useCallback(async (username, password) => {
@@ -87,8 +92,11 @@ export const AdminAuthProvider = ({ children }) => {
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_user');
     setAdmin(data.admin);
+    if (data.themePreference && typeof setTheme === 'function') {
+      setTheme(data.themePreference);
+    }
     return data.admin;
-  }, []);
+  }, [setTheme]);
 
   // ── Admin logout ──────────────────────────────────────────────────────────
   const adminLogout = useCallback(async () => {
