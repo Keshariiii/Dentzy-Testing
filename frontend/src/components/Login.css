@@ -236,3 +236,10 @@
   color: var(--color-primary, var(--dz-color-primary));
   transform: translateX(-2px);
 }
+
+/* Dark mode login additions */
+.dark #role-admin-btn.active { background: var(--accent); border-color: var(--primary); color: var(--foreground); }
+.dark .role-label { color: var(--foreground); }
+.dark .role-sublabel { color: var(--muted-foreground); }
+.dark .login-admin-note { background: var(--muted); border-color: var(--border); color: var(--muted-foreground); }
+.dark .auth-back-to-home-btn { background: var(--card); border-color: var(--border); color: var(--foreground); }

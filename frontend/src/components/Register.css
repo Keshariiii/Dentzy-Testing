@@ -809,3 +809,10 @@
 .dark .role-name {
   color: var(--foreground);
 }
+
+/* Dark mode register additions */
+.dark .auth-card-title { color: var(--foreground); }
+.dark .auth-card-subtitle, .dark .auth-remember, .dark .pending-msg { color: var(--muted-foreground); }
+.dark .pw-strength-box { background: var(--muted); border-color: var(--border); }
+.dark .auth-progress-dot, .dark .auth-progress-line { background: var(--muted); color: var(--muted-foreground); }
+.dark .otp-digit { background: var(--input); border-color: var(--border); color: var(--foreground); }

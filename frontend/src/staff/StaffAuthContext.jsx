@@ -10,6 +10,14 @@ export const StaffAuthProvider = ({ children }) => {
   const { setTheme }          = useTheme();
   const STAFF_API             = useMemo(() => getStaffUrl(), []);
 
+  const syncThemePref = useCallback((pref) => {
+    if (!pref || typeof setTheme !== 'function') return;
+    const local = typeof window !== 'undefined' ? localStorage.getItem('dentzy-theme') : null;
+    if (!local || pref === 'light' || pref === 'dark') {
+      setTheme(pref);
+    }
+  }, [setTheme]);
+
   // ── Session hydration on mount ─────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
@@ -23,8 +31,8 @@ export const StaffAuthProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (isMounted) setStaff(parsed);
-        if (parsed?.themePreference && typeof setTheme === 'function') {
-          setTheme(parsed.themePreference);
+        if (parsed?.themePreference) {
+          syncThemePref(parsed.themePreference);
         }
       } catch {
         if (typeof window !== 'undefined')
@@ -45,8 +53,8 @@ export const StaffAuthProvider = ({ children }) => {
           if (isMounted) {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
-            if (data.staff?.themePreference && typeof setTheme === 'function') {
-              setTheme(data.staff.themePreference);
+            if (data.staff?.themePreference) {
+              syncThemePref(data.staff.themePreference);
             }
           }
         } else if (res.status === 503) {
@@ -84,21 +92,26 @@ export const StaffAuthProvider = ({ children }) => {
     localStorage.removeItem('dentzy_user');
     localStorage.removeItem('dentzy_admin_info');
     setStaff(data.staff);
-    if (data.staff?.themePreference && typeof setTheme === 'function') {
-      setTheme(data.staff.themePreference);
+    if (data.staff?.themePreference) {
+      syncThemePref(data.staff.themePreference);
     }
     return data.staff;
-  }, [setTheme]);
+  }, [syncThemePref]);
 
   // ── Staff logout ──────────────────────────────────────────────────────────
   const staffLogout = useCallback(async () => {
     try {
       await apiFetch(`${getStaffUrl()}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
-    if (typeof window !== 'undefined')
+    if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_staff_info');
+      const localTheme = localStorage.getItem('dentzy-theme');
+      if (localTheme && typeof setTheme === 'function') {
+        setTheme(localTheme);
+      }
+    }
     setStaff(null);
-  }, []);
+  }, [setTheme]);
 
   // ── Update staff state (after profile save) ───────────────────────────────
   const updateStaffState = useCallback((updatedStaff) => {

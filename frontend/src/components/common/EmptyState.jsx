@@ -15,11 +15,11 @@ const illustrations = {
   orders: (
     <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Clipboard with tooth */}
-      <rect x="30" y="15" width="60" height="85" rx="8" fill="#f0fdf4" stroke="#708c80" strokeWidth="2"/>
+      <rect x="30" y="15" width="60" height="85" rx="8" fill="var(--accent)" stroke="var(--primary)" strokeWidth="2"/>
       <rect x="45" y="8" width="30" height="14" rx="4" fill="#708c80"/>
       <circle cx="60" cy="15" r="3" fill="#fff"/>
       {/* Tooth shape */}
-      <path d="M52 50 C52 42, 58 38, 60 38 C62 38, 68 42, 68 50 C68 55, 66 65, 64 72 C63 75, 61 75, 60 72 C59 75, 57 75, 56 72 C54 65, 52 55, 52 50Z" fill="#e0f2f1" stroke="#708c80" strokeWidth="1.5"/>
+      <path d="M52 50 C52 42, 58 38, 60 38 C62 38, 68 42, 68 50 C68 55, 66 65, 64 72 C63 75, 61 75, 60 72 C59 75, 57 75, 56 72 C54 65, 52 55, 52 50Z" fill="var(--accent)" stroke="var(--primary)" strokeWidth="1.5"/>
       {/* Empty lines */}
       <line x1="40" y1="82" x2="80" y2="82" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round"/>
       <line x1="40" y1="90" x2="68" y2="90" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round"/>
@@ -32,30 +32,30 @@ const illustrations = {
   dentists: (
     <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Person silhouette with stethoscope */}
-      <circle cx="60" cy="38" r="18" fill="#f0fdf4" stroke="#708c80" strokeWidth="2"/>
+      <circle cx="60" cy="38" r="18" fill="var(--accent)" stroke="var(--primary)" strokeWidth="2"/>
       {/* Face details */}
       <circle cx="54" cy="35" r="2" fill="#708c80"/>
       <circle cx="66" cy="35" r="2" fill="#708c80"/>
-      <path d="M55 43 Q60 47 65 43" stroke="#708c80" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <path d="M55 43 Q60 47 65 43" stroke="var(--primary)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
       {/* Body */}
-      <path d="M35 95 C35 72, 45 62, 60 62 C75 62, 85 72, 85 95" fill="#e0f2f1" stroke="#708c80" strokeWidth="2"/>
+      <path d="M35 95 C35 72, 45 62, 60 62 C75 62, 85 72, 85 95" fill="var(--accent)" stroke="var(--primary)" strokeWidth="2"/>
       {/* Stethoscope */}
-      <path d="M52 68 C52 78, 60 82, 60 82 C60 82, 68 78, 68 68" stroke="#708c80" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M52 68 C52 78, 60 82, 60 82 C60 82, 68 78, 68 68" stroke="var(--primary)" strokeWidth="2" fill="none" strokeLinecap="round"/>
       <circle cx="60" cy="84" r="3" fill="#708c80"/>
       {/* Plus sign */}
-      <circle cx="88" cy="75" r="12" fill="#f0fdf4" stroke="#708c80" strokeWidth="1.5" strokeDasharray="4 3"/>
-      <line x1="88" y1="70" x2="88" y2="80" stroke="#708c80" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="83" y1="75" x2="93" y2="75" stroke="#708c80" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="88" cy="75" r="12" fill="var(--accent)" stroke="var(--primary)" strokeWidth="1.5" strokeDasharray="4 3"/>
+      <line x1="88" y1="70" x2="88" y2="80" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="83" y1="75" x2="93" y2="75" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   ),
 
   payments: (
     <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Wallet */}
-      <rect x="25" y="35" width="70" height="50" rx="10" fill="#f0fdf4" stroke="#708c80" strokeWidth="2"/>
-      <path d="M25 50 L95 50" stroke="#708c80" strokeWidth="1.5"/>
+      <rect x="25" y="35" width="70" height="50" rx="10" fill="var(--accent)" stroke="var(--primary)" strokeWidth="2"/>
+      <path d="M25 50 L95 50" stroke="var(--primary)" strokeWidth="1.5"/>
       {/* Card slot */}
-      <rect x="70" y="58" width="25" height="18" rx="4" fill="#e0f2f1" stroke="#708c80" strokeWidth="1.5"/>
+      <rect x="70" y="58" width="25" height="18" rx="4" fill="var(--accent)" stroke="var(--primary)" strokeWidth="1.5"/>
       <circle cx="82" cy="67" r="5" fill="#708c80" opacity="0.3"/>
       {/* Coins */}
       <circle cx="45" cy="67" r="8" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.5"/>
@@ -70,11 +70,11 @@ const illustrations = {
   generic: (
     <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Empty box */}
-      <path d="M30 50 L60 35 L90 50 L90 85 L60 100 L30 85Z" fill="#f0fdf4" stroke="#708c80" strokeWidth="2" strokeLinejoin="round"/>
-      <path d="M60 65 L60 100" stroke="#708c80" strokeWidth="1.5"/>
-      <path d="M30 50 L60 65 L90 50" stroke="#708c80" strokeWidth="1.5"/>
+      <path d="M30 50 L60 35 L90 50 L90 85 L60 100 L30 85Z" fill="var(--accent)" stroke="var(--primary)" strokeWidth="2" strokeLinejoin="round"/>
+      <path d="M60 65 L60 100" stroke="var(--primary)" strokeWidth="1.5"/>
+      <path d="M30 50 L60 65 L90 50" stroke="var(--primary)" strokeWidth="1.5"/>
       {/* Dashed opening */}
-      <path d="M40 43 L60 30 L80 43" stroke="#708c80" strokeWidth="1.5" strokeDasharray="4 3" fill="none"/>
+      <path d="M40 43 L60 30 L80 43" stroke="var(--primary)" strokeWidth="1.5" strokeDasharray="4 3" fill="none"/>
       {/* Sparkle */}
       <circle cx="75" cy="30" r="2" fill="#708c80" opacity="0.4"/>
       <circle cx="42" cy="34" r="1.5" fill="#708c80" opacity="0.3"/>
@@ -88,18 +88,18 @@ export default function EmptyState({ variant = 'generic', message = 'Nothing her
       <div className="mb-1 animate-[float_4s_ease-in-out_infinite]">
         {illustrations[variant] || illustrations.generic}
       </div>
-      <p className="text-sm font-bold text-[#1e2824] m-0">
+      <p className="text-sm font-bold text-foreground m-0">
         {message}
       </p>
       {subtext && (
-        <p className="text-xs text-gray-400 m-0 max-w-[280px] leading-relaxed">
+        <p className="text-xs text-muted-foreground m-0 max-w-[280px] leading-relaxed">
           {subtext}
         </p>
       )}
       {action && onAction && (
         <button
           onClick={onAction}
-          className="mt-1 px-5 py-2 bg-[#1e5038] text-white border-none rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95"
+          className="mt-1 px-5 py-2 bg-primary hover:bg-primary-dark text-white border-none rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95"
           style={{ fontFamily: 'inherit' }}
         >
           {action}

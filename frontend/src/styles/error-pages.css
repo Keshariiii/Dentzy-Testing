@@ -148,6 +148,9 @@
   color: var(--foreground);
 }
 
-.dark .dz-error-msg {
+.dark .dz-error-desc, .dark .dz-error-tag, .dark .dz-error-ref {
   color: var(--muted-foreground);
 }
+
+.dark .dz-error-btn--secondary { background: var(--muted); border-color: var(--border); color: var(--foreground); }
+.dark .dz-error-icon--info { background: var(--accent); color: var(--foreground); }

@@ -5,7 +5,7 @@
 
 /* ── Theme Tokens (Dentzy palette) ────────────────────────────── */
 :root {
-  --ft-bg:            var(--dz-color-charcoal);           /* Dark Forest Charcoal      */
+  --ft-bg: #161e1a;           /* Dark Forest Charcoal      */
   --ft-bg-surface:    #2a3d35;           /* Forest Dark               */
   --ft-bg-bottom:     #161e1a;           /* Deeper forest             */
   --ft-accent:        var(--dz-color-primary);           /* Sage Green (primary)      */

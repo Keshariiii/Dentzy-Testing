@@ -340,7 +340,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
             <span className="ddm-header-title">Dentist Details</span>
             {users && users.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.78rem', color: '#708c80', fontWeight: 600 }}>Dentist:</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>Dentist:</span>
                 <select
                   value={activeUserId}
                   onChange={(e) => {
@@ -349,13 +349,13 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                     setSelectedPaymentIds([]);
                   }}
                   style={{
-                    border: '1px solid #c2dcd0',
+                    border: '1px solid var(--border)',
                     borderRadius: '6px',
                     padding: '4px 8px',
                     fontSize: '0.8rem',
                     fontWeight: 600,
-                    color: '#1a3028',
-                    background: '#fff',
+                    color: 'var(--foreground)',
+                    background: 'var(--card)',
                     cursor: 'pointer',
                   }}
                 >
@@ -407,8 +407,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                   type="button"
                   onClick={() => { setSubTab('orders'); setSelectedPaymentIds([]); }}
                   style={{
-                    background: subTab === 'orders' ? '#1e5038' : '#f0f4f2',
-                    color: subTab === 'orders' ? '#ffffff' : '#4a7060',
+                    background: subTab === 'orders' ? 'var(--primary)' : 'var(--muted)',
+                    color: subTab === 'orders' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                     border: 'none',
                     borderRadius: '8px',
                     padding: '7px 16px',
@@ -423,8 +423,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                   type="button"
                   onClick={() => { setSubTab('payments'); setSelectedPaymentIds([]); }}
                   style={{
-                    background: subTab === 'payments' ? '#1e5038' : '#f0f4f2',
-                    color: subTab === 'payments' ? '#ffffff' : '#4a7060',
+                    background: subTab === 'payments' ? 'var(--primary)' : 'var(--muted)',
+                    color: subTab === 'payments' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                     border: 'none',
                     borderRadius: '8px',
                     padding: '7px 16px',
@@ -452,8 +452,8 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             alignItems: 'center',
                             gap: '5px',
                             padding: '5px 10px',
-                            background: '#e8f5ee',
-                            color: '#1e5038',
+                            background: 'var(--accent)',
+                            color: 'var(--primary)',
                             border: '1px solid #bbf7d0',
                             borderRadius: '6px',
                             fontSize: '0.75rem',
@@ -515,7 +515,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                                 <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
                                 {order.paymentStatus === 'Paid' ? (
-                                  <span title="Paid order cannot be deleted. Revert payment to Pending first." style={{ fontSize: '0.72rem', color: '#708c80', background: '#edf5f0', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                  <span title="Paid order cannot be deleted. Revert payment to Pending first." style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', background: 'var(--accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                                     Paid
                                   </span>
                                 ) : (
@@ -533,7 +533,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             <div className="ddm-order-patient">{order.patientName}</div>
                             <div className="ddm-order-meta-row">
                               <span className="ddm-order-service">{order.serviceType}</span>
-                              <span style={{ fontWeight: 700, color: '#1e5038' }}>₹{getOrderPrice(order).toLocaleString('en-IN')}</span>
+                              <span style={{ fontWeight: 700, color: 'var(--primary)' }}>₹{getOrderPrice(order).toLocaleString('en-IN')}</span>
                               {order.dueDate && (
                                 <span className="ddm-order-due">{Ico.calendar(12)} Due: {fmt(order.dueDate)}</span>
                               )}
@@ -547,11 +547,11 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                                   style={{
                                     fontFamily: 'monospace',
                                     fontSize: '0.72rem',
-                                    background: '#e8f2ec',
-                                    border: '1px solid #c2dcd0',
+                                    background: 'var(--accent)',
+                                    border: '1px solid var(--border)',
                                     padding: '2px 6px',
                                     borderRadius: '4px',
-                                    color: '#1e5038',
+                                    color: 'var(--primary)',
                                     fontWeight: 700,
                                     cursor: 'pointer',
                                   }}
@@ -588,7 +588,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 /* ── Payments section ── */
                 <div className="ddm-section">
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px' }}>
-                    <label htmlFor="ddm-month-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
+                    <label htmlFor="ddm-month-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
                       Month:
                     </label>
                     <input
@@ -600,11 +600,11 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                       value={payMonth === 'all' ? '' : payMonth}
                       onChange={e => setPayMonth(e.target.value || 'all')}
                       style={{
-                        border: '1px solid #c2dcd0',
+                        border: '1px solid var(--border)',
                         borderRadius: '6px',
                         padding: '4px 8px',
                         fontSize: '0.8rem',
-                        background: '#fff',
+                        background: 'var(--card)',
                         cursor: 'pointer',
                       }}
                     />
@@ -613,12 +613,12 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                         type="button"
                         onClick={() => setPayMonth('all')}
                         style={{
-                          background: '#f0f4f2',
+                          background: 'var(--muted)',
                           border: 'none',
                           borderRadius: '6px',
                           padding: '5px 10px',
                           fontSize: '0.75rem',
-                          color: '#4a7060',
+                          color: 'var(--muted-foreground)',
                           cursor: 'pointer',
                           fontWeight: 600,
                         }}
@@ -650,7 +650,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                         window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}${mParam}`, '_blank');
                       }}
                       style={{
-                        background: '#1e5038',
+                        background: 'var(--primary)',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
@@ -679,12 +679,12 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                     </div>
                   ) : (
                     <div className="ddm-orders-list">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', fontSize: '0.78rem', color: '#4a7060', fontWeight: 600 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', fontSize: '0.78rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>
                         <input
                           type="checkbox"
                           checked={filteredOrdersForMonth.length > 0 && filteredOrdersForMonth.every(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id))}
                           onChange={toggleSelectAllPayments}
-                          style={{ cursor: 'pointer', accentColor: '#1e5038', width: '15px', height: '15px' }}
+                          style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '15px', height: '15px' }}
                         />
                         <span>Select All ({filteredOrdersForMonth.length})</span>
                       </div>
@@ -708,11 +708,11 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => toggleSelectPayment(pId)}
-                                  style={{ cursor: 'pointer', accentColor: '#1e5038', width: '16px', height: '16px' }}
+                                  style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '16px', height: '16px' }}
                                 />
                                 <div>
                                   <span className="ddm-order-caseid">{order.caseId}</span>
-                                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028', marginLeft: '8px' }}>
+                                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--foreground)', marginLeft: '8px' }}>
                                     {order.patientName}
                                   </span>
                                 </div>
@@ -725,7 +725,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                               </div>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f0f4f2', fontSize: '0.75rem', color: '#708c80', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f0f4f2', fontSize: '0.75rem', color: 'var(--muted-foreground)', flexWrap: 'wrap', gap: '6px' }}>
                               <span>{order.serviceType || 'Standard'} · {fmt(order.createdAt)}</span>
                               {order.paymentMode && (
                                 <span>Mode: {order.paymentMode} {order.referenceNumber ? `(#${order.referenceNumber})` : ''}</span>
@@ -735,7 +735,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                                   type="button"
                                   onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(order.batchId)}`, '_blank')}
                                   style={{
-                                    background: '#1e5038',
+                                    background: 'var(--primary)',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: '4px',
@@ -799,7 +799,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             setBatchPayError('');
                             setBatchPayModalOpen(true);
                           }}
-                          style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                          style={{ background: 'var(--primary)', border: '1px solid #708c80', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
                         >
                           Settle {selectedPaymentIds.length} Orders
                         </button>
@@ -903,25 +903,25 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
       >
         <div className="ad-pay-modal-content" style={{ padding: '24px' }}>
           <div className="ad-pay-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1a3028' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--foreground)' }}>
               Batch Settle {selectedPaymentIds.length} Orders
             </h3>
             <button
               onClick={() => setBatchPayModalOpen(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#708c80' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}
             >
               {Ico.x(16)}
             </button>
           </div>
 
-          <div style={{ background: '#f8faf9', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
+          <div style={{ background: 'var(--muted)', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Dentist:</span>
               <strong>Dr. {user?.name} {user?.clinicName ? `· ${user?.clinicName}` : ''}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Total Batch Amount:</span>
-              <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+              <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>
                 {formatINR(orders.filter(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id)).reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0))}
               </strong>
             </div>
@@ -938,7 +938,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                   flex: 1,
                   padding: '8px',
                   borderRadius: '8px',
-                  border: '1px solid #c2dcd0',
+                  border: '1px solid var(--border)',
                   background: batchPayForm.status === st ? '#1e5038' : '#fff',
                   color: batchPayForm.status === st ? '#fff' : '#4a7060',
                   fontWeight: 700,
@@ -955,7 +955,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
             <>
               {/* Payment Mode Selector */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', display: 'block', marginBottom: '6px' }}>
                   Payment Mode
                 </label>
                 <div style={{ display: 'flex', gap: '6px' }}>
@@ -968,7 +968,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                         flex: 1,
                         padding: '6px 4px',
                         borderRadius: '6px',
-                        border: '1px solid #c2dcd0',
+                        border: '1px solid var(--border)',
                         background: batchPayForm.mode === m ? '#e8f5ee' : '#fff',
                         color: batchPayForm.mode === m ? '#1e5038' : '#4a7060',
                         fontWeight: batchPayForm.mode === m ? 700 : 500,
@@ -984,7 +984,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
 
               {batchPayForm.mode !== 'Cash' && (
                 <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', display: 'block', marginBottom: '4px' }}>
                     {batchPayForm.mode === 'Cheque' ? 'Cheque Number *' : (batchPayForm.mode === 'UPI' ? 'UPI UTR / Txn ID *' : 'Transaction Ref *')}
                   </label>
                   <input
@@ -996,7 +996,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                       width: '100%',
                       padding: '8px 10px',
                       borderRadius: '8px',
-                      border: '1px solid #c2dcd0',
+                      border: '1px solid var(--border)',
                       fontSize: '0.82rem',
                     }}
                   />
@@ -1006,7 +1006,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
           )}
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', display: 'block', marginBottom: '4px' }}>
               Notes / Remarks
             </label>
             <input
@@ -1018,7 +1018,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 width: '100%',
                 padding: '8px 10px',
                 borderRadius: '8px',
-                border: '1px solid #c2dcd0',
+                border: '1px solid var(--border)',
                 fontSize: '0.82rem',
               }}
             />
@@ -1037,9 +1037,9 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
               style={{
                 padding: '8px 16px',
                 borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                background: '#fff',
-                color: '#4a7060',
+                border: '1px solid var(--border)',
+                background: 'var(--card)',
+                color: 'var(--muted-foreground)',
                 fontSize: '0.82rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -1055,7 +1055,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 padding: '8px 18px',
                 borderRadius: '8px',
                 border: 'none',
-                background: '#1e5038',
+                background: 'var(--primary)',
                 color: '#fff',
                 fontSize: '0.82rem',
                 fontWeight: 700,

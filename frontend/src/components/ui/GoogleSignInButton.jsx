@@ -98,7 +98,7 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
         {/* Simple, clean static button */}
         <div className="dz-google-visual-btn">
           {loading ? (
-            <span style={{ fontSize: '0.88rem', color: '#64748b' }}>Connecting…</span>
+            <span style={{ fontSize: '0.88rem', color: 'var(--muted-foreground)' }}>Connecting…</span>
           ) : (
             <>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -134,18 +134,18 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
           align-items: center;
           justify-content: center;
           gap: 10px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
+          background: var(--card);
+          border: 1px solid var(--border);
           border-radius: 12px;
-          color: #1e2824;
+          color: var(--foreground);
           font-size: 0.88rem;
           font-weight: 600;
           font-family: inherit;
           pointer-events: none;
         }
         .dz-google-btn-container:hover .dz-google-visual-btn {
-          background: #f8fafc;
-          border-color: #cbd5e1;
+          background: var(--muted);
+          border-color: var(--ring);
         }
         .dz-google-overlay {
           position: absolute;

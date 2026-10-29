@@ -76,10 +76,10 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.dark .service-content h3 {
+.dark .service-info h3 {
     color: var(--foreground);
 }
 
-.dark .service-content p {
+.dark .service-info p {
     color: var(--muted-foreground);
 }

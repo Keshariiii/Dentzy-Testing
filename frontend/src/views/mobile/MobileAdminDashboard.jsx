@@ -1004,8 +1004,8 @@ const MobileAdminDashboard = () => {
               onClick={handleRecalculateAll}
               disabled={isRecalculating}
               style={{
-                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
-                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
+                padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border)',
+                background: 'var(--accent)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.75rem',
                 cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
               }}
             >
@@ -1177,8 +1177,8 @@ const MobileAdminDashboard = () => {
               onClick={handleRecalculateAll}
               disabled={isRecalculating}
               style={{
-                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
-                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
+                padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border)',
+                background: 'var(--accent)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.75rem',
                 cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
               }}
             >
@@ -1199,8 +1199,8 @@ const MobileAdminDashboard = () => {
                   title="Back"
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
-                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border)',
+                    background: 'var(--card)', color: 'var(--primary)', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1208,8 +1208,8 @@ const MobileAdminDashboard = () => {
                   </svg>
                 </button>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
-                  {drillDentistOrders.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>}
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--foreground)' }}>{drillDentistOrders.name}</div>
+                  {drillDentistOrders.clinicName && <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>{drillDentistOrders.clinicName}</div>}
                 </div>
               </div>
 
@@ -1308,7 +1308,7 @@ const MobileAdminDashboard = () => {
                               {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                             </div>
                           </div>
-                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.orders.length} {d.orders.length === 1 ? 'Order' : 'Orders'} ›</span>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)' }}>{d.orders.length} {d.orders.length === 1 ? 'Order' : 'Orders'} ›</span>
                         </div>
                         <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
                           {inProgress > 0 && <span className="ma-pill ma-pill--status-in-progress">{inProgress} In Progress</span>}
@@ -1354,12 +1354,12 @@ const MobileAdminDashboard = () => {
                   setSelectedPaymentIds([]);
                 }}
                 style={{
-                  border: '1px solid #c2dcd0',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                   padding: '6px 10px',
                   fontSize: '0.82rem',
-                  color: '#1a3028',
-                  background: '#fff',
+                  color: 'var(--foreground)',
+                  background: 'var(--card)',
                   cursor: 'pointer',
                   maxWidth: '180px',
                 }}
@@ -1384,8 +1384,8 @@ const MobileAdminDashboard = () => {
                   title="Back"
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #e2ece6',
-                    background: '#ffffff', color: '#1e5038', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border)',
+                    background: 'var(--card)', color: 'var(--primary)', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1393,8 +1393,8 @@ const MobileAdminDashboard = () => {
                   </svg>
                 </button>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
-                  {drillDentistPayments.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>}
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--foreground)' }}>{drillDentistPayments.name}</div>
+                  {drillDentistPayments.clinicName && <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>{drillDentistPayments.clinicName}</div>}
                 </div>
               </div>
 
@@ -1419,7 +1419,7 @@ const MobileAdminDashboard = () => {
                     <label
                       style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
-                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#4a7060',
+                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted-foreground)',
                         userSelect: 'none', minHeight: '44px'
                       }}
                       onClick={toggleSelectAllPayments}
@@ -1428,7 +1428,7 @@ const MobileAdminDashboard = () => {
                         type="checkbox"
                         checked={filteredPaymentsForDrill.length > 0 && filteredPaymentsForDrill.every(p => selectedPaymentIds.includes(p._id))}
                         onChange={toggleSelectAllPayments}
-                        style={{ width: '15px', height: '15px', accentColor: '#1e5038', cursor: 'pointer' }}
+                        style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                       />
                       <span>Select All ({filteredPaymentsForDrill.length})</span>
                     </label>
@@ -1438,7 +1438,7 @@ const MobileAdminDashboard = () => {
 
               {/* Native Month Selector Filter (Mobile) */}
               <div style={{ padding: '0 16px', marginBottom: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <label htmlFor="ma-month-picker" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a7060' }}>
+                <label htmlFor="ma-month-picker" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
                   Month:
                 </label>
                 <input
@@ -1450,12 +1450,12 @@ const MobileAdminDashboard = () => {
                   value={payFilterMonth === 'all' ? '' : payFilterMonth}
                   onChange={e => setPayFilterMonth(e.target.value || 'all')}
                   style={{
-                    border: '1px solid #c2dcd0',
+                    border: '1px solid var(--border)',
                     borderRadius: '8px',
                     padding: '6px 10px',
                     fontSize: '0.84rem',
-                    color: '#1a3028',
-                    background: '#fff',
+                    color: 'var(--foreground)',
+                    background: 'var(--card)',
                     cursor: 'pointer',
                     minHeight: '44px',
                   }}
@@ -1466,12 +1466,12 @@ const MobileAdminDashboard = () => {
                       type="button"
                       onClick={() => setPayFilterMonth('all')}
                       style={{
-                        background: '#f0f4f2',
+                        background: 'var(--muted)',
                         border: 'none',
                         borderRadius: '8px',
                         padding: '8px 12px',
                         fontSize: '0.78rem',
-                        color: '#4a7060',
+                        color: 'var(--muted-foreground)',
                         cursor: 'pointer',
                         fontWeight: 600,
                         minHeight: '44px',
@@ -1483,12 +1483,12 @@ const MobileAdminDashboard = () => {
                       type="button"
                       onClick={handleSelectMonthOrders}
                       style={{
-                        background: '#e8f2ec',
+                        background: 'var(--accent)',
                         border: '1px solid #78937E',
                         borderRadius: '8px',
                         padding: '8px 12px',
                         fontSize: '0.8rem',
-                        color: '#1e5038',
+                        color: 'var(--primary)',
                         cursor: 'pointer',
                         fontWeight: 700,
                         minHeight: '44px',
@@ -1528,7 +1528,7 @@ const MobileAdminDashboard = () => {
                     window.open(url, '_blank');
                   }}
                   style={{
-                    background: '#1e5038',
+                    background: 'var(--primary)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '8px',
@@ -1552,7 +1552,7 @@ const MobileAdminDashboard = () => {
                 </button>
                 {selectedPaymentIds.length > 0 && (
                   <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1e5038' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)' }}>
                       {selectedPaymentIds.length} orders selected
                     </span>
                     <button
@@ -1611,7 +1611,7 @@ const MobileAdminDashboard = () => {
                                 checked={selectedPaymentIds.includes(p._id)}
                                 onChange={() => togglePaymentSelect(p._id)}
                                 onClick={e => e.stopPropagation()}
-                                style={{ width: '17px', height: '17px', accentColor: '#1e5038', cursor: 'pointer' }}
+                                style={{ width: '17px', height: '17px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                               />
                             </div>
                             <div>
@@ -1732,7 +1732,7 @@ const MobileAdminDashboard = () => {
                         setBatchPayModalOpen(true);
                       }}
                       style={{
-                        background: '#1e5038',
+                        background: 'var(--primary)',
                         border: '1px solid #708c80',
                         color: '#fff',
                         padding: '8px 14px',
@@ -1802,7 +1802,7 @@ const MobileAdminDashboard = () => {
                                 {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e5038' }}>{d.payments.length} {d.payments.length === 1 ? 'Case' : 'Cases'} ›</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)' }}>{d.payments.length} {d.payments.length === 1 ? 'Case' : 'Cases'} ›</span>
                           </div>
                           <div className="ma-card-meta-row" style={{ marginTop: '8px' }}>
                             {/* #56 — Only show non-zero values */}
@@ -1966,7 +1966,7 @@ const MobileAdminDashboard = () => {
                 onClick={() => setSettingsSubView(null)}
                 aria-label="Back to Settings"
                 style={{
-                  background: '#e8f5ee',
+                  background: 'var(--accent)',
                   border: 'none',
                   borderRadius: '10px',
                   width: '36px',
@@ -1986,7 +1986,7 @@ const MobileAdminDashboard = () => {
                 </svg>
               </button>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1a3028', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--foreground)', margin: 0, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {settingsSubView === 'notice' && 'Dentist Portal Notice Bar'}
                   {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
                   {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
@@ -1994,7 +1994,7 @@ const MobileAdminDashboard = () => {
                   {settingsSubView === 'account' && 'Administrator Account'}
                   {settingsSubView === 'maintenance' && 'Maintenance Mode Controller'}
                 </h2>
-                <p style={{ color: '#6b8a7a', fontSize: '0.78rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
+                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.78rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
               </div>
             </div>
 
@@ -2002,10 +2002,10 @@ const MobileAdminDashboard = () => {
             {settingsSubView === 'notice' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                 {/* Master Toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                   <div style={{ minWidth: 0, flex: 1, paddingRight: '12px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>Show Notice Bar</div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b8a7a', marginTop: '1px' }}>Toggle scrolling ticker across dentist portals</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)' }}>Show Notice Bar</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '1px' }}>Toggle scrolling ticker across dentist portals</div>
                   </div>
                   <button
                     onClick={() => setNoticeEnabled(v => !v)}
@@ -2017,7 +2017,7 @@ const MobileAdminDashboard = () => {
                   >
                     <span style={{
                       position: 'absolute', top: '3px', left: noticeEnabled ? '23px' : '3px',
-                      width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                      width: '20px', height: '20px', borderRadius: '50%', background: 'var(--card)',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
                     }} />
                   </button>
@@ -2025,8 +2025,8 @@ const MobileAdminDashboard = () => {
 
                 {/* Live Preview */}
                 {(Array.isArray(noticeMessages) && noticeMessages.length > 0) && (
-                  <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
+                  <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
                     <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
                       <TwentyFirstNoticeBar messages={noticeMessages || []} />
                     </div>
@@ -2034,8 +2034,8 @@ const MobileAdminDashboard = () => {
                 )}
 
                 {/* Announcement Editor & Reorder List */}
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Announcements</div>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Announcements</div>
 
                   {/* Add New Message Bar */}
                   <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
@@ -2051,7 +2051,7 @@ const MobileAdminDashboard = () => {
                       }}
                       placeholder="Add an announcement..."
                       maxLength={250}
-                      style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.84rem', outline: 'none' }}
+                      style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '0.84rem', outline: 'none' }}
                     />
                     <TwentyFirstIconButton
                       icon={Ico.plus(18)}
@@ -2085,14 +2085,14 @@ const MobileAdminDashboard = () => {
                         ]);
                         setNoticeEnabled(true);
                       }}
-                      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
+                      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
                     >
                       Defaults
                     </button>
                     <button
                       onClick={handleNoticeSave}
                       disabled={noticeSaving}
-                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
+                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
                     >
                       {noticeSaving ? 'Saving...' : 'Save'}
                     </button>
@@ -2105,10 +2105,10 @@ const MobileAdminDashboard = () => {
             {settingsSubView === 'staff-notice' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                 {/* Master Toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                   <div style={{ minWidth: 0, flex: 1, paddingRight: '12px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>Show Notice Bar to Staff</div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b8a7a', marginTop: '1px' }}>Toggle scrolling ticker across staff portals</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)' }}>Show Notice Bar to Staff</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '1px' }}>Toggle scrolling ticker across staff portals</div>
                   </div>
                   <button
                     onClick={() => setStaffNoticeEnabled(v => !v)}
@@ -2120,7 +2120,7 @@ const MobileAdminDashboard = () => {
                   >
                     <span style={{
                       position: 'absolute', top: '3px', left: staffNoticeEnabled ? '23px' : '3px',
-                      width: '20px', height: '20px', borderRadius: '50%', background: '#fff',
+                      width: '20px', height: '20px', borderRadius: '50%', background: 'var(--card)',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
                     }} />
                   </button>
@@ -2128,8 +2128,8 @@ const MobileAdminDashboard = () => {
 
                 {/* Live Preview */}
                 {(Array.isArray(staffNoticeMessages) && staffNoticeMessages.length > 0) && (
-                  <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
+                  <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Live Preview</div>
                     <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
                       <TwentyFirstNoticeBar messages={staffNoticeMessages || []} />
                     </div>
@@ -2137,8 +2137,8 @@ const MobileAdminDashboard = () => {
                 )}
 
                 {/* Announcement Editor & Reorder List */}
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Staff Announcements</div>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Staff Announcements</div>
 
                   {/* Add New Message Bar */}
                   <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
@@ -2154,7 +2154,7 @@ const MobileAdminDashboard = () => {
                       }}
                       placeholder="Add a staff announcement..."
                       maxLength={250}
-                      style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d4ddd8', fontSize: '0.84rem', outline: 'none' }}
+                      style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '0.84rem', outline: 'none' }}
                     />
                     <TwentyFirstIconButton
                       icon={Ico.plus(18)}
@@ -2186,14 +2186,14 @@ const MobileAdminDashboard = () => {
                         ]);
                         setStaffNoticeEnabled(true);
                       }}
-                      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
+                      style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}
                     >
                       Defaults
                     </button>
                     <button
                       onClick={handleStaffNoticeSave}
                       disabled={staffNoticeSaving}
-                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: staffNoticeSaving ? 'default' : 'pointer', opacity: staffNoticeSaving ? 0.7 : 1 }}
+                      style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: staffNoticeSaving ? 'default' : 'pointer', opacity: staffNoticeSaving ? 0.7 : 1 }}
                     >
                       {staffNoticeSaving ? 'Saving...' : 'Save'}
                     </button>
@@ -2205,27 +2205,27 @@ const MobileAdminDashboard = () => {
             {/* Sub-view 2: Payment & Revenue Overview */}
             {settingsSubView === 'payments' && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', width: '100%' }}>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Billed</div>
-                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#1a3028', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Billed</div>
+                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: 'var(--foreground)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatINR(paymentData.summary?.totalBilled || 0)}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Collected</div>
                   <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#166534', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatINR(paymentData.summary?.totalCollected || 0)}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
                   <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#b45309', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatINR(paymentData.summary?.totalPending || 0)}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e5038', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Records</div>
-                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: '#1e5038', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Records</div>
+                  <div style={{ fontSize: 'clamp(1rem, 4.2vw, 1.25rem)', fontWeight: 800, color: 'var(--primary)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
                   </div>
                 </div>
@@ -2235,25 +2235,25 @@ const MobileAdminDashboard = () => {
             {/* Sub-view 3: User Accounts Overview */}
             {settingsSubView === 'users' && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', width: '100%' }}>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Registered</div>
-                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#1a3028', marginTop: '4px' }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Registered</div>
+                  <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: 'var(--foreground)', marginTop: '4px' }}>
                     {stats.total || 0}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Approved</div>
                   <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#166534', marginTop: '4px' }}>
                     {stats.approved || 0}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pending</div>
                   <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
                     {stats.pending || 0}
                   </div>
                 </div>
-                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Rejected</div>
                   <div style={{ fontSize: 'clamp(1.15rem, 4.5vw, 1.4rem)', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
                     {stats.rejected || 0}
@@ -2276,10 +2276,10 @@ const MobileAdminDashboard = () => {
 
             {/* Sub-view 4: Administrator Account */}
             {settingsSubView === 'account' && (
-              <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1a3028' }}>Administrator Account</div>
-                  <div style={{ fontSize: '0.82rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--foreground)' }}>Administrator Account</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
                 </div>
                 <button
                   className="btn"
@@ -2446,7 +2446,7 @@ const MobileAdminDashboard = () => {
           <div className="ma-modal-info" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
-              <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+              <span><strong>Total:</strong> <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>
                 {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
               </strong></span>
             </div>
@@ -2456,7 +2456,7 @@ const MobileAdminDashboard = () => {
           </div>
 
           {/* Status Toggle */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: 'var(--muted)', padding: '4px', borderRadius: '10px' }}>
             {[
               { key: 'Paid', label: 'Mark as Paid' },
               { key: 'Pending', label: 'Mark as Pending' },

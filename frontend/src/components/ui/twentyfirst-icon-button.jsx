@@ -62,15 +62,15 @@ export const TwentyFirstIconButton = ({
       boxShadow: 'none',
     },
     success: {
-      background: '#dcfce7',
-      color: '#15803d',
-      border: '1px solid #bbf7d0',
+      background: 'var(--dz-color-success-bg)',
+      color: 'var(--dz-color-success-text)',
+      border: '1px solid var(--border)',
       boxShadow: '0 1px 3px rgba(21, 128, 61, 0.08)',
     },
     danger: {
-      background: '#fee2e2',
-      color: 'var(--destructive)',
-      border: '1px solid #fecaca',
+      background: 'var(--dz-color-error-bg)',
+      color: 'var(--dz-color-error-text)',
+      border: '1px solid var(--border)',
       boxShadow: '0 1px 3px rgba(220, 38, 38, 0.08)',
     },
   }[variant] || {};
@@ -96,8 +96,8 @@ export const TwentyFirstIconButton = ({
     else if (variant === 'soft') hoverBg = 'var(--muted)';
     else if (variant === 'secondary') hoverBg = 'var(--muted)';
     else if (variant === 'ghost') hoverBg = 'var(--muted)';
-    else if (variant === 'success') hoverBg = '#bbf7d0';
-    else if (variant === 'danger') hoverBg = '#fecaca';
+    else if (variant === 'success') hoverBg = 'var(--dz-color-success-bg)';
+    else if (variant === 'danger') hoverBg = 'var(--dz-color-error-bg)';
   }
 
   const combinedStyle = {

@@ -269,9 +269,9 @@
 }
 
 .ma-tab--active {
-  background: var(--color-charcoal, var(--dz-color-charcoal));
-  border-color: var(--color-charcoal, var(--dz-color-charcoal));
-  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .ma-tab-count {
@@ -933,31 +933,73 @@
   border: 1px solid #f1f5f9 !important;
 }
 
+
+
 /* ================================================================
-   MOBILE ADMIN DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   MOBILE ADMIN DASHBOARD — DARK THEME ADAPTATION
    ================================================================ */
-.dark .ma-layout,
-.dark .ma-main {
+.dark .ma-shell {
   background: var(--background);
   color: var(--foreground);
 }
-
-.dark .ma-header {
-  background: var(--card);
-  border-bottom-color: var(--border);
+.dark .ma-greeting,
+.dark .ma-uc-name,
+.dark .ma-card-title,
+.dark .ma-pay-metric-val,
+.dark .ma-modal-title {
+  color: var(--foreground);
 }
-
+.dark .ma-stat-card,
+.dark .ma-user-card,
 .dark .ma-card,
-.dark .ma-dentist-card,
-.dark .ma-order-card,
-.dark .ma-stat-card {
-  background: var(--card);
-  border-color: var(--border);
+.dark .ma-pay-metric-box,
+.dark .ma-modal-sheet {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
   color: var(--card-foreground);
 }
-
-.dark .ma-search-input {
+.dark .ma-search-bar,
+.dark .ma-sort-select,
+.dark .ma-modal-field input,
+.dark .ma-modal-field select {
   background: var(--input);
   border-color: var(--border);
   color: var(--foreground);
+}
+.dark .ma-tab {
+  color: var(--muted-foreground);
+}
+.dark .ma-tab--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.dark .ma-uc-pw,
+.dark .ma-case-badge,
+.dark .ma-refresh-btn,
+.dark .ma-modal-close,
+.dark .ma-modal-btn-cancel {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+.dark .ma-card-top,
+.dark .ma-ref-line,
+.dark .ma-modal-header {
+  border-color: var(--border);
+}
+.dark .ma-modal-info {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+.dark .ma-modal-mode-btn {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+.dark .ma-modal-mode-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
 }

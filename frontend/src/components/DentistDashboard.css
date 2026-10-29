@@ -11,7 +11,7 @@
   height: 100vh;
   overflow: hidden;
   font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
-  background: #f0f5f2;
+  background: var(--background);
   color: var(--dz-color-text-primary, #1e2824);
 }
 
@@ -173,7 +173,7 @@
 .ud-sidebar {
   width: 210px;
   min-width: 210px;
-  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
+  background: linear-gradient(180deg, #2c3830 0%, #1e2621 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -223,7 +223,7 @@
 
 .ud-nav-item.active {
   background: rgba(255,255,255,0.95);
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
@@ -1479,7 +1479,7 @@
 }
 
 .ud-action-card--green .ud-action-icon-wrap  { background: #eef6f2; color: var(--dz-color-primary-accent); }
-.ud-action-card--teal .ud-action-icon-wrap   { background: #f0f5f2; color: var(--dz-color-primary); }
+.ud-action-card--teal .ud-action-icon-wrap   { background: var(--muted); color: var(--dz-color-primary); }
 .ud-action-card--amber .ud-action-icon-wrap  { background: #fef9ed; color: #b45309; }
 
 .ud-action-card--green:hover .ud-action-icon-wrap  { background: var(--dz-color-primary-accent); color: #fff; }
@@ -1808,7 +1808,7 @@
   align-items: center;
   gap: 4px;
   padding: 8px 18px;
-  background: #1E4D3B;
+  background: var(--dz-color-primary, #7c9082);
   color: #fff;
   border: none;
   border-radius: 99px;
@@ -1826,7 +1826,7 @@
   gap: 4px;
   padding: 8px 18px;
   background: #fff;
-  color: #1E4D3B;
+  color: var(--dz-color-primary, #7c9082);
   border: 1px solid rgba(30, 77, 59, 0.18);
   border-radius: 99px;
   font-size: 0.8rem;
@@ -1849,7 +1849,7 @@
 .ud-view-all-link {
   background: none;
   border: none;
-  color: #1E4D3B;
+  color: var(--dz-color-primary, #7c9082);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
@@ -1877,7 +1877,7 @@
 .ud-case-id-mono {
   font-family: var(--dz-font-family-mono, 'JetBrains Mono', monospace);
   font-size: 0.75rem;
-  color: #1E4D3B;
+  color: var(--dz-color-primary, #7c9082);
   background: rgba(30, 77, 59, 0.06);
   padding: 2px 8px;
   border-radius: 4px;
@@ -1898,7 +1898,7 @@
   font-size: 0.7rem;
   font-weight: 500;
   color: #5a7a6d;
-  background: #f0f5f2;
+  background: var(--muted);
   padding: 2px 8px;
   border-radius: 4px;
   white-space: nowrap;
@@ -1911,73 +1911,139 @@
   border: 1px solid rgba(30, 77, 59, 0.1) !important;
 }
 
+
+
 /* ================================================================
-   DENTIST DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   DENTIST DASHBOARD — DARK THEME ADAPTATION
    ================================================================ */
-.dark .ud-layout {
+.dark .ud-layout,
+.dark .ud-main {
   background: var(--background);
   color: var(--foreground);
 }
-
 .dark .ud-header {
-  background: var(--card);
+  background: rgba(18, 18, 18, 0.88);
   border-bottom-color: var(--border);
 }
-
 .dark .ud-sidebar {
   background: var(--sidebar);
-  border-right-color: var(--sidebar-border);
+  border-right: 1px solid var(--sidebar-border);
 }
-
-.dark .ud-settings-card,
-.dark .ud-orders-card,
-.dark .ud-card,
+.dark .ud-nav-item.active {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.dark .ud-user-name,
+.dark .ud-greeting,
+.dark .ud-tab-title,
+.dark .ud-settings-title,
+.dark .ud-stat-num,
+.dark .ud-amount,
+.dark .ud-coming-soon h3,
+.dark .ud-settings-card-name,
+.dark .ud-settings-info-value,
+.dark .ud-settings-action-label,
+.dark .ud-modal-title,
+.dark .ud-timeline-title,
+.dark .ud-ts-step.ud-ts-current .ud-ts-label,
+.dark .ud-section-heading,
+.dark .ud-action-title,
+.dark .ud-resource-title,
+.dark .ud-metric-num,
+.dark .ud-recent-case-name {
+  color: var(--foreground);
+}
+.dark .ud-greet-sub,
+.dark .ud-stat-lbl,
+.dark .ud-section-title,
+.dark .ud-settings-card-email,
+.dark .ud-settings-info-label,
+.dark .ud-settings-action-sub,
+.dark .ud-timeline-sub,
+.dark .ud-section-sub,
+.dark .ud-action-desc,
+.dark .ud-resource-desc,
+.dark .ud-partnership-desc,
+.dark .ud-metric-label {
+  color: var(--muted-foreground);
+}
 .dark .ud-stat-card,
-.dark .ud-overview-card,
+.dark .ud-settings-card,
+.dark .ud-timeline-card,
+.dark .ud-action-card,
+.dark .ud-resource-card,
 .dark .ud-partnership-card,
-.dark .ud-table-wrap {
-  background: var(--card);
-  border-color: var(--border);
+.dark .ud-coming-soon,
+.dark .ud-table-wrap,
+.dark .ud-table,
+.dark .ud-date-pill {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
   color: var(--card-foreground);
 }
-
-.dark .ud-settings-input,
-.dark .ud-search-input {
+.dark .ud-search-input,
+.dark .ud-search-inline,
+.dark .ud-settings-input {
   background: var(--input);
   border-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .ud-settings-input:focus,
-.dark .ud-search-input:focus {
-  border-color: var(--ring);
+.dark .ud-qa-btn,
+.dark .ud-pill-outline,
+.dark .ud-resource-dl-btn,
+.dark .ud-settings-edit-btn,
+.dark .ud-modal-cancel-btn {
+  background: var(--muted);
+  border-color: var(--border);
+  color: var(--foreground);
 }
-
+.dark .ud-qa-btn:hover,
+.dark .ud-resource-dl-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
 .dark .ud-table th {
   background: var(--muted);
   color: var(--muted-foreground);
   border-bottom-color: var(--border);
 }
-
 .dark .ud-table td {
   border-bottom-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .ud-table tbody tr:hover {
+.dark .ud-table tr:hover td,
+.dark .ud-recent-case-row:hover,
+.dark .ud-metric-col:hover {
   background: var(--muted);
 }
-
-.dark .ud-recent-case-row {
-  background: var(--card);
+.dark .ud-code,
+.dark .ud-case-id-mono,
+.dark .ud-case-tag,
+.dark .ud-resource-badge,
+.dark .ud-live-pill,
+.dark .ud-settings-verified-tag {
+  background: var(--accent);
+  color: var(--foreground);
   border-color: var(--border);
 }
-
-.dark .ud-recent-case-row:hover {
+.dark .ud-ts-icon {
   background: var(--muted);
-}
-
-.dark .ud-recent-case-badge {
-  background: var(--muted);
+  border-color: var(--border);
   color: var(--muted-foreground);
+}
+.dark .ud-ts-connector,
+.dark .ud-settings-divider {
+  background: var(--border);
+}
+.dark .ud-settings-info-row,
+.dark .ud-recent-cases-list,
+.dark .ud-recent-case-row,
+.dark .ud-metric-col {
+  border-color: var(--border);
+}
+.dark .dz-modal-container:has(#delete-confirm-password),
+.dark .ud-modal {
+  background: linear-gradient(180deg, #181818 0%, #1f1414 100%) !important;
+  color: var(--foreground);
 }

@@ -58,7 +58,7 @@
 .sd-header-title {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
 }
 
 /* Hamburger toggle button - mirrors ud-hamburger / ad-hamburger */
@@ -141,7 +141,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, var(--dz-color-primary-dark), var(--dz-color-primary));
   color: #fff;
   font-weight: 700;
   font-size: 0.82rem;
@@ -196,7 +196,7 @@
 .sd-sidebar {
   width: 210px;
   min-width: 210px;
-  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
+  background: linear-gradient(180deg, #2c3830 0%, #1e2621 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -260,7 +260,7 @@
 
 .sd-nav-item.active {
   background: rgba(255,255,255,0.95);
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
@@ -287,7 +287,7 @@
 }
 
 .sd-nav-item.active .sd-nav-badge {
-  background: #1e5038;
+  background: var(--dz-color-primary, #7c9082);
   color: #fff;
 }
 
@@ -361,7 +361,7 @@
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  background: #1e5038;
+  background: var(--dz-color-primary, #7c9082);
   color: #fff;
   font-weight: 600;
   font-size: 0.82rem;
@@ -376,7 +376,7 @@
   border: none;
   cursor: pointer;
   background: #e8f5ee;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   font-weight: 600;
   font-size: 0.78rem;
   transition: background 0.2s;
@@ -406,7 +406,7 @@
 
 .sd-filter-btn--active {
   background: #fff;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
@@ -490,7 +490,7 @@
 .sd-order-caseid {
   font-weight: 700;
   font-size: 0.88rem;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   display: block;
 }
 
@@ -566,7 +566,7 @@
 }
 
 .sd-stage-step--current .sd-stage-dot {
-  background: var(--stage-color, #1e5038);
+  background: var(--stage-color, var(--dz-color-primary));
   box-shadow: 0 0 0 4px rgba(30, 80, 56, 0.15);
   transform: scale(1.2);
 }
@@ -580,7 +580,7 @@
 }
 
 .sd-stage-step--done .sd-stage-label { color: #4a7060; }
-.sd-stage-step--current .sd-stage-label { color: #1e5038; font-weight: 700; }
+.sd-stage-step--current .sd-stage-label { color: var(--dz-color-primary, #7c9082); font-weight: 700; }
 
 @media (max-width: 767px) {
   .sd-stage-label { font-size: 0.55rem; }
@@ -623,7 +623,7 @@
   border-radius: 8px;
   border: none;
   background: #e8f5ee;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
@@ -638,7 +638,7 @@
 .sd-inv-qty {
   font-weight: 800;
   font-size: 1.05rem;
-  color: #1e5038;
+  color: var(--dz-color-primary, #7c9082);
   min-width: 32px;
   text-align: center;
 }
@@ -676,7 +676,7 @@
   color: #708c80;
 }
 
-.sd-metric-card--primary .sd-metric-value { color: #1e5038; }
+.sd-metric-card--primary .sd-metric-value { color: var(--dz-color-primary, #7c9082); }
 .sd-metric-card--success .sd-metric-value { color: #16a34a; }
 .sd-metric-card--warning .sd-metric-value { color: #d97706; }
 
@@ -762,7 +762,7 @@
   transition: border-color 0.2s;
 }
 
-.sd-field input:focus { border-color: #1e5038; }
+.sd-field input:focus { border-color: var(--dz-color-primary, #7c9082); }
 
 .sd-field-row {
   display: grid;
@@ -834,7 +834,7 @@
   color: #1a3028;
 }
 .sd-field select:focus,
-.sd-field textarea:focus { border-color: #1e5038; }
+.sd-field textarea:focus { border-color: var(--dz-color-primary, #7c9082); }
 
 .sd-field textarea { resize: vertical; min-height: 68px; }
 
@@ -857,7 +857,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038 0%, #2a7b55 100%);
+  background: linear-gradient(135deg, var(--dz-color-primary-dark) 0%, var(--dz-color-primary) 100%);
   color: #fff;
   font-weight: 800;
   font-size: 1rem;
@@ -984,7 +984,7 @@
   align-items: center;
 }
 
-.sd-pw-toggle:hover { color: #1e5038; }
+.sd-pw-toggle:hover { color: var(--dz-color-primary, #7c9082); }
 
 /* ── Form Messages ─────────────────────────────────────────────────── */
 .sd-form-msg {
@@ -1038,57 +1038,80 @@
   }
 }
 
+
+
 /* ================================================================
-   STAFF DASHBOARD — DARK THEME ADAPTATION (Ponytail & Impeccable)
+   STAFF DASHBOARD — DARK THEME ADAPTATION
    ================================================================ */
-.dark .sd-layout,
+.dark .sd-shell,
 .dark .sd-main,
 .dark .sd-body {
   background: var(--background);
   color: var(--foreground);
 }
-
 .dark .sd-header {
-  background: var(--card);
+  background: rgba(18, 18, 18, 0.88);
   border-bottom-color: var(--border);
 }
-
+.dark .sd-header-title,
+.dark .sd-header-name,
+.dark .sd-section-title,
+.dark .sd-inv-name,
+.dark .sd-settings-card-name,
+.dark .sd-settings-info-value,
+.dark .sd-settings-action-label {
+  color: var(--foreground);
+}
 .dark .sd-sidebar {
   background: var(--sidebar);
-  border-right-color: var(--sidebar-border);
+  border-right: 1px solid var(--sidebar-border);
 }
-
-.dark .sd-card,
+.dark .sd-nav-item.active {
+  background: var(--accent);
+  color: var(--foreground);
+}
 .dark .sd-order-card,
-.dark .sd-stat-card,
-.dark .sd-settings-card,
 .dark .sd-inv-card,
-.dark .sd-dentist-card,
-.dark .sd-table-wrap {
-  background: var(--card);
-  border-color: var(--border);
+.dark .sd-metric-card,
+.dark .sd-settings-card,
+.dark .sd-modal-wrap,
+.dark .sd-modal {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
   color: var(--card-foreground);
 }
-
-.dark .sd-search-input,
-.dark .sd-settings-input,
-.dark .sd-input {
+.dark .sd-order-header,
+.dark .sd-settings-info-row {
+  border-bottom-color: var(--border);
+}
+.dark .sd-filter-group,
+.dark .sd-modal-summary {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.dark .sd-filter-btn--active {
+  background: var(--card);
+  color: var(--foreground);
+}
+.dark .sd-search-wrap,
+.dark .sd-field input,
+.dark .sd-field select,
+.dark .sd-field textarea {
   background: var(--input);
   border-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .sd-table th {
-  background: var(--muted);
-  color: var(--muted-foreground);
-  border-bottom-color: var(--border);
-}
-
-.dark .sd-table td {
-  border-bottom-color: var(--border);
+.dark .sd-search {
   color: var(--foreground);
 }
-
-.dark .sd-table tbody tr:hover {
+.dark .sd-btn-secondary,
+.dark .sd-inv-btn {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.dark .sd-stage-dot {
+  background: var(--border);
+}
+.dark .sd-stage-step:hover {
   background: var(--muted);
 }

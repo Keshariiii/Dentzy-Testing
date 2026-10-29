@@ -51,7 +51,7 @@ html {
 [class*="--dark"],
 [data-theme="dark"] {
   --dz-sel-bg:    #ffffff;
-  --dz-sel-color: var(--dz-color-charcoal);
+  --dz-sel-color: #1a1f2e;
 }
 
 /* Sage green on primary/accent elements */
@@ -61,7 +61,7 @@ html {
 [class*="badge"],
 [class*="tag-"] {
   --dz-sel-bg:    #ffffff;
-  --dz-sel-color: var(--dz-color-charcoal);
+  --dz-sel-color: #1a1f2e;
 }
 
 /* Scoped ::selection rules (full cross-browser fallback) */
@@ -79,7 +79,7 @@ html {
 .btn-primary ::selection,
 .m-btn-primary ::selection {
   background: #ffffff;
-  color: var(--dz-color-charcoal);
+  color: #1a1f2e;
 }
 
 /* ---------------------------------------------------------------------------

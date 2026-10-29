@@ -97,7 +97,7 @@ img {
 .btn {
   display: inline-block;
   padding: 12px 24px;
-  background-color: #1e5038;
+  background-color: var(--dz-color-primary, #7c9082);
   color: white;
   border: none;
   border-radius: 50px;
@@ -108,9 +108,9 @@ img {
 }
 
 .btn:hover {
-  background-color: #174430;
+  background-color: var(--dz-color-primary-dark, #5a6b5e);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(30, 80, 56, 0.15);
+  box-shadow: 0 8px 24px rgba(124, 144, 130, 0.25);
 }
 
 .btn:active {
@@ -282,10 +282,11 @@ img {
 
 /* ── Glassmorphic utility class ──────────────────────────────────────── */
 .dz-glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--dz-glass-bg);
   backdrop-filter: blur(12px) saturate(1.4);
   -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  border: 1px solid rgba(112, 140, 128, 0.12);
+  border: 1px solid var(--dz-glass-border);
+  box-shadow: var(--dz-glass-shadow);
 }
 
 /* ── Clean App Viewport (Scrollbar hidden for clean native app appearance) ─── */
@@ -363,5 +364,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
   transform: scale(1.08);
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(85%) sepia(10%) saturate(400%) hue-rotate(95deg);
 }
 

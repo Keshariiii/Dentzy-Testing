@@ -384,12 +384,12 @@ const DentistDashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="ud-recent-empty" style={{ padding: '24px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da' }}>
-              <p style={{ margin: '0 0 12px', fontSize: '0.88rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
+            <div className="ud-recent-empty" style={{ padding: '24px 16px', textAlign: 'center', background: 'var(--muted)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+              <p style={{ margin: '0 0 12px', fontSize: '0.88rem', color: 'var(--muted-foreground)' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
               <button
                 type="button"
                 onClick={() => setActiveTab('orders')}
-                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 + Place First Order
               </button>
@@ -478,7 +478,7 @@ const DentistDashboard = () => {
                 <td><strong>{o.patientName}</strong></td>
                 <td><code className="ud-code">{o.caseId}</code></td>
                 <td>{o.serviceType}</td>
-                <td style={{ fontWeight: 700, color: '#1e5038' }}>
+                <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
                   ₹{getOrderPrice(o).toLocaleString('en-IN')}
                 </td>
                 <td><span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span></td>
@@ -495,9 +495,9 @@ const DentistDashboard = () => {
                       style={{
                         display: 'block',
                         marginTop: '4px',
-                        background: '#e8f2ec',
-                        border: '1px solid #c2dcd0',
-                        color: '#1e5038',
+                        background: 'var(--accent)',
+                        border: '1px solid var(--border)',
+                        color: 'var(--primary)',
                         borderRadius: '4px',
                         padding: '2px 6px',
                         fontSize: '0.7rem',
@@ -1086,8 +1086,8 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
 
       {/* Outstanding Bill & Credit Limit Card */}
       <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2ece6',
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
         borderRadius: '12px',
         padding: '20px',
         marginBottom: '20px',
@@ -1098,7 +1098,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted-foreground)', letterSpacing: '0.05em' }}>
               Outstanding Balance / Amount to Pay
             </span>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '4px' }}>
@@ -1123,8 +1123,8 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 border: '1px solid #d0ded6',
                 fontSize: '0.82rem',
                 fontWeight: 600,
-                color: '#1a3028',
-                background: '#f8faf9',
+                color: 'var(--foreground)',
+                background: 'var(--muted)',
                 cursor: 'pointer',
               }}
               aria-label="Select Statement Month"
@@ -1134,12 +1134,12 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 type="button"
                 onClick={() => setStatementMonth('')}
                 style={{
-                  background: '#f0f4f2',
+                  background: 'var(--muted)',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '6px 10px',
                   fontSize: '0.78rem',
-                  color: '#4a7060',
+                  color: 'var(--muted-foreground)',
                   cursor: 'pointer',
                   fontWeight: 600,
                 }}
@@ -1151,12 +1151,12 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 type="button"
                 onClick={() => setStatementMonth(currentMonthISO)}
                 style={{
-                  background: '#e8f5ee',
+                  background: 'var(--accent)',
                   border: '1px solid rgba(30, 80, 56, 0.2)',
                   borderRadius: '6px',
                   padding: '6px 10px',
                   fontSize: '0.78rem',
-                  color: '#1e5038',
+                  color: 'var(--primary)',
                   cursor: 'pointer',
                   fontWeight: 600,
                 }}
@@ -1172,7 +1172,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 14px',
-                background: '#1e5038',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -1194,11 +1194,11 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
 
         {/* Credit Limit Usage Bar */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: '6px' }}>
             <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
             <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
           </div>
-          <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ height: '8px', background: 'var(--accent)', borderRadius: '4px', overflow: 'hidden' }}>
             <div style={{
               height: '100%',
               width: `${creditUsedPct}%`,
@@ -1213,7 +1213,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
       {/* Consolidated Batch Receipts Section */}
       {batchStatements.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a3028', marginBottom: '10px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '10px' }}>
             Consolidated Monthly Batch Receipts
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1222,15 +1222,15 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: '#f8faf9',
-                border: '1px solid #e2ece6',
+                background: 'var(--muted)',
+                border: '1px solid var(--border)',
                 borderRadius: '8px',
                 padding: '12px 16px',
                 flexWrap: 'wrap',
                 gap: '8px',
               }}>
                 <div>
-                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e5038', fontFamily: 'monospace' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)', fontFamily: 'monospace' }}>
                     {b.batchId}
                   </span>
                   <span style={{ fontSize: '0.8rem', color: '#555', marginLeft: '12px' }}>
@@ -1247,8 +1247,8 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                     alignItems: 'center',
                     gap: '6px',
                     padding: '6px 12px',
-                    background: '#ffffff',
-                    color: '#1e5038',
+                    background: 'var(--card)',
+                    color: 'var(--primary)',
                     border: '1px solid #1e5038',
                     borderRadius: '6px',
                     fontSize: '0.78rem',
@@ -1306,9 +1306,9 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
                         background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
                         color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
                       }}>{p.paymentMode}</span>
-                      {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                      {p.referenceNumber && <span style={{ color: 'var(--muted-foreground)', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
                     </span>
-                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                  ) : <span style={{ color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>—</span>}
                 </td>
               </tr>
             ))}</tbody>

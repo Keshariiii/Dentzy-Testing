@@ -513,12 +513,12 @@ const MobileDashboard = () => {
               ))}
             </div>
           ) : (
-            <div style={{ padding: '20px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da', margin: '8px 0' }}>
-              <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
+            <div style={{ padding: '20px 16px', textAlign: 'center', background: 'var(--muted)', borderRadius: '12px', border: '1px dashed var(--border)', margin: '8px 0' }}>
+              <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: 'var(--muted-foreground)' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
               <button
                 type="button"
                 onClick={() => setActiveTab('orders')}
-                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 + Place First Order
               </button>
@@ -628,9 +628,9 @@ const MobileDashboard = () => {
                           window.open(`/invoice?batchId=${encodeURIComponent(o.batchId)}`, '_blank');
                         }}
                         style={{
-                          background: '#e8f2ec',
-                          border: '1px solid #c2dcd0',
-                          color: '#1e5038',
+                          background: 'var(--accent)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--primary)',
                           borderRadius: '4px',
                           padding: '2px 5px',
                           fontSize: '0.68rem',
@@ -654,7 +654,7 @@ const MobileDashboard = () => {
                       <span>&bull;</span>
                       <span>Due {formatDate(o.dueDate)}</span>
                       <span>&bull;</span>
-                      <strong style={{ color: '#1e5038' }}>₹{getOrderPrice(o).toLocaleString('en-IN')}</strong>
+                      <strong style={{ color: 'var(--primary)' }}>₹{getOrderPrice(o).toLocaleString('en-IN')}</strong>
                     </div>
                   </div>
                   <span className="m-compact-card__arrow">
@@ -711,14 +711,14 @@ const MobileDashboard = () => {
 
         {/* Mobile Outstanding Bill Card */}
         <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2ece6',
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
           borderRadius: '12px',
           padding: '16px',
           marginBottom: '14px',
           boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
         }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#708c80' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--muted-foreground)' }}>
             Outstanding Balance to Pay
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
@@ -730,11 +730,11 @@ const MobileDashboard = () => {
 
           {/* Credit Limit Usage Bar */}
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: '6px' }}>
               <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
               <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
             </div>
-            <div style={{ height: '7px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '7px', background: 'var(--accent)', borderRadius: '4px', overflow: 'hidden' }}>
               <div
                 style={{
                   width: `${creditUsedPct}%`,
@@ -759,12 +759,12 @@ const MobileDashboard = () => {
                 onChange={(e) => setUnpaidMonthFilter(e.target.value)}
                 style={{
                   flex: 1,
-                  border: '1px solid #c2dcd0',
+                  border: '1px solid var(--border)',
                   borderRadius: '8px',
                   padding: '7px 10px',
                   fontSize: '0.82rem',
-                  color: '#1a3028',
-                  background: '#fff',
+                  color: 'var(--foreground)',
+                  background: 'var(--card)',
                   cursor: 'pointer',
                   minHeight: '40px',
                 }}
@@ -775,12 +775,12 @@ const MobileDashboard = () => {
                   type="button"
                   onClick={() => setUnpaidMonthFilter('')}
                   style={{
-                    background: '#f0f4f2',
+                    background: 'var(--muted)',
                     border: 'none',
                     borderRadius: '8px',
                     padding: '8px 10px',
                     fontSize: '0.75rem',
-                    color: '#4a7060',
+                    color: 'var(--muted-foreground)',
                     cursor: 'pointer',
                     fontWeight: 600,
                     minHeight: '40px',
@@ -793,12 +793,12 @@ const MobileDashboard = () => {
                   type="button"
                   onClick={() => setUnpaidMonthFilter(currentMonthISO)}
                   style={{
-                    background: '#e8f5ee',
+                    background: 'var(--accent)',
                     border: '1px solid rgba(30, 80, 56, 0.2)',
                     borderRadius: '8px',
                     padding: '8px 10px',
                     fontSize: '0.75rem',
-                    color: '#1e5038',
+                    color: 'var(--primary)',
                     cursor: 'pointer',
                     fontWeight: 600,
                     minHeight: '40px',
@@ -821,7 +821,7 @@ const MobileDashboard = () => {
                 justifyContent: 'center',
                 gap: '6px',
                 padding: '10px 12px',
-                background: '#1e5038',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -844,14 +844,14 @@ const MobileDashboard = () => {
         {/* Consolidated Monthly Batch Receipts */}
         {batchGroups.length > 0 && (
           <div style={{
-            background: '#ffffff',
-            border: '1px solid #e2ece6',
+            background: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '14px',
             marginBottom: '14px',
             boxShadow: '0 2px 8px rgba(30, 80, 56, 0.04)',
           }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a3028', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '10px' }}>
               Consolidated Monthly Batch Receipts
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -860,7 +860,7 @@ const MobileDashboard = () => {
                   key={bg.batchId}
                   style={{
                     padding: '10px 12px',
-                    background: '#f8faf9',
+                    background: 'var(--muted)',
                     border: '1px solid #e8f0ec',
                     borderRadius: '8px',
                     display: 'flex',
@@ -869,10 +869,10 @@ const MobileDashboard = () => {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.78rem', color: '#1e5038', background: '#eaf3ee', padding: '2px 6px', borderRadius: '4px' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.78rem', color: 'var(--primary)', background: '#eaf3ee', padding: '2px 6px', borderRadius: '4px' }}>
                       {bg.batchId}
                     </span>
-                    <strong style={{ fontSize: '0.85rem', color: '#1a3028' }}>
+                    <strong style={{ fontSize: '0.85rem', color: 'var(--foreground)' }}>
                       ₹{bg.totalAmount.toLocaleString('en-IN')}
                     </strong>
                   </div>
@@ -886,13 +886,13 @@ const MobileDashboard = () => {
                     onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(bg.batchId)}`, '_blank')}
                     style={{
                       width: '100%',
-                      background: '#ffffff',
-                      border: '1px solid #c2dcd0',
+                      background: 'var(--card)',
+                      border: '1px solid var(--border)',
                       borderRadius: '6px',
                       padding: '7px 10px',
                       fontSize: '0.76rem',
                       fontWeight: 600,
-                      color: '#1e5038',
+                      color: 'var(--primary)',
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -966,9 +966,9 @@ const MobileDashboard = () => {
                             window.open(`/invoice?batchId=${encodeURIComponent(p.batchId)}`, '_blank');
                           }}
                           style={{
-                            background: '#e8f2ec',
-                            border: '1px solid #c2dcd0',
-                            color: '#1e5038',
+                            background: 'var(--accent)',
+                            border: '1px solid var(--border)',
+                            color: 'var(--primary)',
                             borderRadius: '4px',
                             padding: '2px 5px',
                             fontSize: '0.68rem',
@@ -986,7 +986,7 @@ const MobileDashboard = () => {
                     <div className="m-compact-card__info">
                       <span className="m-compact-card__title">{p.patientName}</span>
                       <div className="m-compact-card__meta">
-                        <strong style={{ color: '#1e5038', fontWeight: 700 }}>
+                        <strong style={{ color: 'var(--primary)', fontWeight: 700 }}>
                           ₹{getOrderPrice(p).toLocaleString('en-IN')}
                         </strong>
                         <span>&bull;</span>

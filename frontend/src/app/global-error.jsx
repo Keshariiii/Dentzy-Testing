@@ -19,16 +19,16 @@ export default function GlobalError({ error, reset }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.25rem',
-        background: '#f8faf9',
+        background: 'var(--background)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: '#1a2e26',
+        color: 'var(--foreground)',
         boxSizing: 'border-box',
       }}>
         <div style={{
           maxWidth: '440px',
           width: '100%',
-          background: '#ffffff',
-          border: '1px solid #e2ece6',
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
           borderRadius: '16px',
           padding: 'clamp(1.75rem, 5vw, 2.5rem) clamp(1.25rem, 4vw, 2rem)',
           textAlign: 'center',
@@ -57,13 +57,13 @@ export default function GlobalError({ error, reset }) {
             fontSize: 'clamp(1.25rem, 4vw, 1.45rem)',
             fontWeight: 700,
             margin: '0 0 0.75rem',
-            color: '#1a2e26',
+            color: 'var(--foreground)',
           }}>
             Dentzy Portal Unavailable
           </h1>
           <p style={{
             fontSize: '0.9rem',
-            color: '#527063',
+            color: 'var(--muted-foreground)',
             lineHeight: 1.5,
             margin: '0 0 1.75rem',
           }}>
@@ -79,8 +79,7 @@ export default function GlobalError({ error, reset }) {
                 minHeight: '46px',
                 padding: '0.75rem 1.25rem',
                 borderRadius: '8px',
-                background: '#1e5038',
-                color: '#ffffff',
+                background: 'var(--primary)', color: 'var(--primary-foreground)',
                 fontWeight: 600,
                 fontSize: '0.92rem',
                 border: 'none',
@@ -100,12 +99,11 @@ export default function GlobalError({ error, reset }) {
                 minHeight: '46px',
                 padding: '0.75rem 1.25rem',
                 borderRadius: '8px',
-                background: '#f0f5f2',
-                color: '#1e5038',
+                background: 'var(--accent)', color: 'var(--foreground)',
                 fontWeight: 600,
                 fontSize: '0.92rem',
                 textDecoration: 'none',
-                border: '1px solid #dbe7e0',
+                border: '1px solid var(--border)',
                 boxSizing: 'border-box',
                 width: '100%',
               }}

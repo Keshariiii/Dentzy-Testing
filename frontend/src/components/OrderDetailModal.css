@@ -543,25 +543,50 @@
   }
 }
 
+
+
 /* ================================================================
    ORDER DETAIL MODAL — DARK THEME ADAPTATION
    ================================================================ */
 .dark .odm-modal-wrap,
-.dark .odm-modal,
-.dark .odm-card,
-.dark .odm-section {
+.dark .odm-modal {
   background: var(--card);
   border-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .odm-title,
-.dark .odm-label,
-.dark .odm-value {
+.dark .odm-pipeline-card,
+.dark .odm-grid-item,
+.dark .odm-payment-card {
+  background: var(--muted);
+  border-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .odm-sub,
-.dark .odm-desc {
-  color: var(--muted-foreground);
+.dark .odm-case-badge,
+.dark .odm-close-btn,
+.dark .odm-pay-row code,
+.dark .odm-amount-btn-cancel {
+  background: var(--muted);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.dark .odm-pipeline-step--done .odm-pipeline-label,
+.dark .odm-pipeline-step--current .odm-pipeline-label {
+  color: var(--foreground);
+}
+.dark .odm-notes-box {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.dark .odm-notes-label,
+.dark .odm-notes-text {
+  color: #fbbf24;
+}
+.dark .odm-amount-trigger--edit {
+  background: var(--accent);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+.dark .odm-footer,
+.dark .odm-title-section {
+  border-color: var(--border);
 }

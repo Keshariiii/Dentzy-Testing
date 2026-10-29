@@ -39,7 +39,7 @@ const ScrollToTop = () => {
     <AnimatePresence>
       {visible && (
         <motion.button
-          className="fixed bottom-24 right-4 z-50 w-11 h-11 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md border border-[#708c80]/20 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+          className="fixed bottom-24 right-4 z-50 w-11 h-11 flex items-center justify-center rounded-full bg-card/90 border-border backdrop-blur-md border border-[#708c80]/20 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
           onClick={scrollToTop}
           aria-label="Scroll to top"
           initial={{ opacity: 0, scale: 0.6, y: 20 }}
@@ -68,7 +68,7 @@ const ScrollToTop = () => {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="#1e5038"
+              stroke="var(--primary)"
               strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -77,7 +77,7 @@ const ScrollToTop = () => {
               style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
             />
           </svg>
-          <ChevronUp className="w-4 h-4 text-[#1e5038] relative z-10" />
+          <ChevronUp className="w-4 h-4 text-primary relative z-10" />
         </motion.button>
       )}
     </AnimatePresence>

@@ -425,30 +425,40 @@
 /* ================================================================
    MOBILE LOGIN — DARK THEME ADAPTATION
    ================================================================ */
-.dark .m-auth-page {
-  background-color: var(--background);
-  color: var(--foreground);
-}
 
+
+/* ================================================================
+   MOBILE AUTH — DARK THEME ADAPTATION
+   ================================================================ */
 .dark .m-auth-card {
   background: var(--card);
   border-color: var(--border);
+}
+.dark .m-role-switcher {
+  background: var(--muted);
+}
+.dark .m-role-tab--active {
+  background: var(--card);
   color: var(--foreground);
 }
-
-.dark .m-auth-input {
+.dark .m-auth-input-group label {
+  color: var(--muted-foreground);
+}
+.dark .m-auth-input-group input {
   background: var(--input);
   border-color: var(--border);
   color: var(--foreground);
 }
-
-.dark .m-role-card {
+.dark .m-auth-back-btn {
   background: var(--card);
-  border-color: var(--border);
   color: var(--foreground);
+  border-color: var(--border);
 }
-
-.dark .m-role-card.active {
-  background: var(--accent);
-  border-color: var(--primary);
+.dark .m-captcha-img,
+.dark .m-captcha-refresh {
+  background: var(--muted);
+}
+.dark .m-auth-divider::before,
+.dark .m-auth-divider::after {
+  border-bottom-color: var(--border);
 }

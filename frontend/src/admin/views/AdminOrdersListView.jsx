@@ -95,9 +95,9 @@ export default function AdminOrdersListView({
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              border: '1px solid #e2ece6',
-              background: '#ffffff',
-              color: '#1e5038',
+              border: '1px solid var(--border)',
+              background: 'var(--card)',
+              color: 'var(--primary)',
               cursor: 'pointer',
               boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
             }}
@@ -108,9 +108,9 @@ export default function AdminOrdersListView({
             </svg>
           </button>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--foreground)' }}>{drillDentistOrders.name}</div>
             {drillDentistOrders.clinicName && (
-              <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>{drillDentistOrders.clinicName}</div>
             )}
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function AdminOrdersListView({
                           borderRadius: '6px',
                           padding: '3px 8px',
                           border: '1px solid var(--dz-color-border)',
-                          background: '#fff',
+                          background: 'var(--card)',
                         }}
                       >
                         {ORDER_STAGES.map((stg) => (
@@ -236,7 +236,7 @@ export default function AdminOrdersListView({
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: '#94a3b8',
+                            color: 'var(--muted-foreground)',
                             cursor: 'pointer',
                             padding: '4px',
                           }}

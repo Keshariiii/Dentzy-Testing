@@ -27,7 +27,7 @@ function NoticeItem({
       whileDrag={{
         scale: 1.02,
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--card)',
         zIndex: 50,
       }}
       transition={{ duration: 0.18 }}
@@ -36,8 +36,8 @@ function NoticeItem({
         alignItems: 'center',
         gap: '8px',
         padding: '9px 12px',
-        background: isEditing ? '#ffffff' : '#f8faf9',
-        border: isEditing ? '1px solid #1e5038' : '1px solid #e2ece6',
+        background: isEditing ? 'var(--card)' : 'var(--muted)',
+        border: isEditing ? '1px solid var(--primary)' : '1px solid var(--border)',
         borderRadius: '10px',
         boxSizing: 'border-box',
         width: '100%',
@@ -86,22 +86,22 @@ function NoticeItem({
               minWidth: 0,
               padding: '6px 10px',
               borderRadius: '8px',
-              border: '1px solid #1e5038',
+              border: '1px solid var(--primary)',
               fontSize: '0.84rem',
-              color: '#1a3028',
+              color: 'var(--foreground)',
               outline: 'none',
-              background: '#fff',
+              background: 'var(--input)',
             }}
           />
           <button
             type="button"
             onClick={onSaveEdit}
             style={{
-              background: '#e8f5ee',
+              background: 'var(--accent)',
               border: 'none',
               borderRadius: '8px',
               padding: '6px',
-              color: '#1e5038',
+              color: 'var(--foreground)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -117,7 +117,7 @@ function NoticeItem({
             type="button"
             onClick={onCancelEdit}
             style={{
-              background: '#f1f5f9',
+              background: 'var(--muted)',
               border: 'none',
               borderRadius: '8px',
               padding: '6px',
@@ -141,7 +141,7 @@ function NoticeItem({
             flex: 1,
             minWidth: 0,
             fontSize: '0.84rem',
-            color: '#1a3028',
+            color: 'var(--foreground)',
             cursor: 'text',
             wordBreak: 'break-word',
             lineHeight: 1.35,
@@ -171,8 +171,8 @@ function NoticeItem({
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#1e5038';
-              e.currentTarget.style.background = '#e8f5ee';
+              e.currentTarget.style.color = 'var(--primary)';
+              e.currentTarget.style.background = 'var(--accent)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = '#64748b';
@@ -299,10 +299,10 @@ export default function TwentyFirstNoticeList({ messages = [], onChange }) {
         style={{
           textAlign: 'center',
           padding: '24px 16px',
-          color: '#6b8a7a',
+          color: 'var(--muted-foreground)',
           fontSize: '0.84rem',
-          background: '#f8faf9',
-          border: '1px dashed #d4ddd8',
+          background: 'var(--muted)',
+          border: '1px dashed var(--border)',
           borderRadius: '10px',
         }}
       >

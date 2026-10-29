@@ -1,5 +1,5 @@
 .perfect-smile-section {
-    background-color: var(--color-white);
+    background-color: var(--dz-color-bg-surface);
     padding: var(--dz-fluid-section-pad, 80px) 0;
     overflow: hidden;
 }

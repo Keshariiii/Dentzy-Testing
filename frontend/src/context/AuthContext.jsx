@@ -8,6 +8,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
   const { setTheme }          = useTheme();
+  const syncThemePref = useCallback((pref) => {
+    if (!pref || typeof setTheme !== 'function') return;
+    const local = typeof window !== 'undefined' ? localStorage.getItem('dentzy-theme') : null;
+    if (!local || pref === 'light' || pref === 'dark') {
+      setTheme(pref);
+    }
+  }, [setTheme]);
   const API_URL               = useMemo(() => getAuthUrl(), []);
   const DASH_URL              = useMemo(() => getDashUrl(), []);
 
@@ -29,8 +36,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(savedUser);
         if (isMounted) setUser(parsed);
-        if (parsed?.themePreference && typeof setTheme === 'function') {
-          setTheme(parsed.themePreference);
+        if (parsed?.themePreference) {
+          syncThemePref(parsed.themePreference);
         }
       } catch { /* ignore */ }
 
@@ -63,8 +70,8 @@ export const AuthProvider = ({ children }) => {
             };
             localStorage.setItem('dentzy_user', JSON.stringify(fresh));
             setUser(fresh);
-            if (fresh.themePreference && typeof setTheme === 'function') {
-              setTheme(fresh.themePreference);
+            if (fresh.themePreference) {
+              syncThemePref(fresh.themePreference);
             }
           }
         } else if (res.status === 503) {
@@ -150,12 +157,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
-      if (data.user.themePreference && typeof setTheme === 'function') {
-        setTheme(data.user.themePreference);
+      if (data.user.themePreference) {
+        syncThemePref(data.user.themePreference);
       }
     }
     return data.user;
-  }, [setTheme]);
+  }, [syncThemePref]);
 
   // Login function
   const login = useCallback(async (email, password, rememberMe = false) => {
@@ -166,12 +173,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
-      if (data.user.themePreference && typeof setTheme === 'function') {
-        setTheme(data.user.themePreference);
+      if (data.user.themePreference) {
+        syncThemePref(data.user.themePreference);
       }
     }
     return data.user;
-  }, [setTheme]);
+  }, [syncThemePref]);
 
   // Google OAuth Login / Auto-Registration
   const googleLogin = useCallback(async (credential) => {
@@ -182,12 +189,12 @@ export const AuthProvider = ({ children }) => {
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
       setUser(data.user);
-      if (data.user.themePreference && typeof setTheme === 'function') {
-        setTheme(data.user.themePreference);
+      if (data.user.themePreference) {
+        syncThemePref(data.user.themePreference);
       }
     }
     return data;
-  }, [setTheme]);
+  }, [syncThemePref]);
 
   // Logout
   const logout = useCallback(async () => {
@@ -196,9 +203,13 @@ export const AuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_user');
+      const localTheme = localStorage.getItem('dentzy-theme');
+      if (localTheme && typeof setTheme === 'function') {
+        setTheme(localTheme);
+      }
     }
     setUser(null);
-  }, []);
+  }, [setTheme]);
 
   // Update the local user state and persist to localStorage.
   const updateUserState = useCallback((updatedUser) => {

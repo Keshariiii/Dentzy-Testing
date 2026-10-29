@@ -29,7 +29,7 @@ export function TwentyFirstBgMesh({ className, intensity = 'subtle' }) {
       <div
         className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(30, 80, 56, 0.2) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--dz-color-primary-muted) 0%, transparent 70%)',
           filter: 'blur(90px)',
           animation: 'dz-mesh-drift-2 14s ease-in-out infinite alternate',
         }}
@@ -37,7 +37,7 @@ export function TwentyFirstBgMesh({ className, intensity = 'subtle' }) {
       <div
         className="absolute top-[30%] right-[20%] w-[35%] h-[35%] rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(240, 245, 242, 0.5) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--dz-color-primary-muted) 0%, transparent 70%)',
           filter: 'blur(60px)',
           animation: 'dz-mesh-drift-3 10s ease-in-out infinite alternate',
         }}

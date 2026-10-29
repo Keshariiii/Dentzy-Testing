@@ -70,7 +70,7 @@ export function SearchBar({
       {/* Search icon */}
       <motion.div
         className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10"
-        animate={{ scale: isFocused ? 1.1 : 1, color: isFocused ? '#1e5038' : '#9ca3af' }}
+        animate={{ scale: isFocused ? 1.1 : 1, color: isFocused ? 'var(--primary)' : 'var(--muted-foreground)' }}
         transition={{ duration: 0.15 }}
       >
         <Search className="w-4 h-4" />
@@ -86,13 +86,13 @@ export function SearchBar({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
         className={cn(
-          'w-full pl-10 pr-20 py-2.5 bg-white border rounded-xl text-sm',
-          'text-gray-900 placeholder:text-gray-400',
+          'w-full pl-10 pr-20 py-2.5 bg-input border border-border rounded-xl text-sm',
+          'text-foreground placeholder:text-muted-foreground',
           'transition-all duration-200',
           'outline-none',
           isFocused
-            ? 'border-[#708c80] ring-2 ring-[#708c80]/20 shadow-sm'
-            : 'border-gray-200 hover:border-gray-300',
+            ? 'border-primary ring-2 ring-primary/20 shadow-sm'
+            : 'border-border hover:border-muted-foreground/30',
           inputClassName,
         )}
       />
@@ -106,7 +106,7 @@ export function SearchBar({
               type="button"
               onClick={handleClear}
               aria-label="Clear search"
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
@@ -119,7 +119,7 @@ export function SearchBar({
 
         {/* Keyboard shortcut badge */}
         {showShortcut && !value && !isFocused && (
-          <div className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-medium text-gray-400 select-none">
+          <div className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px] font-medium text-muted-foreground select-none">
             {isMac ? (
               <>
                 <Command className="w-2.5 h-2.5" />

@@ -313,20 +313,20 @@ const StaffManagementView = ({
 
   /* ── Shared Styles ─────────────────────────────────────────────────────── */
   const cardStyle = {
-    background: '#fff', borderRadius: '14px', padding: '16px 20px',
+    background: 'var(--card)', borderRadius: '14px', padding: '16px 20px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'box-shadow 0.2s',
   };
   const btnPrimary = {
     padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    background: '#1e5038', color: '#fff', fontWeight: 600, fontSize: '0.82rem',
+    background: 'var(--primary)', color: '#fff', fontWeight: 600, fontSize: '0.82rem',
   };
   const btnSecondary = {
     padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    background: '#e8f5ee', color: '#1e5038', fontWeight: 600, fontSize: '0.78rem',
+    background: 'var(--accent)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.78rem',
   };
   const inputStyle = {
-    padding: '8px 12px', borderRadius: '8px', border: '1px solid #d4ddd8',
-    background: '#ffffff', color: '#1a3028', fontSize: '0.82rem', outline: 'none',
+    padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)',
+    background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.82rem', outline: 'none',
     boxSizing: 'border-box',
   };
 
@@ -391,7 +391,7 @@ const StaffManagementView = ({
             Object.keys(designationGroups).length === 0 ? (
               <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
                 {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
-                <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Click "+ Add Staff" to create accounts.</p>
+                <p style={{ marginTop: '16px', color: 'var(--muted-foreground)' }}>No staff members found. Click "+ Add Staff" to create accounts.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
@@ -406,12 +406,12 @@ const StaffManagementView = ({
                     onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   >
                     <div style={{
-                      width: '52px', height: '52px', borderRadius: '50%', background: '#e8f5ee',
+                      width: '52px', height: '52px', borderRadius: '50%', background: 'var(--accent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 800, color: '#1e5038', fontSize: '1.1rem', margin: '0 auto 12px',
+                      fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem', margin: '0 auto 12px',
                     }}>{members.length}</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>{designation}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '4px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--foreground)' }}>{designation}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>
                       {members.length} member{members.length !== 1 ? 's' : ''}
                     </div>
                     <div style={{ marginTop: '8px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -433,7 +433,7 @@ const StaffManagementView = ({
           ) : (
             /* ── Staff List Within Designation ── */
             <div>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>
                 {activeDesignation} ({(designationGroups[activeDesignation] || []).length})
               </h3>
               <div style={{ display: 'grid', gap: '12px' }}>
@@ -444,22 +444,22 @@ const StaffManagementView = ({
                   <div key={s.id} className="ad-staff-card" style={cardStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
                       <div style={{
-                        width: '42px', height: '42px', borderRadius: '50%', background: '#e8f5ee',
+                        width: '42px', height: '42px', borderRadius: '50%', background: 'var(--accent)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, color: '#1e5038', fontSize: '0.92rem', flexShrink: 0,
+                        fontWeight: 700, color: 'var(--primary)', fontSize: '0.92rem', flexShrink: 0,
                       }}>
                         {(s.displayName || 'S').charAt(0).toUpperCase()}
                       </div>
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {s.displayName}
                           {s.employeeId && (
-                            <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
+                            <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted-foreground)', background: 'var(--muted)', padding: '2px 8px', borderRadius: '8px' }}>
                               #{s.employeeId}
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: '#708c80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           @{s.username}{s.email ? ` | ${s.email}` : ''}
                         </div>
                       </div>
@@ -508,7 +508,7 @@ const StaffManagementView = ({
       {subView === 'attendance' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Staff Attendance</h3>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>Staff Attendance</h3>
           </div>
 
           {selectedStaffForHistory ? (
@@ -523,17 +523,17 @@ const StaffManagementView = ({
                 style={{ marginBottom: '16px' }}
               />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <h4 style={{ margin: 0, color: '#1a3028' }}>{selectedStaffForHistory.displayName} - Attendance History</h4>
+                <h4 style={{ margin: 0, color: 'var(--foreground)' }}>{selectedStaffForHistory.displayName} - Attendance History</h4>
                 <input type="month" value={attendanceMonth} placeholder="Select Month" data-empty={!attendanceMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceMonth(e.target.value)}
                   style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
               </div>
               {attendanceHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#708c80' }}>No records for this month.</div>
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted-foreground)' }}>No records for this month.</div>
               ) : (
                 <div style={{ display: 'grid', gap: '8px' }}>
                   {attendanceHistory.map(a => (
                     <div key={a.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a3028' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--foreground)' }}>
                         {new Date(a.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}
                       </span>
                       <span style={{
@@ -552,13 +552,13 @@ const StaffManagementView = ({
                 <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                      width: '40px', height: '40px', borderRadius: '50%', background: '#e8f5ee',
+                      width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, color: '#1e5038', fontSize: '0.88rem',
+                      fontWeight: 700, color: 'var(--primary)', fontSize: '0.88rem',
                     }}>{(s.displayName || 'S').charAt(0).toUpperCase()}</div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>{s.displayName}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#708c80' }}>@{s.username}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>{s.displayName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>@{s.username}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -590,7 +590,7 @@ const StaffManagementView = ({
       {subView === 'inventory' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Inventory</h3>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>Inventory</h3>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <TwentyFirstIconButton
                 icon={Ico.refresh ? Ico.refresh(16) : null}
@@ -614,7 +614,7 @@ const StaffManagementView = ({
           {loadingInventory ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
           ) : inventory.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#708c80' }}>
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted-foreground)' }}>
               <p>No inventory items yet. Click "+ Add Item" to track materials.</p>
             </div>
           ) : (
@@ -622,8 +622,8 @@ const StaffManagementView = ({
               {inventory.map(item => (
                 <div key={item.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>{item.item_name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '2px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--foreground)' }}>{item.item_name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '2px' }}>
                       {item.quantity} {item.unit} {item.min_stock > 0 ? `(min: ${item.min_stock})` : ''}
                       {item.quantity <= item.min_stock && item.min_stock > 0 &&
                         <span style={{ color: '#dc2626', fontWeight: 600, marginLeft: '8px' }}>LOW STOCK</span>
@@ -640,7 +640,7 @@ const StaffManagementView = ({
                       size="sm"
                       rounded="full"
                     />
-                    <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e5038', minWidth: '28px', textAlign: 'center' }}>{item.quantity}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--primary)', minWidth: '28px', textAlign: 'center' }}>{item.quantity}</span>
                     <TwentyFirstIconButton
                       icon={Ico.plus ? Ico.plus(14) : null}
                       title="Increase Stock"
@@ -670,7 +670,7 @@ const StaffManagementView = ({
       {subView === 'metrics' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Staff Leaderboard</h3>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)' }}>Staff Leaderboard</h3>
             <input type="month" value={metricsMonth} placeholder="Select Month" data-empty={!metricsMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setMetricsMonth(e.target.value)}
               style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
           </div>
@@ -678,7 +678,7 @@ const StaffManagementView = ({
           {loadingMetrics ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
           ) : !metrics?.leaderboard?.length ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#708c80' }}>No data for this month.</div>
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted-foreground)' }}>No data for this month.</div>
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
               {metrics.leaderboard.map((s, i) => (
@@ -691,7 +691,7 @@ const StaffManagementView = ({
                       fontWeight: 800, color: i === 0 ? '#92400e' : '#1e5038', fontSize: '0.88rem',
                     }}>#{i + 1}</div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--foreground)' }}>
                         {s.displayName}
                         {i === 0 && s.casesProcessed > 0 && (
                           <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 700, color: '#92400e', background: '#fef9c3', padding: '2px 8px', borderRadius: '10px' }}>
@@ -699,7 +699,7 @@ const StaffManagementView = ({
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '2px' }}>
                         @{s.username} {s.status !== 'active' && <span style={{ color: '#dc2626' }}>(inactive)</span>}
                       </div>
                     </div>
@@ -785,8 +785,8 @@ const StaffManagementView = ({
               <h3>Mark Attendance</h3>
               <button className="ad-pay-modal-close" onClick={() => setAttendanceStaff(null)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '8px 22px', fontSize: '0.88rem', color: '#4a7060' }}>
-              Marking for <strong style={{ color: '#1a3028' }}>{attendanceStaff.displayName}</strong>
+            <div style={{ padding: '8px 22px', fontSize: '0.88rem', color: 'var(--muted-foreground)' }}>
+              Marking for <strong style={{ color: 'var(--foreground)' }}>{attendanceStaff.displayName}</strong>
             </div>
             <div className="ad-pay-modal-body">
               <div className="ad-pay-form-group">
@@ -871,9 +871,9 @@ const StaffManagementView = ({
               <h3>Edit Staff — {editStaff.displayName}</h3>
               <button className="ad-pay-modal-close" onClick={() => setEditStaff(null)}>{Ico.x(16)}</button>
             </div>
-            <div style={{ padding: '8px 22px', fontSize: '0.82rem', color: '#708c80' }}>
-              Employee ID: <strong style={{ color: '#1a3028' }}>#{editStaff.employeeId || 'N/A'}</strong>
-              {' | '} Username: <strong style={{ color: '#1a3028' }}>@{editStaff.username}</strong>
+            <div style={{ padding: '8px 22px', fontSize: '0.82rem', color: 'var(--muted-foreground)' }}>
+              Employee ID: <strong style={{ color: 'var(--foreground)' }}>#{editStaff.employeeId || 'N/A'}</strong>
+              {' | '} Username: <strong style={{ color: 'var(--foreground)' }}>@{editStaff.username}</strong>
             </div>
             <div className="ad-pay-modal-body">
               <div className="ad-pay-form-group">

@@ -376,9 +376,9 @@ const ForgotPassword = () => {
                       fontWeight: '700',
                       textAlign: 'center',
                       borderRadius: '10px',
-                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
-                      background: '#fff',
-                      color: '#1e2824',
+                      border: digit ? '2px solid var(--primary)' : '1.5px solid var(--border)',
+                      background: 'var(--input)',
+                      color: 'var(--foreground)',
                       outline: 'none',
                       transition: 'all 0.15s ease',
                     }}
@@ -409,7 +409,7 @@ const ForgotPassword = () => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
+                    color: resendCooldown > 0 ? 'var(--muted-foreground)' : 'var(--primary)',
                     fontWeight: '600',
                     cursor: resendCooldown > 0 ? 'default' : 'pointer',
                     padding: 0,

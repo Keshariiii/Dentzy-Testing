@@ -613,8 +613,53 @@
   color: var(--foreground);
 }
 
-.dark .plp-order-card {
+
+
+/* ================================================================
+   PIPELINE PAGE — DARK THEME ADAPTATION
+   ================================================================ */
+.dark .plp-viewport,
+.dark .plp-loading-screen {
+  background: var(--background);
+  color: var(--foreground);
+}
+.dark .plp-top-header {
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+.dark .plp-header-user-name,
+.dark .plp-title,
+.dark .plp-card-patient,
+.dark .plp-empty-title {
+  color: var(--foreground);
+}
+.dark .plp-subtitle,
+.dark .plp-card-meta,
+.dark .plp-empty-sub,
+.dark .plp-breadcrumb-current {
+  color: var(--muted-foreground);
+}
+.dark .plp-card {
   background: var(--card);
   border-color: var(--border);
+  color: var(--card-foreground);
+}
+.dark .plp-card:hover {
+  border-color: var(--ring);
+}
+.dark .plp-filter-tab {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+.dark .plp-filter-tab--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.dark .plp-card-id,
+.dark .plp-active-pill,
+.dark .plp-filter-count {
+  background: var(--accent);
   color: var(--foreground);
 }

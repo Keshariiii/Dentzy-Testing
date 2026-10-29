@@ -157,21 +157,21 @@ const MobileLogin = () => {
 
         {isDentist && isDentistBlocked && (
           <div style={{
-            background: '#f0f7f3',
-            border: '1px solid #d8e6df',
+            background: 'var(--muted)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '14px',
             margin: '12px 0 16px',
             textAlign: 'left',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, fontSize: '0.84rem' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
               Scheduled Clinical Portal Maintenance
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--foreground)', marginTop: '6px', lineHeight: 1.45 }}>
               {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--primary)', fontWeight: 700, marginTop: '6px' }}>
               {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
             </div>
             <div style={{ marginTop: '10px' }}>
@@ -182,8 +182,7 @@ const MobileLogin = () => {
                 style={{
                   padding: '6px 12px',
                   borderRadius: '8px',
-                  background: '#1e5038',
-                  color: '#fff',
+                  background: 'var(--primary)', color: 'var(--primary-foreground)',
                   border: 'none',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -198,21 +197,21 @@ const MobileLogin = () => {
 
         {isStaff && isStaffBlocked && (
           <div style={{
-            background: '#f0f7f3',
-            border: '1px solid #d8e6df',
+            background: 'var(--muted)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '14px',
             margin: '12px 0 16px',
             textAlign: 'left',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, fontSize: '0.84rem' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
               Lab Operations Portal Maintenance
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--foreground)', marginTop: '6px', lineHeight: 1.45 }}>
               {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--primary)', fontWeight: 700, marginTop: '6px' }}>
               {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
             </div>
             <div style={{ marginTop: '10px' }}>
@@ -223,8 +222,7 @@ const MobileLogin = () => {
                 style={{
                   padding: '6px 12px',
                   borderRadius: '8px',
-                  background: '#1e5038',
-                  color: '#fff',
+                  background: 'var(--primary)', color: 'var(--primary-foreground)',
                   border: 'none',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -386,7 +384,7 @@ const MobileLogin = () => {
           )}
 
           {isDentist && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: '#6b8a7a', fontSize: '0.9rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>
               <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }} />
               <label htmlFor="rememberMe" style={{ cursor: 'pointer' }}>Remember me</label>
             </div>

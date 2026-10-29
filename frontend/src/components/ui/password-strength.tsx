@@ -133,8 +133,8 @@ export type PasswordStrengthProps = {
 
 const TONES = {
   none: {
-    bar: "bg-slate-200",
-    text: "text-slate-500",
+    bar: "bg-muted",
+    text: "text-muted-foreground",
   },
   danger: { bar: "bg-red-500", text: "text-red-600 font-semibold" },
   caution: { bar: "bg-amber-500", text: "text-amber-600 font-semibold" },
@@ -186,7 +186,7 @@ export function PasswordStrength({
         {Array.from({ length: max }, (_, i) => (
           <div
             key={i}
-            className="relative h-2 overflow-hidden rounded-[3px] bg-slate-200/90"
+            className="relative h-2 overflow-hidden rounded-[3px] bg-muted"
           >
             <motion.span
               className={`absolute inset-0 origin-left rounded-[3px] transition-colors duration-200 ${tone.bar}`}
@@ -233,7 +233,7 @@ export function PasswordStrength({
         <ul className="mt-3 grid gap-2">
           {evaluated.map((rule) => (
             <li key={rule.id} className="flex items-center gap-2.5">
-              <span className="relative grid size-[15px] shrink-0 place-items-center rounded-[4px] border border-slate-300 bg-white">
+              <span className="relative grid size-[15px] shrink-0 place-items-center rounded-[4px] border border-border bg-input">
                 <motion.span
                   className="absolute inset-0 rounded-[3px] bg-emerald-600"
                   initial={false}
@@ -264,8 +264,8 @@ export function PasswordStrength({
               <span
                 className={`text-[13px] leading-snug transition-colors duration-150 ${
                   rule.met
-                    ? "text-[#1e2824] font-semibold"
-                    : "text-[#556960] font-normal"
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground font-normal"
                 }`}
               >
                 {rule.label}

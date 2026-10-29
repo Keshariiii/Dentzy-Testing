@@ -297,3 +297,8 @@
 .dark .contact-form-title {
     color: var(--foreground);
 }
+
+/* Dark mode */
+.dark .form-input, .dark .form-input:focus { background-color: var(--input) !important; color: var(--foreground) !important; border-color: var(--border) !important; }
+.dark .info-item p { color: var(--muted-foreground); }
+.dark .info-item h3 { color: var(--primary); }

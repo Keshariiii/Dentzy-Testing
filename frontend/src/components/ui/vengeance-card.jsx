@@ -35,8 +35,8 @@ export function VengeanceCard({
     <motion.div
       ref={ref}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-gray-200/80',
-        'bg-white transition-all duration-300',
+        'group relative overflow-hidden rounded-2xl border border-border',
+        'bg-card text-card-foreground transition-all duration-300',
         'hover:shadow-lg hover:border-[#708c80]/20',
         className,
       )}

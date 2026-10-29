@@ -991,8 +991,8 @@ const AdminDashboard = () => {
                       }}
                       style={{
                         padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                        background: dentistSubView === sub.key ? '#1e5038' : '#f0f7f3',
-                        color: dentistSubView === sub.key ? '#fff' : '#4a7060',
+                        background: dentistSubView === sub.key ? 'var(--primary)' : 'var(--muted)',
+                        color: dentistSubView === sub.key ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
                         fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s ease',
                       }}>
                       {sub.label}
@@ -1004,8 +1004,8 @@ const AdminDashboard = () => {
                   onClick={handleRecalculateAll}
                   disabled={isRecalculating}
                   style={{
-                    padding: '8px 14px', borderRadius: '8px', border: '1px solid #c2dcd0',
-                    background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.8rem',
+                    padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)',
+                    background: 'var(--accent)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.8rem',
                     cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
                   }}
                   title="Auto-calculate and backfill rate-card amounts for all legacy orders"
@@ -1035,7 +1035,7 @@ const AdminDashboard = () => {
                         }
                       }}
                       title={drillDentistPayments ? "Back to All Payments" : "Back to Dentists"}
-                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
                     </button>
@@ -1047,7 +1047,7 @@ const AdminDashboard = () => {
 
                     {/* Dentist Filter Dropdown */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '12px' }}>
-                      <label htmlFor="ad-pay-dentist-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
+                      <label htmlFor="ad-pay-dentist-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
                         Dentist:
                       </label>
                       <select
@@ -1064,12 +1064,12 @@ const AdminDashboard = () => {
                           setSelectedPaymentIds([]);
                         }}
                         style={{
-                          border: '1px solid #c2dcd0',
+                          border: '1px solid var(--border)',
                           borderRadius: '8px',
                           padding: '5px 10px',
                           fontSize: '0.82rem',
-                          color: '#1a3028',
-                          background: '#fff',
+                          color: 'var(--foreground)',
+                          background: 'var(--card)',
                           cursor: 'pointer',
                         }}
                       >
@@ -1104,7 +1104,7 @@ const AdminDashboard = () => {
 
                     {/* Native Month Selector Filter (Ponytail & Impeccable) */}
                     <div className="ad-pay-month-filter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <label htmlFor="ad-month-picker" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
+                      <label htmlFor="ad-month-picker" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
                         Month:
                       </label>
                       <input
@@ -1117,12 +1117,12 @@ const AdminDashboard = () => {
                         onChange={e => setPayFilterMonth(e.target.value || 'all')}
                         className="ad-month-input"
                         style={{
-                          border: '1px solid #c2dcd0',
+                          border: '1px solid var(--border)',
                           borderRadius: '8px',
                           padding: '4px 8px',
                           fontSize: '0.82rem',
-                          color: '#1a3028',
-                          background: '#fff',
+                          color: 'var(--foreground)',
+                          background: 'var(--card)',
                           cursor: 'pointer',
                         }}
                       />
@@ -1132,12 +1132,12 @@ const AdminDashboard = () => {
                             type="button"
                             onClick={() => setPayFilterMonth('all')}
                             style={{
-                              background: '#f0f4f2',
+                              background: 'var(--muted)',
                               border: 'none',
                               borderRadius: '6px',
                               padding: '4px 8px',
                               fontSize: '0.75rem',
-                              color: '#4a7060',
+                              color: 'var(--muted-foreground)',
                               cursor: 'pointer',
                               fontWeight: 600,
                             }}
@@ -1148,12 +1148,12 @@ const AdminDashboard = () => {
                             type="button"
                             onClick={handleSelectMonthOrders}
                             style={{
-                              background: '#e8f2ec',
+                              background: 'var(--accent)',
                               border: '1px solid #78937E',
                               borderRadius: '6px',
                               padding: '4px 10px',
                               fontSize: '0.78rem',
-                              color: '#1e5038',
+                              color: 'var(--primary)',
                               cursor: 'pointer',
                               fontWeight: 700,
                             }}
@@ -1191,7 +1191,7 @@ const AdminDashboard = () => {
                           window.open(url, '_blank');
                         }}
                         style={{
-                          background: '#1e5038',
+                          background: 'var(--primary)',
                           color: '#fff',
                           border: 'none',
                           borderRadius: '6px',
@@ -1216,7 +1216,7 @@ const AdminDashboard = () => {
 
                     {selectedPaymentIds.length > 0 && (
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e5038' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)' }}>
                           {selectedPaymentIds.length} orders selected
                         </span>
                         <button
@@ -1256,11 +1256,11 @@ const AdminDashboard = () => {
                                 checked={filteredPaymentsForDrill.length > 0 && filteredPaymentsForDrill.every(p => selectedPaymentIds.includes(p._id))}
                                 onChange={() => toggleSelectAllPayments(filteredPaymentsForDrill)}
                                 aria-label="Select all orders"
-                                style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#1e5038' }}
+                                style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: 'var(--primary)' }}
                               />
                             </th>
                             {['Case ID', 'Patient', 'Amount', 'Status', 'Mode & Ref', 'Actions'].map(h => (
-                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: 'var(--muted-foreground)', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
                             ))}
                           </tr></thead>
                           <tbody>
@@ -1274,7 +1274,7 @@ const AdminDashboard = () => {
                                       checked={isSelected}
                                       onChange={() => togglePaymentSelect(p._id)}
                                       aria-label={`Select case ${p.caseId}`}
-                                      style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#1e5038' }}
+                                      style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: 'var(--primary)' }}
                                     />
                                   </td>
                                   <td style={{ padding: '10px 12px' }}><code style={{ fontSize: '0.78rem', background: '#f0f0f0', padding: '2px 6px', borderRadius: '4px' }}>{p.caseId}</code></td>
@@ -1291,9 +1291,9 @@ const AdminDashboard = () => {
                                     {p.paymentStatus === 'Paid' && p.paymentMode ? (
                                       <span style={{ fontSize: '0.78rem' }}>
                                         <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
-                                        {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                                        {p.referenceNumber && <span style={{ color: 'var(--muted-foreground)', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
                                       </span>
-                                    ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
+                                    ) : <span style={{ color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>—</span>}
                                   </td>
                                   <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                                     <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
@@ -1370,7 +1370,7 @@ const AdminDashboard = () => {
                                   setBatchPayError('');
                                   setBatchPayModalOpen(true);
                                 }}
-                                style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 18px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                style={{ background: 'var(--primary)', border: '1px solid #708c80', color: '#fff', padding: '8px 18px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                               >
                                 {Ico.creditCard(15)} Settle Payment for {selectedPaymentIds.length} Orders
                               </button>
@@ -1403,7 +1403,7 @@ const AdminDashboard = () => {
                                   {d.totalPending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>Pending {formatINR(d.totalPending)}</span>}
                                   {unpaid > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>{unpaid} Unpaid</span>}
                                 </div>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.payments.length} Cases ›</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{d.payments.length} Cases ›</span>
                               </div>
                             </div>
                           );
@@ -1427,7 +1427,7 @@ const AdminDashboard = () => {
                         }
                       }}
                       title={drillDentistOrders ? "Back to All Lab Orders" : "Back to Dentists"}
-                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
                     </button>
@@ -1458,7 +1458,7 @@ const AdminDashboard = () => {
                         <table className="ud-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                           <thead><tr style={{ background: 'var(--surface, #f0f7f3)' }}>
                             {['Patient', 'Case ID', 'Service', 'Status', 'Payment', 'Amount', 'Created'].map(h => (
-                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: '#4a7060', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
+                              <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: 'var(--muted-foreground)', borderBottom: '2px solid var(--border, #e2ece6)' }}>{h}</th>
                             ))}
                           </tr></thead>
                           <tbody>
@@ -1482,7 +1482,7 @@ const AdminDashboard = () => {
                                   }}>{o.paymentStatus || 'Pending'}</span>
                                 </td>
                                 <td style={{ padding: '10px 12px', fontWeight: 600 }}>{formatINR(o.paymentAmount || o.amount || 0)}</td>
-                                <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.78rem' }}>
+                                <td style={{ padding: '10px 12px', color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>
                                   {formatOrderDateTime(o.createdAt)}
                                 </td>
                               </tr>
@@ -1516,7 +1516,7 @@ const AdminDashboard = () => {
                                   {pending > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>{pending} Pending</span>}
                                   {completed > 0 && <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>{completed} Completed</span>}
                                 </div>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e5038', whiteSpace: 'nowrap' }}>{d.orders.length} Orders ›</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{d.orders.length} Orders ›</span>
                               </div>
                             </div>
                           );
@@ -1681,7 +1681,7 @@ const AdminDashboard = () => {
                           height: '38px',
                           border: 'none',
                           cursor: 'pointer',
-                          color: '#1e5038',
+                          color: 'var(--primary)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1755,14 +1755,14 @@ const AdminDashboard = () => {
                         onClick={() => setSettingsSubView(null)}
                         title="Back to Settings"
                         aria-label="Back to Settings"
-                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}
+                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = '#d0e4d7'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = '#e2ece6'; }}
                       >
                         {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
                       </button>
                       <div>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground)', margin: 0 }}>
                           {settingsSubView === 'notice' && 'Dentist Portal Notice Bar'}
                           {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
                           {settingsSubView === 'users' && 'User Accounts Overview'}
@@ -1770,18 +1770,18 @@ const AdminDashboard = () => {
                           {settingsSubView === 'maintenance' && 'Maintenance Mode Controller'}
                           {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
                         </h2>
-                        <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
                       </div>
                     </div>
 
                     {/* Sub-Page 1: Notice Bar Manager */}
                     {settingsSubView === 'notice' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         {/* Master Toggle */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px' }}>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Show Notice Bar to Dentists</div>
-                            <div style={{ fontSize: '0.8rem', color: '#6b8a7a', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all dentist dashboards</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--foreground)' }}>Show Notice Bar to Dentists</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all dentist dashboards</div>
                           </div>
                           <button
                             onClick={() => setNoticeEnabled(v => !v)}
@@ -1793,7 +1793,7 @@ const AdminDashboard = () => {
                           >
                             <span style={{
                               position: 'absolute', top: '3px', left: noticeEnabled ? '27px' : '3px',
-                              width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
+                              width: '22px', height: '22px', borderRadius: '50%', background: 'var(--card)',
                               boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
                             }} />
                           </button>
@@ -1802,7 +1802,7 @@ const AdminDashboard = () => {
                         {/* Live Preview */}
                         {(Array.isArray(noticeMessages) && noticeMessages.length > 0) && (
                           <div style={{ marginBottom: '24px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
                             <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
                               <TwentyFirstNoticeBar messages={noticeMessages || []} />
                             </div>
@@ -1823,7 +1823,7 @@ const AdminDashboard = () => {
                             }}
                             placeholder="Type a new announcement message..."
                             maxLength={250}
-                            style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
+                            style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '0.88rem', outline: 'none' }}
                           />
                           <TwentyFirstIconButton
                             icon={Ico.plus(18)}
@@ -1859,14 +1859,14 @@ const AdminDashboard = () => {
                               ]);
                               setNoticeEnabled(true);
                             }}
-                            style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                            style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                           >
                             Reset to Defaults
                           </button>
                           <button
                             onClick={handleNoticeSave}
                             disabled={noticeSaving}
-                            style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
+                            style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: noticeSaving ? 'default' : 'pointer', opacity: noticeSaving ? 0.7 : 1 }}
                           >
                             {noticeSaving ? 'Saving...' : 'Save Changes'}
                           </button>
@@ -1877,12 +1877,12 @@ const AdminDashboard = () => {
                     {/* Sub-Page 2: Payments & Revenue Analytics */}
                     {/* Sub-Page: Staff Notice Alert Broadcast */}
                     {settingsSubView === 'staff-notice' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         {/* Master Toggle */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px' }}>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Show Notice Bar to Staff</div>
-                            <div style={{ fontSize: '0.8rem', color: '#6b8a7a', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all staff dashboards</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--foreground)' }}>Show Notice Bar to Staff</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all staff dashboards</div>
                           </div>
                           <button
                             onClick={() => setStaffNoticeEnabled(v => !v)}
@@ -1894,7 +1894,7 @@ const AdminDashboard = () => {
                           >
                             <span style={{
                               position: 'absolute', top: '3px', left: staffNoticeEnabled ? '27px' : '3px',
-                              width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
+                              width: '22px', height: '22px', borderRadius: '50%', background: 'var(--card)',
                               boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
                             }} />
                           </button>
@@ -1903,7 +1903,7 @@ const AdminDashboard = () => {
                         {/* Live Preview */}
                         {(Array.isArray(staffNoticeMessages) && staffNoticeMessages.length > 0) && (
                           <div style={{ marginBottom: '24px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
                             <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
                               <TwentyFirstNoticeBar messages={staffNoticeMessages || []} />
                             </div>
@@ -1924,7 +1924,7 @@ const AdminDashboard = () => {
                             }}
                             placeholder="Type a new staff announcement message..."
                             maxLength={250}
-                            style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
+                            style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '0.88rem', outline: 'none' }}
                           />
                           <TwentyFirstIconButton
                             icon={Ico.plus(18)}
@@ -1958,14 +1958,14 @@ const AdminDashboard = () => {
                               ]);
                               setStaffNoticeEnabled(true);
                             }}
-                            style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                            style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted-foreground)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                           >
                             Reset to Defaults
                           </button>
                           <button
                             onClick={handleStaffNoticeSave}
                             disabled={staffNoticeSaving}
-                            style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: staffNoticeSaving ? 'default' : 'pointer', opacity: staffNoticeSaving ? 0.7 : 1 }}
+                            style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: 'var(--primary)', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: staffNoticeSaving ? 'default' : 'pointer', opacity: staffNoticeSaving ? 0.7 : 1 }}
                           >
                             {staffNoticeSaving ? 'Saving...' : 'Save Changes'}
                           </button>
@@ -1973,29 +1973,29 @@ const AdminDashboard = () => {
                       </div>
                     )}
                     {settingsSubView === 'payments' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalBilled || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalCollected || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
                               {formatINR(paymentData.summary?.totalPending || 0)}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e5038', marginTop: '8px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginTop: '8px' }}>
                               {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
                             </div>
                           </div>
@@ -2005,27 +2005,27 @@ const AdminDashboard = () => {
 
                     {/* Sub-Page 3: User Accounts Overview */}
                     {settingsSubView === 'users' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)', marginTop: '8px' }}>
                               {stats.total || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
                               {stats.approved || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
                               {stats.pending || 0}
                             </div>
                           </div>
-                          <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
+                          <div style={{ background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>
                             <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejected</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#dc2626', marginTop: '8px' }}>
                               {stats.rejected || 0}
@@ -2047,10 +2047,10 @@ const AdminDashboard = () => {
 
                     {/* Sub-Page 4: Administrator Account */}
                     {settingsSubView === 'account' && (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+                      <div style={{ background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--border)', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                         <div>
-                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Administrator Account</div>
-                          <div style={{ fontSize: '0.85rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--foreground)' }}>Administrator Account</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>Logged in as <strong style={{ color: 'var(--primary)' }}>{admin?.username || 'admin'}</strong></div>
                         </div>
                         <button
                           type="button"
@@ -2239,7 +2239,7 @@ const AdminDashboard = () => {
           <div className="ad-pay-modal-meta" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
-              <span><strong>Total Amount:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+              <span><strong>Total Amount:</strong> <strong style={{ color: 'var(--primary)', fontSize: '1rem' }}>
                 {formatINR(paymentData.payments.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
               </strong></span>
             </div>
@@ -2249,7 +2249,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Payment status toggle: Paid vs Pending */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: 'var(--muted)', padding: '4px', borderRadius: '10px' }}>
             {[
               { key: 'Paid', label: 'Mark as Paid' },
               { key: 'Pending', label: 'Mark as Pending' },

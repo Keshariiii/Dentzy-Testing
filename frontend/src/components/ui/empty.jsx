@@ -29,7 +29,7 @@ const EmptyMedia = React.forwardRef(({ className, variant = "default", style, ..
     ref={ref}
     className={cn(
       "mb-4 flex items-center justify-center rounded-2xl",
-      variant === "default" && "size-16 bg-[#eef6f2] border border-[#c5ddd3] text-[#1e5038]",
+      variant === "default" && "size-16 bg-accent border border-border text-foreground",
       className
     )}
     style={style}
@@ -41,8 +41,8 @@ EmptyMedia.displayName = "EmptyMedia";
 const EmptyTitle = React.forwardRef(({ className, style, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-2xl font-bold tracking-tight text-[#1e2824]", className)}
-    style={{ color: "#1e2824", ...style }}
+    className={cn("text-2xl font-bold tracking-tight text-foreground", className)}
+    style={{ color: "var(--foreground)", ...style }}
     {...props}
   />
 ));
@@ -51,8 +51,8 @@ EmptyTitle.displayName = "EmptyTitle";
 const EmptyDescription = React.forwardRef(({ className, style, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-[#64748b] leading-relaxed max-w-[420px]", className)}
-    style={{ color: "#64748b", ...style }}
+    className={cn("text-sm text-muted-foreground leading-relaxed max-w-[420px]", className)}
+    style={{ color: "var(--muted-foreground)", ...style }}
     {...props}
   />
 ));
