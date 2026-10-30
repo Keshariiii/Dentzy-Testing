@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
     phone TEXT DEFAULT '',
     clinicName TEXT DEFAULT '',
     address TEXT DEFAULT '',
-    themePreference TEXT DEFAULT 'system' CHECK(themePreference IN ('light', 'dark', 'system')),
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
 );
@@ -95,7 +94,6 @@ CREATE TABLE IF NOT EXISTS staff (
     designation TEXT DEFAULT '',
     employeeId TEXT DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
-    themePreference TEXT DEFAULT 'system' CHECK(themePreference IN ('light', 'dark', 'system')),
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
 );
@@ -149,3 +147,4 @@ VALUES (
     datetime('now'),
     'system'
 );
+

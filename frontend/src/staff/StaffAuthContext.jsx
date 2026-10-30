@@ -1,22 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getStaffUrl } from '../api/client';
-import { useTheme } from '../context/ThemeContext';
 
-export const StaffAuthContext = createContext(null);
+const StaffAuthContext = createContext(null);
 
 export const StaffAuthProvider = ({ children }) => {
-  const [staff, setStaff]     = useState(null);
+  const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { setTheme }          = useTheme();
-  const STAFF_API             = useMemo(() => getStaffUrl(), []);
-
-  const syncThemePref = useCallback((pref) => {
-    if (!pref || typeof setTheme !== 'function') return;
-    const local = typeof window !== 'undefined' ? localStorage.getItem('dentzy-theme') : null;
-    if (!local || pref === 'light' || pref === 'dark') {
-      setTheme(pref);
-    }
-  }, [setTheme]);
+  const STAFF_API = useMemo(() => getStaffUrl(), []);
 
   // ── Session hydration on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -29,11 +19,7 @@ export const StaffAuthProvider = ({ children }) => {
       if (!saved) { if (isMounted) setLoading(false); return; }
 
       try {
-        const parsed = JSON.parse(saved);
-        if (isMounted) setStaff(parsed);
-        if (parsed?.themePreference) {
-          syncThemePref(parsed.themePreference);
-        }
+        if (isMounted) setStaff(JSON.parse(saved));
       } catch {
         if (typeof window !== 'undefined')
           localStorage.removeItem('dentzy_staff_info');
@@ -53,9 +39,6 @@ export const StaffAuthProvider = ({ children }) => {
           if (isMounted) {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
-            if (data.staff?.themePreference) {
-              syncThemePref(data.staff.themePreference);
-            }
           }
         } else if (res.status === 503) {
           try {
@@ -79,7 +62,7 @@ export const StaffAuthProvider = ({ children }) => {
     };
     hydrate();
     return () => { isMounted = false; };
-  }, [setTheme]);
+  }, []);
 
   // ── Staff login ───────────────────────────────────────────────────────────
   const staffLogin = useCallback(async (username, password) => {
@@ -92,26 +75,18 @@ export const StaffAuthProvider = ({ children }) => {
     localStorage.removeItem('dentzy_user');
     localStorage.removeItem('dentzy_admin_info');
     setStaff(data.staff);
-    if (data.staff?.themePreference) {
-      syncThemePref(data.staff.themePreference);
-    }
     return data.staff;
-  }, [syncThemePref]);
+  }, []);
 
   // ── Staff logout ──────────────────────────────────────────────────────────
   const staffLogout = useCallback(async () => {
     try {
       await apiFetch(`${getStaffUrl()}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined')
       localStorage.removeItem('dentzy_staff_info');
-      const localTheme = localStorage.getItem('dentzy-theme');
-      if (localTheme && typeof setTheme === 'function') {
-        setTheme(localTheme);
-      }
-    }
     setStaff(null);
-  }, [setTheme]);
+  }, []);
 
   // ── Update staff state (after profile save) ───────────────────────────────
   const updateStaffState = useCallback((updatedStaff) => {

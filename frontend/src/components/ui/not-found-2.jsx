@@ -27,7 +27,7 @@ export default function NotFound2() {
     <div
       className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4"
       style={{
-        backgroundColor: 'var(--background)',
+        backgroundColor: 'var(--dz-color-bg-page, #f4f7f5)',
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       }}
     >
@@ -48,7 +48,7 @@ export default function NotFound2() {
             style={{
               fontSize: 'clamp(6rem, 15vw, 9rem)',
               lineHeight: 1,
-              color: 'var(--primary)',
+              color: '#1e5038',
               maskImage:
                 'linear-gradient(to bottom, rgba(30,80,56,1) 20%, rgba(112,140,128,0.15) 85%)',
               WebkitMaskImage:
@@ -61,7 +61,7 @@ export default function NotFound2() {
           {/* Description */}
           <EmptyDescription
             className="-mt-6 text-center text-sm md:text-base font-normal"
-            style={{ color: 'var(--muted-foreground)', maxWidth: '340px' }}
+            style={{ color: '#4a5d54', maxWidth: '340px' }}
           >
             The page you're looking for might have been moved or doesn't exist.
           </EmptyDescription>
@@ -74,7 +74,8 @@ export default function NotFound2() {
             asChild
             className="rounded-lg font-semibold px-5 min-h-[44px] shadow-xs"
             style={{
-              backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)',
+              backgroundColor: '#1e5038',
+              color: '#ffffff',
             }}
           >
             <SafeLink href="/" to="/">
@@ -90,7 +91,7 @@ export default function NotFound2() {
             className="rounded-lg font-semibold px-5 min-h-[44px]"
             style={{
               border: '1.5px solid #708c80',
-              color: 'var(--primary)',
+              color: '#1e5038',
               backgroundColor: '#ffffff',
             }}
           >
@@ -102,12 +103,12 @@ export default function NotFound2() {
         </EmptyContent>
 
         {/* Reassuring Footer */}
-        <div className="mt-8 text-xs text-center" style={{ color: 'var(--muted-foreground)' }}>
+        <div className="mt-8 text-xs text-center" style={{ color: '#708c80' }}>
           <span>Need immediate assistance? </span>
           <a
             href="tel:+919503668112"
             className="font-medium hover:underline"
-            style={{ color: 'var(--primary)' }}
+            style={{ color: '#1e5038' }}
           >
             Call Lab Support: +91 95036 68112
           </a>

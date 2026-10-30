@@ -252,32 +252,3 @@
     color: #fff;
     box-shadow: 0 4px 14px rgba(112, 140, 128, 0.3);
 }
-
-/* ================================================================
-   HEADER — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .header.scrolled {
-    background-color: rgba(18, 18, 18, 0.92);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-}
-
-.dark .nav {
-    background-color: transparent;
-}
-
-.dark .nav a:not(.btn-sm) {
-    color: var(--foreground);
-}
-
-.dark .nav a:not(.btn-sm):hover,
-.dark .nav a.active {
-    color: var(--primary);
-}
-
-@media (max-width: 900px) {
-    .dark .nav {
-        background-color: var(--card);
-        border-left: 1px solid var(--border);
-    }
-}

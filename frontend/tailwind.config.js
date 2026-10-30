@@ -1,65 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
   content: [
     './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     extend: {
-      /* ── Dentzy Brand Colors (from tokens.css & design specification) ──── */
+      /* ── Dentzy Brand Colors (from tokens.css --dz-color-*) ──── */
       colors: {
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
-        card: {
-          DEFAULT: 'var(--card)',
-          foreground: 'var(--card-foreground)',
-        },
-        popover: {
-          DEFAULT: 'var(--popover)',
-          foreground: 'var(--popover-foreground)',
-        },
-        muted: {
-          DEFAULT: 'var(--muted)',
-          foreground: 'var(--muted-foreground)',
-        },
-        accent: {
-          DEFAULT: 'var(--accent)',
-          foreground: 'var(--accent-foreground)',
-        },
-        sidebar: {
-          DEFAULT: 'var(--sidebar)',
-          foreground: 'var(--sidebar-foreground)',
-          primary: 'var(--sidebar-primary)',
-          'primary-foreground': 'var(--sidebar-primary-foreground)',
-          accent: 'var(--sidebar-accent)',
-          'accent-foreground': 'var(--sidebar-accent-foreground)',
-          border: 'var(--sidebar-border)',
-          ring: 'var(--sidebar-ring)',
-        },
-        ring: 'var(--ring)',
-        input: 'var(--input)',
         primary: {
-          DEFAULT: 'var(--primary, #7c9082)',
-          foreground: 'var(--primary-foreground, #ffffff)',
-          dark: 'var(--dz-color-primary-dark, #5a6b5e)',
-          light: 'var(--dz-color-primary-light, #bfc9bb)',
-          muted: 'var(--dz-color-primary-muted, rgba(124, 144, 130, 0.16))',
+          DEFAULT: 'var(--dz-color-primary, #708c80)',
+          dark: 'var(--dz-color-primary-dark, #4a6a5a)',
+          light: 'var(--dz-color-primary-light, #a3bfb1)',
+          muted: 'var(--dz-color-primary-muted, rgba(112, 140, 128, 0.12))',
         },
-        secondary: {
-          DEFAULT: 'var(--secondary, #ced4bf)',
-          foreground: 'var(--secondary-foreground, #1a1f2e)',
-        },
-        destructive: {
-          DEFAULT: 'var(--destructive, #c73e3a)',
-          foreground: 'var(--destructive-foreground, #ffffff)',
-        },
-        charcoal: 'var(--dz-color-charcoal, #1a1f2e)',
-        dark: 'var(--dz-color-dark, #1a1f2e)',
+        charcoal: 'var(--dz-color-charcoal, #1e2824)',
+        dark: 'var(--dz-color-dark, #2a3d35)',
         surface: 'var(--dz-color-bg-surface, #ffffff)',
-        'surface-alt': 'var(--dz-color-bg-surface-alt, #e8e6e1)',
-        page: 'var(--dz-color-bg-page, #f8f7f4)',
-        border: 'var(--border, #e8e6e1)',
-        'border-light': 'var(--border, #e8e6e1)',
+        'surface-alt': 'var(--dz-color-bg-surface-alt, #f8faf9)',
+        page: 'var(--dz-color-bg-page, #f4f7f5)',
+        border: 'var(--dz-color-border, #e2e8f0)',
+        'border-light': 'var(--dz-color-border-light, #f0f2f1)',
         /* Semantic status colors */
         success: {
           DEFAULT: 'var(--dz-color-success, #22c55e)',
@@ -72,7 +32,7 @@ module.exports = {
           text: 'var(--dz-color-warning-text, #92400e)',
         },
         error: {
-          DEFAULT: 'var(--dz-color-error, #c73e3a)',
+          DEFAULT: 'var(--dz-color-error, #ef4444)',
           bg: 'var(--dz-color-error-bg, #fee2e2)',
           text: 'var(--dz-color-error-text, #991b1b)',
         },

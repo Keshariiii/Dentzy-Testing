@@ -107,9 +107,9 @@ function InvoiceContent() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', gap: '12px', background: 'var(--background)' }}>
-        <div style={{ width: '36px', height: '36px', border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <span style={{ color: 'var(--primary)', fontSize: '15px', fontWeight: 500 }}>Loading official document...</span>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', gap: '12px', background: '#f4f6f5' }}>
+        <div style={{ width: '36px', height: '36px', border: '3px solid #e8f5ee', borderTopColor: '#1e5038', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <span style={{ color: '#1e5038', fontSize: '15px', fontWeight: 500 }}>Loading official document...</span>
         <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }' }} />
       </div>
     );
@@ -117,8 +117,8 @@ function InvoiceContent() {
 
   if (error) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--background)', padding: '24px' }}>
-        <div style={{ maxWidth: '480px', width: '100%', background: 'var(--card)', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f6f5', padding: '24px' }}>
+        <div style={{ maxWidth: '480px', width: '100%', background: '#ffffff', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', textAlign: 'center' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
@@ -126,23 +126,23 @@ function InvoiceContent() {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 8px' }}>{error.title}</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted-foreground)', margin: '0 0 24px', lineHeight: 1.5 }}>{error.message}</p>
+          <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#111827', margin: '0 0 8px' }}>{error.title}</h2>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 24px', lineHeight: 1.5 }}>{error.message}</p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {error.status === 401 && (
-              <a href="/login" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 20px', background: 'var(--primary)', color: 'var(--primary-foreground)', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'background 0.2s' }}>
+              <a href="/login" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 20px', background: '#1e5038', color: '#ffffff', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none', transition: 'background 0.2s' }}>
                 Log In to Dentzy
               </a>
             )}
-            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 20px', background: 'var(--background)', color: '#374151', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}>
+            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 20px', background: '#f4f6f5', color: '#374151', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}>
               Return to Home
             </a>
           </div>
 
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.6 }}>
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', fontSize: '12px', color: '#708c80', lineHeight: 1.6 }}>
             <div>Dentzy Dental Laboratory · Vasai West - 401202</div>
-            <div>Support: <a href="tel:+919503668112" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>+91 9503668112</a> · <a href="mailto:support@dentzy.in" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>support@dentzy.in</a></div>
+            <div>Support: <a href="tel:+919503668112" style={{ color: '#1e5038', textDecoration: 'none', fontWeight: 500 }}>+91 9503668112</a> · <a href="mailto:support@dentzy.in" style={{ color: '#1e5038', textDecoration: 'none', fontWeight: 500 }}>support@dentzy.in</a></div>
           </div>
         </div>
       </div>
@@ -150,7 +150,7 @@ function InvoiceContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--background)', padding: '16px 0' }}>
+    <div style={{ minHeight: '100vh', background: '#f8faf9', padding: '16px 0' }}>
       <PrintableInvoice statement={statementData} payment={paymentData} isStandalone={true} />
     </div>
   );
@@ -158,7 +158,7 @@ function InvoiceContent() {
 
 export default function InvoicePage() {
   return (
-    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', color: 'var(--primary)' }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', color: '#1e5038' }}>Loading...</div>}>
       <InvoiceContent />
     </Suspense>
   );

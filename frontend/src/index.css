@@ -9,11 +9,6 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  color-scheme: light;
-}
-
-html.dark {
-  color-scheme: dark;
 }
 
 :root {
@@ -28,7 +23,7 @@ html.dark {
   --color-white: var(--dz-color-white);
   --color-light-gray: var(--dz-color-border-light);
   --color-text: var(--dz-color-text-body);
-  --color-text-light: var(--muted-foreground);
+  --color-text-light: #777;
 
   --font-main: var(--dz-font-family);
 
@@ -39,12 +34,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font-main);
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-white);
+  color: var(--color-text);
   line-height: 1.6;
   overflow-x: hidden;
   width: 100%;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1,
@@ -97,7 +91,7 @@ img {
 .btn {
   display: inline-block;
   padding: 12px 24px;
-  background-color: var(--dz-color-primary, #7c9082);
+  background-color: #1e5038;
   color: white;
   border: none;
   border-radius: 50px;
@@ -108,9 +102,9 @@ img {
 }
 
 .btn:hover {
-  background-color: var(--dz-color-primary-dark, #5a6b5e);
+  background-color: #174430;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(124, 144, 130, 0.25);
+  box-shadow: 0 8px 24px rgba(30, 80, 56, 0.15);
 }
 
 .btn:active {
@@ -282,11 +276,10 @@ img {
 
 /* ── Glassmorphic utility class ──────────────────────────────────────── */
 .dz-glass {
-  background: var(--dz-glass-bg);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px) saturate(1.4);
   -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  border: 1px solid var(--dz-glass-border);
-  box-shadow: var(--dz-glass-shadow);
+  border: 1px solid rgba(112, 140, 128, 0.12);
 }
 
 /* ── Clean App Viewport (Scrollbar hidden for clean native app appearance) ─── */
@@ -364,24 +357,5 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="month"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
   transform: scale(1.08);
-}
-
-.dark input[type="date"]::-webkit-calendar-picker-indicator,
-.dark input[type="month"]::-webkit-calendar-picker-indicator {
-  filter: invert(85%) sepia(10%) saturate(400%) hue-rotate(95deg);
-}
-
-/* ── Dark Mode Dentzy Logo Optimization ───────────────────────────────── */
-.dark img[src*="dentzy-logo"],
-.dark .logo-img,
-.dark .ad-logo-img,
-.dark .ud-logo-img,
-.dark .sd-logo,
-.dark .plp-logo-img,
-.dark .m-header__logo,
-.dark .dz-footer__logo-img,
-.dark .auth-header-logo img,
-.dark .m-auth-logo img {
-  content: url('/dentzy-logo-dark.png');
 }
 

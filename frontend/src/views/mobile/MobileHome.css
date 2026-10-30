@@ -685,7 +685,7 @@
   letter-spacing: 0.15em;
 }
 
-/* ── Contact Form Card (Adaptive Light & Dark Modes) ── */
+/* ── Contact Form Card ── */
 .m-contact-form-section { padding: 24px 16px; }
 
 .m-contact-card {
@@ -732,7 +732,7 @@
   padding: 12px 14px;
   border: 1px solid rgba(124, 144, 130, 0.25);
   border-radius: 12px;
-  font-size: 16px; /* Prevents auto-zoom on mobile iOS/Android */
+  font-size: 16px;
   font-family: inherit;
   color: var(--foreground, #1a1f2e);
   background: var(--muted, #f8faf8);
@@ -794,7 +794,7 @@
   cursor: not-allowed;
 }
 
-/* ── Thank You State ────────────────────────── */
+/* ── Thank You State ── */
 .m-cf-thankyou {
   display: flex;
   flex-direction: column;
@@ -869,56 +869,6 @@
 
 .m-cf-msg--success { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
 .m-cf-msg--error   { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
-
-/* ── Dark Mode Overrides for Contact Form Card ── */
-.dark .m-contact-card {
-  background: #141715 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
-}
-
-.dark .m-cf-label {
-  color: #ffffff !important;
-}
-
-.dark .m-cf-input,
-.dark .m-cf-textarea {
-  background: #1a1d1b !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-}
-
-.dark .m-cf-input::placeholder,
-.dark .m-cf-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4) !important;
-}
-
-.dark .m-cf-input:focus,
-.dark .m-cf-textarea:focus {
-  border-color: #7c9082 !important;
-  box-shadow: 0 0 0 1px #7c9082 !important;
-  background: #1a1d1b !important;
-}
-
-.dark .m-cf-thankyou-title {
-  color: #ffffff !important;
-}
-
-.dark .m-cf-thankyou-desc {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.dark .m-cf-thankyou-btn {
-  background: #1a1d1b !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-}
-
-.dark .m-cf-thankyou-btn:hover {
-  background: #232724 !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  color: #ffffff !important;
-}
 
 /* ── Contact Info (Card-free Editorial Layout) ── */
 .m-contact-info-grid {
@@ -1065,31 +1015,3 @@
 
 /* ── Bottom spacer ──────────────────────────── */
 .m-bottom-spacer { height: 80px; }
-
-
-
-/* ================================================================
-   MOBILE HOME — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .m-landing-shell {
-  background: var(--background);
-  color: var(--foreground);
-}
-.dark .m-qa-card,
-.dark .m-service-card,
-.dark .m-cuz-card,
-.dark .m-details-card,
-.dark .m-catalog-card,
-.dark .m-why-card,
-.dark .m-ci-item {
-  background: var(--card) !important;
-  border-color: var(--border) !important;
-  color: var(--card-foreground);
-}
-.dark .m-intro-text,
-.dark .m-details-intro p,
-.dark .m-details-card p,
-.dark .m-catalog-body p,
-.dark .m-why-card p {
-  color: var(--muted-foreground);
-}

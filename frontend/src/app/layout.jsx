@@ -8,7 +8,6 @@ import '../index.css';
 import '../global-animations.css';
 import '../responsive.css';
 import Providers from './Providers';
-import { themeScript } from '../context/ThemeContext';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -81,9 +80,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={dmSans.variable} suppressHydrationWarning>
+    <html lang="en" className={dmSans.variable}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
         <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
       </head>
@@ -101,3 +99,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

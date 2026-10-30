@@ -133,23 +133,23 @@ export function TwentyFirstOtpBox({
               aria-label={`Digit ${i + 1} of ${length}`}
               className={cn(
                 'w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl',
-                'border-2 bg-input outline-none transition-all duration-200',
-                'text-foreground placeholder:text-muted-foreground',
+                'border-2 bg-white outline-none transition-all duration-200',
+                'text-[#1e2824] placeholder:text-gray-300',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 isFocused
-                  ? 'border-primary ring-2 ring-primary/20 shadow-md'
+                  ? 'border-[#1e5038] ring-2 ring-[#1e5038]/20 shadow-md'
                   : hasError
                     ? 'border-red-400 ring-2 ring-red-200'
                     : hasDigit
-                      ? 'border-primary/60'
-                      : 'border-border hover:border-muted-foreground/30',
+                      ? 'border-[#708c80]/60'
+                      : 'border-gray-200 hover:border-gray-300',
               )}
-              style={{ caretColor: 'var(--primary)' }}
+              style={{ caretColor: '#1e5038' }}
             />
             {/* Caret blink when focused and empty */}
             {isFocused && !hasDigit && (
               <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[2px] h-6 bg-primary rounded-full"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[2px] h-6 bg-[#1e5038] rounded-full"
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'steps(2)' }}
               />

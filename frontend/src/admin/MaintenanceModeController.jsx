@@ -205,9 +205,9 @@ export default function MaintenanceModeController({
 
   return (
     <div style={{
-      background: 'var(--card)',
+      background: '#ffffff',
       borderRadius: '16px',
-      border: '1px solid var(--border)',
+      border: '1px solid #e2ece6',
       padding: '28px',
       boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
       fontFamily: 'Inter, -apple-system, sans-serif',
@@ -223,10 +223,10 @@ export default function MaintenanceModeController({
       {/* ── Section Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--foreground)', margin: 0 }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>
             Maintenance Mode Controller
           </h3>
-          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.84rem', margin: '4px 0 0' }}>
+          <p style={{ color: '#6b8a7a', fontSize: '0.84rem', margin: '4px 0 0' }}>
             Control portal access during system upgrades, server maintenance, or milling machine calibrations.
           </p>
         </div>
@@ -305,7 +305,7 @@ export default function MaintenanceModeController({
             width: '24px',
             height: '24px',
             borderRadius: '50%',
-            background: 'var(--card)',
+            background: '#ffffff',
             boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
             transition: 'left 0.2s',
           }} />
@@ -314,7 +314,7 @@ export default function MaintenanceModeController({
 
       {/* ── Target Selector (3-Card Radio Group) ── */}
       <div style={{ marginBottom: '28px' }}>
-        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)', marginBottom: '10px' }}>
+        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', color: '#1a3028', marginBottom: '10px' }}>
           Target Audience (Who is locked out?)
         </label>
         <div style={{
@@ -370,7 +370,7 @@ export default function MaintenanceModeController({
                     justifyContent: 'center',
                   }}>
                     {isSelected && (
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1e5038' }} />
                     )}
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export default function MaintenanceModeController({
       {/* ── Custom Visitor Announcement ── */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <label style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)' }}>
+          <label style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>
             Custom Announcement Message
           </label>
           <span style={{ fontSize: '0.75rem', color: (config?.customMessage || '').length > 450 ? '#dc2626' : '#708c80', fontWeight: 600 }}>
@@ -416,14 +416,14 @@ export default function MaintenanceModeController({
           onFocus={(e) => e.target.style.borderColor = '#1e5038'}
           onBlur={(e) => e.target.style.borderColor = '#d1dbd5'}
         />
-        <div style={{ fontSize: '0.76rem', color: 'var(--muted-foreground)', marginTop: '4px' }}>
+        <div style={{ fontSize: '0.76rem', color: '#6b8a7a', marginTop: '4px' }}>
           This message will be prominently displayed inside the Announcement card on the Under Maintenance screen.
         </div>
       </div>
 
       {/* ── Estimated Restoration Time ── */}
       <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)', marginBottom: '8px' }}>
+        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', color: '#1a3028', marginBottom: '8px' }}>
           Estimated Restoration Time
         </label>
         <input
@@ -450,7 +450,7 @@ export default function MaintenanceModeController({
 
         {/* Quick Fill Chips */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', fontWeight: 600 }}>Quick presets:</span>
+          <span style={{ fontSize: '0.75rem', color: '#708c80', fontWeight: 600 }}>Quick presets:</span>
           {[
             { id: '30m', label: '+30 mins' },
             { id: '1h', label: '+1 hour' },
@@ -464,9 +464,9 @@ export default function MaintenanceModeController({
               style={{
                 padding: '4px 10px',
                 borderRadius: '9999px',
-                background: 'var(--muted)',
+                background: '#f4f7f5',
                 border: '1px solid #dce5df',
-                color: 'var(--primary)',
+                color: '#1e5038',
                 fontSize: '0.74rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -487,16 +487,16 @@ export default function MaintenanceModeController({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '16px 20px',
-        background: 'var(--muted)',
-        border: '1px solid var(--border)',
+        background: '#f8faf9',
+        border: '1px solid #e2ece6',
         borderRadius: '12px',
         marginBottom: '28px',
       }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--foreground)' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a3028' }}>
             Show Emergency Support & Rush Desk Contact
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.78rem', color: '#6b8a7a', marginTop: '2px' }}>
             Renders one-tap buttons for the Lab Hotline (+91 95036 68112) and WhatsApp Urgent Desk on the maintenance page.
           </div>
         </div>
@@ -524,7 +524,7 @@ export default function MaintenanceModeController({
             width: '20px',
             height: '20px',
             borderRadius: '50%',
-            background: 'var(--card)',
+            background: '#ffffff',
             boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
             transition: 'left 0.2s',
           }} />
@@ -541,7 +541,7 @@ export default function MaintenanceModeController({
         flexWrap: 'wrap',
         gap: '14px',
       }}>
-        <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>
+        <div style={{ fontSize: '0.78rem', color: '#708c80' }}>
           {config.updated_at ? (
             <>Last updated by <strong>{config.updated_by || 'admin'}</strong> on {new Date(config.updated_at).toLocaleString('en-IN')}</>
           ) : (
@@ -557,7 +557,7 @@ export default function MaintenanceModeController({
             minHeight: '44px',
             padding: '0 24px',
             borderRadius: '10px',
-            background: 'var(--primary)',
+            background: '#1e5038',
             color: '#ffffff',
             border: 'none',
             fontSize: '0.88rem',
@@ -595,7 +595,7 @@ export default function MaintenanceModeController({
         id="ad-maintenance-confirm-modal"
       >
         <div style={{
-          background: 'var(--card)',
+          background: '#ffffff',
           borderRadius: '16px',
           padding: '28px',
           boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
@@ -616,7 +616,7 @@ export default function MaintenanceModeController({
             <AlertTriangleIcon size={26} color="#dc2626" />
           </div>
 
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground)', margin: '0 0 8px 0' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: '0 0 8px 0' }}>
             Activate Maintenance Mode?
           </h3>
 
@@ -649,7 +649,7 @@ export default function MaintenanceModeController({
                 padding: '0 18px',
                 borderRadius: '10px',
                 background: '#f3f4f6',
-                color: 'var(--foreground)',
+                color: '#374151',
                 border: 'none',
                 fontWeight: 700,
                 fontSize: '0.86rem',

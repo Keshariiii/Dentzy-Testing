@@ -56,12 +56,12 @@ export const SPRING_MOUSE = {
 };
 
 const STATUS_CLASS = {
-  neutral: 'border-[#e2e8f0] bg-[#f8faf9] text-[#4b5563] dark:border-border dark:bg-card dark:text-muted-foreground',
-  info: 'border-[#dbe3eb] bg-[#f1f5f8] text-[#334155] dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300',
-  success: 'border-[#c2dece] bg-[#eef6f2] text-[#1e5038] dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300',
-  warning: 'border-[#ede5d8] bg-[#fbf8f2] text-[#785b28] dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300',
-  danger: 'border-[#eddada] bg-[#fbf3f3] text-[#7a3838] dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300',
-  loading: 'border-[#cce2d5] bg-[#eef6f2] text-[#1e5038] dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300',
+  neutral: 'border-[#e2e8f0] bg-[#f8faf9] text-[#4b5563]',
+  info: 'border-[#dbe3eb] bg-[#f1f5f8] text-[#334155]',
+  success: 'border-[#c2dece] bg-[#eef6f2] text-[#1e5038]',
+  warning: 'border-[#ede5d8] bg-[#fbf8f2] text-[#785b28]',
+  danger: 'border-[#eddada] bg-[#fbf3f3] text-[#7a3838]',
+  loading: 'border-[#cce2d5] bg-[#eef6f2] text-[#1e5038]',
 };
 
 const SIZE_CLASS = {

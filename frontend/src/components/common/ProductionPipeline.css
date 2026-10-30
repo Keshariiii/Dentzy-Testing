@@ -231,33 +231,3 @@
 
   .pp-toggle-btn { font-size: 0.68rem; padding: 4px 10px; }
 }
-
-
-/* ================================================================
-   PRODUCTION PIPELINE — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .pp-card {
-  background: var(--card);
-  border-color: var(--border);
-}
-.dark .pp-title,
-.dark .pp-step--current .pp-step-label {
-  color: var(--foreground);
-}
-.dark .pp-sub,
-.dark .pp-step-label {
-  color: var(--muted-foreground);
-}
-.dark .pp-step-icon {
-  background: var(--muted);
-  border-color: var(--border);
-  color: var(--muted-foreground);
-}
-.dark .pp-connector {
-  background: var(--border);
-}
-.dark .pp-live-pill,
-.dark .pp-toggle-btn:hover {
-  background: var(--accent);
-  color: var(--foreground);
-}

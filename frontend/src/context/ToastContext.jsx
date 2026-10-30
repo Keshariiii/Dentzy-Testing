@@ -1,12 +1,10 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { Toaster, toast } from 'sonner';
-import { useTheme } from './ThemeContext';
 // import '../styles/toast.css'; // Removed old custom styles
 
 const ToastContext = createContext(null);
 
 export const ToastProvider = ({ children }) => {
-  const { resolvedTheme } = useTheme();
   const showToast = useCallback((message, type = 'info', duration = 4000) => {
     const sonnerType = ['error', 'success', 'warning', 'info'].includes(type) ? type : 'info';
     return toast[sonnerType](message, { duration });
@@ -21,7 +19,7 @@ export const ToastProvider = ({ children }) => {
       {children}
       <Toaster 
         position="top-center" 
-        theme={resolvedTheme || 'light'} 
+        theme="light" 
         expand={false}
         swipeDirections={['up', 'right', 'left']}
         className="dz-sonner-toaster"

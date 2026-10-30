@@ -252,7 +252,7 @@ const Register = () => {
           </div>
           <div className="auth-card pending-card">
             <div className="pending-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.5">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="1.5">
                 <circle cx="12" cy="12" r="10"/>
                 <polyline points="12 6 12 12 16 14"/>
               </svg>
@@ -295,7 +295,7 @@ const Register = () => {
 
           <div className="auth-card">
             <h2 className="auth-card-title">Enter Verification Code</h2>
-            <p className="auth-card-subtitle" style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem', marginBottom: '8px' }}>
+            <p className="auth-card-subtitle" style={{ color: '#4a5d54', fontSize: '0.9rem', marginBottom: '8px' }}>
               We sent a 6-digit code to <strong>{form.email}</strong>
             </p>
 
@@ -360,7 +360,7 @@ const Register = () => {
                   }}
                   style={{
                     background: 'none', border: 'none',
-                    color: resendCooldown > 0 ? 'var(--muted-foreground)' : 'var(--primary)',
+                    color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
                     fontWeight: '600',
                     cursor: resendCooldown > 0 ? 'default' : 'pointer',
                     padding: 0,
@@ -578,3 +578,4 @@ const Register = () => {
 };
 
 export default Register;
+

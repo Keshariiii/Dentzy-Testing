@@ -66,7 +66,7 @@ export function SkiperStatCard({
     <motion.div
       ref={ref}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground p-4',
+        'group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-4',
         'cursor-pointer select-none',
         'transition-all duration-200 hover:shadow-md hover:border-[#708c80]/20',
         className,
@@ -85,14 +85,14 @@ export function SkiperStatCard({
       />
 
       {/* Top accent gradient */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary-dark via-primary to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#1e5038] via-[#708c80] to-transparent" />
 
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 truncate">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 truncate">
             {label}
           </p>
-          <p className="text-2xl font-bold text-foreground tabular-nums">
+          <p className="text-2xl font-bold text-[#1e2824] tabular-nums">
             {prefix}
             <motion.span>{rendered.toLocaleString('en-IN')}</motion.span>
             {suffix}
@@ -105,7 +105,7 @@ export function SkiperStatCard({
           )}
         </div>
         {icon && (
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#f0f5f2] flex items-center justify-center text-[#1e5038]">
             {icon}
           </div>
         )}

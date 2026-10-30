@@ -5,8 +5,17 @@ import { cn } from '../../lib/utils';
 
 /**
  * TwentyFirstBottomNav — 21st.dev
+ *
  * Floating app-style bottom navigation bar with fluid Framer Motion spring pill.
- * Fully theme-aware with support for OLED dark surfaces.
+ * Designed for mobile viewports (< 768px). Uses pure SVG icons with zero emojis.
+ *
+ * @param {object} props
+ * @param {Array<{ key: string, label: string, icon: (active: boolean) => React.ReactNode, badge?: number | string }>} props.items
+ * @param {string} props.activeKey
+ * @param {(key: string) => void} props.onChange
+ * @param {string} [props.className]
+ * @param {string} [props.layoutId='bottom-nav-pill']
+ * @param {string} [props.ariaLabel='Navigation']
  */
 export function TwentyFirstBottomNav({
   items,
@@ -20,9 +29,9 @@ export function TwentyFirstBottomNav({
     <nav
       className={cn(
         'fixed bottom-3 left-3 right-3 z-50 flex items-center justify-around',
-        'bg-card/95 backdrop-blur-md border border-border rounded-2xl',
-        'p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)]',
-        'md:hidden transition-colors duration-200',
+        'bg-white/95 backdrop-blur-md border border-neutral-200/80 rounded-2xl',
+        'p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.08)]',
+        'md:hidden',
         className,
       )}
       aria-label={ariaLabel}
@@ -41,13 +50,13 @@ export function TwentyFirstBottomNav({
             className={cn(
               'relative z-10 flex flex-1 flex-col items-center justify-center py-2 px-1 rounded-xl',
               'transition-colors duration-200 select-none cursor-pointer min-h-[52px]',
-              isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+              isActive ? 'text-[#1e5038]' : 'text-neutral-500 hover:text-neutral-800',
             )}
           >
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/20"
+                className="absolute inset-0 rounded-xl bg-[#eef6f2]"
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
@@ -62,7 +71,7 @@ export function TwentyFirstBottomNav({
             <span
               className={cn(
                 'relative z-10 text-[10px] tracking-tight leading-tight',
-                isActive ? 'font-bold text-primary' : 'font-medium text-muted-foreground',
+                isActive ? 'font-bold text-[#1e5038]' : 'font-medium text-neutral-600',
               )}
             >
               {item.label}

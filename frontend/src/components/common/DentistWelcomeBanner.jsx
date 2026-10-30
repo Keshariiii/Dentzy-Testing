@@ -25,7 +25,7 @@ export function DentistWelcomeBanner({
     <div
       className={cn(
         'relative overflow-hidden rounded-2xl p-4 sm:p-5 mb-5',
-        'bg-card/80 dark:bg-card/90 backdrop-blur-md',
+        'bg-white/70 backdrop-blur-md',
         'border border-[#708c80]/15 shadow-sm',
         className,
       )}
@@ -35,13 +35,13 @@ export function DentistWelcomeBanner({
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 text-primary-dark">
             <Sparkles size={18} />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight m-0">
+          <h3 className="text-base sm:text-lg font-bold text-dark tracking-tight m-0">
             Welcome, {formatDoctorName(userName)}!
           </h3>
         </div>
       </div>
 
-      <p className="text-xs sm:text-sm text-muted-foreground mb-3.5 leading-relaxed">
+      <p className="text-xs sm:text-sm text-charcoal/70 mb-3.5 leading-relaxed">
         Your clinical account is active. Here is how to get started with Dentzy:
       </p>
 
@@ -50,16 +50,16 @@ export function DentistWelcomeBanner({
         <div
           onClick={onNavigateSettings}
           className={cn(
-            'flex items-center gap-2.5 p-2.5 rounded-xl bg-card/80 dark:bg-card/90 border border-primary/15',
+            'flex items-center gap-2.5 p-2.5 rounded-xl bg-white/70 border border-primary/15',
             'transition-all duration-150',
-            onNavigateSettings && 'cursor-pointer hover:bg-card hover:border-primary/40 hover:shadow-xs',
+            onNavigateSettings && 'cursor-pointer hover:bg-white hover:border-primary/40 hover:shadow-xs',
           )}
         >
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary-dark font-bold text-xs flex-shrink-0">
             1
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-foreground flex items-center gap-1">
+            <div className="text-xs font-semibold text-dark flex items-center gap-1">
               <span>Complete Profile</span>
               {onNavigateSettings && <ArrowRight size={11} className="opacity-50" />}
             </div>
@@ -71,16 +71,16 @@ export function DentistWelcomeBanner({
         <div
           onClick={onNavigateOrders}
           className={cn(
-            'flex items-center gap-2.5 p-2.5 rounded-xl bg-card/80 dark:bg-card/90 border border-primary/15',
+            'flex items-center gap-2.5 p-2.5 rounded-xl bg-white/70 border border-primary/15',
             'transition-all duration-150',
-            onNavigateOrders && 'cursor-pointer hover:bg-card hover:border-primary/40 hover:shadow-xs',
+            onNavigateOrders && 'cursor-pointer hover:bg-white hover:border-primary/40 hover:shadow-xs',
           )}
         >
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary-dark font-bold text-xs flex-shrink-0">
             2
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-foreground flex items-center gap-1">
+            <div className="text-xs font-semibold text-dark flex items-center gap-1">
               <span>Submit First Case</span>
               {onNavigateOrders && <ArrowRight size={11} className="opacity-50" />}
             </div>
@@ -89,12 +89,12 @@ export function DentistWelcomeBanner({
         </div>
 
         {/* Step 3 */}
-        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card/80 dark:bg-card/90 border border-primary/15">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/70 border border-primary/15">
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary-dark font-bold text-xs flex-shrink-0">
             3
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-foreground">Track Production</div>
+            <div className="text-xs font-semibold text-dark">Track Production</div>
             <div className="text-[11px] text-charcoal/60 truncate">Live QC & dispatch stages</div>
           </div>
         </div>

@@ -1,22 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getAdminUrl } from '../api/client';
-import { useTheme } from '../context/ThemeContext';
 
-export const AdminAuthContext = createContext(null);
+const AdminAuthContext = createContext(null);
 
 export const AdminAuthProvider = ({ children }) => {
   const [admin, setAdmin]     = useState(null);
   const [loading, setLoading] = useState(true);
-  const { setTheme }          = useTheme();
   const ADMIN_API             = useMemo(() => getAdminUrl(), []);
-
-  const syncThemePref = useCallback((pref) => {
-    if (!pref || typeof setTheme !== 'function') return;
-    const local = typeof window !== 'undefined' ? localStorage.getItem('dentzy-theme') : null;
-    if (!local || pref === 'light' || pref === 'dark') {
-      setTheme(pref);
-    }
-  }, [setTheme]);
 
   // ── Session hydration on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -63,9 +53,6 @@ export const AdminAuthProvider = ({ children }) => {
             if (data.token) {
               localStorage.setItem('dentzy_admin_token', data.token);
             }
-            if (data.themePreference) {
-              syncThemePref(data.themePreference);
-            }
           }
         } else if (res.status === 401 || res.status === 403) {
           if (typeof window !== 'undefined') {
@@ -85,7 +72,7 @@ export const AdminAuthProvider = ({ children }) => {
 
     hydrate();
     return () => { isMounted = false; };
-  }, [setTheme]);
+  }, []);
 
   // ── Admin login ───────────────────────────────────────────────────────────
   const adminLogin = useCallback(async (username, password) => {
@@ -100,11 +87,8 @@ export const AdminAuthProvider = ({ children }) => {
     // Clear any stale regular user session so AuthContext doesn't fire a wasted /me request
     localStorage.removeItem('dentzy_user');
     setAdmin(data.admin);
-    if (data.themePreference) {
-      syncThemePref(data.themePreference);
-    }
     return data.admin;
-  }, [syncThemePref]);
+  }, []);
 
   // ── Admin logout ──────────────────────────────────────────────────────────
   const adminLogout = useCallback(async () => {
@@ -119,13 +103,9 @@ export const AdminAuthProvider = ({ children }) => {
       localStorage.removeItem('dentzy_admin_info');
       localStorage.removeItem('dentzy_admin_token');
       sessionStorage.removeItem('dentzy_admin_token');
-      const localTheme = localStorage.getItem('dentzy-theme');
-      if (localTheme && typeof setTheme === 'function') {
-        setTheme(localTheme);
-      }
     }
     setAdmin(null);
-  }, [setTheme]);
+  }, []);
 
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {

@@ -1,7 +1,7 @@
 .partner-section {
     position: relative;
     padding: clamp(6rem, 15vw, 15.625rem) 0;
-    background-color: var(--dz-color-bg-surface);
+    background-color: var(--color-white);
     /* Clean background */
     text-align: center;
     overflow: hidden;
@@ -38,7 +38,7 @@
 .partner-title {
     font-size: clamp(1.6rem, 2vw + 0.5rem, 2.5rem);
     font-weight: 700;
-    color: var(--dz-color-bg-surface);
+    color: var(--color-white);
     /* White text */
     margin-bottom: 30px;
     letter-spacing: 1px;

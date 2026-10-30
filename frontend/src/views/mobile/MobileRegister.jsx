@@ -203,10 +203,10 @@ const MobileRegister = () => {
           <p className="m-auth-subtitle">
             Hi <strong>{pending?.name || form.name}</strong>, your registration is submitted!
           </p>
-          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', margin: '12px 0 20px' }}>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '12px 0 20px' }}>
             Our admin will review your account and approve it shortly. You'll be notified by email.
           </p>
-          <div style={{ background: 'var(--muted)', borderRadius: '10px', padding: '10px', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '20px' }}>
+          <div style={{ background: '#f0f7f3', borderRadius: '10px', padding: '10px', fontSize: '0.85rem', color: '#1e5038', fontWeight: 600, marginBottom: '20px' }}>
             {pending?.email || form.email}
           </div>
           <Link href="/login" className="m-auth-submit" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
@@ -259,9 +259,9 @@ const MobileRegister = () => {
                     fontWeight: '700',
                     textAlign: 'center',
                     borderRadius: '10px',
-                    border: digit ? '2px solid var(--primary)' : '1.5px solid var(--border)',
-                    background: 'var(--input)',
-                    color: 'var(--foreground)',
+                    border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#1e2824',
                     outline: 'none',
                   }}
                 />
@@ -301,7 +301,7 @@ const MobileRegister = () => {
                 }}
                 style={{
                   background: 'none', border: 'none',
-                  color: resendCooldown > 0 ? 'var(--muted-foreground)' : 'var(--primary)',
+                  color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
                   fontWeight: '600',
                   cursor: resendCooldown > 0 ? 'default' : 'pointer',
                   padding: 0,
@@ -393,7 +393,7 @@ const MobileRegister = () => {
 
             {/* Password Strength Meter */}
             {(pwFocused || form.password) && form.password.length > 0 && (
-              <div className="mt-2 bg-muted/60 p-3 rounded-xl border border-border">
+              <div className="mt-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
                 <PasswordStrength value={form.password} rules={PASSWORD_RULES} />
               </div>
             )}
@@ -418,7 +418,7 @@ const MobileRegister = () => {
         </form>
 
         <div className="m-auth-links" style={{ justifyContent: 'center' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>
+          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
             Already have an account?{' '}
             <Link href="/login" className="m-auth-link">Sign In</Link>
           </span>

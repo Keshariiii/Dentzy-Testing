@@ -84,7 +84,6 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
       username: row.username,
       displayName: row.displayName,
       designation: row.designation,
-      themePreference: row.themePreference || 'system',
       role: 'staff',
     },
   });
@@ -99,9 +98,9 @@ staff.post('/logout', (c) => {
 // GET /api/staff/me
 staff.get('/me', verifyStaff(), async (c) => {
   const row = await c.env.DB.prepare(
-    'SELECT id, username, displayName, designation, email, phone, dob, status, themePreference FROM staff WHERE id = ?'
+    'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
   ).bind(c.get('staff').id).first();
-  return c.json({ staff: { ...row, themePreference: row?.themePreference || 'system', role: 'staff' } });
+  return c.json({ staff: { ...row, role: 'staff' } });
 });
 
 // GET /api/staff/notice — fetch broadcast notice for authenticated staff
@@ -141,31 +140,21 @@ staff.get('/notice', verifyStaff(), async (c) => {
 staff.put('/profile', verifyStaff(), async (c) => {
   try {
     const staffId = c.get('staff').id;
-    const { displayName, email, phone, dob, themePreference } = await c.req.json();
+    const { displayName, email, phone, dob } = await c.req.json();
     const ts = now();
 
-    const sets = ['displayName = ?', 'email = ?', 'phone = ?', 'dob = ?'];
-    const binds = [displayName || '', email || '', phone || '', dob || ''];
-    if (themePreference && ['light', 'dark', 'system'].includes(themePreference)) {
-      sets.push('themePreference = ?');
-      binds.push(themePreference);
-    }
-    sets.push('updatedAt = ?');
-    binds.push(ts);
-    binds.push(staffId);
-
     const { meta } = await c.env.DB.prepare(
-      `UPDATE staff SET ${sets.join(', ')} WHERE id = ?`
-    ).bind(...binds).run();
+      'UPDATE staff SET displayName = ?, email = ?, phone = ?, dob = ?, updatedAt = ? WHERE id = ?'
+    ).bind(displayName || '', email || '', phone || '', dob || '', ts, staffId).run();
 
     if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
 
     const updated = await c.env.DB.prepare(
-      'SELECT id, username, displayName, designation, email, phone, dob, status, themePreference FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
     ).bind(staffId).first();
     auditLog('STAFF_PROFILE_UPDATED', { staffId });
 
-    return c.json({ message: 'Profile updated.', staff: { ...updated, themePreference: updated?.themePreference || 'system', role: 'staff' } });
+    return c.json({ message: 'Profile updated.', staff: { ...updated, role: 'staff' } });
   } catch (err) {
     logger.error('Staff profile update error', { error: err.message });
     return c.json({ message: 'Failed to update profile.' }, 500);

@@ -118,7 +118,7 @@ export function TwentyFirstNoticeBar({
             {displayItems.map((msg, idx) => (
               <span
                 key={`${idx}-${msg.slice(0, 10)}`}
-                className="inline-flex items-center text-xs font-medium text-foreground/90 tracking-wide pr-8 select-none"
+                className="inline-flex items-center text-xs font-medium text-dark/90 tracking-wide pr-8 select-none"
               >
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary mr-2.5 opacity-70" />
                 {msg}
@@ -128,13 +128,13 @@ export function TwentyFirstNoticeBar({
         </div>
 
         {/* Action Hint / Pill (Desktop) */}
-        <div className="relative z-10 flex-shrink-0 ml-2 hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-card/90 text-[11px] font-semibold text-foreground border border-border shadow-xs border border-primary/15 transition-transform group-hover:translate-x-0.5">
+        <div className="relative z-10 flex-shrink-0 ml-2 hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 text-[11px] font-semibold text-primary-dark shadow-xs border border-primary/15 transition-transform group-hover:translate-x-0.5">
           <span>All notices ({cleanMessages.length})</span>
           <ChevronRight className="w-3 h-3 text-primary" />
         </div>
 
         {/* Action Hint (Mobile) */}
-        <div className="relative z-10 flex-shrink-0 ml-1.5 flex sm:hidden items-center justify-center w-6 h-6 rounded-full bg-card/90 text-foreground border border-border">
+        <div className="relative z-10 flex-shrink-0 ml-1.5 flex sm:hidden items-center justify-center w-6 h-6 rounded-full bg-white/80 text-primary-dark">
           <ChevronRight className="w-3.5 h-3.5" />
         </div>
 
@@ -183,11 +183,11 @@ export function TwentyFirstNoticeBar({
           {cleanMessages.map((msg, idx) => (
             <div
               key={idx}
-              className="relative flex items-start gap-3.5 p-4 rounded-xl bg-muted/50 border border-border shadow-xs hover:shadow-sm transition-all"
+              className="relative flex items-start gap-3.5 p-4 rounded-xl bg-white border border-emerald-900/10 shadow-xs hover:shadow-sm transition-all"
             >
               {/* Notice Bell Icon */}
               <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary-muted/20 flex items-center justify-center text-primary-dark mt-0.5">
-                <NotificationIcon size={18} color="var(--primary)" duration={3200} />
+                <NotificationIcon size={18} color="#1e5038" duration={3200} />
               </div>
 
               {/* Message Content */}
@@ -197,7 +197,7 @@ export function TwentyFirstNoticeBar({
                     Notice #{idx + 1}
                   </span>
                 </div>
-                <p className="text-sm font-normal text-foreground leading-relaxed break-words">
+                <p className="text-sm font-normal text-slate-800 leading-relaxed break-words">
                   {msg}
                 </p>
               </div>
@@ -209,7 +209,7 @@ export function TwentyFirstNoticeBar({
                   e.stopPropagation();
                   handleCopy(msg, idx);
                 }}
-                className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="flex-shrink-0 p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 title="Copy notice text"
                 aria-label="Copy notice text"
               >
@@ -220,18 +220,18 @@ export function TwentyFirstNoticeBar({
         </div>
 
         {/* Footer info & close */}
-        <div className="mt-5 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-2 text-center sm:text-left">
-            <Headphones className="w-4 h-4 text-primary flex-shrink-0" />
+            <Headphones className="w-4 h-4 text-[#1e5038] flex-shrink-0" />
             <span>
               For urgent inquiries, contact Lab Support at{' '}
-              <strong className="text-foreground font-semibold">+91 9503668112</strong>
+              <strong className="text-slate-700 font-semibold">+91 9503668112</strong>
             </span>
           </div>
           <button
             type="button"
             onClick={() => setIsModalOpen(false)}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white font-medium text-xs transition-colors shadow-xs"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#1e5038] hover:bg-[#174230] text-white font-medium text-xs transition-colors shadow-xs"
           >
             Close
           </button>

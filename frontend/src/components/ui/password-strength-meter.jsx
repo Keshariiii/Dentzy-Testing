@@ -23,7 +23,7 @@ export function calculatePasswordStrength(password) {
     1: { label: 'Weak', color: '#ef4444', percent: 25 },
     2: { label: 'Fair', color: '#f59e0b', percent: 50 },
     3: { label: 'Good', color: '#10b981', percent: 75 },
-    4: { label: 'Strong', color: 'var(--primary)', percent: 100 },
+    4: { label: 'Strong', color: '#1e5038', percent: 100 },
   };
 
   return { ...levels[score], score, criteria };
@@ -43,7 +43,7 @@ export function PasswordStrengthMeter({ password, className = '', showCriteria =
           return (
             <div
               key={step}
-              className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden"
+              className="h-1.5 flex-1 rounded-full bg-gray-100 overflow-hidden"
             >
               <motion.div
                 className="h-full rounded-full"
@@ -60,7 +60,7 @@ export function PasswordStrengthMeter({ password, className = '', showCriteria =
       {/* Label */}
       {strength.label && (
         <div className="flex justify-between items-center text-xs">
-          <span className="text-muted-foreground">Password strength:</span>
+          <span className="text-gray-500">Password strength:</span>
           <motion.span
             className="font-semibold"
             style={{ color: strength.color }}
@@ -83,8 +83,8 @@ export function PasswordStrengthMeter({ password, className = '', showCriteria =
               className={cn(
                 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors',
                 c.met
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
-                  : 'bg-muted text-muted-foreground border-border',
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-gray-50 text-gray-400 border-gray-200',
               )}
               animate={{ scale: c.met ? [1, 1.08, 1] : 1 }}
               transition={{ duration: 0.2 }}

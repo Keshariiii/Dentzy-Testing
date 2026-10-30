@@ -33,7 +33,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
   background: #ecfdf5;
   border: 1px solid #d1fae5;
   padding: 2px 8px;
@@ -56,7 +56,7 @@
 }
 
 .com-dentist-name {
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
 }
 
 .com-close-btn {
@@ -129,7 +129,7 @@
 .com-input:focus,
 .com-select:focus,
 .com-textarea:focus {
-  border-color: var(--dz-color-primary, #7c9082);
+  border-color: #1e5038;
   box-shadow: 0 0 0 3px rgba(30, 80, 56, 0.12);
 }
 
@@ -151,7 +151,7 @@
   left: 12px;
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
   pointer-events: none;
 }
 
@@ -184,9 +184,9 @@
 }
 
 .com-cat-tab--active {
-  background: var(--dz-color-primary, #7c9082) !important;
+  background: #1e5038 !important;
   color: #ffffff !important;
-  border-color: var(--dz-color-primary, #7c9082) !important;
+  border-color: #1e5038 !important;
   box-shadow: 0 1px 3px rgba(30, 80, 56, 0.25);
 }
 
@@ -214,7 +214,7 @@
 
 .com-arch-btn:hover {
   background: #f8fafc;
-  border-color: var(--dz-color-primary, #7c9082);
+  border-color: #1e5038;
 }
 
 .com-arch-btn--active {
@@ -301,7 +301,7 @@
 .com-price-input {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
 }
 
 .com-price-hint {
@@ -340,7 +340,7 @@
   font-size: 0.85rem;
   font-weight: 700;
   color: #ffffff;
-  background: var(--dz-color-primary, #7c9082);
+  background: #1e5038;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -371,44 +371,4 @@
 
 @keyframes com-spin {
   to { transform: rotate(360deg); }
-}
-
-
-/* ================================================================
-   CREATE ORDER MODAL — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .com-modal-content {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .com-header {
-  background: var(--muted);
-  border-bottom-color: var(--border);
-}
-.dark .com-title {
-  color: var(--foreground);
-}
-.dark .com-label {
-  color: var(--muted-foreground);
-}
-.dark .com-input,
-.dark .com-select,
-.dark .com-textarea {
-  background: var(--input);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .com-cat-tab,
-.dark .com-arch-btn,
-.dark .com-clasp-box,
-.dark .com-clasp-step,
-.dark .com-price-section,
-.dark .com-cancel-btn {
-  background: var(--muted);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .com-actions {
-  border-top-color: var(--border);
 }

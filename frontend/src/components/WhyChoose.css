@@ -98,29 +98,3 @@
   line-height: 1.5;
   margin: 0;
 }
-
-/* Dark mode adjustments */
-.dark .why-choose-section {
-  background-color: var(--background);
-}
-
-.dark .why-choose-card {
-  background: var(--card);
-  border-color: var(--border);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-}
-
-.dark .why-choose-card:hover {
-  border-color: var(--primary);
-  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6);
-}
-
-.dark .why-choose-icon-wrap {
-  background: rgba(124, 144, 130, 0.15);
-  color: var(--primary);
-}
-
-.dark .why-choose-card:hover .why-choose-icon-wrap {
-  background: var(--primary);
-  color: var(--primary-foreground, #ffffff);
-}

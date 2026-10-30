@@ -5,7 +5,7 @@
 
 /* ── Theme Tokens (Dentzy palette) ────────────────────────────── */
 :root {
-  --ft-bg: #161e1a;           /* Dark Forest Charcoal      */
+  --ft-bg:            var(--dz-color-charcoal);           /* Dark Forest Charcoal      */
   --ft-bg-surface:    #2a3d35;           /* Forest Dark               */
   --ft-bg-bottom:     #161e1a;           /* Deeper forest             */
   --ft-accent:        var(--dz-color-primary);           /* Sage Green (primary)      */
@@ -309,60 +309,22 @@
   border-top: 1px solid var(--ft-accent-border);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 48px;
+  justify-content: center;
+  padding: 18px 48px;
   position: relative;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 .dz-footer__copyright {
   font-size: 0.72rem;
   color: var(--ft-text-muted);
   margin: 0;
-  text-align: left;
+  text-align: center;
   letter-spacing: 0.02em;
 }
 
 .dz-footer__copyright-highlight {
   color: var(--ft-text-primary);
   font-weight: 600;
-}
-
-.dz-footer__theme-wrap {
-  display: flex;
-  align-items: center;
-}
-
-.dz-footer__theme-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: var(--ft-text-primary, #ffffff);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dz-footer__theme-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: var(--primary, #7c9082);
-}
-
-.dark .dz-footer__theme-btn {
-  background: var(--card, #121212);
-  border-color: var(--border, #2a2a2a);
-  color: var(--foreground, #f5f5f5);
-}
-
-.dark .dz-footer__theme-btn:hover {
-  background: var(--accent, #36443a);
-  border-color: var(--primary, #7c9082);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -419,26 +381,5 @@
 
   .dz-footer__bottom {
     padding: 16px 20px;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
   }
-
-  .dz-footer__copyright {
-    text-align: center;
-  }
-}
-
-/* ================================================================
-   FOOTER — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .dz-footer {
-  background: var(--sidebar, #0f0f0f);
-  border-top: 1px solid var(--border);
-}
-
-.dark .dz-footer__logo-box {
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25),
-              0 0 0 1px rgba(255, 255, 255, 0.08);
 }

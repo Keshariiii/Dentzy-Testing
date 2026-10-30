@@ -116,6 +116,3 @@
   background: rgba(112, 140, 128, 0.25);
   transform: scale(0.92);
 }
-/* Dark mode */
-.dark .m-header { background: rgba(18, 18, 18, 0.92); border-bottom-color: var(--border); }
-.dark .m-header__back { background: var(--muted); color: var(--foreground); }

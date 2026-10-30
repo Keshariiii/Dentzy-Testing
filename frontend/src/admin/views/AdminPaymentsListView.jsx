@@ -94,9 +94,9 @@ export default function AdminPaymentsListView({
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                border: '1px solid var(--border)',
-                background: 'var(--card)',
-                color: 'var(--primary)',
+                border: '1px solid #e2ece6',
+                background: '#ffffff',
+                color: '#1e5038',
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
               }}
@@ -107,9 +107,9 @@ export default function AdminPaymentsListView({
               </svg>
             </button>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--foreground)' }}>{drillDentistPayments.name}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
               {drillDentistPayments.clinicName && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>{drillDentistPayments.clinicName}</div>
+                <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>
               )}
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function AdminPaymentsListView({
               alignItems: 'center',
               gap: '6px',
               padding: '8px 14px',
-              background: 'var(--primary)',
+              background: '#1e5038',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
@@ -165,7 +165,7 @@ export default function AdminPaymentsListView({
               padding: isMobile ? '0 16px' : '0',
             }}
           >
-            <div className="ad-stat-card" style={{ background: 'var(--card)', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--dz-color-border-light)' }}>
+            <div className="ad-stat-card" style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--dz-color-border-light)' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--dz-color-text-muted)' }}>Total Billed</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', marginTop: '4px' }}>
                 {formatINR(summary.totalRevenue || 0)}
@@ -264,12 +264,12 @@ export default function AdminPaymentsListView({
                 type="button"
                 onClick={() => setPayFilterMonth('all')}
                 style={{
-                  background: 'var(--muted)',
+                  background: '#f0f4f2',
                   border: 'none',
                   borderRadius: '6px',
                   padding: '4px 8px',
                   fontSize: '0.75rem',
-                  color: 'var(--muted-foreground)',
+                  color: '#4a7060',
                   cursor: 'pointer',
                   fontWeight: 600,
                 }}
@@ -374,7 +374,7 @@ export default function AdminPaymentsListView({
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--muted-foreground)',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             padding: '4px',
                           }}

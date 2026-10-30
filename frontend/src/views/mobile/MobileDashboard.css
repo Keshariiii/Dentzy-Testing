@@ -605,7 +605,7 @@
 
 /* ── Support Bar ────────────────────────────── */
 .m-support-bar {
-    background: var(--dz-color-surface-dark, #1a1f2e);
+    background: var(--color-charcoal, var(--dz-color-charcoal));
     border-radius: 14px;
     padding: 14px;
     margin-bottom: 0;
@@ -1625,60 +1625,4 @@
   background: #f0f5f2;
   padding: 2px 6px;
   border-radius: 4px;
-}
-
-
-
-/* ================================================================
-   MOBILE DASHBOARD — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .m-app-shell {
-  background: var(--background);
-  color: var(--foreground);
-}
-.dark .m-header-search-bar,
-.dark .m-search-bar {
-  background: var(--input);
-  border-color: var(--border);
-}
-.dark .m-header-search-clear {
-  background: var(--muted);
-}
-.dark .m-stat-card,
-.dark .m-pipeline-card,
-.dark .m-action-card,
-.dark .m-resource-card,
-.dark .m-order-card,
-.dark .m-compact-card,
-.dark .m-settings-card,
-.dark .m-logout-btn {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--card-foreground);
-}
-.dark .m-compact-card__title,
-.dark .m-metric-num,
-.dark .m-recent-name {
-  color: var(--foreground);
-}
-.dark .m-compact-card__top,
-.dark .m-order-card__top,
-.dark .m-recent-cases-list,
-.dark .m-recent-row,
-.dark .m-metric-col {
-  border-color: var(--border);
-}
-.dark .m-form-group input,
-.dark .m-form-group textarea {
-  background: var(--input);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .m-pill-outline {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .m-modal {
-  background: linear-gradient(180deg, #181818 0%, #241414 100%);
 }

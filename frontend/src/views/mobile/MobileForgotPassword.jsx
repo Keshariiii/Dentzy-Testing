@@ -301,9 +301,9 @@ const MobileForgotPassword = () => {
                       fontWeight: '700',
                       textAlign: 'center',
                       borderRadius: '8px',
-                      border: digit ? '2px solid var(--primary)' : '1.5px solid var(--border)',
-                      background: 'var(--input)',
-                      color: 'var(--foreground)',
+                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#1e2824',
                       outline: 'none',
                     }}
                   />
@@ -331,7 +331,7 @@ const MobileForgotPassword = () => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: resendCooldown > 0 ? 'var(--muted-foreground)' : 'var(--primary)',
+                    color: resendCooldown > 0 ? '#94a3b8' : '#1e5038',
                     fontWeight: '600',
                     cursor: resendCooldown > 0 ? 'default' : 'pointer',
                     padding: 0,
@@ -373,7 +373,7 @@ const MobileForgotPassword = () => {
                   </button>
                 </div>
                 {password.length > 0 && (
-                  <div className="mt-2 mb-3 bg-muted/60 p-3 rounded-xl border border-border">
+                  <div className="mt-2 mb-3 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
                     <PasswordStrength value={password} rules={PASSWORD_RULES} />
                   </div>
                 )}

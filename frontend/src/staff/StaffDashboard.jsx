@@ -18,7 +18,6 @@ import PrintableInvoice from '../components/common/PrintableInvoice';
 import { TwentyFirstBottomNav } from '../components/ui/twentyfirst-bottom-nav';
 import StaffNoticeBar from '../components/common/StaffNoticeBar';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import Dropdown14 from '../components/ui/dropdown-14';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
 import './StaffDashboard.css';
@@ -680,8 +679,8 @@ const StaffDashboard = () => {
                   onClick={handleRecalculateAll}
                   disabled={isRecalculating}
                   style={{
-                    padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)',
-                    background: 'var(--accent)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.8rem',
+                    padding: '8px 12px', borderRadius: '8px', border: '1px solid #c2dcd0',
+                    background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.8rem',
                     cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
                   }}
                   title="Auto-calculate and backfill rate-card amounts for all legacy orders"
@@ -951,7 +950,7 @@ const StaffDashboard = () => {
                           <span className="sd-order-caseid">{d.name || 'Unnamed'}</span>
                           <span className="sd-order-patient">{d.clinicName || ''}</span>
                         </div>
-                        <span style={{ color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
                           {Ico.chevronRight(16)}
                         </span>
                       </div>
@@ -978,7 +977,7 @@ const StaffDashboard = () => {
                   />
                   <div>
                     <h2 className="sd-section-title" style={{ margin: 0 }}>{selectedDentist.name}</h2>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#708c80' }}>
                       {selectedDentist.clinicName}{selectedDentist.email ? ` | ${selectedDentist.email}` : ''}
                     </div>
                   </div>
@@ -1055,7 +1054,7 @@ const StaffDashboard = () => {
                   <div>
                     {/* Month Filter Controls */}
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap' }}>
-                      <label htmlFor="staff-month-filter" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>
+                      <label htmlFor="staff-month-filter" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a7060' }}>
                         Filter Month:
                       </label>
                       <input
@@ -1067,11 +1066,11 @@ const StaffDashboard = () => {
                         value={staffPayMonth === 'all' ? '' : staffPayMonth}
                         onChange={e => setStaffPayMonth(e.target.value || 'all')}
                         style={{
-                          border: '1px solid var(--border)',
+                          border: '1px solid #c2dcd0',
                           borderRadius: '8px',
                           padding: '4px 8px',
                           fontSize: '0.82rem',
-                          background: 'var(--card)',
+                          background: '#fff',
                           cursor: 'pointer',
                           minHeight: '36px',
                         }}
@@ -1082,12 +1081,12 @@ const StaffDashboard = () => {
                             type="button"
                             onClick={() => setStaffPayMonth('all')}
                             style={{
-                              background: 'var(--muted)',
+                              background: '#f0f4f2',
                               border: 'none',
                               borderRadius: '6px',
                               padding: '6px 10px',
                               fontSize: '0.78rem',
-                              color: 'var(--muted-foreground)',
+                              color: '#4a7060',
                               cursor: 'pointer',
                               fontWeight: 600,
                             }}
@@ -1098,12 +1097,12 @@ const StaffDashboard = () => {
                             type="button"
                             onClick={handleSelectStaffMonthOrders}
                             style={{
-                              background: 'var(--accent)',
+                              background: '#e8f2ec',
                               border: '1px solid #78937E',
                               borderRadius: '6px',
                               padding: '6px 12px',
                               fontSize: '0.78rem',
-                              color: 'var(--primary)',
+                              color: '#1e5038',
                               cursor: 'pointer',
                               fontWeight: 700,
                             }}
@@ -1143,7 +1142,7 @@ const StaffDashboard = () => {
                           window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
                         }}
                         style={{
-                          background: 'var(--primary)',
+                          background: '#1e5038',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '6px',
@@ -1195,7 +1194,7 @@ const StaffDashboard = () => {
                       <label
                         style={{
                           display: 'flex', alignItems: 'center', gap: '8px',
-                          cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted-foreground)',
+                          cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#4a7060',
                           userSelect: 'none',
                         }}
                         onClick={toggleSelectAllStaffPayments}
@@ -1209,14 +1208,14 @@ const StaffDashboard = () => {
                             )
                           }
                           onChange={toggleSelectAllStaffPayments}
-                          style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                          style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
                         />
                         <span>
                           Select All ({filteredStaffDentistOrders.length})
                         </span>
                       </label>
                       {selectedStaffPaymentIds.length > 0 && (
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--accent)', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e5038', background: '#edf5f0', padding: '2px 8px', borderRadius: '6px' }}>
                           {selectedStaffPaymentIds.length} selected
                         </span>
                       )}
@@ -1252,7 +1251,7 @@ const StaffDashboard = () => {
                                     checked={isSelected}
                                     onChange={() => toggleStaffPaymentSelect(oid)}
                                     onClick={e => e.stopPropagation()}
-                                    style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                                    style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
                                   />
                                 </div>
                                 <div>
@@ -1341,7 +1340,7 @@ const StaffDashboard = () => {
                               setBatchPayError('');
                               setBatchPayModalOpen(true);
                             }}
-                            style={{ background: 'var(--primary)', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
+                            style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
                           >
                             {Ico.creditCard(14)} Settle Payment for {selectedStaffPaymentIds.length} Orders
                           </button>
@@ -1362,7 +1361,7 @@ const StaffDashboard = () => {
           <div className="sd-section-header">
             <div>
               <h2 className="sd-section-title">Payments & Billing</h2>
-              <span style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.82rem', color: '#4a7060', fontWeight: 500 }}>
                 {staffPayments.length} records found
               </span>
             </div>
@@ -1415,7 +1414,7 @@ const StaffDashboard = () => {
                       borderRadius: '6px',
                       padding: '4px 8px',
                       fontSize: '0.75rem',
-                      color: 'var(--muted-foreground)',
+                      color: '#4a7060',
                       cursor: 'pointer',
                       fontWeight: 600,
                       height: '36px',
@@ -1475,7 +1474,7 @@ const StaffDashboard = () => {
                   window.open(`/invoice?unpaid=true${dQuery}${mQuery}`, '_blank');
                 }}
                 style={{
-                  background: 'var(--primary)',
+                  background: '#1e5038',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
@@ -1518,7 +1517,7 @@ const StaffDashboard = () => {
             <label
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: 'var(--muted-foreground)',
+                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#4a7060',
                 userSelect: 'none',
               }}
               onClick={() => {
@@ -1543,13 +1542,13 @@ const StaffDashboard = () => {
                     setSelectedStaffPaymentIds(prev => Array.from(new Set([...prev, ...curIds])));
                   }
                 }}
-                style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
               />
               <span>Select All Visible ({staffPayments.length})</span>
             </label>
             {selectedStaffPaymentIds.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--accent)', padding: '2px 8px', borderRadius: '6px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e5038', background: '#edf5f0', padding: '2px 8px', borderRadius: '6px' }}>
                   {selectedStaffPaymentIds.length} selected ({formatINR(totalSelectedAmount)})
                 </span>
                 <button
@@ -1608,7 +1607,7 @@ const StaffDashboard = () => {
                             checked={isSelected}
                             onChange={() => toggleStaffPaymentSelect(pid)}
                             onClick={e => e.stopPropagation()}
-                            style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                            style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
                           />
                         </div>
                         <div>
@@ -1648,7 +1647,7 @@ const StaffDashboard = () => {
                             gap: '4px',
                             background: '#eff5f1',
                             border: '1px solid #78937E',
-                            color: 'var(--primary)',
+                            color: '#1e5038',
                             borderRadius: '6px',
                             padding: '4px 8px',
                             fontSize: '0.74rem',
@@ -1727,7 +1726,7 @@ const StaffDashboard = () => {
                     setBatchPayError('');
                     setBatchPayModalOpen(true);
                   }}
-                  style={{ background: 'var(--primary)', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
+                  style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', minHeight: '38px' }}
                 >
                   {Ico.creditCard(14)} Settle Payment for {selectedStaffPaymentIds.length} Cases
                 </button>
@@ -1833,15 +1832,6 @@ const StaffDashboard = () => {
                     max={new Date().toISOString().split('T')[0]}
                     style={{ cursor: 'pointer' }}
                   />
-                </div>
-                <div className="sd-field" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--muted)', borderRadius: '10px', marginTop: '6px' }}>
-                  <div>
-                    <label style={{ margin: 0, fontWeight: 600, color: 'var(--foreground)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {Ico.sun ? Ico.sun(14) : null} Theme & Appearance
-                    </label>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>Choose light, dark, or system preference</span>
-                  </div>
-                  <Dropdown14 />
                 </div>
                 {profileMsg.text && (
                   <div className={`sd-form-msg sd-form-msg--${profileMsg.type}`}>

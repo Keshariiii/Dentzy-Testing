@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 /**
  * TwentyFirstIconButton — 21st.dev Micro-Interactive Icon Action Button
- * Theme-aware with full light & dark mode token support.
+ *
+ * Designed with Ponytail minimalism & Impeccable human craft:
+ * - Zero text rendered inside (Icon Only)
+ * - Dentzy Forest Green palette (#1e5038, #174230, #e8f5ee)
+ * - 21st.dev subtle elevation box-shadows (no harsh or colored accent lines)
+ * - Minimum 44px mobile touch targets (Rule 7 compliance)
+ * - Micro-interaction feedback (spring hover lift, active press scale-down)
+ * - Full accessibility (aria-label + native tooltip title)
  */
 export const TwentyFirstIconButton = ({
   icon,
@@ -11,7 +18,7 @@ export const TwentyFirstIconButton = ({
   title,
   ariaLabel,
   variant = 'secondary', // 'primary' | 'soft' | 'secondary' | 'ghost' | 'success' | 'danger'
-  size = 'md',          // 'sm' (34px) | 'md' (40px) | 'lg' (44px)
+  size = 'md',          // 'sm' (32px/desktop compact) | 'md' (40px) | 'lg' (44px mobile target)
   rounded = 'md',       // 'md' (10px) | 'lg' (14px) | 'full' (circle)
   disabled = false,
   loading = false,
@@ -22,12 +29,14 @@ export const TwentyFirstIconButton = ({
 }) => {
   const accessibleLabel = ariaLabel || title || 'Action';
 
+  // Size styling
   const sizeStyles = {
     sm: { width: '34px', height: '34px', minWidth: '34px', minHeight: '34px' },
     md: { width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' },
     lg: { width: '44px', height: '44px', minWidth: '44px', minHeight: '44px' },
   }[size] || { width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' };
 
+  // Radius styling
   const radiusMap = {
     sm: '8px',
     md: '10px',
@@ -36,71 +45,47 @@ export const TwentyFirstIconButton = ({
   };
   const borderRadius = radiusMap[rounded] || '10px';
 
+  // Palette Variants
   const variantStyles = {
     primary: {
-      background: 'var(--primary)',
-      color: 'var(--primary-foreground)',
+      background: '#1e5038',
+      color: '#ffffff',
       border: 'none',
-      boxShadow: '0 2px 6px -1px rgba(0, 0, 0, 0.16)',
+      boxShadow: '0 2px 6px -1px rgba(30, 80, 56, 0.3), 0 1px 3px rgba(0, 0, 0, 0.05)',
     },
     soft: {
-      background: 'var(--accent)',
-      color: 'var(--foreground)',
-      border: '1px solid var(--border)',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+      background: '#e8f5ee',
+      color: '#1e5038',
+      border: '1px solid rgba(30, 80, 56, 0.12)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
     },
     secondary: {
-      background: 'var(--card)',
-      color: 'var(--foreground)',
-      border: '1px solid var(--border)',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      background: '#ffffff',
+      color: '#374151',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
     },
     ghost: {
       background: 'transparent',
-      color: 'var(--muted-foreground)',
+      color: '#4b5563',
       border: 'none',
       boxShadow: 'none',
     },
     success: {
-      background: 'var(--dz-color-success-bg)',
-      color: 'var(--dz-color-success-text)',
-      border: '1px solid var(--border)',
+      background: '#dcfce7',
+      color: '#15803d',
+      border: '1px solid #bbf7d0',
       boxShadow: '0 1px 3px rgba(21, 128, 61, 0.08)',
     },
     danger: {
-      background: 'var(--dz-color-error-bg)',
-      color: 'var(--dz-color-error-text)',
-      border: '1px solid var(--border)',
+      background: '#fee2e2',
+      color: '#dc2626',
+      border: '1px solid #fecaca',
       boxShadow: '0 1px 3px rgba(220, 38, 38, 0.08)',
     },
   }[variant] || {};
 
-  const [isHovered, setIsHovered] = useState(false);
-  const [isActive, setIsActive] = useState(false);
-
-  let computedTransform = 'none';
-  let computedBoxShadow = variantStyles.boxShadow || 'none';
-
-  if (!disabled && !loading) {
-    if (isActive) {
-      computedTransform = 'scale(0.95)';
-    } else if (isHovered) {
-      computedTransform = 'translateY(-1px)';
-      computedBoxShadow = '0 4px 12px -2px rgba(0, 0, 0, 0.14)';
-    }
-  }
-
-  let hoverBg = variantStyles.background;
-  if (isHovered && !disabled && !loading) {
-    if (variant === 'primary') hoverBg = 'var(--dz-color-primary-dark, #5a6b5e)';
-    else if (variant === 'soft') hoverBg = 'var(--muted)';
-    else if (variant === 'secondary') hoverBg = 'var(--muted)';
-    else if (variant === 'ghost') hoverBg = 'var(--muted)';
-    else if (variant === 'success') hoverBg = 'var(--dz-color-success-bg)';
-    else if (variant === 'danger') hoverBg = 'var(--dz-color-error-bg)';
-  }
-
-  const combinedStyle = {
+  const baseStyle = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -115,10 +100,45 @@ export const TwentyFirstIconButton = ({
     outline: 'none',
     ...sizeStyles,
     ...variantStyles,
+    ...style,
+  };
+
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isActive, setIsActive] = React.useState(false);
+
+  // Compute micro-interaction transformations on hover/active
+  let computedTransform = 'none';
+  let computedBoxShadow = baseStyle.boxShadow;
+
+  if (!disabled && !loading) {
+    if (isActive) {
+      computedTransform = 'scale(0.95)';
+    } else if (isHovered) {
+      computedTransform = 'translateY(-1px)';
+      if (variant === 'primary') {
+        computedBoxShadow = '0 4px 12px -2px rgba(30, 80, 56, 0.4)';
+      } else if (variant === 'secondary' || variant === 'soft') {
+        computedBoxShadow = '0 3px 10px -2px rgba(0, 0, 0, 0.09)';
+      }
+    }
+  }
+
+  // Hover background override
+  let hoverBg = baseStyle.background;
+  if (isHovered && !disabled && !loading) {
+    if (variant === 'primary') hoverBg = '#174230';
+    else if (variant === 'soft') hoverBg = '#dcf2e5';
+    else if (variant === 'secondary') hoverBg = '#f9fafb';
+    else if (variant === 'ghost') hoverBg = '#f3f4f6';
+    else if (variant === 'success') hoverBg = '#bbf7d0';
+    else if (variant === 'danger') hoverBg = '#fecaca';
+  }
+
+  const activeStyle = {
+    ...baseStyle,
     background: hoverBg,
     transform: computedTransform,
     boxShadow: computedBoxShadow,
-    ...style,
   };
 
   return (
@@ -133,7 +153,7 @@ export const TwentyFirstIconButton = ({
       onMouseDown={() => setIsActive(true)}
       onMouseUp={() => setIsActive(false)}
       className={`twentyfirst-icon-btn ${className}`}
-      style={combinedStyle}
+      style={activeStyle}
       {...props}
     >
       {loading ? (

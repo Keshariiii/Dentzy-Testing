@@ -60,13 +60,13 @@ export function VengeanceButton({
 
   const variantClasses = {
     default:
-      'bg-primary text-primary-foreground hover:bg-primary-dark border-primary/30 shadow-sm hover:shadow-md',
+      'bg-[#1e5038] text-white hover:bg-[#174430] border-[#1e5038]/30 shadow-sm hover:shadow-md',
     secondary:
-      'bg-accent text-accent-foreground hover:bg-accent/80 border-border shadow-sm',
+      'bg-[#708c80] text-white hover:bg-[#5f7a6e] border-[#708c80]/30 shadow-sm',
     outline:
-      'bg-transparent text-primary border-primary/40 hover:bg-primary/10',
+      'bg-transparent text-[#1e5038] border-[#708c80]/40 hover:bg-[#708c80]/8',
     ghost:
-      'bg-transparent text-foreground border-transparent hover:bg-muted',
+      'bg-transparent text-[#1e2824] border-transparent hover:bg-[#708c80]/8',
     danger:
       'bg-red-600 text-white hover:bg-red-700 border-red-600/30 shadow-sm hover:shadow-md',
   };

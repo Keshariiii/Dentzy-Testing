@@ -85,8 +85,6 @@ describe('Auth Validators', () => {
 
   describe('updateProfileSchema', () => {
     it('accepts partial update', () => valid(updateProfileSchema, { name: 'New Name' }));
-    it('accepts valid themePreference', () => valid(updateProfileSchema, { themePreference: 'dark' }));
-    it('rejects invalid themePreference', () => invalid(updateProfileSchema, { themePreference: 'neon' }));
     it('accepts empty object', () => valid(updateProfileSchema, {}));
     it('rejects name too short', () => invalid(updateProfileSchema, { name: 'A' }));
     it('rejects long clinic name', () => invalid(updateProfileSchema, { clinicName: 'x'.repeat(101) }));

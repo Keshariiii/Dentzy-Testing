@@ -8,11 +8,14 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary-dark",
-        secondary: "border-border bg-accent text-accent-foreground hover:bg-muted",
+        default:
+          "border-transparent bg-[#1e5038] text-white hover:bg-[#143525]",
+        secondary:
+          "border-[#c5ddd3] bg-[#eef6f2] text-[#1e5038] hover:bg-[#e2f0e9]",
         destructive:
           "border-transparent bg-[#dc2626] text-white hover:bg-[#b91c1c]",
-        outline: "border-border text-foreground bg-card",
+        outline:
+          "border-[#e0ebe5] text-[#1e2824] bg-white",
       },
     },
     defaultVariants: {
@@ -24,9 +27,9 @@ const badgeVariants = cva(
 function Badge({ className, variant = "default", style, ...props }) {
   const fallbackStyles =
     variant === "secondary"
-      ? { backgroundColor: "var(--accent)", borderColor: "var(--border)", color: "var(--foreground)", ...style }
+      ? { backgroundColor: "#eef6f2", borderColor: "#c5ddd3", color: "#1e5038", ...style }
       : variant === "default"
-      ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground)", ...style }
+      ? { backgroundColor: "#1e5038", color: "#ffffff", ...style }
       : style;
 
   return (

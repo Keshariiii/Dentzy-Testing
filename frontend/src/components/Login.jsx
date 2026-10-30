@@ -289,21 +289,21 @@ const Login = ({ defaultRole }) => {
 {/* ── Role Maintenance Banner ── */}
           {isDentist && isDentistBlocked && (
             <div style={{
-              background: 'var(--muted)',
-              border: '1px solid var(--border)',
+              background: '#f0f7f3',
+              border: '1px solid #d8e6df',
               borderRadius: '12px',
               padding: '16px',
               marginBottom: '18px',
               boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, fontSize: '0.86rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
                 Scheduled Clinical Portal Maintenance
               </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--foreground)', marginTop: '6px', lineHeight: 1.45 }}>
+              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
                 {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700, marginTop: '8px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
                 {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -314,7 +314,8 @@ const Login = ({ defaultRole }) => {
                   style={{
                     padding: '6px 12px',
                     borderRadius: '8px',
-                    background: 'var(--primary)', color: 'var(--primary-foreground)',
+                    background: '#1e5038',
+                    color: '#fff',
                     border: 'none',
                     fontSize: '0.76rem',
                     fontWeight: 700,
@@ -330,7 +331,7 @@ const Login = ({ defaultRole }) => {
                       padding: '6px 12px',
                       borderRadius: '8px',
                       background: '#e8f5ee',
-                      color: 'var(--primary)',
+                      color: '#1e5038',
                       fontSize: '0.76rem',
                       fontWeight: 700,
                       textDecoration: 'none',
@@ -347,21 +348,21 @@ const Login = ({ defaultRole }) => {
 
           {isStaff && isStaffBlocked && (
             <div style={{
-              background: 'var(--muted)',
-              border: '1px solid var(--border)',
+              background: '#f0f7f3',
+              border: '1px solid #d8e6df',
               borderRadius: '12px',
               padding: '16px',
               marginBottom: '18px',
               boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, fontSize: '0.86rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
                 Lab Operations Portal Maintenance
               </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--foreground)', marginTop: '6px', lineHeight: 1.45 }}>
+              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
                 {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--primary)', fontWeight: 700, marginTop: '8px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
                 {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
               </div>
               <div style={{ marginTop: '12px' }}>
@@ -372,7 +373,8 @@ const Login = ({ defaultRole }) => {
                   style={{
                     padding: '6px 12px',
                     borderRadius: '8px',
-                    background: 'var(--primary)', color: 'var(--primary-foreground)',
+                    background: '#1e5038',
+                    color: '#fff',
                     border: 'none',
                     fontSize: '0.76rem',
                     fontWeight: 700,

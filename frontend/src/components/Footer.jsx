@@ -3,12 +3,11 @@
  * Footer — 4-column dark theme footer for Dentzy.
  *
  * Columns: Brand & Socials | Contact Us | WhatsApp QR (Custom Styled) | Disclaimer
- * Bottom bar with copyright and landing page theme toggle.
+ * Bottom bar with copyright.
  */
 import React, { useState, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
-import { MapPin, Phone, Mail, Clock, AlertTriangle, Info, ShieldAlert, Sun, Moon } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { MapPin, Phone, Mail, Clock, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
 import { MacOSDock } from './ui/mac-os-dock';
 
 import './Footer.css';
@@ -64,7 +63,6 @@ const WHATSAPP_LINK = 'https://wa.me/919503668112';
 /* ── Component ───────────────────────────────────────────────── */
 const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
   const [mounted, setMounted] = useState(false);
-  const { resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -196,18 +194,6 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
           </span>
           . All Rights Reserved.
         </p>
-
-        <div className="dz-footer__theme-wrap">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="dz-footer__theme-btn"
-            aria-label={`Switch to ${mounted && resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {mounted && resolvedTheme === 'dark' ? <Sun size={13} aria-hidden="true" /> : <Moon size={13} aria-hidden="true" />}
-            <span>{mounted && resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
-          </button>
-        </div>
       </div>
     </footer>
   );

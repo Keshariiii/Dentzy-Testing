@@ -18,7 +18,7 @@
   min-height: 100vh;
   overflow: hidden;
   font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
-  background: var(--background);
+  background: #f0f5f2;
   color: var(--dz-color-text-primary, #1e2824);
 }
 
@@ -181,7 +181,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--dz-color-primary-dark), var(--dz-color-primary));
+  background: linear-gradient(135deg, #1e5038, #3a8062);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -198,7 +198,7 @@
 .ad-sidebar {
   width: 210px;
   min-width: 210px;
-  background: linear-gradient(180deg, #2c3830 0%, #1e2621 100%);
+  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -255,7 +255,7 @@
 
 .ad-nav-item.active {
   background: rgba(255,255,255,0.95);
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(30, 77, 59, 0.04);
 }
@@ -448,7 +448,7 @@
 .ad-total-badge span {
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--dz-color-primary, #7c9082);
+  color: #1e5038;
 }
 
 /* ---------------------------------------------------------------------------
@@ -493,7 +493,7 @@
   justify-content: center;
 }
 
-.ad-sc--total    .ad-sc-icon-wrap { background: var(--muted); color: var(--dz-color-primary); }
+.ad-sc--total    .ad-sc-icon-wrap { background: #f0f5f2; color: #708c80; }
 .ad-sc--pending  .ad-sc-icon-wrap { background: #fff7ed; color: #f59e0b; }
 .ad-sc--approved .ad-sc-icon-wrap { background: #ecfdf5; color: #10b981; }
 .ad-sc--rejected .ad-sc-icon-wrap { background: #fef2f2; color: #ef4444; }
@@ -569,14 +569,14 @@
   transition: background 0.2s, color 0.2s;
 }
 
-.ad-tab:hover { background: var(--muted); color: var(--dz-color-primary); }
+.ad-tab:hover { background: #e8f0ed; color: #1e5038; }
 
 .ad-tab-active {
-  background: var(--dz-color-primary, #7c9082);
+  background: #1e5038;
   color: #fff;
 }
 
-.ad-tab-active:hover { background: var(--dz-color-primary-dark, #5a6b5e); color: #fff; }
+.ad-tab-active:hover { background: #1e5038; color: #fff; }
 
 .ad-tab-count {
   display: inline-flex;
@@ -704,7 +704,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--dz-color-primary-dark), var(--dz-color-primary));
+  background: linear-gradient(135deg, #1e5038, #3a8062);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -776,8 +776,8 @@
 }
 
 .ad-pw-toggle:hover {
-  color: var(--dz-color-primary, #7c9082);
-  background: var(--muted);
+  color: #1e5038;
+  background: #e8f0ed;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1075,18 +1075,18 @@
   transition: all 0.15s;
 }
 .ad-pay-filter-btn:hover, .ad-pay-filter-pill:hover {
-  border-color: var(--dz-color-primary, #7c9082);
-  color: var(--dz-color-primary, #7c9082);
+  border-color: #1e5038;
+  color: #1e5038;
 }
 .ad-pay-filter-btn.active {
-  background: var(--dz-color-primary, #7c9082);
+  background: #1e5038;
   color: #fff;
-  border-color: var(--dz-color-primary, #7c9082);
+  border-color: #1e5038;
 }
 .ad-pay-filter-pill.active {
-  background: var(--muted);
-  color: var(--dz-color-primary, #7c9082);
-  border-color: var(--dz-color-primary, #7c9082);
+  background: #eef6f2;
+  color: #1e5038;
+  border-color: #1e5038;
 }
 .ad-pay-search {
   display: flex;
@@ -1196,7 +1196,7 @@
 .ad-pay-mode-btn:not(:last-child) { border-right: 1px solid #e4ebe7; }
 .ad-pay-mode-btn:hover { background: #f0f7f3; }
 .ad-pay-mode-btn.active {
-  background: var(--dz-color-primary, #7c9082);
+  background: #1e5038;
   color: #fff;
 }
 
@@ -1250,8 +1250,8 @@
 .ad-pay-form-group input:focus,
 .ad-pay-form-group select:focus {
   outline: none;
-  border-color: var(--dz-color-primary, #7c9082);
-  box-shadow: 0 0 0 2px rgba(124, 144, 130, 0.15);
+  border-color: #1e5038;
+  box-shadow: 0 0 0 2px rgba(30,80,56,0.08);
 }
 .ad-pay-form-group input::placeholder {
   color: #9ca3af;
@@ -1288,7 +1288,7 @@
 .ad-pay-btn-confirm {
   padding: 8px 20px;
   border: none;
-  background: var(--dz-color-primary, #7c9082);
+  background: #1e5038;
   color: #fff;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -1296,7 +1296,7 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.ad-pay-btn-confirm:hover { background: var(--dz-color-primary-dark, #5a6b5e); }
+.ad-pay-btn-confirm:hover { background: #174230; }
 .ad-pay-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .ad-staff-card {
@@ -1361,124 +1361,4 @@
   .ad-pay-metrics {
     grid-template-columns: 1fr;
   }
-}
-
-/* ================================================================
-   ADMIN DASHBOARD — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .ad-layout,
-.dark .ad-main {
-  background: var(--background);
-  color: var(--foreground);
-}
-.dark .ad-top-header {
-  background: rgba(18, 18, 18, 0.88);
-  border-bottom-color: var(--border);
-}
-.dark .ad-hamburger {
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .ad-hamburger:hover {
-  background: var(--muted);
-  border-color: var(--ring);
-}
-.dark .ad-header-admin-name,
-.dark .ad-greeting,
-.dark .ad-sc-num,
-.dark .ad-user-name,
-.dark .ad-pay-metric-value,
-.dark .ad-pay-modal-header h3,
-.dark .ad-live-notif-body strong {
-  color: var(--foreground);
-}
-.dark .ad-subheading,
-.dark .ad-sc-lbl,
-.dark .ad-section-title,
-.dark .ad-user-email,
-.dark .ad-user-date,
-.dark .ad-pay-metric-label,
-.dark .ad-sort {
-  color: var(--muted-foreground);
-}
-.dark .ad-sidebar {
-  background: var(--sidebar);
-  border-right: 1px solid var(--sidebar-border);
-}
-.dark .ad-nav-item.active {
-  background: var(--accent);
-  color: var(--foreground);
-}
-.dark .ad-stat-card,
-.dark .ad-user-card,
-.dark .ad-pay-metric,
-.dark .ad-date-pill,
-.dark .ad-total-badge,
-.dark .ad-live-notif,
-.dark .ad-pay-modal,
-.dark .ad-staff-card {
-  background: var(--card) !important;
-  border-color: var(--border) !important;
-  color: var(--card-foreground);
-}
-.dark .ad-search,
-.dark .ad-search-wrap,
-.dark .ad-sort-select,
-.dark .ad-pay-search,
-.dark .ad-pay-form-group input,
-.dark .ad-pay-form-group select {
-  background: var(--input) !important;
-  border-color: var(--border) !important;
-  color: var(--foreground) !important;
-}
-.dark .ad-search-input {
-  background: transparent !important;
-  color: var(--foreground) !important;
-}
-.dark .ad-tab {
-  color: var(--muted-foreground);
-}
-.dark .ad-tab:hover {
-  background: var(--muted);
-  color: var(--foreground);
-}
-.dark .ad-tab-active {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-.dark .ad-tab:not(.ad-tab-active) .ad-tab-count {
-  background: var(--muted);
-  color: var(--muted-foreground);
-}
-.dark .ad-pay-filter-btn,
-.dark .ad-pay-filter-pill,
-.dark .ad-pay-mode-btn,
-.dark .ad-pay-btn-cancel {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--muted-foreground);
-}
-.dark .ad-pay-filter-btn.active,
-.dark .ad-pay-mode-btn.active {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-color: var(--primary);
-}
-.dark .ad-pay-modal-meta {
-  background: var(--muted);
-  border-color: var(--border);
-  color: var(--muted-foreground);
-}
-.dark .ad-pay-modal-header,
-.dark .ad-pay-modal-actions,
-.dark .ad-divider {
-  border-color: var(--border);
-}
-.dark .ad-sc--total .ad-sc-icon-wrap { background: rgba(124, 144, 130, 0.2); color: #9eb3a4; }
-.dark .ad-sc--pending .ad-sc-icon-wrap { background: rgba(245, 158, 11, 0.16); color: #fbbf24; }
-.dark .ad-sc--approved .ad-sc-icon-wrap { background: rgba(16, 185, 129, 0.16); color: #34d399; }
-.dark .ad-sc--rejected .ad-sc-icon-wrap { background: rgba(239, 68, 68, 0.16); color: #f87171; }
-.dark .ad-skeleton-card {
-  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
-  background-size: 200% 100%;
 }

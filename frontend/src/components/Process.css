@@ -152,7 +152,3 @@
         text-align: center;
     }
 }
-
-/* Dark mode */
-.dark .process { background: linear-gradient(180deg, var(--background), var(--muted)); }
-.dark .step-content { background: var(--card); border-color: var(--border); color: var(--foreground); }

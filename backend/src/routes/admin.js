@@ -93,8 +93,7 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
 
   auditLog('ADMIN_LOGIN', { username });
   c.header('Set-Cookie', cookieHeader('dentzy_admin_jwt', token, 8 * 60 * 60 * 1000, c.env));
-  const themeRow = await c.env.DB.prepare("SELECT value FROM app_settings WHERE key = 'admin_theme'").first();
-  return c.json({ admin: { username, role: 'admin' }, themePreference: themeRow ? themeRow.value : 'system', token });
+  return c.json({ admin: { username, role: 'admin' }, token });
 });
 
 // POST /api/admin/logout
@@ -104,10 +103,7 @@ admin.post('/logout', (c) => {
 });
 
 // GET /api/admin/me
-admin.get('/me', verifyAdmin(), async (c) => {
-  const themeRow = await c.env.DB.prepare("SELECT value FROM app_settings WHERE key = 'admin_theme'").first();
-  return c.json({ admin: c.get('admin'), themePreference: themeRow ? themeRow.value : 'system' });
-});
+admin.get('/me', verifyAdmin(), (c) => c.json({ admin: c.get('admin') }));
 
 // GET /api/admin/stats
 admin.get('/stats', verifyAdmin(), async (c) => {
@@ -1450,37 +1446,6 @@ admin.put('/settings/maintenance', verifyAdmin(), async (c) => {
   } catch (err) {
     logger.error('Admin maintenance update error', { error: err.message });
     return c.json({ message: err.message || 'Failed to update maintenance settings.' }, 400);
-  }
-});
-
-// GET /api/admin/settings/theme
-admin.get('/settings/theme', verifyAdmin(), async (c) => {
-  const row = await c.env.DB.prepare("SELECT value FROM app_settings WHERE key = 'admin_theme'").first();
-  return c.json({ theme: row?.value || 'system' });
-});
-
-// PUT /api/admin/settings/theme
-admin.put('/settings/theme', verifyAdmin(), async (c) => {
-  try {
-    const { theme } = await c.req.json();
-    if (!theme || !['light', 'dark', 'system'].includes(theme)) {
-      return c.json({ message: 'Invalid theme.' }, 400);
-    }
-    const ts = now();
-    const username = c.get('admin').username;
-    await c.env.DB.prepare(`
-      INSERT INTO app_settings (key, value, updated_at, updated_by)
-      VALUES ('admin_theme', ?, ?, ?)
-      ON CONFLICT(key) DO UPDATE SET
-        value = excluded.value,
-        updated_at = excluded.updated_at,
-        updated_by = excluded.updated_by
-    `).bind(theme, ts, username).run();
-    auditLog('ADMIN_THEME_UPDATED', { updated_by: username, theme });
-    return c.json({ message: 'Admin theme updated.', theme });
-  } catch (err) {
-    logger.error('Admin theme update error', { error: err.message });
-    return c.json({ message: err.message || 'Failed to update admin theme.' }, 400);
   }
 });
 

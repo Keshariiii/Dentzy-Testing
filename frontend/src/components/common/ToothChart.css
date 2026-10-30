@@ -262,36 +262,3 @@
   font-weight: 600;
   color: var(--dz-color-primary-accent, #1e5038);
 }
-
-
-/* ================================================================
-   TOOTH CHART — DARK THEME ADAPTATION
-   ================================================================ */
-.dark .tc-container {
-  background: var(--card);
-  border-color: var(--border);
-}
-.dark .tc-grid {
-  background: var(--muted);
-  border-color: var(--border);
-}
-.dark .tc-tooth-btn {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--foreground);
-}
-.dark .tc-tooth-btn:hover {
-  background: var(--accent);
-  border-color: var(--primary);
-  color: var(--foreground);
-}
-.dark .tc-quick-btn {
-  background: var(--muted);
-  border-color: var(--border);
-  color: var(--muted-foreground);
-}
-.dark .tc-summary-badge {
-  background: var(--accent);
-  border-color: var(--primary);
-  color: var(--foreground);
-}

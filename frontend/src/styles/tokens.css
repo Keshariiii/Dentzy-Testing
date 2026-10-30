@@ -5,90 +5,53 @@
  *
  *  Single source of truth for the entire application's visual language.
  *  Organized by category: Color, Typography, Spacing, Elevation, Radius, Transitions.
+ *
+ *  Naming Convention:  --dz-{category}-{variant}
+ *  Spacing System:     Base-8 (4px increments)
+ *
+ *  Usage:
+ *    color: var(--dz-color-text-primary);
+ *    padding: var(--dz-space-4);
+ *    font-size: var(--dz-font-size-body);
  */
 
 :root {
-  --card: #ffffff;
-  --ring: #7c9082;
-  --input: #ffffff;
-  --muted: #e8e6e1;
-  --accent: #bfc9bb;
-  --border: #e8e6e1;
-  --radius: 0.35rem;
-  --chart-1: #7c9082;
-  --chart-2: #a0aa88;
-  --chart-3: #8b9d83;
-  --chart-4: #6b7280;
-  --chart-5: #e8e6e1;
-  --popover: #ffffff;
-  --primary: #7c9082;
-  --sidebar: #fafaf8;
-  --spacing: 0.23rem;
-  --font-mono: JetBrains Mono, Courier New, monospace;
-  --font-sans: Antic, ui-sans-serif, sans-serif, system-ui;
-  --secondary: #ced4bf;
-  --background: #f8f7f4;
-  --font-serif: Signifier, Georgia, serif;
-  --foreground: #1a1f2e;
-  --destructive: #c73e3a;
-  --shadow-blur: 2px;
-  --shadow-color: #1a1f2e;
-  --sidebar-ring: #7c9082;
-  --shadow-spread: 0px;
-  --letter-spacing: 0em;
-  --shadow-opacity: 0.04;
-  --sidebar-accent: #e8e6e1;
-  --sidebar-border: #e8e6e1;
-  --card-foreground: #1a1f2e;
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 1px;
-  --sidebar-primary: #7c9082;
-  --muted-foreground: #6b7280;
-  --accent-foreground: #1a1f2e;
-  --popover-foreground: #1a1f2e;
-  --primary-foreground: #ffffff;
-  --sidebar-foreground: #1a1f2e;
-  --secondary-foreground: #1a1f2e;
-  --destructive-foreground: #ffffff;
-  --sidebar-accent-foreground: #1a1f2e;
-  --sidebar-primary-foreground: #ffffff;
+  /* ── Color: Brand ────────────────────────────────────────────── */
+  --dz-color-primary:         #708c80;   /* Sage Green                */
+  --dz-color-primary-dark:    #4a6a5a;   /* Deep Sage                 */
+  --dz-color-primary-accent:  #1e5038;   /* Deep Forest Green         */
+  --dz-color-primary-light:   #a3bfb1;   /* Light Sage                */
+  --dz-color-primary-muted:   rgba(112, 140, 128, 0.12); /* Subtle tint */
 
-  /* ── Dentzy Brand Token Bridge (Ponytail: unified token bridge) ─ */
-  --dz-color-primary:         var(--primary);
-  --dz-color-primary-dark:    #5a6b5e;
-  --dz-color-primary-accent:  #4a5d4e;
-  --dz-color-primary-light:   var(--accent);
-  --dz-color-primary-muted:   rgba(124, 144, 130, 0.16);
-
-  /* ── Color: Neutrals & Surfaces ───────────────────────────────── */
-  --dz-color-charcoal:        var(--foreground);
-  --dz-color-dark:            var(--foreground);
-  --dz-color-surface-dark:    #1a1f2e;
+  /* ── Color: Neutrals ─────────────────────────────────────────── */
+  --dz-color-charcoal:        #1e2824;   /* Dark Forest Charcoal      */
+  --dz-color-dark:            #2a3d35;   /* Forest Dark               */
   --dz-color-white:           #ffffff;
   --dz-color-black:           #000000;
 
-  --dz-color-bg-page:         var(--background);
-  --dz-color-bg-surface:      var(--card);
-  --dz-color-bg-surface-alt:  var(--muted);
-  --dz-color-bg-overlay:      rgba(0, 0, 0, 0.55);
+  /* ── Color: Backgrounds & Surfaces ───────────────────────────── */
+  --dz-color-bg-page:         #f0f5f2;   /* Main page background      */
+  --dz-color-bg-surface:      #ffffff;   /* Card / elevated surfaces  */
+  --dz-color-bg-surface-alt:  #f8faf9;   /* Alternate surface         */
+  --dz-color-bg-overlay:      rgba(0, 0, 0, 0.45); /* Modal overlay   */
 
   /* ── Color: Text ─────────────────────────────────────────────── */
-  --dz-color-text-primary:    var(--foreground);
-  --dz-color-text-body:       var(--foreground);
-  --dz-color-text-muted:      var(--muted-foreground);
-  --dz-color-text-light:      var(--muted-foreground);
-  --dz-color-text-inverse:    var(--primary-foreground);
+  --dz-color-text-primary:    #1e2824;   /* Headings, strong text     */
+  --dz-color-text-body:       #444444;   /* Body paragraphs           */
+  --dz-color-text-muted:      #64748b;   /* Captions, labels          */
+  --dz-color-text-light:      #94a3b8;   /* Placeholders, disabled    */
+  --dz-color-text-inverse:    #ffffff;   /* Text on dark bg            */
 
   /* ── Color: Borders ──────────────────────────────────────────── */
-  --dz-color-border:          var(--border);
-  --dz-color-border-light:    var(--border);
-  --dz-color-border-focus:    var(--ring);
+  --dz-color-border:          #e2e8f0;   /* Default border            */
+  --dz-color-border-light:    #f0f2f1;   /* Subtle separator          */
+  --dz-color-border-focus:    #708c80;   /* Input focus ring          */
 
   /* ── Color: Text Selection ───────────────────────────────────── */
-  --dz-color-selection-light-bg:   rgba(124, 144, 130, 0.32);
-  --dz-color-selection-light-text: var(--foreground);
-  --dz-color-selection-dark-bg:    var(--primary);
-  --dz-color-selection-dark-text:  var(--primary-foreground);
+  --dz-color-selection-light-bg:   rgba(112, 140, 128, 0.32); /* Sage green on light bg  */
+  --dz-color-selection-light-text: #1a382b;                    /* Dark forest text        */
+  --dz-color-selection-dark-bg:    #ffffff;                    /* White on dark surfaces  */
+  --dz-color-selection-dark-text:  #1e2824;                    /* Charcoal contrast text  */
 
   /* ── Color: Status (Semantic) ────────────────────────────────── */
   --dz-color-success:         #22c55e;
@@ -99,30 +62,31 @@
   --dz-color-warning-bg:      #fef3c7;
   --dz-color-warning-text:    #92400e;
 
-  --dz-color-error:           var(--destructive);
+  --dz-color-error:           #ef4444;
   --dz-color-error-bg:        #fee2e2;
   --dz-color-error-text:      #991b1b;
-  --dz-color-danger:          var(--destructive);
-  --dz-color-danger-hover:    #b91c1c;
+  --dz-color-danger:          #EF4444;   /* Global delete/destructive action red */
+  --dz-color-danger-hover:    #dc2626;   /* Destructive hover red     */
 
   --dz-color-info:            #3b82f6;
   --dz-color-info-bg:         #dbeafe;
   --dz-color-info-text:       #1e40af;
 
   /* ── Typography: Font Family ─────────────────────────────────── */
-  --dz-font-family:           var(--font-dm-sans), 'DM Sans', var(--font-sans);
-  --dz-font-family-mono:      var(--font-mono);
+  --dz-font-family:           var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont,
+                               'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --dz-font-family-mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
   /* ── Typography: Font Sizes ──────────────────────────────────── */
-  --dz-font-size-display:     2.25rem;
-  --dz-font-size-h1:          1.75rem;
-  --dz-font-size-h2:          1.375rem;
-  --dz-font-size-h3:          1.125rem;
-  --dz-font-size-h4:          1rem;
-  --dz-font-size-body:        0.875rem;
-  --dz-font-size-sm:          0.8125rem;
-  --dz-font-size-xs:          0.75rem;
-  --dz-font-size-micro:       0.625rem;
+  --dz-font-size-display:     2.25rem;   /* 36px — Hero headings      */
+  --dz-font-size-h1:          1.75rem;   /* 28px                      */
+  --dz-font-size-h2:          1.375rem;  /* 22px                      */
+  --dz-font-size-h3:          1.125rem;  /* 18px                      */
+  --dz-font-size-h4:          1rem;      /* 16px                      */
+  --dz-font-size-body:        0.875rem;  /* 14px — Default body       */
+  --dz-font-size-sm:          0.8125rem; /* 13px — Secondary text     */
+  --dz-font-size-xs:          0.75rem;   /* 12px — Captions, badges   */
+  --dz-font-size-micro:       0.625rem;  /* 10px — Tiny labels        */
 
   /* ── Typography: Font Weights ────────────────────────────────── */
   --dz-font-weight-regular:   400;
@@ -131,24 +95,24 @@
   --dz-font-weight-bold:      700;
 
   /* ── Typography: Line Heights ────────────────────────────────── */
-  --dz-line-height-tight:     1.2;
-  --dz-line-height-normal:    1.5;
-  --dz-line-height-relaxed:   1.65;
+  --dz-line-height-tight:     1.2;       /* Headings                  */
+  --dz-line-height-normal:    1.5;       /* Body text                 */
+  --dz-line-height-relaxed:   1.65;      /* Long-form text            */
 
   /* ── Spacing (Base-8 System) ─────────────────────────────────── */
   --dz-space-0:    0;
-  --dz-space-1:    4px;
-  --dz-space-2:    8px;
-  --dz-space-3:    12px;
-  --dz-space-4:    16px;
-  --dz-space-5:    20px;
-  --dz-space-6:    24px;
-  --dz-space-8:    32px;
-  --dz-space-10:   40px;
-  --dz-space-12:   48px;
-  --dz-space-16:   64px;
-  --dz-space-20:   80px;
-  --dz-space-24:   96px;
+  --dz-space-1:    4px;      /* 0.5 unit */
+  --dz-space-2:    8px;      /* 1 unit   */
+  --dz-space-3:    12px;     /* 1.5 units */
+  --dz-space-4:    16px;     /* 2 units  */
+  --dz-space-5:    20px;     /* 2.5 units */
+  --dz-space-6:    24px;     /* 3 units  */
+  --dz-space-8:    32px;     /* 4 units  */
+  --dz-space-10:   40px;     /* 5 units  */
+  --dz-space-12:   48px;     /* 6 units  */
+  --dz-space-16:   64px;     /* 8 units  */
+  --dz-space-20:   80px;     /* 10 units */
+  --dz-space-24:   96px;     /* 12 units */
 
   /* ── Border Radius ───────────────────────────────────────────── */
   --dz-radius-sm:    6px;
@@ -156,7 +120,7 @@
   --dz-radius-lg:    14px;
   --dz-radius-xl:    20px;
   --dz-radius-2xl:   28px;
-  --dz-radius-full:  9999px;
+  --dz-radius-full:  9999px;  /* Pill / circle */
 
   /* ── Elevation (Box Shadows) ─────────────────────────────────── */
   --dz-shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.04);
@@ -164,13 +128,13 @@
   --dz-shadow-md:    0 4px 12px rgba(0, 0, 0, 0.08);
   --dz-shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.10);
   --dz-shadow-xl:    0 16px 48px rgba(0, 0, 0, 0.14);
-  --dz-shadow-focus: 0 0 0 3px rgba(124, 144, 130, 0.25);
+  --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.25); /* Focus ring */
 
   /* ── Transitions ─────────────────────────────────────────────── */
   --dz-transition-fast:    0.15s ease;
   --dz-transition-normal:  0.25s ease;
   --dz-transition-slow:    0.4s ease;
-  --dz-transition-expo:    0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --dz-transition-expo:    0.3s cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo */
 
   /* ── Z-Index Scale ───────────────────────────────────────────── */
   --dz-z-base:       1;
@@ -182,10 +146,10 @@
   --dz-z-tooltip:    700;
 
   /* ── Glassmorphism & Mint ─────────────────────────────────────── */
-  --dz-color-mint:            var(--background);
+  --dz-color-mint:            #f0f5f2;   /* Soft Mint surface          */
   --dz-glass-bg:              rgba(255, 255, 255, 0.75);
-  --dz-glass-border:          rgba(124, 144, 130, 0.18);
-  --dz-glass-shadow:          0 8px 32px rgba(26, 31, 46, 0.08);
+  --dz-glass-border:          rgba(112, 140, 128, 0.18);
+  --dz-glass-shadow:          0 8px 32px rgba(30, 80, 56, 0.08);
 
   /* ── Layout ──────────────────────────────────────────────────── */
   --dz-sidebar-width:       260px;
@@ -194,7 +158,7 @@
   --dz-mobile-nav-height:   64px;
   --dz-content-max-width:   1200px;
 
-  /* ── Fluid Typography ────────────────────────────────────────── */
+  /* ── Fluid Typography (clamp scales: 768px → 1536px) ────────── */
   --dz-fluid-display:     clamp(2.5rem, 4vw + 1rem, 4.5rem);
   --dz-fluid-h1:          clamp(2rem, 3vw + 0.8rem, 3.5rem);
   --dz-fluid-h2:          clamp(1.5rem, 2vw + 0.6rem, 2.8rem);
@@ -206,110 +170,7 @@
   --dz-fluid-section-pad: clamp(2.5rem, 5vw, 6.25rem);
   --dz-fluid-grid-gap:    clamp(1rem, 2vw, 2rem);
   --dz-fluid-container-pad: clamp(1rem, 3vw, 2.5rem);
+
+  /* ── Content Max-Width (ultra-wide containment) ─────────────── */
   --dz-content-max-wide:  1440px;
-}
-
-.dark {
-  --card: #121212;
-  --popover: #121212;
-  --input: #161816;
-  --muted: #1a1d1a;
-  --accent: #2c3830;
-  --border: #262b27;
-  --chart-1: #7c9082;
-  --chart-2: #a0aa88;
-  --chart-3: #8b9d83;
-  --chart-4: #6b7280;
-  --chart-5: #5a6b5e;
-  --primary: #7c9082;
-  --sidebar: #0d0f0d;
-  --secondary: #1e2420;
-  --background: #0a0b0a;
-  --foreground: #f2f4f3;
-  --destructive: #ef4444;
-  --shadow-color: #000000;
-  --sidebar-ring: #7c9082;
-  --sidebar-accent: #1a1d1a;
-  --sidebar-border: #262b27;
-  --card-foreground: #f2f4f3;
-  --sidebar-primary: #7c9082;
-  --muted-foreground: #9ca8a0;
-  --accent-foreground: #f2f4f3;
-  --popover-foreground: #f2f4f3;
-  --primary-foreground: #ffffff;
-  --sidebar-foreground: #f2f4f3;
-  --secondary-foreground: #f2f4f3;
-  --destructive-foreground: #ffffff;
-  --sidebar-accent-foreground: #f2f4f3;
-  --sidebar-primary-foreground: #ffffff;
-
-  /* Dark mode overrides for legacy Dentzy tokens */
-  --dz-color-primary-dark:    #8fa395;
-  --dz-color-primary-accent:  #9eb3a4;
-  --dz-color-primary-muted:   rgba(124, 144, 130, 0.22);
-  --dz-color-white:           #ffffff;
-  --dz-color-surface-dark:    #0d0f0d;
-  --dz-color-success-bg:      rgba(34, 197, 94, 0.16);
-  --dz-color-success-text:    #4ade80;
-  --dz-color-warning-bg:      rgba(245, 158, 11, 0.16);
-  --dz-color-warning-text:    #fbbf24;
-  --dz-color-error-bg:        rgba(239, 68, 68, 0.16);
-  --dz-color-error-text:      #f87171;
-  --dz-color-info-bg:         rgba(59, 130, 246, 0.16);
-  --dz-color-info-text:       #60a5fa;
-  --dz-glass-bg:              rgba(18, 18, 18, 0.85);
-  --dz-glass-border:          rgba(255, 255, 255, 0.1);
-  --dz-glass-shadow:          0 8px 32px rgba(0, 0, 0, 0.4);
-  --dz-shadow-xs:             0 1px 2px rgba(0, 0, 0, 0.4);
-  --dz-shadow-sm:             0 1px 4px rgba(0, 0, 0, 0.5);
-  --dz-shadow-md:             0 4px 12px rgba(0, 0, 0, 0.6);
-  --dz-shadow-lg:             0 8px 24px rgba(0, 0, 0, 0.7);
-  --dz-shadow-xl:             0 16px 48px rgba(0, 0, 0, 0.8);
-}
-
-:root {
-  --color-card: var(--card);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-border: var(--border);
-  --color-radius: var(--radius);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-popover: var(--popover);
-  --color-primary: var(--primary);
-  --color-sidebar: var(--sidebar);
-  --color-spacing: var(--spacing);
-  --color-font-mono: var(--font-mono);
-  --color-font-sans: var(--font-sans);
-  --color-secondary: var(--secondary);
-  --color-background: var(--background);
-  --color-font-serif: var(--font-serif);
-  --color-foreground: var(--foreground);
-  --color-destructive: var(--destructive);
-  --color-shadow-blur: var(--shadow-blur);
-  --color-shadow-color: var(--shadow-color);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-shadow-spread: var(--shadow-spread);
-  --color-letter-spacing: var(--letter-spacing);
-  --color-shadow-opacity: var(--shadow-opacity);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-card-foreground: var(--card-foreground);
-  --color-shadow-offset-x: var(--shadow-offset-x);
-  --color-shadow-offset-y: var(--shadow-offset-y);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
 }
