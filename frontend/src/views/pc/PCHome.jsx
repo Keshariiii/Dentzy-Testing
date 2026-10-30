@@ -15,7 +15,6 @@ import PerfectSmile from '../../components/PerfectSmile';
 import PartnerSection from '../../components/PartnerSection';
 import ProductsIntro from '../../components/ProductsIntro';
 import DentzyMakesUs from '../../components/DentzyMakesUs';
-import WhyChoose from '../../components/WhyChoose';
 import FutureServices from '../../components/FutureServices';
 import ConnectWithUs from '../../components/ConnectWithUs';
 import ContactForm from '../../components/ContactForm';
@@ -42,7 +41,6 @@ const PCHome = () => {
             <PartnerSection />
             <ProductsIntro />
             <DentzyMakesUs />
-            <WhyChoose />
             <FutureServices />
             <ConnectWithUs />
             <ContactForm />

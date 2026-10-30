@@ -86,7 +86,7 @@ export default function PrintableInvoice({
         patientName: payment.patientName,
         description: payment.serviceType || payment.service || 'Dental Prosthetics Restoration',
         teeth: payment.teeth || payment.units || '',
-        specs: payment.notes || 'Custom Dental Lab Prosthetics | 5-10 Year Lab Guarantee',
+        specs: payment.notes || 'Custom Dental Lab Prosthetics | 1-Year Lab Guarantee',
         hsn: '90212000',
         unitPrice: Number(payment.amount) || 0,
         discount: 0,
@@ -103,7 +103,7 @@ export default function PrintableInvoice({
       {
         description: 'Dental Prosthetics Restoration',
         teeth: '',
-        specs: 'Custom Dental Lab Prosthetics | 5-10 Year Lab Guarantee',
+        specs: 'Custom Dental Lab Prosthetics | 1-Year Lab Guarantee',
         hsn: '90212000',
         unitPrice: 0,
         discount: 0,

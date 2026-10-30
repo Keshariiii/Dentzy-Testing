@@ -11,7 +11,6 @@ import PerfectSmile from './PerfectSmile';
 import PartnerSection from './PartnerSection';
 import ProductsIntro from './ProductsIntro';
 import DentzyMakesUs from './DentzyMakesUs';
-import WhyChoose from './WhyChoose';
 import FutureServices from './FutureServices';
 import ConnectWithUs from './ConnectWithUs';
 import ContactForm from './ContactForm';
@@ -38,7 +37,6 @@ const Home = () => {
             <PartnerSection />
             <ProductsIntro />
             <DentzyMakesUs />
-            <WhyChoose />
             <FutureServices />
             <ConnectWithUs />
             <ContactForm />

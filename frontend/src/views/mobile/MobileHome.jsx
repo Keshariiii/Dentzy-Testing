@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { ShieldCheck, Clock, Layers, Headphones, Send, Loader2, MapPin, Phone, Mail, RotateCcw } from 'lucide-react';
+import { ShieldCheck, Clock, Layers, Headphones, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
 import { TwentyFirstIconButton } from '../../components/ui/twentyfirst-icon-button';
 import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
@@ -46,7 +46,7 @@ const PRODUCTS = [
 ];
 
 const WHY_ITEMS = [
-  { title: 'Quality Guarantee', desc: '5-10 years warranty on all restorations',
+  { title: 'Quality Guarantee', desc: '1-year warranty on all restorations',
     Icon: ShieldCheck },
   { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush',
     Icon: Clock },
@@ -68,16 +68,10 @@ const MobileHome = () => {
     user_name: '', user_email: '', contact_number: '', subject: '', message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleReset = () => {
-    setIsSubmitted(false);
-    setStatusMessage({ type: '', text: '' });
   };
 
   const handleSubmit = async (e) => {
@@ -93,17 +87,13 @@ const MobileHome = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.user_name.trim(),
-          email: formData.user_email.trim(),
-          phone: formData.contact_number.trim(),
-          subject: formData.subject.trim(),
-          message: formData.message.trim(),
+          name: formData.user_name, email: formData.user_email,
+          phone: formData.contact_number, subject: formData.subject, message: formData.message,
         }),
       });
       const data = await response.json();
       if (response.ok) {
-        setIsSubmitted(true);
-        setStatusMessage({ type: '', text: '' });
+        setStatusMessage({ type: 'success', text: 'Message Sent Successfully!' });
         setFormData({ user_name: '', user_email: '', contact_number: '', subject: '', message: '' });
       } else {
         setStatusMessage({ type: 'error', text: `Failed to send: ${data.error || 'Server error'}` });
@@ -338,124 +328,33 @@ const MobileHome = () => {
 
         {/* 16. Contact Form */}
         <section className="m-contact-form-section" id="m-contact-form">
-          <div className="m-contact-card">
-            {!isSubmitted ? (
-              <form className="m-contact-form" onSubmit={handleSubmit} noValidate>
-                <div className="m-cf-group">
-                  <label className="m-cf-label" htmlFor="m-cf-name">Name *</label>
-                  <input
-                    id="m-cf-name"
-                    type="text"
-                    name="user_name"
-                    placeholder="Dr. Rajesh Sharma"
-                    className="m-cf-input"
-                    value={formData.user_name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="m-cf-row">
-                  <div className="m-cf-group">
-                    <label className="m-cf-label" htmlFor="m-cf-email">Email *</label>
-                    <input
-                      id="m-cf-email"
-                      type="email"
-                      name="user_email"
-                      placeholder="doctor@clinic.cc"
-                      className="m-cf-input"
-                      value={formData.user_email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="m-cf-group">
-                    <label className="m-cf-label" htmlFor="m-cf-phone">Phone</label>
-                    <input
-                      id="m-cf-phone"
-                      type="tel"
-                      name="contact_number"
-                      placeholder="+91 98765 43210"
-                      className="m-cf-input"
-                      value={formData.contact_number}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="m-cf-group">
-                  <label className="m-cf-label" htmlFor="m-cf-subject">Subject</label>
-                  <input
-                    id="m-cf-subject"
-                    type="text"
-                    name="subject"
-                    placeholder="Zirconia Case Inquiry"
-                    className="m-cf-input"
-                    value={formData.subject}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="m-cf-group">
-                  <label className="m-cf-label" htmlFor="m-cf-message">Message *</label>
-                  <textarea
-                    id="m-cf-message"
-                    name="message"
-                    placeholder="Please describe your clinical case or inquiry..."
-                    className="m-cf-input m-cf-textarea"
-                    rows={4}
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                {statusMessage.text && (
-                  <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>
-                    {statusMessage.text}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="m-cf-btn"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Send Message</span>
-                      <Send size={16} />
-                    </>
-                  )}
-                </button>
-              </form>
-            ) : (
-              <div className="m-cf-thankyou">
-                <div className="m-cf-thankyou-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                </div>
-                <h3 className="m-cf-thankyou-title">Thank You!</h3>
-                <p className="m-cf-thankyou-desc">
-                  Your message has reached our Vasai West dental lab team. We will review it and reply within 1 business day.
-                </p>
-                <button
-                  type="button"
-                  className="m-cf-thankyou-btn"
-                  onClick={handleReset}
-                >
-                  <RotateCcw size={15} />
-                  <span>Send another message</span>
-                </button>
-              </div>
+          <h2 className="m-section-title">We Are Here To Help You</h2>
+          <form className="m-contact-form" onSubmit={handleSubmit} noValidate>
+            <input type="text" name="user_name" placeholder="Name *" className="m-cf-input"
+              value={formData.user_name} onChange={handleChange} />
+            <input type="email" name="user_email" placeholder="Email *" className="m-cf-input"
+              value={formData.user_email} onChange={handleChange} />
+            <input type="tel" name="contact_number" placeholder="Phone Number" className="m-cf-input"
+              value={formData.contact_number} onChange={handleChange} />
+            <input type="text" name="subject" placeholder="Subject" className="m-cf-input"
+              value={formData.subject} onChange={handleChange} />
+            <textarea name="message" placeholder="Message *" className="m-cf-input m-cf-textarea" rows="4"
+              value={formData.message} onChange={handleChange} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+              <TwentyFirstIconButton
+                type="submit"
+                icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                title={isSubmitting ? 'Sending...' : 'Send Message'}
+                ariaLabel="Send Message"
+                variant="primary"
+                size="lg"
+                disabled={isSubmitting}
+              />
+            </div>
+            {statusMessage.text && (
+              <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>{statusMessage.text}</div>
             )}
-          </div>
+          </form>
 
           <div className="m-contact-info-grid">
             <div className="m-ci-item">

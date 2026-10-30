@@ -356,7 +356,7 @@ const MobileDashboard = () => {
 
     const RESOURCES = [
       { key: 'lab-form',  title: 'Lab Prescription Form',  desc: 'Standard case submission form' },
-      { key: 'warranty',  title: 'Warranty Certificate',    desc: 'Dentzy 5-10 year quality guarantee' },
+      { key: 'warranty',  title: 'Warranty Certificate',    desc: 'Dentzy 1-year quality guarantee' },
     ];
 
     return (
