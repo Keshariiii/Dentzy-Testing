@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles.js';
 
 export const adminLoginSchema = z.object({
   username: z.string().min(1, 'Please enter username and password.').max(128, 'Username is too long (max 128 characters).'),
@@ -24,6 +25,7 @@ export const createOrderSchema = z.object({
   service_category: z.string().optional(),
   is_urgent: z.union([z.boolean(), z.number()]).optional(),
   productId: z.string().optional(),
+  assigned_department: z.string().optional(),
 });
 
 export const updateOrderStageSchema = z.object({
@@ -50,11 +52,7 @@ export const updatePaymentStatusSchema = z.object({
   }
 });
 
-const DESIGNATIONS = [
-  'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
-  'Ceramist', 'Quality Control', 'Intern', 'IT Department', 'Receptionist',
-  'Accountant', 'Manager', 'Operations Head', 'Director', 'CTO', 'CEO',
-];
+const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
 export const createStaffSchema = z.object({
   username: z.string().trim().min(3, 'Username must be at least 3 characters.').max(50),
