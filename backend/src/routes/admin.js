@@ -8,6 +8,7 @@ import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail, sendStaffWelcomeEmail } from '../utils/email.js';
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
+import { inferDepartment } from '../utils/roles.js';
 
 const admin = new Hono();
 
@@ -422,15 +423,23 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
     const caseId = `DZ-${datePart}-${random}`;
     const id = newId();
     const ts = now();
+    const safeService = serviceType || 'Other';
+
+    // ponytail: auto-route order to first/least-loaded active staff in department
+    const assignedDept = body.assigned_department || inferDepartment(body.service_category, safeService);
+    const activeTech = await c.env.DB.prepare(
+      "SELECT id FROM staff WHERE designation = ? AND status = 'active' ORDER BY updatedAt ASC LIMIT 1"
+    ).bind(assignedDept).first();
+    const assignedStaffId = activeTech?.id || null;
 
     await c.env.DB.prepare(
-      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, teeth_data, restoration_type, service_category, is_urgent, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, 'admin', ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, teeth_data, restoration_type, service_category, is_urgent, assigned_department, assigned_staff_id, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, 'admin', ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
-      id, dentistId, patientName, caseId, serviceType || 'Other',
+      id, dentistId, patientName, caseId, safeService,
       dueDate || null, notes || '', priority || 'Normal',
       teethJson, body.restoration_type || serviceType || 'Crown', body.service_category || 'Ceramic',
-      priority === 'Urgent' || body.is_urgent ? 1 : 0, ts, ts
+      priority === 'Urgent' || body.is_urgent ? 1 : 0, assignedDept, assignedStaffId, ts, ts
     ).run();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
@@ -462,14 +471,38 @@ admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema)
     const status = stageToStatus(stage);
     const ts = now();
 
+    let extraSet = '';
+    const binds = [stage, status, ts];
+    if (stage === 'qc') {
+      extraSet = ', qc_completed_at = ?';
+      binds.push(ts);
+    } else if (stage === 'dispatched') {
+      extraSet = ', dispatched_at = ?';
+      binds.push(ts);
+    } else if (stage === 'completed') {
+      extraSet = ', delivered_at = ?';
+      binds.push(ts);
+    }
+    binds.push(orderId);
+
     const { meta } = await c.env.DB.prepare(
-      'UPDATE lab_orders SET stage = ?, status = ?, updatedAt = ? WHERE id = ?'
-    ).bind(stage, status, ts, orderId).run();
+      `UPDATE lab_orders SET stage = ?, status = ?, updatedAt = ?${extraSet} WHERE id = ?`
+    ).bind(...binds).run();
     if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
 
     const order = await c.env.DB.prepare(
-      'SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
+      'SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName, u.clinicName, u.name, u.address, u.phone FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
     ).bind(orderId).first();
+
+    // ponytail: auto-queue delivery task upon QC completion so riders see it immediately
+    if (stage === 'qc') {
+      const taskId = newId();
+      await c.env.DB.prepare(`
+        INSERT INTO delivery_tasks (id, order_id, task_type, status, clinic_name, dentist_name, address, contact_phone, patient_name, case_id, due_date, created_at, updated_at)
+        VALUES (?, ?, 'delivery', 'assigned', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET status = 'assigned', updated_at = ?
+      `).bind(taskId, orderId, order.clinicName || order.ownerClinicName || '', order.name || order.ownerName || '', order.address || '', order.phone || '', order.patientName || '', order.caseId, order.dueDate || null, ts, ts, ts).run();
+    }
 
     auditLog('ORDER_STAGE_UPDATED', { orderId, caseId: order.caseId, newStage: stage, adminUsername: c.get('admin').username });
 
@@ -932,15 +965,15 @@ admin.patch('/staff/:id/status', verifyAdmin(), async (c) => {
 admin.delete('/staff/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
+    // ponytail: prevent executive or admin from deleting their own active session account
+    if (c.get('admin')?.id === id) {
+      return c.json({ message: 'You cannot delete your own active account.', code: 'CANNOT_DELETE_SELF' }, 400);
+    }
+
     const row = await c.env.DB.prepare(
       'SELECT id, username, designation FROM staff WHERE id = ?'
     ).bind(id).first();
     if (!row) return c.json({ message: 'Staff not found.' }, 404);
-
-    // Receptionists cannot be deleted directly
-    if (row.designation === 'Receptionist') {
-      return c.json({ message: 'Receptionist accounts cannot be deleted directly via portal. Contact your administrator.', code: 'CANNOT_DELETE_RECEPTIONIST' }, 403);
-    }
 
     // ponytail: clean up assigned orders, attendance records, and staff account
     await c.env.DB.batch([

@@ -68,3 +68,6 @@ rules.md
 scratch/
 
 dentzy_full_code.txt
+
+# Headless browser test profiles
+.chrome-tmp*/

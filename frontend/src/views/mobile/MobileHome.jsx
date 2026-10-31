@@ -46,7 +46,7 @@ const PRODUCTS = [
 ];
 
 const WHY_ITEMS = [
-  { title: 'Quality Guarantee', desc: '1-year warranty on all restorations',
+  { title: 'Quality Guarantee', desc: '5-10 years warranty on all restorations',
     Icon: ShieldCheck },
   { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush',
     Icon: Clock },

@@ -17,6 +17,7 @@ import {
 import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
 import { Icons as Ico } from './DashboardIcons';
 import './CreateOrderModal.css';
+import { inferDepartment } from '../../utils/roles';
 
 /**
  * Official Dentzy Rate Card Catalog (from further plans.md §4.2)
@@ -51,6 +52,7 @@ export const RATE_CARD = [
 const CATEGORIES = ['Ceramic', 'Zirconia', 'Acrylic', 'Ortho & Aux'];
 const RESTORATION_TYPES = ['Crown', 'Bridge', 'Denture', 'Implant', 'Veneer', 'Retainer', 'Other'];
 const PRIORITIES = ['Normal', 'High', 'Urgent', 'Low'];
+export const PRODUCTION_DEPARTMENTS = ['Ceramic', 'Acrylic', 'CAD/CAM', 'Milling', 'Sintering', '3D Printing'];
 
 export default function CreateOrderModal({
   isOpen,
@@ -71,6 +73,7 @@ export default function CreateOrderModal({
   const [priority, setPriority] = useState('Normal');
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [assignedDepartment, setAssignedDepartment] = useState('Ceramic');
 
   // Auto price detector state with manual override latch
   const [manualAmount, setManualAmount] = useState('');
@@ -97,6 +100,9 @@ export default function CreateOrderModal({
       setRestorationType(firstInCat.serviceType);
       setIsPriceOverridden(false);
       setManualAmount('');
+      setAssignedDepartment(inferDepartment(cat, firstInCat.serviceType));
+    } else {
+      setAssignedDepartment(inferDepartment(cat, ''));
     }
   };
 
@@ -109,6 +115,7 @@ export default function CreateOrderModal({
       setRestorationType(prod.serviceType);
       setIsPriceOverridden(false);
       setManualAmount('');
+      setAssignedDepartment(inferDepartment(prod.category, prod.serviceType));
     }
   };
 
@@ -191,6 +198,8 @@ export default function CreateOrderModal({
       teeth: selectedTeeth,
       restoration_type: restorationType,
       service_category: activeCategory,
+      assigned_department: assignedDepartment,
+      department: assignedDepartment,
       is_urgent: priority === 'Urgent' ? 1 : 0,
       productId: currentProduct.id,
       autoCalculatedAmount: autoAmount,
@@ -286,23 +295,24 @@ export default function CreateOrderModal({
             </div>
           </div>
 
-          {/* 3. Product Catalog Item & Restoration Type */}
-          <div className="com-grid-2">
-            <div className="com-field">
-              <label className="com-label">Product Item (Rate Card)</label>
-              <select
-                className="com-select"
-                value={selectedProductId}
-                onChange={e => handleProductChange(e.target.value)}
-              >
-                {RATE_CARD.filter(p => p.category === activeCategory).map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} — ₹{p.price.toLocaleString('en-IN')}/{p.metric}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* 3. Product Catalog Item */}
+          <div className="com-field">
+            <label className="com-label">Product Item (Rate Card)</label>
+            <select
+              className="com-select"
+              value={selectedProductId}
+              onChange={e => handleProductChange(e.target.value)}
+            >
+              {RATE_CARD.filter(p => p.category === activeCategory).map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — ₹{p.price.toLocaleString('en-IN')}/{p.metric}
+                </option>
+              ))}
+            </select>
+          </div>
 
+          {/* Restoration Type & Production Department */}
+          <div className="com-grid-2">
             <div className="com-field">
               <label className="com-label">Restoration Type</label>
               <select
@@ -312,6 +322,19 @@ export default function CreateOrderModal({
               >
                 {RESTORATION_TYPES.map(rt => (
                   <option key={rt} value={rt}>{rt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="com-field">
+              <label className="com-label">Production Department</label>
+              <select
+                className="com-select"
+                value={assignedDepartment}
+                onChange={e => setAssignedDepartment(e.target.value)}
+              >
+                {PRODUCTION_DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
             </div>

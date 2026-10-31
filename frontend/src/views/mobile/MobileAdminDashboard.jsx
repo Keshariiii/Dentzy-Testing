@@ -7,6 +7,8 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from '../../admin/AdminAuthContext';
+import { useStaffAuth } from '../../staff/StaffAuthContext';
+import ExecutiveAccountView from '../../admin/ExecutiveAccountView';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import DentistDetailModal from '../../admin/DentistDetailModal';
 import OrderDetailModal from '../../components/OrderDetailModal';
@@ -60,7 +62,8 @@ const ADMIN_NAV_BASE = [
 ============================================================ */
 const MobileAdminDashboard = () => {
   const router = useRouter();
-  const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { admin, setAdmin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { staff, staffLogout, updateStaffState } = useStaffAuth();
   const { showToast } = useToast();
 
   // Stable ref for authFetch — guaranteed initialized before any callback
@@ -164,7 +167,7 @@ const MobileAdminDashboard = () => {
     'New: Zirconia monolithic crowns with multi-shade gradients now available',
     'Submit STL files for faster digital impression processing',
     'Invoices are generated upon case dispatch — check the Payments tab',
-    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'All cases backed by the Dentzy 5-10 Years Quality Guarantee',
     'Lab support: Mon-Sat, 9 AM to 6 PM IST',
   ]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
@@ -875,21 +878,38 @@ const MobileAdminDashboard = () => {
           fetchPayments();
         }}
         rightElement={
-          <button
-            type="button"
-            className="ma-avatar"
-            onClick={() => {
-              setAdminView('settings');
-              setDentistSubView(null);
-              setStaffSubView(null);
-              fetchStats();
-              fetchPayments();
-            }}
-            aria-label="Admin Settings"
-            style={{ border: 'none', cursor: 'pointer' }}
-          >
-            {initials}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {(admin?.isExecutiveStaff || admin?.designation) && (
+              <span style={{
+                background: '#1e5038',
+                color: '#ffffff',
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                display: 'inline-block',
+              }}>
+                {admin?.designation || 'CEO'}
+              </span>
+            )}
+            <button
+              type="button"
+              className="ma-avatar"
+              onClick={() => {
+                setAdminView('settings');
+                setDentistSubView(null);
+                setStaffSubView(null);
+                fetchStats();
+                fetchPayments();
+              }}
+              aria-label="Admin Settings"
+              style={{ border: 'none', cursor: 'pointer' }}
+            >
+              {initials}
+            </button>
+          </div>
         }
       />
 
@@ -2076,7 +2096,7 @@ const MobileAdminDashboard = () => {
                           'New: Zirconia monolithic crowns with multi-shade gradients now available',
                           'Submit STL files for faster digital impression processing',
                           'Invoices are generated upon case dispatch — check the Payments tab',
-                          'All cases backed by the Dentzy 1-Year Quality Guarantee',
+                          'All cases backed by the Dentzy 5-10 Years Quality Guarantee',
                           'Lab support: Mon-Sat, 9 AM to 6 PM IST',
                         ]);
                         setNoticeEnabled(true);
@@ -2272,23 +2292,37 @@ const MobileAdminDashboard = () => {
 
             {/* Sub-view 4: Administrator Account */}
             {settingsSubView === 'account' && (
-              <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1a3028' }}>Administrator Account</div>
-                  <div style={{ fontSize: '0.82rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+              (admin?.isExecutiveStaff || staff) ? (
+                <ExecutiveAccountView
+                  admin={admin}
+                  staff={staff}
+                  authFetch={authFetch}
+                  staffLogout={staffLogout}
+                  adminLogout={adminLogout}
+                  router={router}
+                  showToast={showToast}
+                  updateStaffState={updateStaffState}
+                  setAdmin={setAdmin}
+                />
+              ) : (
+                <div style={{ background: '#fff', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1a3028' }}>Administrator Account</div>
+                    <div style={{ fontSize: '0.82rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
+                  </div>
+                  <button
+                    className="btn"
+                    onClick={handleLogout}
+                    style={{
+                      width: '100%', minHeight: '44px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center',
+                      background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px',
+                      fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+                    }}
+                  >
+                    {Ico.logout(16)} Logout
+                  </button>
                 </div>
-                <button
-                  className="btn"
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%', minHeight: '44px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center',
-                    background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px',
-                    fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                  }}
-                >
-                  {Ico.logout(16)} Logout
-                </button>
-              </div>
+              )
             )}
           </div>
         </main>

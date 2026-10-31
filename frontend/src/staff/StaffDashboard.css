@@ -474,7 +474,7 @@
   background: #fff;
   border-radius: 14px;
   padding: 18px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: var(--dz-shadow-sm, 0 2px 8px rgba(0,0,0,0.04));
   transition: box-shadow 0.2s;
 }
 
@@ -597,7 +597,7 @@
   background: #fff;
   border-radius: 14px;
   padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: var(--dz-shadow-sm, 0 2px 8px rgba(0,0,0,0.04));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -654,7 +654,7 @@
   background: #fff;
   border-radius: 16px;
   padding: 28px 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: var(--dz-shadow-sm, 0 2px 8px rgba(0,0,0,0.04));
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -843,7 +843,7 @@
   background: #fff;
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: var(--dz-shadow-sm, 0 2px 8px rgba(0,0,0,0.04));
 }
 
 .sd-settings-card-head {
@@ -1016,7 +1016,7 @@
     padding: 12px 14px;
     border-radius: 12px;
     box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f5f9;
+    border: none;
   }
   .sd-order-header {
     margin-bottom: 6px;
@@ -1034,6 +1034,6 @@
     padding: 12px 14px;
     border-radius: 12px;
     box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f5f9;
+    border: none;
   }
 }

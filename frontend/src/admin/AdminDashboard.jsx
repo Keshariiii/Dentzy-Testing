@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminAuth } from './AdminAuthContext';
+import { useStaffAuth } from '../staff/StaffAuthContext';
+import ExecutiveAccountView from './ExecutiveAccountView';
 import DentistDetailModal from './DentistDetailModal';
 import OrderDetailModal from '../components/OrderDetailModal';
 import PaymentDetailModal from '../components/PaymentDetailModal';
@@ -37,7 +39,8 @@ const STATUS_BADGE = {
 
 const AdminDashboard = () => {
   const router = useRouter();
-  const { admin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { admin, setAdmin, adminLogout, authFetch, ADMIN_API } = useAdminAuth();
+  const { staff, staffLogout, updateStaffState } = useStaffAuth();
   const { showToast } = useToast();
 
   // Stable ref for authFetch — guaranteed initialized before any callback
@@ -129,7 +132,7 @@ const AdminDashboard = () => {
     'New: Zirconia monolithic crowns with multi-shade gradients now available',
     'Submit STL files for faster digital impression processing',
     'Invoices are generated upon case dispatch — check the Payments tab',
-    'All cases backed by the Dentzy 1-Year Quality Guarantee',
+    'All cases backed by the Dentzy 5-10 Years Quality Guarantee',
     'Lab support: Mon-Sat, 9 AM to 6 PM IST',
   ]);
   const [noticeNewMsg, setNoticeNewMsg] = useState('');
@@ -900,7 +903,24 @@ const AdminDashboard = () => {
           style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
         >
           <div className="ad-header-user-details">
-            <span className="ad-header-admin-name">{adminName}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="ad-header-admin-name">{adminName}</span>
+              {(admin?.isExecutiveStaff || admin?.designation) && (
+                <span style={{
+                  background: '#1e5038',
+                  color: '#ffffff',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  display: 'inline-block',
+                }}>
+                  {admin?.designation || 'CEO'}
+                </span>
+              )}
+            </div>
             <span className="ad-header-admin-role">
               <span className="ad-live-dot" />
               Admin
@@ -1848,7 +1868,7 @@ const AdminDashboard = () => {
                                 'New: Zirconia monolithic crowns with multi-shade gradients now available',
                                 'Submit STL files for faster digital impression processing',
                                 'Invoices are generated upon case dispatch — check the Payments tab',
-                                'All cases backed by the Dentzy 1-Year Quality Guarantee',
+                                'All cases backed by the Dentzy 5-10 Years Quality Guarantee',
                                 'Lab support: Mon-Sat, 9 AM to 6 PM IST',
                               ]);
                               setNoticeEnabled(true);
@@ -2041,6 +2061,19 @@ const AdminDashboard = () => {
 
                     {/* Sub-Page 4: Administrator Account */}
                     {settingsSubView === 'account' && (
+                      (admin?.isExecutiveStaff || staff) ? (
+                        <ExecutiveAccountView
+                          admin={admin}
+                          staff={staff}
+                          authFetch={authFetch}
+                          staffLogout={staffLogout}
+                          adminLogout={adminLogout}
+                          router={router}
+                          showToast={showToast}
+                          updateStaffState={updateStaffState}
+                          setAdmin={setAdmin}
+                        />
+                      ) : (
                       <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                         <div>
                           <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Administrator Account</div>
@@ -2084,6 +2117,7 @@ const AdminDashboard = () => {
                           {Ico.logout(16)} Logout
                         </button>
                       </div>
+                      )
                     )}
 
                   </div>

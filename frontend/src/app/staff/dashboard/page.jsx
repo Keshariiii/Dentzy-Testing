@@ -10,6 +10,9 @@ import MaintenanceScreen from '../../../components/MaintenanceScreen';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import StaffDashboard from '../../../staff/StaffDashboard';
+import ExecutiveStaffDashboard from '../../../staff/designations/ExecutiveStaffDashboard';
+import { isExecutiveRole } from '../../../utils/roles';
+import { SkeletonGroup, StatCardSkeleton, OrderSkeleton } from '../../../components/Skeleton';
 
 export default function StaffDashboardPage() {
   const { staff, loading } = useStaffAuth();
@@ -29,10 +32,28 @@ export default function StaffDashboardPage() {
 
   if (loading || !staff) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f4f6f5' }}>
-        <div style={{ width: 36, height: 36, border: '3px solid #e2ece6', borderTopColor: '#1e5038', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      </div>
+      <SkeletonGroup>
+        <div
+          style={{
+            minHeight: '100vh',
+            background: 'var(--dz-color-bg-page, #f4f7f5)',
+            padding: '24px',
+            maxWidth: '1200px',
+            margin: '0 auto',
+          }}
+        >
+          <div style={{ marginBottom: '24px' }}>
+            <StatCardSkeleton count={3} />
+          </div>
+          <OrderSkeleton count={4} />
+        </div>
+      </SkeletonGroup>
     );
+  }
+
+  // Executive Staff (CEO / CTO) receive full Admin Dashboard experience
+  if (isExecutiveRole(staff.designation)) {
+    return <ExecutiveStaffDashboard />;
   }
 
   return <StaffDashboard />;

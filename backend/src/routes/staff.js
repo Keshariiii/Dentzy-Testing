@@ -7,6 +7,7 @@ import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
+import { normalizeDesignation, inferDepartment, isProductionRole, isDeliveryRole } from '../utils/roles.js';
 
 const staff = new Hono();
 
@@ -79,11 +80,17 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   auditLog('STAFF_LOGIN', { username: row.username });
   c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 8 * 60 * 60 * 1000, c.env));
   return c.json({
+    token,
     staff: {
       id: row.id,
       username: row.username,
       displayName: row.displayName,
       designation: row.designation,
+      employeeId: row.employeeId || '',
+      email: row.email || '',
+      phone: row.phone || '',
+      dob: row.dob || '',
+      status: row.status,
       role: 'staff',
     },
   });
@@ -98,7 +105,7 @@ staff.post('/logout', (c) => {
 // GET /api/staff/me
 staff.get('/me', verifyStaff(), async (c) => {
   const row = await c.env.DB.prepare(
-    'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
+    'SELECT id, username, displayName, designation, employeeId, email, phone, dob, status FROM staff WHERE id = ?'
   ).bind(c.get('staff').id).first();
   return c.json({ staff: { ...row, role: 'staff' } });
 });
@@ -150,7 +157,7 @@ staff.put('/profile', verifyStaff(), async (c) => {
     if (!meta.changes) return c.json({ message: 'Staff not found.' }, 404);
 
     const updated = await c.env.DB.prepare(
-      'SELECT id, username, displayName, designation, email, phone, dob, status FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, designation, employeeId, email, phone, dob, status FROM staff WHERE id = ?'
     ).bind(staffId).first();
     auditLog('STAFF_PROFILE_UPDATED', { staffId });
 
@@ -197,14 +204,17 @@ staff.put('/change-password', verifyStaff(), async (c) => {
 
 // ── Staff Orders ─────────────────────────────────────────────────────────────
 
-// GET /api/staff/orders — staff sees all orders (read-only financial data)
+// GET /api/staff/orders — staff sees orders (department-scoped for production, read-only financial data)
 staff.get('/orders', verifyStaff(), async (c) => {
   try {
-    const staffId = c.get('staff').id;
+    const staffMember = c.get('staff');
+    const staffId = staffMember.id;
     const filter = c.req.query('filter'); // 'mine' = only assigned to me
+    const taskView = c.req.query('taskView'); // 'pending' vs 'all'
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
     let sql = `SELECT o.*, u.name as ownerName, u.clinicName as ownerClinicName,
+               u.address as ownerAddress, u.phone as ownerPhone,
                COALESCE(p.amount, 0) as amount,
                COALESCE(p.amount, 0) as paymentAmount,
                COALESCE(p.status, 'Pending') as paymentStatus,
@@ -218,16 +228,26 @@ staff.get('/orders', verifyStaff(), async (c) => {
                WHERE 1=1`;
     const params = [];
 
+    if (staffMember?.designation && isProductionRole(staffMember.designation)) {
+      sql += ' AND (o.assigned_department = ? OR o.assigned_staff_id = ?)';
+      params.push(normalizeDesignation(staffMember.designation), staffId);
+    }
+
     if (filter === 'mine') {
       sql += ' AND o.assigned_staff_id = ?';
       params.push(staffId);
     }
+
+    if (taskView === 'pending') {
+      sql += " AND o.stage IN ('received', 'design', 'production') AND o.status NOT IN ('Completed', 'Cancelled')";
+    }
+
     sql += ' ORDER BY o.createdAt DESC LIMIT ?';
     params.push(limit);
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
     return c.json({
-      orders: results.map(r => {
+      orders: (results || []).map(r => {
         let effAmount = Number(r.paymentAmount) || Number(r.amount) || 0;
         if (effAmount <= 0) {
           const calc = calculateOrderAmount(r);
@@ -245,7 +265,12 @@ staff.get('/orders', verifyStaff(), async (c) => {
           referenceNumber: r.referenceNumber,
           batchId: r.batchId || '',
           paidAt: r.paidAt,
-          owner: { name: r.ownerName, clinicName: r.ownerClinicName },
+          owner: {
+            name: r.ownerName,
+            clinicName: r.ownerClinicName,
+            address: r.ownerAddress || '',
+            phone: r.ownerPhone || '',
+          },
         };
       }),
     });
@@ -272,10 +297,92 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
     const status = stage === 'completed' ? 'Completed' : stage === 'received' ? 'Pending' : 'In Progress';
     const ts = now();
 
+    const updates = ['stage = ?', 'status = ?', 'assigned_staff_id = ?', 'updatedAt = ?'];
+    const binds = [stage, status, staffId, ts];
+
+    if (stage === 'qc') {
+      updates.push('qc_completed_at = ?');
+      binds.push(ts);
+    } else if (stage === 'dispatched') {
+      updates.push('dispatched_at = ?');
+      binds.push(ts);
+    } else if (stage === 'completed') {
+      updates.push('delivered_at = ?');
+      binds.push(ts);
+    }
+
+    binds.push(orderId);
     const { meta } = await c.env.DB.prepare(
-      'UPDATE lab_orders SET stage = ?, status = ?, assigned_staff_id = ?, updatedAt = ? WHERE id = ?'
-    ).bind(stage, status, staffId, ts, orderId).run();
+      `UPDATE lab_orders SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...binds).run();
     if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
+
+    if (stage === 'qc') {
+      const order = await c.env.DB.prepare(
+        `SELECT o.id, o.caseId, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
+         FROM lab_orders o
+         JOIN users u ON o.ownerId = u.id
+         WHERE o.id = ?`
+      ).bind(orderId).first();
+
+      if (order) {
+        const existingTask = await c.env.DB.prepare(
+          'SELECT id FROM delivery_tasks WHERE order_id = ?'
+        ).bind(orderId).first();
+
+        if (existingTask) {
+          await c.env.DB.prepare(
+            `UPDATE delivery_tasks 
+             SET status = 'assigned', clinic_name = ?, address = ?, contact_phone = ?, patient_name = ?,
+                 case_id = ?, dentist_name = ?, due_date = ?, updated_at = ?
+             WHERE id = ?`
+          ).bind(
+            order.clinicName || 'Dentzy Clinic',
+            order.address || '',
+            order.phone || '',
+            order.patientName || '',
+            order.caseId,
+            order.dentistName || '',
+            order.dueDate || null,
+            ts,
+            existingTask.id
+          ).run();
+        } else {
+          const taskId = newId();
+          await c.env.DB.prepare(
+            `INSERT INTO delivery_tasks (
+               id, order_id, task_type, status, clinic_name, address, contact_phone,
+               patient_name, case_id, notes, created_at, updated_at, dentist_name, due_date
+             ) VALUES (?, ?, 'delivery', 'assigned', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            taskId,
+            orderId,
+            order.clinicName || 'Dentzy Clinic',
+            order.address || '',
+            order.phone || '',
+            order.patientName || '',
+            order.caseId,
+            order.notes || '',
+            ts,
+            ts,
+            order.dentistName || '',
+            order.dueDate || null
+          ).run();
+        }
+      }
+    } else if (stage === 'dispatched') {
+      try {
+        await c.env.DB.prepare(
+          "UPDATE delivery_tasks SET status = 'in_progress', updated_at = ? WHERE order_id = ?"
+        ).bind(ts, orderId).run();
+      } catch {}
+    } else if (stage === 'completed') {
+      try {
+        await c.env.DB.prepare(
+          "UPDATE delivery_tasks SET status = 'completed', completed_at = ?, updated_at = ? WHERE order_id = ?"
+        ).bind(ts, ts, orderId).run();
+      } catch {}
+    }
 
     auditLog('STAFF_ORDER_STAGE_UPDATED', { orderId, newStage: stage, staffId });
     return c.json({ message: `Stage updated to "${stage}".`, stage, status });
@@ -363,6 +470,19 @@ staff.post('/orders', verifyStaff(), async (c) => {
     const parsedAmount = typeof amount === 'number' ? amount : Number(amount) || 0;
     const finalAmount = parsedAmount > 0 ? parsedAmount : autoAmount;
 
+    const rawDept = body.assigned_department;
+    const assignedDepartment = rawDept ? normalizeDesignation(rawDept) : inferDepartment(body.service_category, safeService);
+    let assignedStaffId = body.assigned_staff_id || null;
+
+    if (!assignedStaffId) {
+      const activeStaff = await c.env.DB.prepare(
+        "SELECT id FROM staff WHERE designation = ? AND status = 'active' ORDER BY updatedAt ASC LIMIT 1"
+      ).bind(assignedDepartment).first();
+      if (activeStaff?.id) {
+        assignedStaffId = activeStaff.id;
+      }
+    }
+
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const random = Array.from(crypto.getRandomValues(new Uint8Array(3)), b => b.toString(36)).join('').substring(0, 4).toUpperCase();
     const caseId = `DZ-${datePart}-${random}`;
@@ -371,13 +491,17 @@ staff.post('/orders', verifyStaff(), async (c) => {
     const staffUser = c.get('staff');
 
     await c.env.DB.prepare(
-      `INSERT INTO lab_orders (id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes, priority, createdBy, teeth_data, restoration_type, service_category, is_urgent, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO lab_orders (
+         id, ownerId, patientName, caseId, serviceType, status, stage, dueDate, notes,
+         priority, createdBy, teeth_data, restoration_type, service_category, is_urgent,
+         assigned_department, assigned_staff_id, createdAt, updatedAt
+       ) VALUES (?, ?, ?, ?, ?, 'Pending', 'received', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       id, dentistId, patientName.trim(), caseId, safeService,
       dueDate || null, notes || '', safePriority, staffUser.username || 'staff',
       teethJson, body.restoration_type || safeService || 'Crown', body.service_category || 'Ceramic',
-      safePriority === 'Urgent' || body.is_urgent ? 1 : 0, ts, ts
+      safePriority === 'Urgent' || body.is_urgent ? 1 : 0,
+      assignedDepartment, assignedStaffId, ts, ts
     ).run();
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ?').bind(id).first();
@@ -823,6 +947,158 @@ staff.post('/payments/batch', verifyStaff(), async (c) => {
   } catch (err) {
     logger.error('Staff batch payment update error', { error: err.message });
     return c.json({ message: 'Failed to update batch payments.' }, 500);
+  }
+});
+
+// ── Staff Deliveries (Dispatch & Logistics Queue) ───────────────────────────
+
+// GET /api/staff/deliveries — list post-QC, dispatched, and completed delivery tasks
+staff.get('/deliveries', verifyStaff(), async (c) => {
+  try {
+    const sql = `SELECT o.*, u.name as dentistName, u.clinicName, 
+           COALESCE(NULLIF(dt.address, ''), u.address) as deliveryAddress,
+           COALESCE(NULLIF(dt.contact_phone, ''), u.phone) as contactPhone,
+           dt.status as taskStatus, dt.notes as deliveryNotes, dt.rider_id, dt.completed_at
+    FROM lab_orders o
+    JOIN users u ON o.ownerId = u.id
+    LEFT JOIN delivery_tasks dt ON dt.order_id = o.id
+    WHERE o.stage IN ('qc', 'dispatched', 'completed')
+    ORDER BY CASE WHEN o.stage = 'qc' THEN 0 WHEN o.stage = 'dispatched' THEN 1 ELSE 2 END, o.dueDate ASC, o.updatedAt DESC`;
+
+    const { results } = await c.env.DB.prepare(sql).all();
+    const deliveries = (results || []).map(r => {
+      const deliveryStatus = r.stage === 'qc'
+        ? 'Ready for Pickup (QC Passed)'
+        : (r.stage === 'dispatched' ? 'Out for Delivery' : 'Delivered');
+
+      return {
+        ...r,
+        _id: r.id,
+        deliveryStatus,
+        owner: {
+          name: r.dentistName,
+          clinicName: r.clinicName,
+          address: r.deliveryAddress || '',
+          phone: r.contactPhone || '',
+        },
+      };
+    });
+
+    return c.json({ deliveries, orders: deliveries });
+  } catch (err) {
+    logger.error('Staff deliveries error', { error: err.message });
+    return c.json({ message: 'Failed to load deliveries.' }, 500);
+  }
+});
+
+// PATCH /api/staff/deliveries/:orderId/status — update delivery dispatch and completion status
+staff.patch('/deliveries/:orderId/status', verifyStaff(), async (c) => {
+  try {
+    const orderId = c.req.param('orderId');
+    const staffMember = c.get('staff');
+    const staffId = staffMember.id;
+    const body = await c.req.json();
+    const { status, notes } = body;
+
+    const validStatuses = ['in_progress', 'dispatched', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return c.json({ message: 'Invalid delivery status.' }, 400);
+    }
+
+    const order = await c.env.DB.prepare(
+      `SELECT o.id, o.caseId, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
+       FROM lab_orders o
+       JOIN users u ON o.ownerId = u.id
+       WHERE o.id = ? OR o.caseId = ?`
+    ).bind(orderId, orderId).first();
+
+    if (!order) {
+      return c.json({ message: 'Order not found.' }, 404);
+    }
+
+    const ts = now();
+    const existingTask = await c.env.DB.prepare(
+      'SELECT id FROM delivery_tasks WHERE order_id = ?'
+    ).bind(order.id).first();
+
+    if (status === 'in_progress' || status === 'dispatched') {
+      await c.env.DB.prepare(
+        "UPDATE lab_orders SET stage = 'dispatched', status = 'In Progress', dispatched_at = ?, updatedAt = ? WHERE id = ?"
+      ).bind(ts, ts, order.id).run();
+
+      if (existingTask) {
+        const updateSql = notes !== undefined
+          ? "UPDATE delivery_tasks SET status = 'in_progress', rider_id = ?, notes = ?, updated_at = ? WHERE id = ?"
+          : "UPDATE delivery_tasks SET status = 'in_progress', rider_id = ?, updated_at = ? WHERE id = ?";
+        const params = notes !== undefined
+          ? [staffId, notes, ts, existingTask.id]
+          : [staffId, ts, existingTask.id];
+        await c.env.DB.prepare(updateSql).bind(...params).run();
+      } else {
+        const taskId = newId();
+        await c.env.DB.prepare(
+          `INSERT INTO delivery_tasks (
+             id, order_id, task_type, rider_id, status, clinic_name, address, contact_phone,
+             patient_name, case_id, notes, created_at, updated_at, dentist_name, due_date
+           ) VALUES (?, ?, 'delivery', ?, 'in_progress', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          taskId, order.id, staffId,
+          order.clinicName || 'Dentzy Clinic', order.address || '', order.phone || '',
+          order.patientName || '', order.caseId, notes || order.notes || '',
+          ts, ts, order.dentistName || '', order.dueDate || null
+        ).run();
+      }
+
+      auditLog('STAFF_DELIVERY_DISPATCHED', { orderId: order.id, riderId: staffId });
+      return c.json({
+        message: 'Delivery marked as dispatched.',
+        stage: 'dispatched',
+        status: 'In Progress',
+        deliveryStatus: 'Out for Delivery',
+        taskStatus: 'in_progress',
+      });
+    }
+
+    if (status === 'completed') {
+      await c.env.DB.prepare(
+        "UPDATE lab_orders SET stage = 'completed', status = 'Completed', delivered_at = ?, updatedAt = ? WHERE id = ?"
+      ).bind(ts, ts, order.id).run();
+
+      if (existingTask) {
+        const updateSql = notes !== undefined
+          ? "UPDATE delivery_tasks SET status = 'completed', completed_at = ?, rider_id = ?, notes = ?, updated_at = ? WHERE id = ?"
+          : "UPDATE delivery_tasks SET status = 'completed', completed_at = ?, rider_id = ?, updated_at = ? WHERE id = ?";
+        const params = notes !== undefined
+          ? [ts, staffId, notes, ts, existingTask.id]
+          : [ts, staffId, ts, existingTask.id];
+        await c.env.DB.prepare(updateSql).bind(...params).run();
+      } else {
+        const taskId = newId();
+        await c.env.DB.prepare(
+          `INSERT INTO delivery_tasks (
+             id, order_id, task_type, rider_id, status, clinic_name, address, contact_phone,
+             patient_name, case_id, notes, completed_at, created_at, updated_at, dentist_name, due_date
+           ) VALUES (?, ?, 'delivery', ?, 'completed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          taskId, order.id, staffId,
+          order.clinicName || 'Dentzy Clinic', order.address || '', order.phone || '',
+          order.patientName || '', order.caseId, notes || order.notes || '',
+          ts, ts, ts, order.dentistName || '', order.dueDate || null
+        ).run();
+      }
+
+      auditLog('STAFF_DELIVERY_COMPLETED', { orderId: order.id, riderId: staffId });
+      return c.json({
+        message: 'Delivery marked as completed.',
+        stage: 'completed',
+        status: 'Completed',
+        deliveryStatus: 'Delivered',
+        taskStatus: 'completed',
+      });
+    }
+  } catch (err) {
+    logger.error('Staff update delivery status error', { error: err.message });
+    return c.json({ message: 'Failed to update delivery status.' }, 500);
   }
 });
 

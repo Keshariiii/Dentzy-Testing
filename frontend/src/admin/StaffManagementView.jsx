@@ -9,12 +9,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { Trash2 } from 'lucide-react';
+import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
 
-const DESIGNATIONS = [
-  'Lab Assistant', 'Lab Technician', 'Senior Technician', 'CAD/CAM Specialist',
-  'Ceramist', 'Quality Control', 'Intern', 'IT Department', 'Receptionist',
-  'Accountant', 'Manager', 'Operations Head', 'Director', 'CTO', 'CEO',
-];
+const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
 const SUB_VIEWS = [
   { key: 'members', label: 'Members' },
@@ -41,7 +38,7 @@ const StaffManagementView = ({
 
   // ── Create Staff Modal ──────────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ displayName: '', username: '', password: '', email: '', designation: 'Lab Assistant' });
+  const [createForm, setCreateForm] = useState({ displayName: '', username: '', password: '', email: '', designation: CANONICAL_STAFF_DESIGNATIONS[0] });
   const [createError, setCreateError] = useState('');
   const [createSaving, setCreateSaving] = useState(false);
 
@@ -71,7 +68,7 @@ const StaffManagementView = ({
       if (res.ok) {
         showToast(data.message || 'Staff account created.');
         setShowCreateModal(false);
-        setCreateForm({ displayName: '', username: '', password: '', email: '', designation: 'Lab Assistant' });
+        setCreateForm({ displayName: '', username: '', password: '', email: '', designation: CANONICAL_STAFF_DESIGNATIONS[0] });
         fetchStaff();
       } else {
         setCreateError(data.message || 'Failed to create staff.');
@@ -271,7 +268,7 @@ const StaffManagementView = ({
 
   const openEditModal = (s) => {
     setEditStaff(s);
-    setEditForm({ displayName: s.displayName || '', email: s.email || '', designation: s.designation || 'Lab Assistant' });
+    setEditForm({ displayName: s.displayName || '', email: s.email || '', designation: s.designation || CANONICAL_STAFF_DESIGNATIONS[0] });
     setEditError('');
   };
 

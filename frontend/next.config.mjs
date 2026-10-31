@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Static HTML export — outputs to /out, compatible with Cloudflare Pages
-  output: 'export',
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Allowed development origins for LAN / mobile testing
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS 
