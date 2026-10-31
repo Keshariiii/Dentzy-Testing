@@ -34,11 +34,20 @@ CREATE TABLE IF NOT EXISTS lab_orders (
     createdBy TEXT NOT NULL DEFAULT 'admin',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
+    assigned_department TEXT DEFAULT 'Ceramic',
+    due_time TEXT DEFAULT '',
+    qc_completed_at TEXT DEFAULT NULL,
+    dispatched_at TEXT DEFAULT NULL,
+    delivered_at TEXT DEFAULT NULL,
     FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_orders_ownerId ON lab_orders(ownerId);
 CREATE INDEX IF NOT EXISTS idx_orders_caseId ON lab_orders(caseId);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON lab_orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_dept_stage_created ON lab_orders(assigned_department, stage, createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_assigned_staff_stage ON lab_orders(assigned_staff_id, stage, updatedAt DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_stage_updated ON lab_orders(stage, updatedAt DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_owner_created ON lab_orders(ownerId, createdAt DESC);
 
 CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
@@ -65,6 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_payments_mode ON payments(paymentMode);
 CREATE INDEX IF NOT EXISTS idx_payments_ref ON payments(referenceNumber);
 CREATE INDEX IF NOT EXISTS idx_payments_batchId ON payments(batchId);
+CREATE INDEX IF NOT EXISTS idx_payments_owner_status_created ON payments(ownerId, status, createdAt DESC);
 
 CREATE TABLE IF NOT EXISTS contacts (
     id TEXT PRIMARY KEY,
@@ -99,6 +109,7 @@ CREATE TABLE IF NOT EXISTS staff (
 );
 CREATE INDEX IF NOT EXISTS idx_staff_username ON staff(username);
 CREATE INDEX IF NOT EXISTS idx_staff_status ON staff(status);
+CREATE INDEX IF NOT EXISTS idx_staff_designation_status ON staff(designation, status);
 
 CREATE TABLE IF NOT EXISTS staff_attendance (
     id TEXT PRIMARY KEY,
@@ -136,6 +147,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 -- lab_orders: teeth_data, restoration_type, service_category, is_urgent,
 --             credit_override, credit_override_reason
 -- New tables: delivery_tasks, intern_tasks
+-- v3: delivery_tasks extended with dentist_name, due_date columns
 -- New indexes: idx_payments_case_owner, idx_orders_created_desc
 -- New app_settings key: staff_notice_bar
 
