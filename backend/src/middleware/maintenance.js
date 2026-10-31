@@ -1,5 +1,6 @@
 // ponytail: Fast zero-leak Hono middleware checking D1 maintenance_mode with admin immunity
 import { verifyJWT } from '../utils/crypto.js';
+import { isExecutiveRole } from '../utils/roles.js';
 
 // Parse cookie string into key-value map without external libraries
 const parseCookies = (cookieHeader) => {
@@ -97,6 +98,13 @@ export const maintenanceGuard = () => async (c, next) => {
         const payload = await verifyJWT(staffToken, c.env.STAFF_JWT_SECRET);
         if (payload?.role === 'staff') {
           if (staffBlocked) {
+            // ponytail: CEO and CTO bypass staff maintenance lock for operational oversight
+            if (payload.id) {
+              const staffRow = await c.env.DB.prepare('SELECT designation, status FROM staff WHERE id = ?').bind(payload.id).first();
+              if (staffRow && staffRow.status === 'active' && isExecutiveRole(staffRow.designation)) {
+                return next();
+              }
+            }
             return buildMaintenance503(c, maintenance, 'staff');
           }
           return next();
@@ -146,6 +154,29 @@ export const maintenanceGuard = () => async (c, next) => {
   // 6. Staff routes (/api/staff/*) except logout
   if (path.startsWith('/api/staff')) {
     if (staffBlocked) {
+      // ponytail: Admin and executive staff (CEO/CTO) bypass staff maintenance lock for operational oversight
+      const adminToken = extractToken(c, 'dentzy_admin_jwt');
+      if (adminToken && c.env.ADMIN_JWT_SECRET) {
+        try {
+          const payload = await verifyJWT(adminToken, c.env.ADMIN_JWT_SECRET);
+          if (payload?.role === 'admin') {
+            return next();
+          }
+        } catch {}
+      }
+
+      const staffToken = extractToken(c, 'dentzy_staff_jwt');
+      if (staffToken && c.env.STAFF_JWT_SECRET) {
+        try {
+          const payload = await verifyJWT(staffToken, c.env.STAFF_JWT_SECRET);
+          if (payload.role === 'staff' && payload.id) {
+            const staffRow = await c.env.DB.prepare('SELECT designation, status FROM staff WHERE id = ?').bind(payload.id).first();
+            if (staffRow && staffRow.status === 'active' && isExecutiveRole(staffRow.designation)) {
+              return next();
+            }
+          }
+        } catch {}
+      }
       return buildMaintenance503(c, maintenance, 'staff');
     }
     return next();

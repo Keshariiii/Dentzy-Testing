@@ -1,4 +1,5 @@
 import { verifyJWT } from '../utils/crypto.js';
+import { isExecutiveRole } from '../utils/roles.js';
 
 // Cookie parser helper — Workers doesn't have cookie-parser
 const parseCookies = (cookieHeader) => {
@@ -40,18 +41,47 @@ export const verifyUser = () => async (c, next) => {
   }
 };
 
+// ponytail: dual-token admin verifier - native admin token OR executive staff token (CEO/CTO)
 export const verifyAdmin = () => async (c, next) => {
-  const token = extractToken(c, 'dentzy_admin_jwt');
-  if (!token) return c.json({ message: 'Admin access denied. No token.' }, 401);
-
-  try {
-    const payload = await verifyJWT(token, c.env.ADMIN_JWT_SECRET);
-    if (payload.role !== 'admin') throw new Error('Not admin');
-    c.set('admin', payload);
-    await next();
-  } catch {
-    return c.json({ message: 'Invalid or expired admin token.' }, 401);
+  // 1. Check primary admin token
+  const adminToken = extractToken(c, 'dentzy_admin_jwt');
+  if (adminToken && c.env.ADMIN_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(adminToken, c.env.ADMIN_JWT_SECRET);
+      if (payload.role === 'admin') {
+        c.set('admin', payload);
+        return await next();
+      }
+    } catch {}
   }
+
+  // 2. Check executive staff token fallback (CEO/CTO have full admin parity)
+  const staffToken = extractToken(c, 'dentzy_staff_jwt');
+  if (staffToken && c.env.STAFF_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(staffToken, c.env.STAFF_JWT_SECRET);
+      if (payload.role === 'staff' && payload.id) {
+        const staff = await c.env.DB.prepare(
+          'SELECT id, username, displayName, designation, employeeId, email, phone, dob, status FROM staff WHERE id = ?'
+        ).bind(payload.id).first();
+
+        if (staff && staff.status === 'active' && isExecutiveRole(staff.designation)) {
+          c.set('admin', {
+            id: staff.id,
+            username: staff.username,
+            displayName: staff.displayName,
+            designation: staff.designation,
+            role: 'admin',
+            isExecutiveStaff: true,
+          });
+          c.set('staff', { ...staff, role: 'staff' });
+          return await next();
+        }
+      }
+    } catch {}
+  }
+
+  return c.json({ message: 'Admin access denied. Insufficient permissions.' }, 401);
 };
 
 export const verifyStaff = () => async (c, next) => {
@@ -62,11 +92,11 @@ export const verifyStaff = () => async (c, next) => {
     const payload = await verifyJWT(token, c.env.STAFF_JWT_SECRET);
     if (payload.role !== 'staff') throw new Error('Not staff');
     const staff = await c.env.DB.prepare(
-      'SELECT id, username, displayName, status FROM staff WHERE id = ?'
+      'SELECT id, username, displayName, designation, employeeId, email, phone, dob, status FROM staff WHERE id = ?'
     ).bind(payload.id).first();
     if (!staff) return c.json({ message: 'Staff not found.' }, 401);
     if (staff.status !== 'active') return c.json({ message: 'Staff account is inactive.' }, 403);
-    c.set('staff', { ...payload, displayName: staff.displayName });
+    c.set('staff', { ...payload, ...staff, role: 'staff' });
     await next();
   } catch {
     return c.json({ message: 'Invalid or expired staff token.' }, 401);
