@@ -71,3 +71,7 @@ dentzy_full_code.txt
 
 # Headless browser test profiles
 .chrome-tmp*/
+
+# Legal policy drafts (under review)
+docs/TERMS_AND_CONDITIONS.md
+docs/PRIVACY_POLICY.md
