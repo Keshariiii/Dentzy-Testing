@@ -38,7 +38,6 @@ export default function PrintableInvoice({
   const invoiceDate = formatDate(rawDate);
   const orderDate = formatDate(payment?.createdAt || rawDate);
 
-  // Robust Dentist & Clinic Data Resolution (Check dentist prop -> statement -> payment owner -> logged-in user)
   const resolvedDentist =
     dentist ||
     statement?.dentist ||
