@@ -11,6 +11,15 @@ import { normalizeDesignation, inferDepartment, isProductionRole, isDeliveryRole
 
 const staff = new Hono();
 
+const requireStaffRoles = (allowedRoles) => async (c, next) => {
+  const staffMember = c.get('staff');
+  const role = normalizeDesignation(staffMember?.designation || staffMember?.staffRole);
+  if (!staffMember || !allowedRoles.includes(role)) {
+    return c.json({ message: 'Forbidden: Your staff designation does not have permission for this action.' }, 403);
+  }
+  await next();
+};
+
 function safeWait(c, promise) {
   try {
     if (c.executionCtx?.waitUntil) {
@@ -180,8 +189,8 @@ staff.put('/change-password', verifyStaff(), async (c) => {
     if (currentPassword.length > 128 || newPassword.length > 128) {
       return c.json({ message: 'Password is too long (max 128 characters).' }, 400);
     }
-    if (newPassword.length < 6) {
-      return c.json({ message: 'New password must be at least 6 characters.' }, 400);
+    if (newPassword.length < 8) {
+      return c.json({ message: 'New password must be at least 8 characters.' }, 400);
     }
 
     const row = await c.env.DB.prepare('SELECT password FROM staff WHERE id = ?').bind(staffId).first();
@@ -293,6 +302,19 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
       return c.json({ message: 'Invalid stage.' }, 400);
     }
 
+    const existingOrder = await c.env.DB.prepare('SELECT stage, status FROM lab_orders WHERE id = ?').bind(orderId).first();
+    if (!existingOrder) return c.json({ message: 'Order not found.' }, 404);
+
+    const callerRole = normalizeDesignation(c.get('staff')?.designation);
+    if (isProductionRole(callerRole)) {
+      if (['dispatched', 'completed'].includes(existingOrder.stage) || existingOrder.status === 'Completed') {
+        return c.json({ message: 'Completed or dispatched orders cannot be modified by production staff.' }, 403);
+      }
+      if (!['received', 'design', 'production', 'qc'].includes(stage)) {
+        return c.json({ message: 'Production staff can only advance stages up to QC.' }, 403);
+      }
+    }
+
     // ponytail: derive status from stage, same pattern as admin.js
     const status = stage === 'completed' ? 'Completed' : stage === 'received' ? 'Pending' : 'In Progress';
     const ts = now();
@@ -393,7 +415,7 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
 });
 
 // POST /api/staff/orders/recalculate-all — backfill missing payments and 0-amount records
-staff.post('/orders/recalculate-all', verifyStaff(), async (c) => {
+staff.post('/orders/recalculate-all', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const sql = `SELECT o.id, o.ownerId, o.patientName, o.caseId, o.serviceType, o.dueDate, o.notes, 
                         o.teeth_data, o.restoration_type, o.service_category, o.createdAt,
@@ -434,7 +456,7 @@ staff.post('/orders/recalculate-all', verifyStaff(), async (c) => {
 });
 
 // POST /api/staff/orders — staff (receptionist, admin roles) creates order for dentist
-staff.post('/orders', verifyStaff(), async (c) => {
+staff.post('/orders', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const body = await c.req.json();
     const { dentistId, patientName, serviceType, priority, dueDate, notes, amount } = body;
@@ -599,7 +621,7 @@ staff.patch('/inventory/:id', verifyStaff(), async (c) => {
 });
 
 // DELETE /api/staff/inventory/:id — remove inventory item
-staff.delete('/inventory/:id', verifyStaff(), async (c) => {
+staff.delete('/inventory/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const id = c.req.param('id');
     const { meta } = await c.env.DB.prepare('DELETE FROM inventory WHERE id = ?').bind(id).run();
@@ -655,7 +677,7 @@ staff.get('/metrics', verifyStaff(), async (c) => {
 // ── Staff Dentist Management ─────────────────────────────────────────────────
 
 // GET /api/staff/users — staff sees all approved dentists
-staff.get('/users', verifyStaff(), async (c) => {
+staff.get('/users', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
       "SELECT id, name, email, phone, clinicName, address, createdAt FROM users WHERE status = 'approved' ORDER BY name ASC"
@@ -668,7 +690,7 @@ staff.get('/users', verifyStaff(), async (c) => {
 });
 
 // GET /api/staff/users/:id — staff sees a specific dentist with orders & payments
-staff.get('/users/:id', verifyStaff(), async (c) => {
+staff.get('/users/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const id = c.req.param('id');
     const user = await c.env.DB.prepare(
@@ -715,7 +737,7 @@ staff.get('/users/:id', verifyStaff(), async (c) => {
 });
 
 // PATCH /api/staff/orders/:id — staff can update order fields (status, dueDate, notes, priority)
-staff.patch('/orders/:id', verifyStaff(), async (c) => {
+staff.patch('/orders/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const orderId = c.req.param('id');
     const body = await c.req.json();
@@ -750,7 +772,7 @@ staff.patch('/orders/:id', verifyStaff(), async (c) => {
 });
 
 // GET /api/staff/payments — staff sees all payments
-staff.get('/payments', verifyStaff(), async (c) => {
+staff.get('/payments', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const dentistId = c.req.query('dentistId');
     const month = c.req.query('month');
@@ -800,7 +822,7 @@ staff.get('/payments', verifyStaff(), async (c) => {
 });
 
 // PATCH /api/staff/payments/:id/amount — staff updates payment amount
-staff.patch('/payments/:id/amount', verifyStaff(), async (c) => {
+staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const id = c.req.param('id');
     const body = await c.req.json();
@@ -832,7 +854,7 @@ staff.patch('/payments/:id/amount', verifyStaff(), async (c) => {
 });
 
 // PATCH /api/staff/payments/:id — staff updates payment status
-staff.patch('/payments/:id', verifyStaff(), async (c) => {
+staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const id = c.req.param('id');
     const body = await c.req.json();
@@ -864,7 +886,7 @@ staff.patch('/payments/:id', verifyStaff(), async (c) => {
 });
 
 // POST /api/staff/payments/batch — staff updates multiple orders' payments in one single payment details
-staff.post('/payments/batch', verifyStaff(), async (c) => {
+staff.post('/payments/batch', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const body = await c.req.json();
     const { orderIds = [], paymentIds = [], status = 'Paid', paymentMode = '', referenceNumber = '', notes = '' } = body;

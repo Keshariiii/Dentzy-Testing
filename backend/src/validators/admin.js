@@ -56,7 +56,7 @@ const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
 export const createStaffSchema = z.object({
   username: z.string().trim().min(3, 'Username must be at least 3 characters.').max(50),
-  password: z.string().min(6, 'Password must be at least 6 characters.').max(100),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(100),
   displayName: z.string().trim().min(1, 'Display name is required.').max(100),
   email: z.string().email('Invalid email.').optional().or(z.literal('')).default(''),
   designation: z.string().min(1, 'Designation is required.').max(50).default('Lab Assistant'),

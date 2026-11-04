@@ -139,18 +139,26 @@ dashboard.patch('/orders/:id', validate(updateOrderSchema), async (c) => {
   const orderId = c.req.param('id');
   const body = c.get('body');
 
-  const sets = [];
-  const vals = [];
-  const allowed = ['patientName', 'serviceType', 'dueDate', 'notes', 'priority'];
-  for (const key of allowed) {
-    if (body[key] !== undefined) { sets.push(`${key} = ?`); vals.push(body[key]); }
-  }
-  if (sets.length === 0) return c.json({ message: 'No changes provided.' }, 400);
-
-  sets.push('updatedAt = ?'); vals.push(now());
-  vals.push(orderId, userId);
-
   try {
+    const existing = await c.env.DB.prepare(
+      'SELECT stage, status FROM lab_orders WHERE id = ? AND ownerId = ?'
+    ).bind(orderId, userId).first();
+    if (!existing) return c.json({ message: 'Order not found.' }, 404);
+    if (existing.stage !== 'received' || existing.status !== 'Pending') {
+      return c.json({ message: 'Order is already in production and cannot be modified directly. Please contact lab support.' }, 403);
+    }
+
+    const sets = [];
+    const vals = [];
+    const allowed = ['patientName', 'serviceType', 'dueDate', 'notes', 'priority'];
+    for (const key of allowed) {
+      if (body[key] !== undefined) { sets.push(`${key} = ?`); vals.push(body[key]); }
+    }
+    if (sets.length === 0) return c.json({ message: 'No changes provided.' }, 400);
+
+    sets.push('updatedAt = ?'); vals.push(now());
+    vals.push(orderId, userId);
+
     const { meta } = await c.env.DB.prepare(
       `UPDATE lab_orders SET ${sets.join(', ')} WHERE id = ? AND ownerId = ?`
     ).bind(...vals).run();
