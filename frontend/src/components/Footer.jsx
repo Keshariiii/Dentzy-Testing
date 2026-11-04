@@ -186,7 +186,7 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
       </div>
 
       {/* ═══ Bottom Bar ═══ */}
-      <div className="dz-footer__bottom">
+      <div className="dz-footer__bottom" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
         <p className="dz-footer__copyright">
           © 2026{' '}
           <span className="dz-footer__copyright-highlight">
@@ -194,6 +194,10 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
           </span>
           . All Rights Reserved.
         </p>
+        <div style={{ display: 'flex', gap: '18px', fontSize: '0.82rem' }}>
+          <a href="/terms" style={{ color: '#a3b8ae', textDecoration: 'none' }}>Terms &amp; Conditions</a>
+          <a href="/privacy" style={{ color: '#a3b8ae', textDecoration: 'none' }}>Privacy Policy</a>
+        </div>
       </div>
     </footer>
   );
