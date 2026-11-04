@@ -52,6 +52,8 @@ describe('Auth Validators', () => {
     it('rejects weak password (no special char)', () => invalid(registerSchema, { ...base, password: 'NoSpecial1' }));
     it('rejects weak password (too short)', () => invalid(registerSchema, { ...base, password: 'Sh1!' }));
     it('rejects disposable email', () => invalid(registerSchema, { ...base, email: 'test@mailinator.com' }));
+    it('accepts valid registration with optional dciNumber', () => valid(registerSchema, { ...base, dciNumber: 'DCI-99887' }));
+    it('rejects dciNumber > 50 chars', () => invalid(registerSchema, { ...base, dciNumber: 'a'.repeat(51) }));
   });
 
   describe('sendOtpSchema', () => {
@@ -73,6 +75,12 @@ describe('Auth Validators', () => {
     it('accepts valid input', () => valid(verifyRegisterOtpSchema, {
       name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, otp: '123456', otpToken: 'tok',
     }));
+    it('accepts valid input with dciNumber', () => valid(verifyRegisterOtpSchema, {
+      name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, otp: '123456', otpToken: 'tok', dciNumber: 'DCI-12345',
+    }));
+    it('rejects dciNumber > 50 chars', () => invalid(verifyRegisterOtpSchema, {
+      name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, otp: '123456', otpToken: 'tok', dciNumber: 'a'.repeat(51),
+    }));
     it('rejects bad OTP length', () => invalid(verifyRegisterOtpSchema, {
       name: 'Dr. Test', email: 'dr@clinic.com', password: goodPassword, otp: '12', otpToken: 'tok',
     }));
@@ -88,6 +96,8 @@ describe('Auth Validators', () => {
     it('accepts empty object', () => valid(updateProfileSchema, {}));
     it('rejects name too short', () => invalid(updateProfileSchema, { name: 'A' }));
     it('rejects long clinic name', () => invalid(updateProfileSchema, { clinicName: 'x'.repeat(101) }));
+    it('accepts dciNumber update', () => valid(updateProfileSchema, { dciNumber: 'DCI-55443' }));
+    it('rejects dciNumber > 50 chars', () => invalid(updateProfileSchema, { dciNumber: 'a'.repeat(51) }));
   });
 
   describe('changePasswordSchema', () => {

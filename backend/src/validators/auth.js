@@ -27,6 +27,7 @@ export const registerSchema = z.object({
   email: strictEmailSchema,
   password: strongPasswordSchema,
   recaptchaToken: z.string().optional(),
+  dciNumber: z.string().trim().max(50).optional().default(''),
 });
 
 // 2-step registration: Step 2 — verify OTP and create account
@@ -36,6 +37,7 @@ export const verifyRegisterOtpSchema = z.object({
   password: strongPasswordSchema,
   otp: z.string().trim().length(6, 'Verification code must be 6 digits.'),
   otpToken: z.string().min(1, 'OTP session token is required.'),
+  dciNumber: z.string().trim().max(50).optional().default(''),
 });
 
 // Resend registration OTP (no captcha required, rate-limited by cooldown)
@@ -75,6 +77,7 @@ export const updateProfileSchema = z.object({
   phone: z.string().trim().max(20, 'Phone number is too long.').optional().default(''),
   clinicName: z.string().trim().max(100, 'Clinic name must be 100 characters or less.').optional().default(''),
   address: z.string().trim().max(300, 'Address must be 300 characters or less.').optional().default(''),
+  dciNumber: z.string().trim().max(50).optional().default(''),
 });
 
 export const changePasswordSchema = z.object({

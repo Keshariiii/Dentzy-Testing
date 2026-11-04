@@ -27,6 +27,7 @@ const clearCookieHeader = (name, env) => {
 const safeUserObj = (u) => ({
   id: u.id, name: u.name, email: u.email,
   dob: u.dob || null, phone: u.phone || '', clinicName: u.clinicName || '', address: u.address || '',
+  dciNumber: u.dciNumber || '',
   createdAt: u.createdAt,
 });
 
@@ -138,7 +139,7 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
 
 // POST /api/auth/register/verify-otp — Step 2: Verify OTP + create account
 auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) => {
-  const { name, email, password, otp, otpToken } = c.get('body');
+  const { name, email, password, otp, otpToken, dciNumber } = c.get('body');
 
   // Rate limit: 5 OTP verification attempts per 10 min per email
   const rl = await checkRateLimit(c.env.DB, `verify-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 5 });
@@ -161,8 +162,8 @@ auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) =
     const ts = now();
     const hashed = await hashPassword(password);
     await c.env.DB.prepare(
-      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, name, email, hashed, 'pending', '', null, '', '', '', ts, ts).run();
+      'INSERT INTO users (id, name, email, password, status, adminNote, dob, phone, clinicName, address, dciNumber, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, name, email, hashed, 'pending', '', null, '', '', '', (dciNumber || '').trim(), ts, ts).run();
 
     auditLog('USER_REGISTERED', { userId: id, status: 'pending' });
 
@@ -494,6 +495,7 @@ auth.put('/profile', verifyUser(), validate(updateProfileSchema), async (c) => {
   }
   if (body.clinicName !== undefined) { sets.push('clinicName = ?'); vals.push(body.clinicName.trim()); }
   if (body.address !== undefined) { sets.push('address = ?'); vals.push(body.address.trim()); }
+  if (body.dciNumber !== undefined) { sets.push('dciNumber = ?'); vals.push(body.dciNumber.trim()); }
 
   if (sets.length === 0) return c.json({ message: 'No changes provided.' }, 400);
 
@@ -503,7 +505,7 @@ auth.put('/profile', verifyUser(), validate(updateProfileSchema), async (c) => {
   try {
     await c.env.DB.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
     const updated = await c.env.DB.prepare(
-      'SELECT id, name, email, dob, phone, clinicName, address, createdAt FROM users WHERE id = ?'
+      'SELECT id, name, email, dob, phone, clinicName, address, dciNumber, createdAt FROM users WHERE id = ?'
     ).bind(user.id).first();
 
     auditLog('PROFILE_UPDATED', { userId: user.id });
@@ -550,15 +552,52 @@ auth.delete('/profile', verifyUser(), validate(deleteAccountSchema), async (c) =
     const isMatch = await comparePassword(password, full.password);
     if (!isMatch) return c.json({ message: 'Incorrect password. Account deletion cancelled.' }, 401);
 
-    // ponytail: D1 FK cascades are unreliable, delete children explicitly via batch
-    await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM lab_orders WHERE ownerId = ?').bind(user.id),
-      c.env.DB.prepare('DELETE FROM payments WHERE ownerId = ?').bind(user.id),
-      c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
-    ]);
+    // 1. Block deletion if outstanding unpaid balance exists
+    const debtRow = await c.env.DB.prepare(
+      "SELECT COALESCE(SUM(amount), 0) AS totalUnpaid FROM payments WHERE ownerId = ? AND status IN ('Pending', 'Overdue')"
+    ).bind(user.id).first();
+    const totalUnpaid = Number(debtRow?.totalUnpaid || 0);
 
-    auditLog('ACCOUNT_DELETED', { userId: user.id });
-    return c.json({ message: 'Your account and all associated data have been permanently deleted.' });
+    if (totalUnpaid > 0) {
+      return c.json({
+        message: `Cannot delete account with an outstanding balance of ₹${totalUnpaid.toLocaleString('en-IN')}. Please settle all pending dues before closing your account.`,
+        code: 'UNPAID_DUES_EXIST',
+      }, 400);
+    }
+
+    // 2. Block deletion if active in-progress orders exist (status check respects schema.sql CHECK constraint)
+    const activeRow = await c.env.DB.prepare(
+      "SELECT COUNT(*) AS cnt FROM lab_orders WHERE ownerId = ? AND status IN ('Pending', 'In Progress')"
+    ).bind(user.id).first();
+    if ((activeRow?.cnt || 0) > 0) {
+      return c.json({
+        message: `Cannot delete account while ${activeRow.cnt} order(s) are still active in production. Please wait for completion or contact lab support.`,
+        code: 'ACTIVE_ORDERS_EXIST',
+      }, 400);
+    }
+
+    // 3. Check if historical completed orders or paid GST invoices exist
+    const historyRow = await c.env.DB.prepare(
+      'SELECT (SELECT COUNT(*) FROM lab_orders WHERE ownerId = ?) + (SELECT COUNT(*) FROM payments WHERE ownerId = ?) AS totalRecords'
+    ).bind(user.id, user.id).first();
+
+    const ts = now();
+    if ((historyRow?.totalRecords || 0) > 0) {
+      // Soft-close login while preserving 8-year GST tax & CDSCO medical device records
+      // Note: users.status CHECK constraint allows ('pending', 'approved', 'rejected')
+      const closedEmail = `closed_${user.id}_${Date.now()}@dentzy.invalid`;
+      const unusableHash = await hashPassword(crypto.randomUUID() + crypto.randomUUID());
+      await c.env.DB.prepare(
+        "UPDATE users SET status = 'rejected', adminNote = 'ACCOUNT_CLOSED_BY_USER', email = ?, password = ?, phone = '', dob = NULL, updatedAt = ? WHERE id = ?"
+      ).bind(closedEmail, unusableHash, ts, user.id).run();
+    } else {
+      // Zero historical orders or payments — safe to hard delete
+      await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
+    }
+
+    auditLog('ACCOUNT_DELETED', { userId: user.id, hadHistory: (historyRow?.totalRecords || 0) > 0 });
+    c.header('Set-Cookie', clearCookieHeader('dentzy_jwt', c.env));
+    return c.json({ message: 'Your account has been permanently closed.' });
   } catch (error) {
     logger.error('Delete-account error', { error: error.message });
     return c.json({ message: 'Failed to delete account. Please try again.' }, 500);
