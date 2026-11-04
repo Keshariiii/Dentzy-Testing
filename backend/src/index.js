@@ -9,6 +9,7 @@ import { sendEmail } from './utils/email.js';
 import { verifyAnyAuth } from './middleware/auth.js';
 import { calculateOrderAmount } from './utils/pricing.js';
 import { maintenanceGuard } from './middleware/maintenance.js';
+import { bindAuditContext } from './utils/logger.js';
 
 const app = new Hono();
 
@@ -102,6 +103,16 @@ app.get('/api/maintenance/status', async (c) => {
     ...maintenance,
     serverTime: new Date().toISOString(),
   });
+});
+
+// ── Audit Context Middleware (CERT-In 180-Day D1 Persistence) ──────────────
+app.use('*', async (c, next) => {
+  let executionCtx = null;
+  try {
+    executionCtx = c.executionCtx;
+  } catch {}
+  bindAuditContext(c.env?.DB, executionCtx);
+  await next();
 });
 
 // ── Fast Global Maintenance Middleware ───────────────────────────────────────
