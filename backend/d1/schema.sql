@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone TEXT DEFAULT '',
     clinicName TEXT DEFAULT '',
     address TEXT DEFAULT '',
+    dciNumber TEXT DEFAULT '',
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
 );
@@ -35,15 +36,24 @@ CREATE TABLE IF NOT EXISTS lab_orders (
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
     assigned_department TEXT DEFAULT 'Ceramic',
+    assigned_staff_id TEXT DEFAULT NULL,
     due_time TEXT DEFAULT '',
     qc_completed_at TEXT DEFAULT NULL,
     dispatched_at TEXT DEFAULT NULL,
     delivered_at TEXT DEFAULT NULL,
+    teeth_data TEXT DEFAULT '[]',
+    restoration_type TEXT DEFAULT 'Crown',
+    service_category TEXT DEFAULT 'Ceramic',
+    is_urgent INTEGER DEFAULT 0,
+    credit_override INTEGER DEFAULT 0,
+    credit_override_reason TEXT DEFAULT '',
+    material_lot_no TEXT DEFAULT '',
     FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_orders_ownerId ON lab_orders(ownerId);
 CREATE INDEX IF NOT EXISTS idx_orders_caseId ON lab_orders(caseId);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON lab_orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_desc ON lab_orders(createdAt);
 CREATE INDEX IF NOT EXISTS idx_orders_dept_stage_created ON lab_orders(assigned_department, stage, createdAt DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_assigned_staff_stage ON lab_orders(assigned_staff_id, stage, updatedAt DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_stage_updated ON lab_orders(stage, updatedAt DESC);
@@ -74,6 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_payments_mode ON payments(paymentMode);
 CREATE INDEX IF NOT EXISTS idx_payments_ref ON payments(referenceNumber);
 CREATE INDEX IF NOT EXISTS idx_payments_batchId ON payments(batchId);
+CREATE INDEX IF NOT EXISTS idx_payments_case_owner ON payments(caseId, ownerId);
 CREATE INDEX IF NOT EXISTS idx_payments_owner_status_created ON payments(ownerId, status, createdAt DESC);
 
 CREATE TABLE IF NOT EXISTS contacts (
@@ -142,14 +153,63 @@ CREATE TABLE IF NOT EXISTS app_settings (
     updated_by TEXT DEFAULT 'admin'
 );
 
+-- Delivery dispatch tracking table
+CREATE TABLE IF NOT EXISTS delivery_tasks (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    rider_id TEXT DEFAULT NULL,
+    task_type TEXT DEFAULT 'delivery',
+    status TEXT NOT NULL DEFAULT 'assigned' CHECK(status IN ('assigned', 'in_progress', 'completed', 'failed')),
+    clinic_name TEXT NOT NULL,
+    dentist_name TEXT DEFAULT '',
+    address TEXT NOT NULL,
+    contact_phone TEXT DEFAULT '',
+    patient_name TEXT DEFAULT '',
+    case_id TEXT NOT NULL,
+    notes TEXT DEFAULT '',
+    due_date TEXT DEFAULT NULL,
+    completed_at TEXT DEFAULT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES lab_orders(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_delivery_tasks_status ON delivery_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_delivery_tasks_order ON delivery_tasks(order_id);
+CREATE INDEX IF NOT EXISTS idx_delivery_tasks_order_id ON delivery_tasks(order_id);
+CREATE INDEX IF NOT EXISTS idx_delivery_tasks_status_created ON delivery_tasks(status, created_at DESC);
 
--- -- v2 columns added via migrate_v2_core.sql -----------------------------------------------
--- lab_orders: teeth_data, restoration_type, service_category, is_urgent,
---             credit_override, credit_override_reason
--- New tables: delivery_tasks, intern_tasks
--- v3: delivery_tasks extended with dentist_name, due_date columns
--- New indexes: idx_payments_case_owner, idx_orders_created_desc
--- New app_settings key: staff_notice_bar
+-- Intern daily task management table
+CREATE TABLE IF NOT EXISTS intern_tasks (
+    id TEXT PRIMARY KEY,
+    intern_id TEXT NOT NULL,
+    supervisor_id TEXT DEFAULT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'General',
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed')),
+    due_date TEXT NOT NULL,
+    completion_notes TEXT DEFAULT '',
+    verified INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (intern_id) REFERENCES staff(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_intern_tasks_intern ON intern_tasks(intern_id, status);
+
+-- CERT-In 180-day persistent audit_logs table
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id TEXT PRIMARY KEY,
+    action TEXT NOT NULL,
+    details TEXT DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+
+-- -- Migrations Reference ---------------------------------------------------
+-- v2: lab_orders extended, delivery_tasks, intern_tasks created
+-- v3: delivery_tasks extended with dentist_name, due_date
+-- v14: delivery_tasks.task_type, users.dciNumber, lab_orders.material_lot_no, audit_logs table
 
 -- Seed maintenance_mode default setting
 INSERT OR IGNORE INTO app_settings (key, value, updated_at, updated_by)
@@ -159,4 +219,3 @@ VALUES (
     datetime('now'),
     'system'
 );
-

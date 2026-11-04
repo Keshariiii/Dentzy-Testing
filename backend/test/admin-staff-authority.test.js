@@ -275,4 +275,116 @@ describe('Admin Staff Authority & Order Auto-Routing', () => {
     assert.equal(resCompleted.status, 200);
     assert.ok(lastUpdate.query.includes('delivered_at'), 'Sets delivered_at on lab_orders');
   });
+
+  it('PATCH /api/admin/orders/:id/stage updates existing delivery task without duplicates if already present', async () => {
+    const adminToken = await createAdminToken({ id: 'admin-1' });
+
+    let deliveryTaskUpdate = null;
+    let deliveryTaskInsert = null;
+
+    const mockEnv = {
+      ADMIN_JWT_SECRET: adminSecret,
+      DB: {
+        prepare: (query) => ({
+          bind: (...args) => ({
+            first: async () => {
+              if (query.includes('FROM lab_orders o LEFT JOIN users u')) {
+                return {
+                  id: 'order-123',
+                  caseId: 'DZ-TEST-123',
+                  ownerId: 'dentist-1',
+                  patientName: 'Alice Springs',
+                  dueDate: '2026-11-05',
+                  clinicName: 'Bright Smiles Clinic',
+                  ownerClinicName: 'Bright Smiles Clinic',
+                  name: 'Dr. Dentist',
+                  ownerName: 'Dr. Dentist',
+                  address: '123 Marine Drive',
+                  phone: '+919876543210',
+                };
+              }
+              if (query.includes('FROM delivery_tasks WHERE order_id = ?')) {
+                return { id: 'existing-task-999' };
+              }
+              return null;
+            },
+            run: async () => {
+              if (query.includes('UPDATE delivery_tasks')) {
+                deliveryTaskUpdate = { query, args };
+              }
+              if (query.includes('INSERT INTO delivery_tasks')) {
+                deliveryTaskInsert = { query, args };
+              }
+              return { meta: { changes: 1 } };
+            },
+          }),
+        }),
+      },
+    };
+
+    const res = await app.request('/api/admin/orders/order-123/stage', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `dentzy_admin_jwt=${adminToken}`,
+      },
+      body: JSON.stringify({ stage: 'qc' }),
+    }, mockEnv);
+
+    assert.equal(res.status, 200);
+    assert.equal(deliveryTaskInsert, null, 'No new delivery_tasks row was inserted');
+    assert.ok(deliveryTaskUpdate, 'Existing delivery_tasks row was updated');
+    assert.equal(deliveryTaskUpdate.args[8], 'existing-task-999'); // WHERE id = ?
+  });
+
+  it('PATCH /api/admin/orders/:id/stage synchronizes delivery_tasks status on dispatched and completed', async () => {
+    const adminToken = await createAdminToken({ id: 'admin-1' });
+
+    const deliveryTaskUpdates = [];
+
+    const mockEnv = {
+      ADMIN_JWT_SECRET: adminSecret,
+      DB: {
+        prepare: (query) => ({
+          bind: (...args) => ({
+            first: async () => ({
+              id: 'order-456',
+              caseId: 'DZ-TEST-456',
+              ownerId: 'dentist-1',
+            }),
+            run: async () => {
+              if (query.includes('UPDATE delivery_tasks')) {
+                deliveryTaskUpdates.push({ query, args });
+              }
+              return { meta: { changes: 1 } };
+            },
+          }),
+        }),
+      },
+    };
+
+    // Dispatched stage
+    await app.request('/api/admin/orders/order-456/stage', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `dentzy_admin_jwt=${adminToken}`,
+      },
+      body: JSON.stringify({ stage: 'dispatched' }),
+    }, mockEnv);
+
+    // Completed stage
+    await app.request('/api/admin/orders/order-456/stage', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `dentzy_admin_jwt=${adminToken}`,
+      },
+      body: JSON.stringify({ stage: 'completed' }),
+    }, mockEnv);
+
+    assert.equal(deliveryTaskUpdates.length, 2);
+    assert.ok(deliveryTaskUpdates[0].query.includes("status = 'in_progress'"));
+    assert.ok(deliveryTaskUpdates[1].query.includes("status = 'completed'"));
+  });
 });

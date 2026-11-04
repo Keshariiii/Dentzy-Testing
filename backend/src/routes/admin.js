@@ -494,14 +494,65 @@ admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema)
       'SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName, u.clinicName, u.name, u.address, u.phone FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
     ).bind(orderId).first();
 
-    // ponytail: auto-queue delivery task upon QC completion so riders see it immediately
+    // ponytail: auto-queue delivery task upon QC completion without duplicate rows
     if (stage === 'qc') {
-      const taskId = newId();
-      await c.env.DB.prepare(`
-        INSERT INTO delivery_tasks (id, order_id, task_type, status, clinic_name, dentist_name, address, contact_phone, patient_name, case_id, due_date, created_at, updated_at)
-        VALUES (?, ?, 'delivery', 'assigned', ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET status = 'assigned', updated_at = ?
-      `).bind(taskId, orderId, order.clinicName || order.ownerClinicName || '', order.name || order.ownerName || '', order.address || '', order.phone || '', order.patientName || '', order.caseId, order.dueDate || null, ts, ts, ts).run();
+      const existingTask = await c.env.DB.prepare(
+        'SELECT id FROM delivery_tasks WHERE order_id = ?'
+      ).bind(orderId).first();
+
+      const clinicName = order.clinicName || order.ownerClinicName || 'Dentzy Clinic';
+      const dentistName = order.name || order.ownerName || '';
+
+      if (existingTask) {
+        await c.env.DB.prepare(
+          `UPDATE delivery_tasks
+           SET status = 'assigned', clinic_name = ?, dentist_name = ?, address = ?,
+               contact_phone = ?, patient_name = ?, case_id = ?, due_date = ?, updated_at = ?
+           WHERE id = ?`
+        ).bind(
+          clinicName,
+          dentistName,
+          order.address || '',
+          order.phone || '',
+          order.patientName || '',
+          order.caseId,
+          order.dueDate || null,
+          ts,
+          existingTask.id
+        ).run();
+      } else {
+        const taskId = newId();
+        await c.env.DB.prepare(`
+          INSERT INTO delivery_tasks (
+            id, order_id, task_type, status, clinic_name, dentist_name,
+            address, contact_phone, patient_name, case_id, due_date, created_at, updated_at
+          ) VALUES (?, ?, 'delivery', 'assigned', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          taskId,
+          orderId,
+          clinicName,
+          dentistName,
+          order.address || '',
+          order.phone || '',
+          order.patientName || '',
+          order.caseId,
+          order.dueDate || null,
+          ts,
+          ts
+        ).run();
+      }
+    } else if (stage === 'dispatched') {
+      try {
+        await c.env.DB.prepare(
+          "UPDATE delivery_tasks SET status = 'in_progress', updated_at = ? WHERE order_id = ?"
+        ).bind(ts, orderId).run();
+      } catch {}
+    } else if (stage === 'completed') {
+      try {
+        await c.env.DB.prepare(
+          "UPDATE delivery_tasks SET status = 'completed', completed_at = ?, updated_at = ? WHERE order_id = ?"
+        ).bind(ts, ts, orderId).run();
+      } catch {}
     }
 
     auditLog('ORDER_STAGE_UPDATED', { orderId, caseId: order.caseId, newStage: stage, adminUsername: c.get('admin').username });
