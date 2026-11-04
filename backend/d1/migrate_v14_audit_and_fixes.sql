@@ -2,8 +2,8 @@
 -- Run locally:  npx wrangler d1 execute dentzy-db --local --file=./d1/migrate_v14_audit_and_fixes.sql
 -- Run remotely: npx wrangler d1 execute dentzy-db --remote --file=./d1/migrate_v14_audit_and_fixes.sql
 
--- 1. Fix BUG-01: Add missing task_type column to delivery_tasks
-ALTER TABLE delivery_tasks ADD COLUMN task_type TEXT DEFAULT 'delivery';
+-- 1. Fix BUG-01: task_type already present on delivery_tasks
+-- ALTER TABLE delivery_tasks ADD COLUMN task_type TEXT DEFAULT 'delivery';
 CREATE INDEX IF NOT EXISTS idx_delivery_tasks_order_id ON delivery_tasks(order_id);
 
 -- 2. Dental Council (DCI / SDC) registration number for Dentists
