@@ -58,6 +58,7 @@ describe('Auth Validators', () => {
 
   describe('sendOtpSchema', () => {
     it('accepts valid email', () => valid(sendOtpSchema, { email: 'a@b.com' }));
+    it('accepts valid email with recaptchaToken', () => valid(sendOtpSchema, { email: 'a@b.com', recaptchaToken: 'tok' }));
     it('rejects empty email', () => invalid(sendOtpSchema, { email: '' }));
   });
 
@@ -108,6 +109,19 @@ describe('Auth Validators', () => {
   describe('deleteAccountSchema', () => {
     it('accepts valid input', () => valid(deleteAccountSchema, { password: 'mypassword' }));
     it('rejects empty password', () => invalid(deleteAccountSchema, { password: '' }));
+  });
+
+  describe('googleAuthSchema', () => {
+    it('accepts credential and defaults mode to login', () => {
+      const parsed = googleAuthSchema.parse({ credential: 'xyz' });
+      assert.equal(parsed.mode, 'login');
+    });
+    it('accepts credential with mode=register', () => {
+      const parsed = googleAuthSchema.parse({ credential: 'xyz', mode: 'register' });
+      assert.equal(parsed.mode, 'register');
+    });
+    it('rejects invalid mode', () => invalid(googleAuthSchema, { credential: 'xyz', mode: 'invalid' }));
+    it('rejects missing credential', () => invalid(googleAuthSchema, { credential: '' }));
   });
 });
 

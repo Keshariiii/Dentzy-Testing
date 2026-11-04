@@ -25,7 +25,8 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
     if (!response?.credential) return;
     setLoading(true);
     try {
-      const res = await googleLogin(response.credential);
+      const googleMode = mode === 'signup' ? 'register' : 'login';
+      const res = await googleLogin(response.credential, googleMode);
       if (res?.status === 'pending') {
         if (onPending) {
           onPending(res.pending || res);
@@ -40,12 +41,12 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
         if (onPending) onPending(err);
         else router.push('/login?pending=true');
       } else if (onError) {
-        onError(err.message || 'Google sign-in failed.');
+        onError(err.message || 'Google sign-in failed.', err);
       }
     } finally {
       setLoading(false);
     }
-  }, [googleLogin, onPending, onError, router]);
+  }, [googleLogin, mode, onPending, onError, router]);
 
   const renderGoogleButton = useCallback(() => {
     if (!clientId || typeof window === 'undefined' || !window.google?.accounts?.id || !btnContainerRef.current) {

@@ -31,31 +31,40 @@ const safeUserObj = (u) => ({
   createdAt: u.createdAt,
 });
 
+const verifyRecaptcha = async (secret, token) => {
+  if (!secret) return { success: true };
+  if (!token) return { success: false, code: 'RECAPTCHA_REQUIRED' };
+  try {
+    const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+    const data = await resp.json();
+    if (!data.success || (typeof data.score === 'number' && data.score < 0.5)) {
+      logger.warn('reCAPTCHA failed', { score: data?.score, errors: data?.['error-codes'] });
+      return { success: false, code: 'RECAPTCHA_FAILED' };
+    }
+    return { success: true };
+  } catch (err) {
+    logger.error('reCAPTCHA verify error', { error: err.message });
+    return { success: false, code: 'RECAPTCHA_FAILED' };
+  }
+};
+
+
 
 // POST /api/auth/register/send-otp — Step 1: Validate form + send email verification OTP
 auth.post('/register/send-otp', validate(registerSchema), async (c) => {
   const { name, email, recaptchaToken } = c.get('body');
 
   // ponytail: verify reCAPTCHA v3 only when secret key is provided (graceful in tests/local dev)
-  const recaptchaSecret = c.env.RECAPTCHA_SECRET_KEY;
-  if (recaptchaSecret) {
-    if (!recaptchaToken) {
+  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken);
+  if (!recaptcha.success) {
+    if (recaptcha.code === 'RECAPTCHA_REQUIRED') {
       return c.json({ message: 'Security check failed. Please refresh and try again.' }, 400);
     }
-    try {
-      const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ secret: recaptchaSecret, response: recaptchaToken }),
-      });
-      const data = await resp.json();
-      if (!data.success || (typeof data.score === 'number' && data.score < 0.5)) {
-        logger.warn('reCAPTCHA failed', { score: data.score, errors: data['error-codes'] });
-        return c.json({ message: 'Security verification failed. Please try again.' }, 403);
-      }
-    } catch (err) {
-      logger.error('reCAPTCHA verify error', { error: err.message });
-    }
+    return c.json({ message: 'Security verification failed. Please try again.' }, 403);
   }
 
   try {
@@ -238,7 +247,7 @@ auth.post('/login', validate(loginSchema), async (c) => {
 
 // POST /api/auth/google — Verify Google ID token and log in or register user
 auth.post('/google', validate(googleAuthSchema), async (c) => {
-  const { credential } = c.get('body');
+  const { credential, mode = 'login' } = c.get('body');
 
   try {
     const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
@@ -265,6 +274,9 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
     const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(normalizedEmail).first();
 
     if (user) {
+      if (mode === 'register') {
+        return c.json({ error: 'ACCOUNT_ALREADY_EXISTS', message: 'An account with this email already exists. Please log in instead.', action: 'LOGIN' }, 409);
+      }
       if (user.status === 'pending') {
         return c.json({ message: 'Your account is awaiting admin approval.', status: 'pending' }, 403);
       }
@@ -278,7 +290,11 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
       return c.json({ user: safeUserObj(user), token });
     }
 
-    // New user auto-registration
+    if (mode === 'login') {
+      return c.json({ error: 'ACCOUNT_NOT_REGISTERED', message: 'No Dentzy account is registered with this Google address. Please sign up on the Register page first.', action: 'REGISTER' }, 404);
+    }
+
+    // New user auto-registration (mode === 'register')
     const id = newId();
     const ts = now();
     const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16)).join('');
@@ -303,8 +319,10 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
       }
     };
 
-    if (c.executionCtx?.waitUntil) {
-      c.executionCtx.waitUntil(backgroundTasks());
+    let executionCtx = null;
+    try { executionCtx = c.executionCtx; } catch {}
+    if (executionCtx?.waitUntil) {
+      executionCtx.waitUntil(backgroundTasks());
     } else {
       backgroundTasks();
     }
@@ -339,7 +357,17 @@ auth.post('/logout', (c) => {
 
 // POST /api/auth/forgot-password/send-otp
 auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
-  const { email } = c.get('body');
+  const { email, recaptchaToken } = c.get('body');
+
+  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken);
+  if (!recaptcha.success) {
+    if (recaptcha.code === 'RECAPTCHA_REQUIRED') {
+      return c.json({ error: 'RECAPTCHA_REQUIRED', message: 'Please complete the Google reCAPTCHA verification.' }, 400);
+    }
+    if (recaptcha.code === 'RECAPTCHA_FAILED') {
+      return c.json({ error: 'RECAPTCHA_FAILED', message: 'Google reCAPTCHA verification failed. Please try again.' }, 403);
+    }
+  }
 
   try {
     // Rate limit: 3 OTP sends per 10 min per email

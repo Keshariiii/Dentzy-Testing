@@ -3,8 +3,9 @@
  * MobileForgotPassword — Fullscreen mobile password reset with Brevo OTP flow.
  */
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getAuthUrl } from '../../api/client';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
@@ -43,6 +44,21 @@ const MobileForgotPassword = () => {
   const [loading, setLoading] = useState(false);
 
   const otpInputsRef = useRef([]);
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  const getRecaptchaToken = useCallback(async () => {
+    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) return null;
+    return new Promise((resolve) => {
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(siteKey, { action: 'forgot_password' });
+          resolve(token);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+  }, [siteKey]);
 
   // ── Resend cooldown timer ──────────────────────────────────────────────────
   useEffect(() => {
@@ -67,10 +83,11 @@ const MobileForgotPassword = () => {
 
     setLoading(true);
     try {
+      const recaptchaToken = await getRecaptchaToken();
       const res = await fetch(`${API_URL}/forgot-password/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail }),
+        body: JSON.stringify({ email: cleanEmail, recaptchaToken }),
       });
       const data = await res.json();
 
@@ -207,6 +224,12 @@ const MobileForgotPassword = () => {
 
   return (
     <div className="m-auth-page">
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
       {/* Back Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/login')} aria-label="Back" title="Back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

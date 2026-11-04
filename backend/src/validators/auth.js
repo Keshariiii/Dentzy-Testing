@@ -57,6 +57,7 @@ export const sendOtpSchema = z.object({
   email: z.string().trim().toLowerCase()
     .min(1, 'Please provide a valid email address.')
     .refine(e => e.includes('@') && e.includes('.'), { message: 'Please provide a valid email address.' }),
+  recaptchaToken: z.string().optional(),
 });
 
 export const verifyOtpSchema = z.object({
@@ -91,4 +92,5 @@ export const deleteAccountSchema = z.object({
 
 export const googleAuthSchema = z.object({
   credential: z.string().trim().min(1, 'Google credential token is required.'),
+  mode: z.enum(['login', 'register']).optional().default('login'),
 });

@@ -158,10 +158,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Google OAuth Login / Auto-Registration
-  const googleLogin = useCallback(async (credential) => {
+  const googleLogin = useCallback(async (credential, mode = 'login') => {
     const data = await apiFetch(`${getAuthUrl()}/google`, {
       method: 'POST',
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({ credential, mode }),
     });
     if (data.user) {
       localStorage.setItem('dentzy_user', JSON.stringify(data.user));
@@ -205,7 +205,7 @@ export const AuthProvider = ({ children }) => {
     updateUserState,
     API_URL,
     DASH_URL,
-  }), [user, loading, login, sendRegisterOtp, resendRegisterOtp, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
+  }), [user, loading, login, googleLogin, sendRegisterOtp, resendRegisterOtp, register, logout, authFetch, updateUserState, API_URL, DASH_URL]);
 
   return (
     <AuthContext.Provider value={value}>

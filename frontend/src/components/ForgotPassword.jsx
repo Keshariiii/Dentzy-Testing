@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { getAuthUrl } from '../api/client';
 import PasswordStrength from './ui/password-strength';
@@ -41,6 +42,21 @@ const ForgotPassword = () => {
   const [infoMsg, setInfoMsg] = useState('');
 
   const otpInputsRef = useRef([]);
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  const getRecaptchaToken = useCallback(async () => {
+    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) return null;
+    return new Promise((resolve) => {
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(siteKey, { action: 'forgot_password' });
+          resolve(token);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+  }, [siteKey]);
 
   // ── Resend cooldown timer ──────────────────────────────────────────────────
   useEffect(() => {
@@ -81,10 +97,11 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
+      const recaptchaToken = await getRecaptchaToken();
       const res = await fetch(`${API()}/forgot-password/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail }),
+        body: JSON.stringify({ email: cleanEmail, recaptchaToken }),
       });
       const data = await res.json();
 
@@ -266,6 +283,12 @@ const ForgotPassword = () => {
   if (step === 1) {
     return (
       <div className="auth-page">
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
         <div className="auth-left">
           <div className="auth-left-overlay" />
           <div className="auth-left-content">
@@ -329,6 +352,12 @@ const ForgotPassword = () => {
   if (step === 2) {
     return (
       <div className="auth-page">
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
         <div className="auth-left">
           <div className="auth-left-overlay" />
           <div className="auth-left-content">

@@ -404,7 +404,12 @@ const MobileLogin = () => {
             </div>
             <GoogleSignInButton
               mode="signin"
-              onError={(msg) => setError(msg)}
+              onError={(msg, err) => {
+                setError(msg);
+                if (err?.action === 'REGISTER' || err?.data?.error === 'ACCOUNT_NOT_REGISTERED') {
+                  setErrorAction({ type: 'link', to: '/register', label: 'Register here →' });
+                }
+              }}
               onPending={() => setError('Your registration is submitted and awaiting admin approval.')}
             />
           </>
