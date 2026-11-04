@@ -260,7 +260,7 @@ export default function PrintableInvoice({
                 <td style={{ textAlign: 'center' }}>{item.qty || 1}</td>
                 <td style={{ textAlign: 'right' }}>{formatINR(item.netAmount || item.amount || 0)}</td>
                 <td style={{ textAlign: 'center' }}>{item.taxRate ?? 0}%</td>
-                <td style={{ textAlign: 'center' }}>{item.taxType || 'CGST/SGST'}</td>
+                <td style={{ textAlign: 'center' }}>{item.taxType || 'GST Exempt'}</td>
                 <td style={{ textAlign: 'right' }}>{formatINR(item.taxAmount || 0)}</td>
                 <td style={{ textAlign: 'right' }}><strong>{formatINR(item.total || item.amount || 0)}</strong></td>
               </tr>
@@ -321,6 +321,7 @@ export default function PrintableInvoice({
 
       {/* ── Official Fineprint / Footnote ─────────────────────────── */}
       <div className="pi-fineprint">
+        <div>Custom-Made Dental Medical Device (CDSCO MDR 2017 Rule 3(r)) — Fabricated exclusively against the written clinical prescription of Dr. {doctorName} for the named patient(s) above.</div>
         <div>{isUnpaid ? 'Please clear outstanding dues promptly to maintain uninterrupted laboratory milling service.' : 'Please note that this invoice is not a demand for payment.'}</div>
         <div>Regd. Office: Dentzy Dental Laboratory, Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
         <div>Telephone: +91 9503668112 | Email: support@dentzy.in | Website: dentzy-testing.pages.dev</div>

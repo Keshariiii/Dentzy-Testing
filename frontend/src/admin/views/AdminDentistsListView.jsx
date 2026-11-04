@@ -194,26 +194,6 @@ export default function AdminDentistsListView({
                     </div>
                   </div>
 
-                  {user.plainPassword && (
-                    <div className={isMobile ? 'ma-uc-pw' : 'ad-user-pw'} style={{ marginTop: '8px' }}>
-                      {Ico.lock(11)}
-                      <span className="ma-pw-value" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {visiblePw === uId ? user.plainPassword : '••••••••'}
-                      </span>
-                      <button
-                        type="button"
-                        className="ma-pw-toggle"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setVisiblePw(visiblePw === uId ? null : uId);
-                        }}
-                        title={visiblePw === uId ? 'Hide password' : 'Show password'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}
-                      >
-                        {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
-                      </button>
-                    </div>
-                  )}
 
                   {/* Inline action buttons */}
                   {(user.status === 'pending' || user.status === 'rejected') && (

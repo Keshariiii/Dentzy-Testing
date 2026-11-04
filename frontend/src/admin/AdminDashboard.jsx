@@ -411,77 +411,18 @@ const AdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  /* ── SSE connection ────────────────────────────────────────────────────── */
+  // Refresh admin data on window focus
   useEffect(() => {
     if (!admin?.username) return;
-
-    let retryTimeout;
-    let retryCount = 0;
-    let stopped = false;
-    let es = null;
-
-    const connect = () => {
-      if (stopped || retryCount >= 3) return;
-      try {
-        const url = `${ADMIN_API}/events`;
-        es = new EventSource(url, { withCredentials: true });
-        sseRef.current = es;
-
-        es.addEventListener('connected', () => {
-          retryCount = 0;
-        });
-
-        es.addEventListener('new-registration', (e) => {
-          try {
-            const user = JSON.parse(e.data);
-            playNotifSoundRef.current?.();
-            const id = Date.now();
-            setLiveNotifs(prev => [{ id, ...user }, ...prev]);
-            setTimeout(() => setLiveNotifs(prev => prev.filter(n => n.id !== id)), 8000);
-            fetchUsersRef.current?.();
-            fetchStatsRef.current?.();
-          } catch { }
-        });
-
-        es.addEventListener('user-updated', () => {
-          fetchUsersRef.current?.();
-          fetchStatsRef.current?.();
-          fetchAllOrdersRef.current?.();
-        });
-        es.addEventListener('order-created', () => { fetchAllOrdersRef.current?.(); });
-        es.addEventListener('order-stage-updated', () => { fetchAllOrdersRef.current?.(); });
-        es.addEventListener('order-deleted', () => { fetchAllOrdersRef.current?.(); });
-
-        es.onerror = () => {
-          if (es) {
-            es.close();
-            es = null;
-          }
-          if (!stopped && retryCount < 3) {
-            retryCount += 1;
-            retryTimeout = setTimeout(connect, 10000);
-          }
-        };
-      } catch {
-        // SSE not supported or network error
-      }
+    const onFocus = () => {
+      fetchUsersRef.current?.();
+      fetchStatsRef.current?.();
+      fetchAllOrdersRef.current?.();
+      fetchPaymentsRef.current?.();
     };
-
-    connect();
-
-    return () => {
-      stopped = true;
-      if (es) {
-        es.close();
-        es = null;
-      }
-      if (sseRef.current) {
-        sseRef.current.close();
-        sseRef.current = null;
-      }
-      clearTimeout(retryTimeout);
-    };
-  }, [admin?.username, ADMIN_API]);
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [admin?.username]);
 
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
@@ -1610,20 +1551,6 @@ const AdminDashboard = () => {
                                 {Ico.clock(12)}
                                 {formatOrderDateTime(user?.createdAt)}
                               </div>
-                              {user.plainPassword && (
-                                <div className="ad-user-pw">
-                                  {Ico.lock(12)}
-                                  <span className="ad-pw-value">
-                                    {visiblePw === uId ? user.plainPassword : '••••••••'}
-                                  </span>
-                                  <button className="ad-pw-toggle"
-                                    onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
-                                    title={visiblePw === uId ? 'Hide password' : 'Show password'}
-                                  >
-                                    {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
-                                  </button>
-                                </div>
-                              )}
                             </div>
 
                             {/* Inline action buttons based on status */}

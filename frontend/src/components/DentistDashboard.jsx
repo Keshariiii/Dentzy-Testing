@@ -201,39 +201,16 @@ const DentistDashboard = () => {
   const fetchStatsRef = useRef(fetchStats);
   fetchStatsRef.current = fetchStats;
 
-  // Real-time SSE synchronization with Admin updates
+  // Refresh stats and orders on window focus
   useEffect(() => {
     if (!user) return;
-
-    let es = null;
-    let retryTimeout;
-    let retryCount = 0;
-    let stopped = false;
-
-    const connect = () => {
-      if (stopped || retryCount >= 3) return;
-      try {
-        const url = `${DASH_URL}/events`;
-        es = new EventSource(url, { withCredentials: true });
-        es.addEventListener('connected', () => { retryCount = 0; });
-        const refresh = () => { fetchStatsRef.current?.(); fetchOrdersRef.current?.(); };
-        ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt => es.addEventListener(evt, refresh));
-        es.onerror = () => {
-          if (es) { es.close(); es = null; }
-          if (!stopped && retryCount < 3) {
-            retryCount += 1;
-            retryTimeout = setTimeout(connect, 10000);
-          }
-        };
-      } catch {}
+    const onFocus = () => {
+      fetchStatsRef.current?.();
+      fetchOrdersRef.current?.();
     };
-    connect();
-    return () => {
-      stopped = true;
-      if (es) es.close();
-      clearTimeout(retryTimeout);
-    };
-  }, [user, DASH_URL]);
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user]);
 
   const handleLogout = () => { logout(); router.push('/login'); };
   const userName  = user?.name || 'Doctor';

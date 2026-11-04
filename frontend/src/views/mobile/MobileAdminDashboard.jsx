@@ -449,76 +449,18 @@ const MobileAdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  /* -- SSE connection ---------------------------------------------------- */
+  // Refresh admin data on window focus
   useEffect(() => {
     if (!admin?.username) return;
-
-    let retryTimeout;
-    let retryCount = 0;
-    let stopped = false;
-    let es = null;
-
-    const connect = () => {
-      if (stopped || retryCount >= 3) return;
-      try {
-        const url = `${ADMIN_API}/events`;
-        es = new EventSource(url, { withCredentials: true });
-        sseRef.current = es;
-
-        es.addEventListener('connected', () => { retryCount = 0; });
-
-        es.addEventListener('new-registration', (e) => {
-          try {
-            const user = JSON.parse(e.data);
-            playNotifSoundRef.current?.();
-            const id = Date.now();
-            setLiveNotifs(prev => [{ id, ...user }, ...prev]);
-            setTimeout(() => setLiveNotifs(prev => prev.filter(n => n.id !== id)), 8000);
-            fetchUsersRef.current?.();
-            fetchStatsRef.current?.();
-          } catch {}
-        });
-
-        es.addEventListener('user-updated', () => {
-          fetchUsersRef.current?.();
-          fetchStatsRef.current?.();
-          fetchAllOrdersRef.current?.();
-        });
-
-        es.addEventListener('order-created', () => {
-          fetchAllOrdersRef.current?.();
-          fetchPaymentsRef.current?.();
-        });
-
-        es.addEventListener('order-stage-updated', () => {
-          fetchAllOrdersRef.current?.();
-          fetchPaymentsRef.current?.();
-        });
-
-        es.addEventListener('order-deleted', () => {
-          fetchAllOrdersRef.current?.();
-          fetchPaymentsRef.current?.();
-        });
-
-        es.onerror = () => {
-          if (es) { es.close(); es = null; }
-          if (!stopped && retryCount < 3) {
-            retryCount += 1;
-            retryTimeout = setTimeout(connect, 10000);
-          }
-        };
-      } catch {}
+    const onFocus = () => {
+      fetchUsersRef.current?.();
+      fetchStatsRef.current?.();
+      fetchAllOrdersRef.current?.();
+      fetchPaymentsRef.current?.();
     };
-
-    connect();
-
-    return () => {
-      stopped = true;
-      if (es) { es.close(); es = null; }
-      if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
-      clearTimeout(retryTimeout);
-    };
-  }, [admin?.username, ADMIN_API]);
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [admin?.username]);
 
   /* -- Toast helper (using context) -------------------------------------- */
 
@@ -1123,19 +1065,6 @@ const MobileAdminDashboard = () => {
                       </div>
                     </div>
 
-                    {user.plainPassword && (
-                      <div className="ma-uc-pw" style={{ marginTop: '12px' }}>
-                        {Ico.lock(11)}
-                        <span className="ma-pw-value">
-                          {visiblePw === uId ? user.plainPassword : '••••••••'}
-                        </span>
-                        <button className="ma-pw-toggle"
-                          onClick={(e) => { e.stopPropagation(); setVisiblePw(visiblePw === uId ? null : uId); }}
-                          title={visiblePw === uId ? 'Hide' : 'Show'}>
-                          {visiblePw === uId ? Ico.eyeOff(13) : Ico.eye(13)}
-                        </button>
-                      </div>
-                    )}
 
                     {/* Inline action buttons based on status */}
                     {(user.status === 'pending' || user.status === 'rejected') && (

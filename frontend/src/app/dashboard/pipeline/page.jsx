@@ -92,38 +92,13 @@ export default function PipelinePage() {
   const fetchOrdersRef = useRef(fetchOrders);
   fetchOrdersRef.current = fetchOrders;
 
+  // Refresh pipeline orders on window focus
   useEffect(() => {
     if (!user) return;
-    let es = null;
-    let retryTimeout;
-    let retryCount = 0;
-    let stopped = false;
-
-    const connect = () => {
-      if (stopped || retryCount >= 3) return;
-      try {
-        es = new EventSource(`${DASH_URL}/events`, { withCredentials: true });
-        es.addEventListener('connected', () => { retryCount = 0; });
-        const refresh = () => fetchOrdersRef.current?.();
-        ['new-order', 'order-stage-updated', 'order-deleted'].forEach(evt =>
-          es.addEventListener(evt, refresh)
-        );
-        es.onerror = () => {
-          if (es) { es.close(); es = null; }
-          if (!stopped && retryCount < 3) {
-            retryCount += 1;
-            retryTimeout = setTimeout(connect, 10000);
-          }
-        };
-      } catch {}
-    };
-    connect();
-    return () => {
-      stopped = true;
-      if (es) es.close();
-      clearTimeout(retryTimeout);
-    };
-  }, [user, DASH_URL]);
+    const onFocus = () => fetchOrdersRef.current?.();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user]);
 
   // Filter logic
   const filtered = orders.filter(o => {
