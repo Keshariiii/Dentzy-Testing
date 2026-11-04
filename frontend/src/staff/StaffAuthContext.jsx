@@ -21,16 +21,25 @@ export const StaffAuthProvider = ({ children }) => {
       try {
         if (isMounted) setStaff(JSON.parse(saved));
       } catch {
-        if (typeof window !== 'undefined')
+        if (typeof window !== 'undefined') {
           localStorage.removeItem('dentzy_staff_info');
+          localStorage.removeItem('dentzy_staff_token');
+          localStorage.removeItem('dentzy_staff_jwt');
+        }
       }
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const staffToken = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_staff_token') || localStorage.getItem('dentzy_staff_jwt')) : null;
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(staffToken ? { 'Authorization': `Bearer ${staffToken}` } : {}),
+      };
+
       try {
         const res = await fetch(`${getStaffUrl()}/me`, {
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           credentials: 'include',
         });
         clearTimeout(timeoutId);
@@ -39,6 +48,9 @@ export const StaffAuthProvider = ({ children }) => {
           if (isMounted) {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
+            if (data.token) {
+              localStorage.setItem('dentzy_staff_token', data.token);
+            }
           }
         } else if (res.status === 503) {
           try {
@@ -50,8 +62,11 @@ export const StaffAuthProvider = ({ children }) => {
             }
           } catch {}
         } else if (res.status === 401 || res.status === 403) {
-          if (typeof window !== 'undefined')
+          if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_staff_info');
+            localStorage.removeItem('dentzy_staff_token');
+            localStorage.removeItem('dentzy_staff_jwt');
+          }
           if (isMounted) setStaff(null);
         }
       } catch {
@@ -71,6 +86,9 @@ export const StaffAuthProvider = ({ children }) => {
       body: JSON.stringify({ username, password }),
     });
     localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
+    if (data.token) {
+      localStorage.setItem('dentzy_staff_token', data.token);
+    }
     // Clear any stale regular user or admin session
     localStorage.removeItem('dentzy_user');
     localStorage.removeItem('dentzy_admin_info');
@@ -83,8 +101,11 @@ export const StaffAuthProvider = ({ children }) => {
     try {
       await apiFetch(`${getStaffUrl()}/logout`, { method: 'POST' });
     } catch { /* ignore */ }
-    if (typeof window !== 'undefined')
+    if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_staff_info');
+      localStorage.removeItem('dentzy_staff_token');
+      localStorage.removeItem('dentzy_staff_jwt');
+    }
     setStaff(null);
   }, []);
 
@@ -99,17 +120,22 @@ export const StaffAuthProvider = ({ children }) => {
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {
     try {
+      const staffToken = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_staff_token') || localStorage.getItem('dentzy_staff_jwt')) : null;
       const res = await fetch(url, {
         ...options,
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          ...(staffToken ? { 'Authorization': `Bearer ${staffToken}` } : {}),
           ...(options.headers || {}),
         },
       });
       if (res.status === 401 || res.status === 403) {
-        if (typeof window !== 'undefined')
+        if (typeof window !== 'undefined') {
           localStorage.removeItem('dentzy_staff_info');
+          localStorage.removeItem('dentzy_staff_token');
+          localStorage.removeItem('dentzy_staff_jwt');
+        }
       }
       return res;
     } catch (err) {

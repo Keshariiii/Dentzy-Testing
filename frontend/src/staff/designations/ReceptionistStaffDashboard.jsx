@@ -1416,7 +1416,16 @@ export default function ReceptionistStaffDashboard() {
       {/* 4. Single Invoice Modal */}
       {singleInvoiceModal && (
         <PrintableInvoice
-          order={singleInvoiceModal}
+          payment={{
+            ...singleInvoiceModal,
+            amount: singleInvoiceModal.paymentAmount || singleInvoiceModal.amount || 0,
+            status: singleInvoiceModal.paymentStatus || singleInvoiceModal.status || 'Paid',
+            dentistName: selectedDentist?.name || singleInvoiceModal.owner?.name,
+            clinicName: selectedDentist?.clinicName || singleInvoiceModal.owner?.clinicName,
+            phone: selectedDentist?.phone || singleInvoiceModal.owner?.phone,
+            address: selectedDentist?.address || singleInvoiceModal.owner?.address,
+          }}
+          dentist={selectedDentist}
           onClose={() => setSingleInvoiceModal(null)}
         />
       )}
