@@ -7,8 +7,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Clock, Layers, Headphones, Send, Loader2, MapPin, Phone, Mail } from 'lucide-react';
 import { TwentyFirstIconButton } from '../../components/ui/twentyfirst-icon-button';
+import { ThankYouAnimation } from '../../components/ui/thank-you-animation';
 import { useAuth } from '../../context/AuthContext';
 import { getContactUrl } from '../../api/client';
 import MobileHeader from '../../components/mobile/MobileHeader';
@@ -68,7 +70,11 @@ const MobileHome = () => {
     user_name: '', user_email: '', contact_number: '', subject: '', message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [hpWebsite, setHpWebsite] = useState('');
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -76,8 +82,16 @@ const MobileHome = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.user_name || !formData.user_email || !formData.message) {
-      setStatusMessage({ type: 'error', text: 'Please fill in all required fields (Name, Email, Message)' });
+    if (isSubmitting) return;
+    const trimmedName = formData.user_name.trim();
+    const trimmedEmail = formData.user_email.trim();
+    const trimmedMessage = formData.message.trim();
+    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
+      setStatusMessage({ type: 'error', text: 'Please fill in all required fields (Name, Email, Message).' });
+      return;
+    }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setStatusMessage({ type: 'error', text: 'Please enter a valid email address (e.g. doctor@clinic.com).' });
       return;
     }
     setIsSubmitting(true);
@@ -87,20 +101,27 @@ const MobileHome = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.user_name, email: formData.user_email,
-          phone: formData.contact_number, subject: formData.subject, message: formData.message,
+          name: trimmedName, email: trimmedEmail,
+          phone: formData.contact_number.trim(), subject: formData.subject.trim(),
+          message: trimmedMessage, hp_website: hpWebsite,
         }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
-        setStatusMessage({ type: 'success', text: 'Message Sent Successfully!' });
+        setIsSubmitted(true);
+        setStatusMessage({ type: '', text: '' });
         setFormData({ user_name: '', user_email: '', contact_number: '', subject: '', message: '' });
       } else {
-        setStatusMessage({ type: 'error', text: `Failed to send: ${data.error || 'Server error'}` });
+        setStatusMessage({ type: 'error', text: data.error || 'Unable to submit your message. Please try again.' });
       }
     } catch {
       setStatusMessage({ type: 'error', text: 'Failed to connect to the server. Please try again later.' });
     } finally { setIsSubmitting(false); }
+  };
+
+  const handleReset = () => {
+    setIsSubmitted(false);
+    setStatusMessage({ type: '', text: '' });
   };
 
   const scrollTo = (id) => {
@@ -328,66 +349,75 @@ const MobileHome = () => {
 
         {/* 16. Contact Form */}
         <section className="m-contact-form-section" id="m-contact-form">
-          <h2 className="m-section-title">We Are Here To Help You</h2>
-          <form className="m-contact-form" onSubmit={handleSubmit} noValidate>
-            <input type="text" name="user_name" placeholder="Name *" className="m-cf-input"
-              value={formData.user_name} onChange={handleChange} />
-            <input type="email" name="user_email" placeholder="Email *" className="m-cf-input"
-              value={formData.user_email} onChange={handleChange} />
-            <input type="tel" name="contact_number" placeholder="Phone Number" className="m-cf-input"
-              value={formData.contact_number} onChange={handleChange} />
-            <input type="text" name="subject" placeholder="Subject" className="m-cf-input"
-              value={formData.subject} onChange={handleChange} />
-            <textarea name="message" placeholder="Message *" className="m-cf-input m-cf-textarea" rows="4"
-              value={formData.message} onChange={handleChange} />
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-              <TwentyFirstIconButton
-                type="submit"
-                icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                title={isSubmitting ? 'Sending...' : 'Send Message'}
-                ariaLabel="Send Message"
-                variant="primary"
-                size="lg"
-                disabled={isSubmitting}
-              />
-            </div>
-            {statusMessage.text && (
-              <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>{statusMessage.text}</div>
-            )}
-          </form>
+          <div className="m-contact-card">
+            <AnimatePresence mode="wait">
+              {!isSubmitted ? (
+                <form className="m-contact-form" onSubmit={handleSubmit} noValidate key="form">
+                  <div className="m-cf-field">
+                    <label className="m-cf-label">Name *</label>
+                    <input type="text" name="user_name" placeholder="Dr. Rajesh Sharma"
+                      className="m-cf-input" value={formData.user_name} onChange={handleChange}
+                      maxLength={100} required />
+                  </div>
 
-          <div className="m-contact-info-grid">
-            <div className="m-ci-item">
-              <div className="m-ci-icon"><MapPin size={16} /></div>
-              <div className="m-ci-text">
-                <h4>Address</h4>
-                <p>Dindayal Nagar, Vasai West - 401202, Maharashtra</p>
-              </div>
-            </div>
-            <div className="m-ci-item">
-              <div className="m-ci-icon"><Phone size={16} /></div>
-              <div className="m-ci-text">
-                <h4>Phone</h4>
-                <p><a href="tel:+919503668112">+91 9503668112</a></p>
-              </div>
-            </div>
-            <div className="m-ci-item">
-              <div className="m-ci-icon"><Mail size={16} /></div>
-              <div className="m-ci-text">
-                <h4>Email</h4>
-                <p><a href="mailto:support@dentzy.in">support@dentzy.in</a></p>
-              </div>
-            </div>
-            <div className="m-ci-item">
-              <div className="m-ci-icon"><Clock size={16} /></div>
-              <div className="m-ci-text">
-                <h4>Working Hours</h4>
-                <p>Mon - Sat, 9:00 AM - 6:00 PM IST</p>
-              </div>
-            </div>
+                  <div className="m-cf-row">
+                    <div className="m-cf-field">
+                      <label className="m-cf-label">Email *</label>
+                      <input type="email" name="user_email" placeholder="doctor@clinic.com"
+                        className="m-cf-input" value={formData.user_email} onChange={handleChange}
+                        maxLength={100} required />
+                    </div>
+                    <div className="m-cf-field">
+                      <label className="m-cf-label">Phone</label>
+                      <input type="tel" name="contact_number" placeholder="+91 98765 43210"
+                        className="m-cf-input" value={formData.contact_number} onChange={handleChange}
+                        maxLength={20} />
+                    </div>
+                  </div>
+
+                  <div className="m-cf-field">
+                    <label className="m-cf-label">Subject</label>
+                    <input type="text" name="subject" placeholder="Zirconia Case Inquiry"
+                      className="m-cf-input" value={formData.subject} onChange={handleChange}
+                      maxLength={200} />
+                  </div>
+
+                  <div className="m-cf-field">
+                    <label className="m-cf-label">Message *</label>
+                    <textarea name="message" placeholder="Please describe your clinical case or inquiry..."
+                      className="m-cf-input m-cf-textarea" rows={4}
+                      value={formData.message} onChange={handleChange}
+                      maxLength={15000} required />
+                  </div>
+
+                  {/* Honeypot */}
+                  <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}
+                    aria-hidden="true">
+                    <input type="text" name="hp_website" tabIndex={-1} autoComplete="off"
+                      value={hpWebsite} onChange={(e) => setHpWebsite(e.target.value)} />
+                  </div>
+
+                  {statusMessage.text && (
+                    <div className={`m-cf-msg m-cf-msg--${statusMessage.type}`}>{statusMessage.text}</div>
+                  )}
+
+                  <TwentyFirstIconButton
+                    type="submit"
+                    icon={isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                    title={isSubmitting ? 'Sending...' : 'Send Message'}
+                    ariaLabel="Send Message"
+                    variant="primary"
+                    size="lg"
+                    disabled={isSubmitting}
+                    style={{ width: '100%', marginTop: '8px' }}
+                  />
+                </form>
+              ) : (
+                <ThankYouAnimation key="thanks" onReset={handleReset} />
+              )}
+            </AnimatePresence>
           </div>
         </section>
-
         {/* 17. Footer */}
         <Footer />
       </main>
