@@ -39,7 +39,20 @@ const ScrollToTop = () => {
     <AnimatePresence>
       {visible && (
         <motion.button
-          className="fixed bottom-24 right-4 z-50 w-11 h-11 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md border border-[#708c80]/20 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+          className="fixed bottom-24 right-4 z-50 sm:bottom-8 sm:right-8 w-11 h-11 flex items-center justify-center rounded-full cursor-pointer transition-shadow"
+          style={{
+            background: 'rgba(255,255,255,0.52)',
+            backdropFilter: 'blur(20px) saturate(1.6) url("#dz-glass")',
+            WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+            border: '1px solid rgba(112,140,128,0.2)',
+            boxShadow: [
+              'inset 0 1px 0 rgba(255,255,255,0.72)',
+              'inset 1px 0 0.5px rgba(112,140,128,0.2)',
+              'inset -1px 0 0.5px rgba(112,140,128,0.2)',
+              'inset 0 -1px 0 rgba(112,140,128,0.1)',
+              '0 4px 12px rgba(30,80,56,0.07)',
+            ].join(', '),
+          }}
           onClick={scrollToTop}
           aria-label="Scroll to top"
           initial={{ opacity: 0, scale: 0.6, y: 20 }}
