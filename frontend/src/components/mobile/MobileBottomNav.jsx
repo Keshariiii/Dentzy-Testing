@@ -72,19 +72,32 @@ const MobileBottomNav = () => {
   const { user } = useAuth();
 
   const handleTap = (item) => {
-    if (item.key === 'services') {
+    if (item.key === 'home') {
       if (pathname === '/') {
-        const el = document.getElementById('services');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          return;
-        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
       router.push('/');
-      setTimeout(() => {
+      return;
+    }
+
+    if (item.key === 'services') {
+      const scrollServices = () => {
         const el = document.getElementById('services');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
+        if (el) {
+          const headerEl = document.querySelector('.m-header');
+          const headerH = headerEl ? headerEl.offsetHeight : 64;
+          const top = el.getBoundingClientRect().top + window.scrollY - headerH;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      };
+
+      if (pathname === '/') {
+        scrollServices();
+        return;
+      }
+      router.push('/');
+      setTimeout(scrollServices, 300);
       return;
     }
 

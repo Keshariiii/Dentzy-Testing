@@ -135,7 +135,7 @@ const MobileHome = () => {
       <main className="m-home-content">
 
         {/* 1. Hero Banner */}
-        <section className="m-hero" id="m-home">
+        <section className="m-hero" id="home">
           <video className="m-hero__video" autoPlay loop muted playsInline>
             <source src="/hero-bg.mp4" type="video/mp4" />
           </video>
@@ -160,7 +160,7 @@ const MobileHome = () => {
         </section>
 
         {/* 4. Services Horizontal Scroll */}
-        <section className="m-services-section" id="m-services">
+        <section className="m-services-section" id="services">
           <h2 className="m-section-title">Our Signature Services</h2>
           <div className="m-services-scroll">
             {SERVICES.map((s) => (
@@ -217,7 +217,7 @@ const MobileHome = () => {
         </section>
 
         {/* 7. About Dentzy */}
-        <section className="m-about-section" id="m-about">
+        <section className="m-about-section" id="about">
           <video className="m-about-video" autoPlay loop muted playsInline preload="none">
             <source src="/images/about-bg.mp4" type="video/mp4" />
           </video>
@@ -287,7 +287,7 @@ const MobileHome = () => {
         </section>
 
         {/* 11. Products Intro */}
-        <section className="m-products-intro" id="m-products">
+        <section className="m-products-intro" id="products">
           <video className="m-products-video" autoPlay loop muted playsInline preload="none">
             <source src="/products-bg.mp4" type="video/mp4" />
           </video>
@@ -317,7 +317,7 @@ const MobileHome = () => {
         </section>
 
         {/* 13. Why Dentzy */}
-        <section className="m-why-section">
+        <section className="m-why-section" id="why-choose">
           <h2 className="m-section-title">Why Choose Dentzy?</h2>
           <div className="m-why-cards">
             {WHY_ITEMS.map((w, i) => (
@@ -342,13 +342,13 @@ const MobileHome = () => {
         </section>
 
         {/* 15. Connect With Us */}
-        <section className="m-connect-section" id="m-contact">
+        <section className="m-connect-section" id="contact">
           <h2 className="m-connect-title">CONNEC<span className="m-accent">T</span></h2>
           <p className="m-connect-sub">WITH US</p>
         </section>
 
         {/* 16. Contact Form */}
-        <section className="m-contact-form-section" id="m-contact-form">
+        <section className="m-contact-form-section" id="contact-form">
           <div className="m-contact-card">
             <AnimatePresence mode="wait">
               {!isSubmitted ? (

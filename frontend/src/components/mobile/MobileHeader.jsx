@@ -4,7 +4,8 @@
  *
  * Shows Dentzy logo, screen title, and user avatar/initials badge.
  */
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import React from 'react';
 import { ChevronLeft, LogIn } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -14,6 +15,7 @@ import './MobileHeader.css';
 const MobileHeader = ({ title = null, showBack = false, transparent = false, showLogin = true, onAvatarClick = null, onLogoClick = null, children = null, rightElement = null }) => {
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
@@ -44,7 +46,20 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
             <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />
           </button>
         ) : (
-          <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />
+          <Link
+            href="/"
+            onClick={(e) => {
+              if (pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            aria-label="Dentzy Home"
+            title="Dentzy Home"
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
+            <img src={dentzyLogo} alt="Dentzy" className="m-header__logo" />
+          </Link>
         )}
       </div>
 

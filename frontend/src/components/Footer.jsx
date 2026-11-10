@@ -50,6 +50,27 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
     setMounted(true);
   }, []);
 
+  const handleLinkClick = (e, href) => {
+    if (href.startsWith('/#')) {
+      const id = href.replace('/#', '');
+      if (id === 'home') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.history.pushState(null, '', '/');
+        return;
+      }
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        const headerEl = document.querySelector('.m-header') || document.querySelector('.header');
+        const headerH = headerEl ? headerEl.offsetHeight : 64;
+        const top = el.getBoundingClientRect().top + window.scrollY - headerH;
+        window.scrollTo({ top, behavior: 'smooth' });
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+
   return (
     <footer className="dz-footer">
       <div className="dz-footer__inner">
@@ -69,7 +90,7 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
           <ul className="dz-footer__links-list">
             {QUICK_LINKS.map(({ label, href }) => (
               <li key={href}>
-                <Link href={href} className="dz-footer__link">
+                <Link href={href} className="dz-footer__link" onClick={(e) => handleLinkClick(e, href)}>
                   {label}
                 </Link>
               </li>

@@ -17,6 +17,17 @@
   overflow-x: hidden;
 }
 
+/* ── Smooth Scroll Targets ───────────────────── */
+#home,
+#services,
+#about,
+#products,
+#why-choose,
+#contact,
+#contact-form {
+  scroll-margin-top: 64px;
+}
+
 /* ── Hero ───────────────────────────────────── */
 .m-hero {
   position: relative;
