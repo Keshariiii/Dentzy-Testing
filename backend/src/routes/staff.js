@@ -304,6 +304,9 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
 
     const existingOrder = await c.env.DB.prepare('SELECT stage, status FROM lab_orders WHERE id = ?').bind(orderId).first();
     if (!existingOrder) return c.json({ message: 'Order not found.' }, 404);
+    if (existingOrder.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update production stage of a cancelled order.' }, 400);
+    }
 
     const callerRole = normalizeDesignation(c.get('staff')?.designation);
     if (isProductionRole(callerRole)) {
@@ -421,7 +424,8 @@ staff.post('/orders/recalculate-all', verifyStaff(), requireStaffRoles(['CEO', '
                         o.teeth_data, o.restoration_type, o.service_category, o.createdAt,
                         p.id as paymentId, p.amount as paymentAmount
                  FROM lab_orders o
-                 LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId`;
+                 LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+                 WHERE o.status != 'Cancelled'`;
     const { results } = await c.env.DB.prepare(sql).bind().all();
     const ts = now();
     let inserted = 0;
@@ -650,7 +654,7 @@ staff.get('/metrics', verifyStaff(), async (c) => {
     const datePrefix = monthStart.toISOString().slice(0, 7); // YYYY-MM
     const [countRes, attendanceRes] = await c.env.DB.batch([
       c.env.DB.prepare(
-        'SELECT COUNT(*) as count FROM lab_orders WHERE assigned_staff_id = ? AND updatedAt >= ?'
+        'SELECT COUNT(*) as count FROM lab_orders WHERE assigned_staff_id = ? AND updatedAt >= ? AND status != \'Cancelled\''
       ).bind(staffId, monthStr),
       c.env.DB.prepare(
         "SELECT COUNT(*) as present FROM staff_attendance WHERE staff_id = ? AND date LIKE ? AND status = 'Present'"
@@ -740,6 +744,12 @@ staff.get('/users/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Recepti
 staff.patch('/orders/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const orderId = c.req.param('id');
+    const existing = await c.env.DB.prepare('SELECT id, status FROM lab_orders WHERE id = ?').bind(orderId).first();
+    if (!existing) return c.json({ message: 'Order not found.' }, 404);
+    if (existing.status === 'Cancelled') {
+      return c.json({ message: 'Cannot modify a cancelled order.' }, 400);
+    }
+
     const body = await c.req.json();
     const { status, dueDate, notes, priority, stage } = body;
     const ts = now();
@@ -830,6 +840,19 @@ staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CT
     if (isNaN(amount) || amount < 0) {
       return c.json({ message: 'Amount must be a valid positive number.' }, 400);
     }
+
+    // Guard: check if payment or associated order is cancelled
+    const existing = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ? OR caseId = ?').bind(id, id).first();
+    if (existing?.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update payment amount for a cancelled order.' }, 400);
+    }
+    if (!existing) {
+      const orderCheck = await c.env.DB.prepare('SELECT id, caseId, status FROM lab_orders WHERE id = ?').bind(id).first();
+      if (orderCheck?.status === 'Cancelled') {
+        return c.json({ message: 'Cannot update payment amount for a cancelled order.' }, 400);
+      }
+    }
+
     const ts = now();
     let res = await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE id = ?').bind(amount, ts, id).run();
     if (!res.meta.changes) {
@@ -857,6 +880,12 @@ staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CT
 staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const id = c.req.param('id');
+    const existingPayment = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ?').bind(id).first();
+    if (!existingPayment) return c.json({ message: 'Payment not found.' }, 404);
+    if (existingPayment.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update payment status for a cancelled record.' }, 400);
+    }
+
     const body = await c.req.json();
     const { status, paymentMode, referenceNumber } = body;
     const ts = now();
@@ -896,13 +925,16 @@ staff.post('/payments/batch', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'R
       return c.json({ message: 'At least one order or payment ID is required.' }, 400);
     }
 
-    // ponytail: single-tenant batch enforcement before DB write
+    // ponytail: single-tenant batch enforcement + cancelled check before DB write
     const resolvedOwners = new Set();
     for (const id of targetIds) {
-      let p = await c.env.DB.prepare('SELECT ownerId FROM payments WHERE id = ?').bind(id).first();
+      let p = await c.env.DB.prepare('SELECT ownerId, status FROM payments WHERE id = ?').bind(id).first();
       if (!p) {
-        const o = await c.env.DB.prepare('SELECT ownerId FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
+        const o = await c.env.DB.prepare('SELECT ownerId, status FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
         if (o) p = o;
+      }
+      if (p?.status === 'Cancelled') {
+        return c.json({ message: 'Batch payments cannot include cancelled orders or payments.' }, 400);
       }
       if (p?.ownerId) resolvedOwners.add(p.ownerId);
     }
@@ -984,7 +1016,7 @@ staff.get('/deliveries', verifyStaff(), async (c) => {
     FROM lab_orders o
     JOIN users u ON o.ownerId = u.id
     LEFT JOIN delivery_tasks dt ON dt.order_id = o.id
-    WHERE o.stage IN ('qc', 'dispatched', 'completed')
+    WHERE o.stage IN ('qc', 'dispatched', 'completed') AND o.status != 'Cancelled'
     ORDER BY CASE WHEN o.stage = 'qc' THEN 0 WHEN o.stage = 'dispatched' THEN 1 ELSE 2 END, o.dueDate ASC, o.updatedAt DESC`;
 
     const { results } = await c.env.DB.prepare(sql).all();
@@ -1028,7 +1060,7 @@ staff.patch('/deliveries/:orderId/status', verifyStaff(), async (c) => {
     }
 
     const order = await c.env.DB.prepare(
-      `SELECT o.id, o.caseId, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
+      `SELECT o.id, o.caseId, o.status, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
        FROM lab_orders o
        JOIN users u ON o.ownerId = u.id
        WHERE o.id = ? OR o.caseId = ?`
@@ -1036,6 +1068,9 @@ staff.patch('/deliveries/:orderId/status', verifyStaff(), async (c) => {
 
     if (!order) {
       return c.json({ message: 'Order not found.' }, 404);
+    }
+    if (order.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update delivery status for a cancelled order.' }, 400);
     }
 
     const ts = now();

@@ -604,26 +604,17 @@ auth.delete('/profile', verifyUser(), validate(deleteAccountSchema), async (c) =
       }, 400);
     }
 
-    // 3. Check if historical completed orders or paid GST invoices exist
-    const historyRow = await c.env.DB.prepare(
-      'SELECT (SELECT COUNT(*) FROM lab_orders WHERE ownerId = ?) + (SELECT COUNT(*) FROM payments WHERE ownerId = ?) AS totalRecords'
-    ).bind(user.id, user.id).first();
-
+    // 3. 5-year soft-close login while preserving GST tax & CDSCO medical device records
+    // Keeps name, phone, clinicName, address, and dciNumber intact for historical invoices & orders
     const ts = now();
-    if ((historyRow?.totalRecords || 0) > 0) {
-      // Soft-close login while preserving 8-year GST tax & CDSCO medical device records
-      // Note: users.status CHECK constraint allows ('pending', 'approved', 'rejected')
-      const closedEmail = `closed_${user.id}_${Date.now()}@dentzy.invalid`;
-      const unusableHash = await hashPassword(crypto.randomUUID() + crypto.randomUUID());
-      await c.env.DB.prepare(
-        "UPDATE users SET status = 'rejected', adminNote = 'ACCOUNT_CLOSED_BY_USER', email = ?, password = ?, phone = '', dob = NULL, updatedAt = ? WHERE id = ?"
-      ).bind(closedEmail, unusableHash, ts, user.id).run();
-    } else {
-      // Zero historical orders or payments — safe to hard delete
-      await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
-    }
+    const closedEmail = `closed_${user.id}_${Date.now()}@dentzy.invalid`;
+    const unusableHash = await hashPassword(crypto.randomUUID() + crypto.randomUUID());
+    const closeNote = `ACCOUNT_CLOSED_BY_USER | email:${user.email} | closedAt:${ts}`;
+    await c.env.DB.prepare(
+      "UPDATE users SET status = 'rejected', adminNote = ?, email = ?, password = ?, updatedAt = ? WHERE id = ?"
+    ).bind(closeNote, closedEmail, unusableHash, ts, user.id).run();
 
-    auditLog('ACCOUNT_DELETED', { userId: user.id, hadHistory: (historyRow?.totalRecords || 0) > 0 });
+    auditLog('ACCOUNT_DELETED', { userId: user.id });
     c.header('Set-Cookie', clearCookieHeader('dentzy_jwt', c.env));
     return c.json({ message: 'Your account has been permanently closed.' });
   } catch (error) {

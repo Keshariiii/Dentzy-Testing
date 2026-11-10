@@ -33,7 +33,7 @@ describe('Admin Staff Authority & Order Auto-Routing', () => {
           }),
         }),
         batch: async (statements) => {
-          batchQueries = statements;
+          if (!batchQueries.length) batchQueries = statements;
           return [{ meta: { changes: 1 } }, { meta: { changes: 1 } }, { meta: { changes: 1 } }];
         },
       },
@@ -48,8 +48,9 @@ describe('Admin Staff Authority & Order Auto-Routing', () => {
 
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.equal(body.message, 'Staff account deleted.');
-    assert.equal(batchQueries.length, 3);
+    assert.match(body.message, /Staff account deactivated and archived for 5-year compliance/i);
+    assert.equal(body.status, 'inactive');
+    assert.equal(batchQueries.length, 2);
   });
 
   it('DELETE /api/admin/staff/:id blocks self-deletion when admin ID equals target ID', async () => {

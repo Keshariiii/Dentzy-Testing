@@ -63,11 +63,11 @@ describe('Audit Logger and D1 Persistence (CERT-In 180-Day Retention)', () => {
     // Statement 2: DELETE FROM audit_logs WHERE created_at < ?
     const deleteBind = bindArgs.find(b => b.sql.includes('DELETE FROM audit_logs WHERE created_at < ?'));
     assert.ok(deleteBind, 'DELETE statement must have bind parameters');
-    const [cutoff180d] = deleteBind.args;
-    const cutoffDate = new Date(cutoff180d);
-    const expectedApprox = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
-    // Tolerance: within 5 seconds of expected 180-day cutoff
-    assert.ok(Math.abs(cutoffDate.getTime() - expectedApprox.getTime()) < 5000, 'cutoff should be ~180 days ago');
+    const [cutoff5y] = deleteBind.args;
+    const cutoffDate = new Date(cutoff5y);
+    const expectedApprox = new Date(Date.now() - 1825 * 24 * 60 * 60 * 1000);
+    // Tolerance: within 5 seconds of expected 5-year cutoff
+    assert.ok(Math.abs(cutoffDate.getTime() - expectedApprox.getTime()) < 5000, 'cutoff should be ~1825 days (5 years) ago');
 
     // Check waitUntil
     assert.ok(waitUntilPromise, 'waitUntil should receive the batch promise');

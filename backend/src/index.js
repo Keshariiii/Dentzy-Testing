@@ -220,7 +220,7 @@ app.get('/api/payments/unpaid-statement', verifyAnyAuth(), async (c) => {
     FROM lab_orders o
     LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
     LEFT JOIN users u ON o.ownerId = u.id
-    WHERE o.ownerId = ? AND COALESCE(p.status, 'Pending') IN ('Pending', 'Overdue')
+    WHERE o.ownerId = ? AND COALESCE(p.status, 'Pending') IN ('Pending', 'Overdue') AND o.status != 'Cancelled'
   `;
   const params = [targetOwnerId];
 

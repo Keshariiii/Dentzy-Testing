@@ -64,8 +64,9 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
     assert.match(body.message, /already been recorded as Paid/i);
   });
 
-  it('allows admin to delete an order if payment is Pending or does not exist', async () => {
+  it('allows admin to delete an order if payment is Pending or does not exist (soft-cancels order & payment)', async () => {
     const adminToken = await getAdminToken();
+    let batchStatements = [];
     let deletedOrder = false;
     let deletedPayment = false;
 
@@ -74,6 +75,8 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
         prepare: (query) => {
           return {
             bind: (...args) => {
+              if (query.includes('DELETE FROM lab_orders')) deletedOrder = true;
+              if (query.includes('DELETE FROM payments')) deletedPayment = true;
               return {
                 first: async () => {
                   if (query.includes('FROM lab_orders WHERE id = ?')) {
@@ -84,14 +87,14 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
                   }
                   return null;
                 },
-                run: async () => {
-                  if (query.includes('DELETE FROM lab_orders')) deletedOrder = true;
-                  if (query.includes('DELETE FROM payments')) deletedPayment = true;
-                  return { meta: { changes: 1 } };
-                },
+                run: async () => ({ meta: { changes: 1 } }),
               };
             },
           };
+        },
+        batch: async (stmts) => {
+          batchStatements = stmts;
+          return [{ meta: { changes: 1 } }, { meta: { changes: 1 } }, { meta: { changes: 1 } }];
         },
       },
       ADMIN_JWT_SECRET: adminSecret,
@@ -108,8 +111,9 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.message, 'Order deleted successfully.');
-    assert.equal(deletedOrder, true);
-    assert.equal(deletedPayment, true);
+    assert.equal(deletedOrder, false, 'Must not hard-delete lab_orders');
+    assert.equal(deletedPayment, false, 'Must not hard-delete payments');
+    assert.equal(batchStatements.length, 3);
   });
 
   it('blocks admin from deleting a payment record directly if status is Paid', async () => {
@@ -164,7 +168,7 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
                     return { id: 'user-123', name: 'Dr. Dentist', status: 'approved' };
                   }
                   if (query.includes('FROM lab_orders WHERE id = ? AND ownerId = ?')) {
-                    return { caseId: 'DZ-202610-777' };
+                    return { id: 'order-777', caseId: 'DZ-202610-777', stage: 'received', status: 'Pending' };
                   }
                   if (query.includes("FROM payments WHERE caseId = ? AND status = 'Paid'")) {
                     return { id: 'pay-777', status: 'Paid' };
@@ -192,5 +196,46 @@ describe('Paid Order & Payment Deletion Safeguards', () => {
     const body = await res.json();
     assert.equal(body.code, 'PAID_ORDER_DELETION_BLOCKED');
     assert.match(body.message, /already been completed/i);
+  });
+
+  it('blocks dentist from deleting an order that is already in production (ORDER_IN_PRODUCTION)', async () => {
+    const userToken = await getUserToken('user-123');
+
+    const mockEnv = {
+      DB: {
+        prepare: (query) => {
+          return {
+            bind: () => {
+              return {
+                first: async () => {
+                  if (query.includes('FROM users WHERE id = ?')) {
+                    return { id: 'user-123', name: 'Dr. Dentist', status: 'approved' };
+                  }
+                  if (query.includes('FROM lab_orders WHERE id = ? AND ownerId = ?')) {
+                    return { id: 'order-888', caseId: 'DZ-202610-888', stage: 'production', status: 'In Progress' };
+                  }
+                  return null;
+                },
+                run: async () => ({ meta: { changes: 1 } }),
+              };
+            },
+          };
+        },
+      },
+      ADMIN_JWT_SECRET: adminSecret,
+      JWT_SECRET: userSecret,
+    };
+
+    const res = await app.request('/api/dashboard/orders/order-888', {
+      method: 'DELETE',
+      headers: {
+        'Cookie': `dentzy_jwt=${userToken}`,
+      },
+    }, mockEnv);
+
+    assert.equal(res.status, 403);
+    const body = await res.json();
+    assert.equal(body.code, 'ORDER_IN_PRODUCTION');
+    assert.match(body.message, /already in production/i);
   });
 });

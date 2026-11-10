@@ -138,7 +138,7 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
     assert.match(body.message, /2 order\(s\) are still active/i);
   });
 
-  it('soft-deletes login row to preserve 8-year GST records when dentist has history', async () => {
+  it('soft-deletes login row to preserve 5-year GST records when dentist has history', async () => {
     const userToken = await getUserToken('dentist-100');
     const storedHash = await hashPassword('CorrectPassword1!');
     let updatedUsers = false;
@@ -154,7 +154,7 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
                 return { password: storedHash };
               }
               if (query.includes('FROM users WHERE id = ?')) {
-                return { id: 'dentist-100', name: 'Dr. Test', status: 'approved' };
+                return { id: 'dentist-100', email: 'dentist@clinic.com', name: 'Dr. Test', status: 'approved' };
               }
               if (query.includes("SELECT COALESCE(SUM(amount), 0) AS totalUnpaid FROM payments")) {
                 return { totalUnpaid: 0 };
@@ -162,13 +162,10 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
               if (query.includes("SELECT COUNT(*) AS cnt FROM lab_orders")) {
                 return { cnt: 0 };
               }
-              if (query.includes("totalRecords")) {
-                return { totalRecords: 5 }; // Has past paid invoices or completed orders
-              }
               return null;
             },
             run: async () => {
-              if (query.includes("UPDATE users SET status = 'rejected', adminNote = 'ACCOUNT_CLOSED_BY_USER'")) {
+              if (query.includes("UPDATE users SET status = 'rejected'")) {
                 updatedUsers = true;
                 updateParams = args;
               }
@@ -197,8 +194,9 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
     assert.match(body.message, /permanently closed/i);
     assert.equal(updatedUsers, true, 'Should execute soft-close UPDATE on users');
     assert.equal(deletedUsers, false, 'Should NOT hard delete users with history');
-    assert.match(updateParams[0], /^closed_dentist-100_\d+@dentzy\.invalid$/); // closedEmail
-    assert.equal(updateParams[3], 'dentist-100'); // userId WHERE id = ?
+    assert.match(updateParams[0], /ACCOUNT_CLOSED_BY_USER/);
+    assert.match(updateParams[1], /^closed_dentist-100_\d+@dentzy\.invalid$/); // closedEmail
+    assert.equal(updateParams[4], 'dentist-100'); // userId WHERE id = ?
 
     // Confirm Set-Cookie clears dentzy_jwt
     const setCookie = res.headers.get('set-cookie');
@@ -206,11 +204,11 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
     assert.match(setCookie, /Max-Age=0/);
   });
 
-  it('hard-deletes user row when account has zero history', async () => {
+  it('soft-closes user row even when account has zero history (5-year retention)', async () => {
     const userToken = await getUserToken('dentist-fresh');
     const storedHash = await hashPassword('CorrectPassword1!');
     let deletedUsers = false;
-    let deletedUserId = null;
+    let updatedUsers = false;
 
     const mockEnv = {
       DB: {
@@ -221,7 +219,7 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
                 return { password: storedHash };
               }
               if (query.includes('FROM users WHERE id = ?')) {
-                return { id: 'dentist-fresh', name: 'Dr. Fresh', status: 'approved' };
+                return { id: 'dentist-fresh', email: 'fresh@clinic.com', name: 'Dr. Fresh', status: 'approved' };
               }
               if (query.includes("SELECT COALESCE(SUM(amount), 0) AS totalUnpaid FROM payments")) {
                 return { totalUnpaid: 0 };
@@ -229,15 +227,14 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
               if (query.includes("SELECT COUNT(*) AS cnt FROM lab_orders")) {
                 return { cnt: 0 };
               }
-              if (query.includes("totalRecords")) {
-                return { totalRecords: 0 }; // Zero history
-              }
               return null;
             },
             run: async () => {
+              if (query.includes("UPDATE users SET status = 'rejected'")) {
+                updatedUsers = true;
+              }
               if (query.includes('DELETE FROM users WHERE id = ?')) {
                 deletedUsers = true;
-                deletedUserId = args[0];
               }
               return { meta: { changes: 1 } };
             },
@@ -259,8 +256,8 @@ describe('Account Deletion & Debt Guard API (auth.js)', () => {
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.match(body.message, /permanently closed/i);
-    assert.equal(deletedUsers, true, 'Should hard delete users when zero history');
-    assert.equal(deletedUserId, 'dentist-fresh');
+    assert.equal(updatedUsers, true, 'Should soft-close users even with zero history');
+    assert.equal(deletedUsers, false, 'Should NEVER hard delete users');
 
     const setCookie = res.headers.get('set-cookie');
     assert.match(setCookie, /dentzy_jwt=;/);

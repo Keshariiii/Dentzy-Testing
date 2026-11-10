@@ -1,4 +1,4 @@
-// ponytail: console.log + non-blocking D1 audit_logs persistence for CERT-In 180-day compliance
+// ponytail: console.log + non-blocking D1 audit_logs persistence for 5-year regulatory compliance
 let _activeDb = null;
 let _activeCtx = null;
 
@@ -21,7 +21,7 @@ export const auditLog = (action, details = {}) => {
   if (_activeDb && typeof _activeDb.batch === 'function') {
     try {
       const id = crypto.randomUUID();
-      const cutoff180d = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
+      const cutoff5y = new Date(Date.now() - 1825 * 24 * 60 * 60 * 1000).toISOString();
       const work = _activeDb.batch([
         _activeDb.prepare(
           `CREATE TABLE IF NOT EXISTS audit_logs (
@@ -33,7 +33,7 @@ export const auditLog = (action, details = {}) => {
         ),
         _activeDb.prepare('INSERT INTO audit_logs (id, action, details, created_at) VALUES (?, ?, ?, ?)')
           .bind(id, action, JSON.stringify(details), ts),
-        _activeDb.prepare('DELETE FROM audit_logs WHERE created_at < ?').bind(cutoff180d),
+        _activeDb.prepare('DELETE FROM audit_logs WHERE created_at < ?').bind(cutoff5y),
       ]).catch(() => {});
 
       if (_activeCtx?.waitUntil) _activeCtx.waitUntil(work);

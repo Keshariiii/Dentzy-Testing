@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS lab_orders (
     credit_override INTEGER DEFAULT 0,
     credit_override_reason TEXT DEFAULT '',
     material_lot_no TEXT DEFAULT '',
-    FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_orders_ownerId ON lab_orders(ownerId);
 CREATE INDEX IF NOT EXISTS idx_orders_caseId ON lab_orders(caseId);
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS payments (
     batchId TEXT DEFAULT NULL,
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
-    FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_payments_ownerId ON payments(ownerId);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS delivery_tasks (
     completed_at TEXT DEFAULT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES lab_orders(id) ON DELETE CASCADE
+    FOREIGN KEY (order_id) REFERENCES lab_orders(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_delivery_tasks_status ON delivery_tasks(status);
 CREATE INDEX IF NOT EXISTS idx_delivery_tasks_order ON delivery_tasks(order_id);
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS intern_tasks (
     verified INTEGER DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    FOREIGN KEY (intern_id) REFERENCES staff(id) ON DELETE CASCADE
+    FOREIGN KEY (intern_id) REFERENCES staff(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_intern_tasks_intern ON intern_tasks(intern_id, status);
 

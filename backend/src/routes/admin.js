@@ -111,10 +111,10 @@ admin.get('/stats', verifyAdmin(), async (c) => {
   try {
     const row = await c.env.DB.prepare(`
       SELECT
-        COUNT(*) as total,
+        COUNT(CASE WHEN adminNote NOT LIKE 'ACCOUNT_CLOSED%' AND adminNote NOT LIKE 'ACCOUNT_ARCHIVED%' THEN 1 END) as total,
         COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
         COALESCE(SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END), 0) as approved,
-        COALESCE(SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END), 0) as rejected
+        COALESCE(SUM(CASE WHEN status = 'rejected' AND adminNote NOT LIKE 'ACCOUNT_CLOSED%' AND adminNote NOT LIKE 'ACCOUNT_ARCHIVED%' THEN 1 ELSE 0 END), 0) as rejected
       FROM users
     `).first();
     return c.json(row);
@@ -213,6 +213,12 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
 admin.patch('/users/:id/approve', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
+    const existing = await c.env.DB.prepare('SELECT id, email, adminNote FROM users WHERE id = ?').bind(id).first();
+    if (!existing) return c.json({ message: 'User not found.' }, 404);
+    if (existing.adminNote?.startsWith('ACCOUNT_CLOSED') || existing.adminNote?.startsWith('ACCOUNT_ARCHIVED') || existing.email?.includes('@dentzy.invalid')) {
+      return c.json({ message: 'This account has been permanently archived/closed and cannot be modified.' }, 400);
+    }
+
     const ts = now();
     const { meta } = await c.env.DB.prepare(
       "UPDATE users SET status = 'approved', adminNote = '', updatedAt = ? WHERE id = ?"
@@ -243,6 +249,12 @@ admin.patch('/users/:id/approve', verifyAdmin(), async (c) => {
 admin.patch('/users/:id/reject', verifyAdmin(), validate(rejectUserSchema), async (c) => {
   try {
     const id = c.req.param('id');
+    const existing = await c.env.DB.prepare('SELECT id, email, adminNote FROM users WHERE id = ?').bind(id).first();
+    if (!existing) return c.json({ message: 'User not found.' }, 404);
+    if (existing.adminNote?.startsWith('ACCOUNT_CLOSED') || existing.adminNote?.startsWith('ACCOUNT_ARCHIVED') || existing.email?.includes('@dentzy.invalid')) {
+      return c.json({ message: 'This account has been permanently archived/closed and cannot be modified.' }, 400);
+    }
+
     const { note } = c.get('body');
     const ts = now();
     const { meta } = await c.env.DB.prepare(
@@ -270,19 +282,45 @@ admin.patch('/users/:id/reject', verifyAdmin(), validate(rejectUserSchema), asyn
   }
 });
 
-// DELETE /api/admin/users/:id
+// DELETE /api/admin/users/:id — 5-year soft-archive
 admin.delete('/users/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
-    const user = await c.env.DB.prepare('SELECT id, name, email FROM users WHERE id = ?').bind(id).first();
+    const user = await c.env.DB.prepare('SELECT id, name, email, status, adminNote FROM users WHERE id = ?').bind(id).first();
     if (!user) return c.json({ message: 'User not found.' }, 404);
+    if (user.adminNote?.startsWith('ACCOUNT_CLOSED') || user.adminNote?.startsWith('ACCOUNT_ARCHIVED') || user.email?.includes('@dentzy.invalid')) {
+      return c.json({ message: 'This dentist account is already archived/closed.' }, 400);
+    }
 
-    // Delete dependent records first to satisfy FK constraints, then delete user
-    await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM lab_orders WHERE ownerId = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM payments WHERE ownerId = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id),
-    ]);
+    const debtRow = await c.env.DB.prepare(
+      "SELECT COALESCE(SUM(amount), 0) AS totalUnpaid FROM payments WHERE ownerId = ? AND status IN ('Pending', 'Overdue')"
+    ).bind(id).first();
+    const totalUnpaid = Number(debtRow?.totalUnpaid || 0);
+    if (totalUnpaid > 0) {
+      return c.json({
+        message: `Cannot archive dentist account with an outstanding balance of ₹${totalUnpaid.toLocaleString('en-IN')}. Please settle or cancel pending dues first.`,
+        code: 'UNPAID_DUES_EXIST',
+      }, 400);
+    }
+
+    const activeRow = await c.env.DB.prepare(
+      "SELECT COUNT(*) AS cnt FROM lab_orders WHERE ownerId = ? AND status IN ('Pending', 'In Progress')"
+    ).bind(id).first();
+    if ((activeRow?.cnt || 0) > 0) {
+      return c.json({
+        message: 'Cannot archive dentist account while active orders are in production. Please complete or cancel active orders first.',
+        code: 'ACTIVE_ORDERS_EXIST',
+      }, 400);
+    }
+
+    const ts = now();
+    const archivedEmail = `archived_${user.id}_${Date.now()}@dentzy.invalid`;
+    const unusableHash = await hashPassword(crypto.randomUUID() + crypto.randomUUID());
+    const archiveNote = `ACCOUNT_ARCHIVED_BY_ADMIN | email:${user.email} | archivedAt:${ts}`;
+
+    await c.env.DB.prepare(
+      "UPDATE users SET status = 'rejected', adminNote = ?, email = ?, password = ?, updatedAt = ? WHERE id = ?"
+    ).bind(archiveNote, archivedEmail, unusableHash, ts, id).run();
 
     auditLog('USER_DELETED_BY_ADMIN', { userId: id, name: user.name, email: user.email, adminUsername: c.get('admin').username });
     return c.json({ message: 'User deleted successfully.' });
@@ -356,7 +394,8 @@ admin.post('/orders/recalculate-all', verifyAdmin(), async (c) => {
                         o.teeth_data, o.restoration_type, o.service_category, o.createdAt,
                         p.id as paymentId, p.amount as paymentAmount
                  FROM lab_orders o
-                 LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId`;
+                 LEFT JOIN payments p ON o.caseId = p.caseId AND o.ownerId = p.ownerId
+                 WHERE o.status != 'Cancelled'`;
     const { results } = await c.env.DB.prepare(sql).bind().all();
     const ts = now();
     let inserted = 0;
@@ -467,6 +506,14 @@ admin.post('/orders', verifyAdmin(), validate(createOrderSchema), async (c) => {
 admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema), async (c) => {
   try {
     const orderId = c.req.param('id');
+    const order = await c.env.DB.prepare(
+      'SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName, u.clinicName, u.name, u.address, u.phone FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
+    ).bind(orderId).first();
+    if (!order) return c.json({ message: 'Order not found.' }, 404);
+    if (order.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update production stage of a cancelled order.' }, 400);
+    }
+
     const { stage } = c.get('body');
     const status = stageToStatus(stage);
     const ts = now();
@@ -490,9 +537,9 @@ admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema)
     ).bind(...binds).run();
     if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
 
-    const order = await c.env.DB.prepare(
-      'SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName, u.clinicName, u.name, u.address, u.phone FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
-    ).bind(orderId).first();
+    order.stage = stage;
+    order.status = status;
+    order.updatedAt = ts;
 
     // ponytail: auto-queue delivery task upon QC completion without duplicate rows
     if (stage === 'qc') {
@@ -567,11 +614,11 @@ admin.patch('/orders/:id/stage', verifyAdmin(), validate(updateOrderStageSchema)
   }
 });
 
-// DELETE /api/admin/orders/:id
+// DELETE /api/admin/orders/:id — 5-year soft-cancellation
 admin.delete('/orders/:id', verifyAdmin(), async (c) => {
   try {
     const orderId = c.req.param('id');
-    const order = await c.env.DB.prepare('SELECT caseId, ownerId FROM lab_orders WHERE id = ?').bind(orderId).first();
+    const order = await c.env.DB.prepare('SELECT caseId, ownerId, stage FROM lab_orders WHERE id = ?').bind(orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
 
     // Safeguard: block deletion if payment is already Paid
@@ -586,8 +633,17 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
       }, 400);
     }
 
-    await c.env.DB.prepare('DELETE FROM lab_orders WHERE id = ?').bind(orderId).run();
-    await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(order.caseId).run();
+    const ts = now();
+    const shouldUnassign = !['qc', 'dispatched', 'completed'].includes(order.stage);
+    const orderUpdateQuery = shouldUnassign
+      ? c.env.DB.prepare("UPDATE lab_orders SET status = 'Cancelled', assigned_staff_id = NULL, updatedAt = ? WHERE id = ?").bind(ts, orderId)
+      : c.env.DB.prepare("UPDATE lab_orders SET status = 'Cancelled', updatedAt = ? WHERE id = ?").bind(ts, orderId);
+
+    await c.env.DB.batch([
+      orderUpdateQuery,
+      c.env.DB.prepare("UPDATE payments SET status = 'Cancelled', updatedAt = ? WHERE caseId = ? AND ownerId = ?").bind(ts, order.caseId, order.ownerId),
+      c.env.DB.prepare("UPDATE delivery_tasks SET status = 'failed', updated_at = ? WHERE order_id = ? AND status != 'completed'").bind(ts, orderId),
+    ]);
 
     auditLog('ORDER_DELETED_BY_ADMIN', { orderId, caseId: order.caseId, adminUsername: c.get('admin').username });
     return c.json({ message: 'Order deleted successfully.' });
@@ -597,7 +653,7 @@ admin.delete('/orders/:id', verifyAdmin(), async (c) => {
   }
 });
 
-// DELETE /api/admin/payments/:id
+// DELETE /api/admin/payments/:id — 5-year soft-cancellation
 admin.delete('/payments/:id', verifyAdmin(), async (c) => {
   try {
     const paymentId = c.req.param('id');
@@ -614,9 +670,10 @@ admin.delete('/payments/:id', verifyAdmin(), async (c) => {
       }, 400);
     }
 
-    let res = await c.env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(paymentId).run();
+    const ts = now();
+    let res = await c.env.DB.prepare("UPDATE payments SET status = 'Cancelled', updatedAt = ? WHERE id = ?").bind(ts, paymentId).run();
     if (!res.meta.changes) {
-      res = await c.env.DB.prepare('DELETE FROM payments WHERE caseId = ?').bind(paymentId).run();
+      res = await c.env.DB.prepare("UPDATE payments SET status = 'Cancelled', updatedAt = ? WHERE caseId = ?").bind(ts, paymentId).run();
     }
     if (!res.meta.changes) return c.json({ message: 'Payment record not found.' }, 404);
 
@@ -637,6 +694,19 @@ admin.patch('/payments/:id/amount', verifyAdmin(), async (c) => {
     if (isNaN(amount) || amount < 0) {
       return c.json({ message: 'Amount must be a valid positive number.' }, 400);
     }
+
+    // Guard: check if payment or associated order is cancelled
+    const existing = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ? OR caseId = ?').bind(id, id).first();
+    if (existing?.status === 'Cancelled') {
+      return c.json({ message: 'Cannot update payment amount for a cancelled order.' }, 400);
+    }
+    if (!existing) {
+      const orderCheck = await c.env.DB.prepare('SELECT id, caseId, status FROM lab_orders WHERE id = ?').bind(id).first();
+      if (orderCheck?.status === 'Cancelled') {
+        return c.json({ message: 'Cannot update payment amount for a cancelled order.' }, 400);
+      }
+    }
+
     const ts = now();
     let res = await c.env.DB.prepare('UPDATE payments SET amount = ?, updatedAt = ? WHERE id = ?').bind(amount, ts, id).run();
     if (!res.meta.changes) {
@@ -670,12 +740,12 @@ admin.get('/payments', verifyAdmin(), async (c) => {
     const month = c.req.query('month');
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 500);
 
-    // Summary metrics — always computed across all records (unfiltered)
+    // Summary metrics — always computed across all records (unfiltered, excluding Cancelled)
     const summaryRow = await c.env.DB.prepare(`
       SELECT
-        COALESCE(SUM(amount), 0) as totalBilled,
+        COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN amount ELSE 0 END), 0) as totalBilled,
         COALESCE(SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END), 0) as totalCollected,
-        COALESCE(SUM(CASE WHEN status != 'Paid' THEN amount ELSE 0 END), 0) as totalPending,
+        COALESCE(SUM(CASE WHEN status IN ('Pending', 'Overdue') THEN amount ELSE 0 END), 0) as totalPending,
         COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'Cash' THEN amount ELSE 0 END), 0) as cashTotal,
         COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'Cheque' THEN amount ELSE 0 END), 0) as chequeTotal,
         COALESCE(SUM(CASE WHEN status = 'Paid' AND paymentMode = 'UPI' THEN amount ELSE 0 END), 0) as upiTotal
@@ -756,6 +826,9 @@ admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSc
 
     const order = await c.env.DB.prepare('SELECT * FROM lab_orders WHERE id = ? OR caseId = ?').bind(orderId, orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
+    if (order.status === 'Cancelled') {
+      return c.json({ message: 'Cannot record or modify payment for a cancelled order.' }, 400);
+    }
 
     const modeVal = status === 'Pending' ? '' : (paymentMode || '');
     const refVal = status === 'Pending' ? '' : (referenceNumber || '');
@@ -803,13 +876,16 @@ admin.post('/payments/batch', verifyAdmin(), async (c) => {
       return c.json({ message: 'At least one order or payment ID is required.' }, 400);
     }
 
-    // ponytail: single-tenant batch enforcement before DB write
+    // ponytail: single-tenant batch enforcement + cancelled check before DB write
     const resolvedOwners = new Set();
     for (const id of targetIds) {
-      let p = await c.env.DB.prepare('SELECT ownerId FROM payments WHERE id = ?').bind(id).first();
+      let p = await c.env.DB.prepare('SELECT ownerId, status FROM payments WHERE id = ?').bind(id).first();
       if (!p) {
-        const o = await c.env.DB.prepare('SELECT ownerId FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
+        const o = await c.env.DB.prepare('SELECT ownerId, status FROM lab_orders WHERE id = ? OR caseId = ?').bind(id, id).first();
         if (o) p = o;
+      }
+      if (p?.status === 'Cancelled') {
+        return c.json({ message: 'Batch payments cannot include cancelled orders or payments.' }, 400);
       }
       if (p?.ownerId) resolvedOwners.add(p.ownerId);
     }
@@ -890,6 +966,9 @@ admin.post('/orders/:id/remind-payment', verifyAdmin(), async (c) => {
       'SELECT o.*, u.name as ownerName, u.email as ownerEmail FROM lab_orders o LEFT JOIN users u ON o.ownerId = u.id WHERE o.id = ?'
     ).bind(orderId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
+    if (order.status === 'Cancelled') {
+      return c.json({ message: 'Cannot send a payment reminder for a cancelled order.' }, 400);
+    }
     if (!order.ownerEmail) return c.json({ message: 'Dentist email not found.' }, 400);
 
     const payment = await c.env.DB.prepare('SELECT * FROM payments WHERE caseId = ? AND ownerId = ?').bind(order.caseId, order.ownerId).first();
@@ -964,11 +1043,11 @@ admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
   }
 });
 
-// PATCH /api/admin/staff/:id -- edit staff details (displayName, email, designation)
+// PATCH /api/admin/staff/:id -- edit staff details (displayName, email, designation) or reset password
 admin.patch('/staff/:id', verifyAdmin(), async (c) => {
   const { id } = c.req.param();
   const body = await c.req.json();
-  const { displayName, email, designation } = body;
+  const { displayName, email, designation, password } = body;
   const ts = now();
 
   const updates = ['updatedAt = ?'];
@@ -977,6 +1056,14 @@ admin.patch('/staff/:id', verifyAdmin(), async (c) => {
   if (displayName !== undefined) { updates.push('displayName = ?'); binds.push(displayName.trim()); }
   if (email !== undefined) { updates.push('email = ?'); binds.push(email.trim()); }
   if (designation !== undefined) { updates.push('designation = ?'); binds.push(designation); }
+  if (password !== undefined) {
+    if (typeof password !== 'string' || password.trim().length < 8) {
+      return c.json({ message: 'Password must be at least 8 characters long.' }, 400);
+    }
+    const hashed = await hashPassword(password.trim());
+    updates.push('password = ?');
+    binds.push(hashed);
+  }
 
   binds.push(id);
   try {
@@ -1012,7 +1099,7 @@ admin.patch('/staff/:id/status', verifyAdmin(), async (c) => {
   });
 });
 
-// DELETE /api/admin/staff/:id -- delete staff account
+// DELETE /api/admin/staff/:id -- deactivate & archive staff account for 5-year regulatory compliance
 admin.delete('/staff/:id', verifyAdmin(), async (c) => {
   try {
     const id = c.req.param('id');
@@ -1022,21 +1109,40 @@ admin.delete('/staff/:id', verifyAdmin(), async (c) => {
     }
 
     const row = await c.env.DB.prepare(
-      'SELECT id, username, designation FROM staff WHERE id = ?'
+      'SELECT id, username, designation, employeeId, status FROM staff WHERE id = ?'
     ).bind(id).first();
     if (!row) return c.json({ message: 'Staff not found.' }, 404);
 
-    // ponytail: clean up assigned orders, attendance records, and staff account
+    const ts = now();
+    const unusableHash = await hashPassword(crypto.randomUUID() + crypto.randomUUID());
+
+    // 5-year compliance: preserve staff record, employeeId, and attendance history
+    // Only unassign active in-progress orders; keep assigned_staff_id on completed/qc cases for DHR traceability
     await c.env.DB.batch([
-      c.env.DB.prepare('UPDATE lab_orders SET assigned_staff_id = NULL WHERE assigned_staff_id = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM staff_attendance WHERE staff_id = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(id),
+      c.env.DB.prepare(`
+        UPDATE lab_orders
+        SET assigned_staff_id = NULL, updatedAt = ?
+        WHERE assigned_staff_id = ?
+          AND stage IN ('received', 'design', 'production')
+          AND status NOT IN ('Completed', 'Cancelled')
+      `).bind(ts, id),
+      c.env.DB.prepare(`
+        UPDATE staff
+        SET status = 'inactive',
+            password = ?,
+            updatedAt = ?
+        WHERE id = ?
+      `).bind(unusableHash, ts, id),
     ]);
-    auditLog('STAFF_DELETED', { staffId: id, username: row.username });
-    return c.json({ message: 'Staff account deleted.' });
+
+    auditLog('STAFF_ARCHIVED', { staffId: id, username: row.username, employeeId: row.employeeId });
+    return c.json({
+      message: 'Staff account deactivated and archived for 5-year compliance. Historical cases and attendance records preserved.',
+      status: 'inactive',
+    });
   } catch (err) {
-    logger.error('Failed to delete staff', { error: err.message });
-    return c.json({ message: 'Failed to delete staff account.' }, 500);
+    logger.error('Failed to deactivate staff', { error: err.message });
+    return c.json({ message: 'Failed to deactivate staff account.' }, 500);
   }
 });
 
@@ -1202,7 +1308,7 @@ admin.get('/staff/metrics', verifyAdmin(), async (c) => {
       LEFT JOIN (
         SELECT assigned_staff_id, COUNT(*) as total
         FROM lab_orders
-        WHERE updatedAt >= ? AND assigned_staff_id IS NOT NULL
+        WHERE updatedAt >= ? AND assigned_staff_id IS NOT NULL AND status != 'Cancelled'
         GROUP BY assigned_staff_id
       ) counts ON s.id = counts.assigned_staff_id
       ORDER BY casesProcessed DESC

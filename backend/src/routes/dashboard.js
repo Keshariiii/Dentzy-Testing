@@ -39,7 +39,7 @@ dashboard.get('/stats', async (c) => {
     const [orderRes, paymentRes] = await c.env.DB.batch([
       c.env.DB.prepare(`
         SELECT
-          COUNT(*) as total,
+          COUNT(CASE WHEN status != 'Cancelled' THEN 1 END) as total,
           COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
           COALESCE(SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END), 0) as inProgress,
           COALESCE(SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END), 0) as completed
@@ -47,7 +47,7 @@ dashboard.get('/stats', async (c) => {
       `).bind(userId),
       c.env.DB.prepare(`
         SELECT
-          COUNT(*) as total,
+          COUNT(CASE WHEN status != 'Cancelled' THEN 1 END) as total,
           COALESCE(SUM(CASE WHEN status = 'Paid' THEN 1 ELSE 0 END), 0) as paid,
           COALESCE(SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END), 0) as pending,
           COALESCE(SUM(CASE WHEN status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue,
@@ -174,15 +174,23 @@ dashboard.patch('/orders/:id', validate(updateOrderSchema), async (c) => {
   }
 });
 
-// DELETE /api/dashboard/orders/:id
+// DELETE /api/dashboard/orders/:id — Soft-cancel dentist order
 dashboard.delete('/orders/:id', async (c) => {
   const userId = c.get('user').id;
   const orderId = c.req.param('id');
   try {
     const order = await c.env.DB.prepare(
-      'SELECT caseId FROM lab_orders WHERE id = ? AND ownerId = ?'
+      'SELECT id, caseId, stage, status FROM lab_orders WHERE id = ? AND ownerId = ?'
     ).bind(orderId, userId).first();
     if (!order) return c.json({ message: 'Order not found.' }, 404);
+
+    // Guard: only received & pending orders can be cancelled directly by dentists
+    if (order.stage !== 'received' || order.status !== 'Pending') {
+      return c.json({
+        message: 'Order is already in production and cannot be cancelled directly. Please contact lab support.',
+        code: 'ORDER_IN_PRODUCTION',
+      }, 403);
+    }
 
     // Safeguard: block deletion if payment is already Paid
     const paidPayment = await c.env.DB.prepare(
@@ -196,13 +204,14 @@ dashboard.delete('/orders/:id', async (c) => {
       }, 400);
     }
 
-    const { meta } = await c.env.DB.prepare(
-      'DELETE FROM lab_orders WHERE id = ? AND ownerId = ?'
-    ).bind(orderId, userId).run();
-    if (!meta.changes) return c.json({ message: 'Order not found.' }, 404);
+    const ts = now();
+    await c.env.DB.batch([
+      c.env.DB.prepare("UPDATE lab_orders SET status = 'Cancelled', assigned_staff_id = NULL, updatedAt = ? WHERE id = ? AND ownerId = ?").bind(ts, orderId, userId),
+      c.env.DB.prepare("UPDATE payments SET status = 'Cancelled', updatedAt = ? WHERE caseId = ? AND ownerId = ?").bind(ts, order.caseId, userId),
+    ]);
 
-    auditLog('ORDER_DELETED_BY_DENTIST', { orderId, dentistId: userId });
-    return c.json({ message: 'Order deleted.' });
+    auditLog('ORDER_CANCELLED_BY_DENTIST', { orderId, caseId: order.caseId, dentistId: userId });
+    return c.json({ message: 'Order cancelled.' });
   } catch (error) {
     logger.error('Dashboard delete order error', { error: error.message });
     return c.json({ message: 'Failed to delete order.' }, 500);
