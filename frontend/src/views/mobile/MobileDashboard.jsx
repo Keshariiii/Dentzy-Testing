@@ -403,6 +403,9 @@ const MobileDashboard = () => {
                 <span className="m-stat-icon">{Icons.checkCircle(22)}</span>
               </div>
               <span className="m-stat-label">Completed</span>
+              <div className="m-stat-tags">
+                <span className="m-tag m-tag--green">{stats.orders.completed} Delivered</span>
+              </div>
             </div>
           </div>
         ) : (
@@ -418,7 +421,10 @@ const MobileDashboard = () => {
               </div>
               <div className="m-stat-card" style={{ padding: '16px' }}>
                 <Skeleton width="40%" height="28px" style={{ marginBottom: '10px' }} />
-                <Skeleton width="60%" height="12px" />
+                <Skeleton width="60%" height="12px" style={{ marginBottom: '8px' }} />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Skeleton width="60px" height="20px" borderRadius="20px" />
+                </div>
               </div>
             </div>
           </SkeletonGroup>

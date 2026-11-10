@@ -199,9 +199,10 @@
 /* ── Stat Cards ─────────────────────────────── */
 .m-stats-row {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 14px;
+    align-items: stretch;
 }
 
 .m-stat-card {
@@ -212,6 +213,8 @@
     box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03));
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
     gap: 8px;
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
@@ -293,6 +296,11 @@
 .m-tag--blue {
     background: #dbeafe;
     color: #1e40af;
+}
+
+.m-tag--green {
+    background: #dcfce7;
+    color: #15803d;
 }
 
 /* ── Pipeline ───────────────────────────────── */
