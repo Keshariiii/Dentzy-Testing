@@ -130,6 +130,15 @@
   --dz-shadow-xl:    0 16px 48px rgba(0, 0, 0, 0.14);
   --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.25); /* Focus ring */
 
+  /* ── Unified Card Tokens (WhyChoose logic: 16px/12px, crisp lesser shadow) ── */
+  --dz-card-radius:          16px;
+  --dz-card-icon-radius:     12px;
+  --dz-card-border:          1px solid var(--border, #e5e7eb);
+  --dz-card-border-hover:    var(--dz-color-primary-accent, #1e5038);
+  --dz-card-shadow-rest:     0 1px 3px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --dz-card-shadow-hover:    0 6px 16px -2px rgba(30, 80, 56, 0.08);
+  --dz-card-lift:            translateY(-3px);
+
   /* ── Transitions ─────────────────────────────────────────────── */
   --dz-transition-fast:    0.15s ease;
   --dz-transition-normal:  0.25s ease;

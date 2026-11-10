@@ -379,15 +379,21 @@
 /* ── Order card ─────────────────────────────────────────────────────────── */
 .ddm-order-card {
   background: #fff;
-  border: 1px solid #eef2f0;
-  border-radius: 12px;
+  border: var(--dz-card-border, 1px solid var(--border, #e5e7eb));
+  border-radius: var(--dz-card-radius, 16px);
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  backface-visibility: hidden;
 }
-.ddm-order-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-color: #d4e6dc; }
+.ddm-order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -2px rgba(30, 80, 56, 0.06);
+  border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
+}
 
 .ddm-order-top { display: flex; flex-direction: column; gap: 4px; }
 

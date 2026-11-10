@@ -11,21 +11,22 @@
 
 .service-card {
     background: #fff;
-    border-radius: 20px;
+    border-radius: var(--dz-card-radius, 16px);
     overflow: hidden;
-    box-shadow: 0 2px 12px rgba(30, 80, 56, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03), 0 3px 8px -2px rgba(30, 80, 56, 0.04);
     transition:
-        transform  0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        box-shadow 0.38s ease,
+        transform  0.28s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.28s ease,
         border-color 0.25s ease;
-    border: 1px solid rgba(112, 140, 128, 0.12);
+    border: var(--dz-card-border, 1px solid rgba(112, 140, 128, 0.15));
     will-change: transform;
+    backface-visibility: hidden;
 }
 
 .service-card:hover {
-    transform: translateY(-8px) scale(1.01);
-    box-shadow: 0 20px 48px rgba(30, 80, 56, 0.1);
-    border-color: rgba(112, 140, 128, 0.25);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px -4px rgba(30, 80, 56, 0.08);
+    border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
 }
 
 .service-image {

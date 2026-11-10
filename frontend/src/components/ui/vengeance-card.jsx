@@ -37,7 +37,7 @@ export function VengeanceCard({
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-gray-200/80',
         'bg-white transition-all duration-300',
-        'hover:shadow-lg hover:border-[#708c80]/20',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_16px_-2px_rgba(30,80,56,0.08)] hover:border-[#1e5038]/30',
         className,
       )}
       onMouseMove={handleMouseMove}

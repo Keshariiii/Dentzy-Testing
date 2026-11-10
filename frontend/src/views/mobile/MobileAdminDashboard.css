@@ -98,9 +98,10 @@
   align-items: center;
   gap: 4px;
   padding: 12px 6px;
-  border-radius: 14px;
+  border-radius: var(--dz-card-radius, 16px);
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: var(--dz-card-border, 1px solid var(--border, #e5e7eb));
+  box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03));
 }
 
 .ma-sc-icon { color: var(--dz-color-text-light); }

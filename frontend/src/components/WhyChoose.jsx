@@ -39,11 +39,11 @@ const WhyChoose = () => {
           </p>
         </div>
 
-        <div className="why-choose-grid">
+        <div className="why-choose-grid reveal-stagger">
           {WHY_ITEMS.map((item, idx) => {
             const IconComponent = item.Icon;
             return (
-              <div key={idx} className="why-choose-card reveal from-bottom">
+              <div key={idx} className="why-choose-card">
                 <div className="why-choose-icon-wrap">
                   <IconComponent size={24} strokeWidth={2} />
                 </div>

@@ -68,7 +68,8 @@ export function SkiperStatCard({
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-4',
         'cursor-pointer select-none',
-        'transition-all duration-200 hover:shadow-md hover:border-[#708c80]/20',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_16px_-2px_rgba(30,80,56,0.08)] hover:border-[#1e5038]/30',
+        'transition-all duration-200',
         className,
       )}
       whileTap={{ scale: 0.97 }}
@@ -105,7 +106,7 @@ export function SkiperStatCard({
           )}
         </div>
         {icon && (
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#f0f5f2] flex items-center justify-center text-[#1e5038]">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#f0f5f2] flex items-center justify-center text-[#1e5038] transition-all duration-200 group-hover:scale-105 group-hover:bg-[#1e5038] group-hover:text-white">
             {icon}
           </div>
         )}
