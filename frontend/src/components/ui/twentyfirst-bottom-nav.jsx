@@ -34,15 +34,14 @@ export function TwentyFirstBottomNav({
         className,
       )}
       style={{
-        background: 'rgba(255, 255, 255, 0.55)',
-        backdropFilter: 'blur(20px) saturate(1.6)',
-        WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 248, 244, 0.6) 100%)',
+        backdropFilter: 'blur(22px) saturate(1.7) url("#dz-glass")',
+        WebkitBackdropFilter: 'blur(22px) saturate(1.7)',
         borderColor: 'rgba(112, 140, 128, 0.18)',
         boxShadow: [
-          '0 4px 16px rgba(30, 80, 56, 0.07)',
-          'inset 1px 1px 1px -0.5px rgba(112, 140, 128, 0.42)',
-          'inset -1px -1px 1px -0.5px rgba(0, 0, 0, 0.08)',
-          'inset 0 1px 0 rgba(255, 255, 255, 0.65)',
+          '0 4px 18px rgba(30, 80, 56, 0.08)',
+          'inset 1px 1px 1px -0.5px rgba(112, 140, 128, 0.3)',
+          'inset -1px -1px 1px -0.5px rgba(0, 0, 0, 0.05)',
           'inset 0 0 10px 4px rgba(112, 140, 128, 0.03)',
         ].join(', '),
       }}

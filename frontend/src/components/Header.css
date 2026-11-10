@@ -27,7 +27,7 @@
     border-radius: 0;
     padding: 12px 0;
 
-    /* Layered glass background: main frosted layer + inner highlight */
+    /* Layered glass background: main frosted layer + subtle ambient blend */
     background:
         linear-gradient(
             135deg,
@@ -35,24 +35,19 @@
             rgba(240, 248, 244, 0.66) 50%,
             rgba(255, 255, 255, 0.74) 100%
         );
-    backdrop-filter: blur(28px) saturate(1.8) brightness(1.05);
-    -webkit-backdrop-filter: blur(28px) saturate(1.8) brightness(1.05);
+    backdrop-filter: blur(24px) saturate(1.8) brightness(1.02) url("#dz-glass");
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.02);
 
-    /* Edge-to-edge liquid glass border: subtle bottom rim with top highlight */
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.65);
+    /* Clean borderless finish: zero white lines above or below */
+    border: none;
 
-    /* Layered shadow: distant ambient + near specular inner catch */
+    /* Seamless ambient glass shadow */
     box-shadow:
-        0 1px 0 0 rgba(255, 255, 255, 0.75) inset,         /* inner top highlight */
-        0 -1px 0 0 rgba(163, 191, 177, 0.22) inset,        /* inner bottom rim */
         0 8px 30px rgba(30, 80, 56, 0.08),                 /* green-tinted ambient */
         0 2px 6px rgba(30, 40, 36, 0.04);
 }
 
-/* Shimmer pseudo-element: subtle edge-to-edge refraction sweep */
+/* Shimmer pseudo-element: subtle edge-to-edge refraction sweep without harsh edge lines */
 .header.scrolled::before {
     content: '';
     position: absolute;
@@ -60,9 +55,9 @@
     border-radius: 0;
     background: linear-gradient(
         115deg,
-        rgba(255, 255, 255, 0.0) 25%,
-        rgba(255, 255, 255, 0.22) 50%,
-        rgba(255, 255, 255, 0.0) 75%
+        rgba(255, 255, 255, 0.0) 30%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.0) 70%
     );
     pointer-events: none;
     z-index: 0;
@@ -207,19 +202,19 @@
         width: min(84vw, 320px);
         height: 100vh;
         height: 100dvh;
-        background-color: #ffffff !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(240, 248, 244, 0.74) 100%) !important;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 22px;
         transform: translateX(100%);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
+        box-shadow: -8px 0 32px rgba(30, 80, 56, 0.15);
         z-index: 1006;
         padding: 40px 24px;
-        filter: none !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
+        backdrop-filter: blur(24px) saturate(1.8) url("#dz-glass") !important;
+        -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+        border-left: 1px solid rgba(112, 140, 128, 0.18);
     }
 
     .nav.open {
