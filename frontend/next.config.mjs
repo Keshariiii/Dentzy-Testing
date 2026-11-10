@@ -8,16 +8,18 @@ const nextConfig = {
     ? process.env.ALLOWED_DEV_ORIGINS.split(',').map(o => o.trim())
     : ['localhost:3000', '127.0.0.1:3000', 'localhost', '127.0.0.1'],
 
-  // API proxy — only active in local dev (no NEXT_PUBLIC_API_URL set)
-  async rewrites() {
-    if (process.env.NEXT_PUBLIC_API_URL) return [];
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
-      },
-    ];
-  },
+  // API proxy — only active in local dev (never in static export)
+  ...(process.env.NODE_ENV !== 'production' && {
+    async rewrites() {
+      if (process.env.NEXT_PUBLIC_API_URL) return [];
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost:5000/api/:path*',
+        },
+      ];
+    },
+  }),
 
   images: {
     unoptimized: true,
