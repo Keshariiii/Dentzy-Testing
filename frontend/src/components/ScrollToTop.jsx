@@ -1,12 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
-import { LiquidGlassButton } from './ui/apple-tahoe-liquid-glass-button';
 
 /**
- * ScrollToTop — Circular progress ring with real Apple-Tahoe liquid glass.
- * Glass bends content behind it; interactive spring physics on press/hover.
+ * ScrollToTop — Circular progress ring button with scroll percentage tracking.
+ * Appears after 300px scroll, shows ring fill tracking page scroll.
  */
 const ScrollToTop = () => {
   const [visible, setVisible] = useState(false);
@@ -16,13 +15,20 @@ const ScrollToTop = () => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setVisible(scrollY > 300);
+
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(docHeight > 0 ? Math.min(scrollY / docHeight, 1) : 0);
+      const pct = docHeight > 0 ? Math.min(scrollY / docHeight, 1) : 0;
+      setProgress(pct);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // SVG ring params
   const size = 44;
   const strokeWidth = 2.5;
   const radius = (size - strokeWidth) / 2;
@@ -32,53 +38,60 @@ const ScrollToTop = () => {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
-          className="fixed bottom-24 right-4 z-50 sm:bottom-8 sm:right-8"
+        <motion.button
+          className="fixed bottom-24 right-4 z-50 sm:bottom-8 sm:right-8 w-11 h-11 flex items-center justify-center rounded-full cursor-pointer transition-shadow"
+          style={{
+            background: 'rgba(255,255,255,0.52)',
+            backdropFilter: 'blur(20px) saturate(1.6) url("#dz-glass")',
+            WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+            border: '1px solid rgba(112,140,128,0.2)',
+            boxShadow: [
+              'inset 0 1px 0 rgba(255,255,255,0.72)',
+              'inset 1px 0 0.5px rgba(112,140,128,0.2)',
+              'inset -1px 0 0.5px rgba(112,140,128,0.2)',
+              'inset 0 -1px 0 rgba(112,140,128,0.1)',
+              '0 4px 12px rgba(30,80,56,0.07)',
+            ].join(', '),
+          }}
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
           initial={{ opacity: 0, scale: 0.6, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.6, y: 20 }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          whileTap={{ scale: 0.9 }}
         >
-          <LiquidGlassButton
-            size="icon"
-            appearance="light"
-            material="clear"
-            interactive
-            motion="full"
-            refraction={18}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            aria-label="Scroll to top"
-            style={{ position: 'relative', width: size, height: size }}
+          {/* Progress ring */}
+          <svg
+            className="absolute inset-0"
+            width={size}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
           >
-            {/* Progress ring */}
-            <svg
-              className="absolute inset-0 pointer-events-none"
-              width={size}
-              height={size}
-              viewBox={`0 0 ${size} ${size}`}
-              aria-hidden
-            >
-              <circle
-                cx={size / 2} cy={size / 2} r={radius}
-                fill="none"
-                stroke="rgba(112, 140, 128, 0.15)"
-                strokeWidth={strokeWidth}
-              />
-              <circle
-                cx={size / 2} cy={size / 2} r={radius}
-                fill="none"
-                stroke="#1e5038"
-                strokeWidth={strokeWidth}
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
-              />
-            </svg>
-            <ChevronUp className="w-4 h-4 text-[#1e5038] relative z-10" />
-          </LiquidGlassButton>
-        </motion.div>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="rgba(112, 140, 128, 0.15)"
+              strokeWidth={strokeWidth}
+            />
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="#1e5038"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
+            />
+          </svg>
+          <ChevronUp className="w-4 h-4 text-[#1e5038] relative z-10" />
+        </motion.button>
       )}
     </AnimatePresence>
   );

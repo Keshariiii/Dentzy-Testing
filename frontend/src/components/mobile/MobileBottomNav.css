@@ -1,11 +1,30 @@
 /* ================================================================
    MobileBottomNav — Floating glassmorphic dock
-   The nav container is now a LiquidGlass component (real refraction).
-   Only layout + button styles live here.
    ================================================================ */
 
-/* LiquidGlass sets position/bg/blur — we just override border-radius
-   and z-index via inline style. No duplicate glass rules here. */
+.m-bottom-nav {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 200;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(24px) saturate(1.6) url("#dz-glass");
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(112, 140, 128, 0.18);
+  border-radius: 22px;
+  box-shadow:
+    0 4px 16px rgba(30, 80, 56, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 1px 0 0.5px rgba(112, 140, 128, 0.4),
+    inset -1px 0 0.5px rgba(112, 140, 128, 0.4),
+    inset 0 0 10px 4px rgba(112, 140, 128, 0.03);
+}
 
 .m-bnav-item {
   display: flex;
@@ -23,9 +42,6 @@
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
   min-height: 44px;
-  /* Sit above the glass layers (z-index: -1 internals) */
-  position: relative;
-  z-index: 1;
 }
 
 .m-bnav-item--active {
