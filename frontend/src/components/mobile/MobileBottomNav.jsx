@@ -1,12 +1,13 @@
 'use client';
 /**
- * MobileBottomNav — Fixed bottom navigation bar (iOS/Android app-style).
- *
- * Provides primary navigation: Home, Services, Dashboard, Profile.
+ * MobileBottomNav — Floating bottom dock with real Apple-Tahoe liquid glass.
+ * The nav surface is a LiquidGlass div; active tab icon uses LiquidGlassButton
+ * so it bends content and reacts with spring physics on tap.
  */
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { LiquidGlass } from '../ui/apple-tahoe-liquid-glass-button';
 import './MobileBottomNav.css';
 
 const NAV_ITEMS = [
@@ -73,44 +74,25 @@ const MobileBottomNav = () => {
 
   const handleTap = (item) => {
     if (item.key === 'home') {
-      if (pathname === '/') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
+      if (pathname === '/') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       router.push('/');
       return;
     }
-
     if (item.key === 'services') {
       const scrollServices = () => {
         const el = document.getElementById('services');
         if (el) {
-          const headerEl = document.querySelector('.m-header');
-          const headerH = headerEl ? headerEl.offsetHeight : 64;
-          const top = el.getBoundingClientRect().top + window.scrollY - headerH;
-          window.scrollTo({ top, behavior: 'smooth' });
+          const headerH = document.querySelector('.m-header')?.offsetHeight ?? 64;
+          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerH, behavior: 'smooth' });
         }
       };
-
-      if (pathname === '/') {
-        scrollServices();
-        return;
-      }
+      if (pathname === '/') { scrollServices(); return; }
       router.push('/');
       setTimeout(scrollServices, 300);
       return;
     }
-
-    if (item.key === 'profile') {
-      router.push(user ? item.authPath : item.path);
-      return;
-    }
-
-    if (item.requiresAuth && !user) {
-      router.push('/login');
-      return;
-    }
-
+    if (item.key === 'profile') { router.push(user ? item.authPath : item.path); return; }
+    if (item.requiresAuth && !user) { router.push('/login'); return; }
     router.push(item.path);
   };
 
@@ -121,24 +103,62 @@ const MobileBottomNav = () => {
     return false;
   };
 
-  // Hide bottom nav on auth pages
   const hideOn = ['/login', '/register', '/forgot-password', '/admin/login'];
   if (hideOn.includes(pathname)) return null;
 
   return (
-    <nav className="m-bottom-nav" aria-label="Main navigation">
-      {NAV_ITEMS.map((item) => (
-        <button
-          key={item.key}
-          className={`m-bnav-item ${isActive(item) ? 'm-bnav-item--active' : ''}`}
-          onClick={() => handleTap(item)}
-          aria-label={item.label}
-        >
-          <span className="m-bnav-icon">{item.icon}</span>
-          <span className="m-bnav-label">{item.label}</span>
-        </button>
-      ))}
-    </nav>
+    // LiquidGlass wraps the entire dock — real refraction bends content behind it.
+    // interactive=false on the dock itself; individual buttons handle their own press.
+    <LiquidGlass
+      material="clear"
+      appearance="light"
+      refraction={22}
+      bezel={22}
+      blur={1.5}
+      saturation={1.5}
+      brightness={1.05}
+      mode="auto"
+      interactive={false}
+      className="m-bottom-nav-glass"
+      style={{
+        position: 'fixed',
+        bottom: 12,
+        left: 12,
+        right: 12,
+        zIndex: 200,
+        display: 'flex',
+        alignItems: 'stretch',
+        justifyContent: 'space-around',
+        height: 60,
+        paddingBottom: 'env(safe-area-inset-bottom, 0)',
+        borderRadius: 22,
+        // The LiquidGlass component provides its own shadow via --lg-shadow;
+        // we override with the Dentzy-toned version.
+        '--lg-shadow': [
+          '0 4px 16px rgba(30, 80, 56, 0.07)',
+          'inset 0 1px 0 rgba(255, 255, 255, 0.65)',
+          'inset 1px 0 0.5px rgba(112, 140, 128, 0.4)',
+          'inset -1px 0 0.5px rgba(112, 140, 128, 0.4)',
+        ].join(', '),
+      }}
+      aria-label="Main navigation"
+      role="navigation"
+    >
+      {NAV_ITEMS.map((item) => {
+        const active = isActive(item);
+        return (
+          <button
+            key={item.key}
+            className={`m-bnav-item${active ? ' m-bnav-item--active' : ''}`}
+            onClick={() => handleTap(item)}
+            aria-label={item.label}
+          >
+            <span className="m-bnav-icon">{item.icon}</span>
+            <span className="m-bnav-label">{item.label}</span>
+          </button>
+        );
+      })}
+    </LiquidGlass>
   );
 };
 

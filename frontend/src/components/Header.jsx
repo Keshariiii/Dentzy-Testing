@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LogIn, LogOut, User } from 'lucide-react';
 import { MenuCloseIcon } from './ui/animated-state-icons';
 import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
+import { LiquidGlass } from './ui/apple-tahoe-liquid-glass-button';
 import './Header.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { useAuth } from '../context/AuthContext';
@@ -17,64 +18,42 @@ const Header = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
     const sectionIds = ['home', 'about', 'products', 'contact'];
     const observers = [];
-
     sectionIds.forEach((id) => {
       const el = id === 'home' ? document.body : document.getElementById(id);
       if (!el) return;
       const target = id === 'home' ? document.querySelector('#home') || document.querySelector('.hero') : el;
       if (!target) return;
-
       const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(id);
-          }
-        },
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
         { threshold: 0.3 }
       );
       observer.observe(target);
       observers.push(observer);
     });
-
     return () => observers.forEach((obs) => obs.disconnect());
   }, []);
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
 
   const scrollToSection = (e, targetId) => {
     e.preventDefault();
     setMenuOpen(false);
-
-    if (targetId === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
+    if (targetId === 'home') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const target = document.getElementById(targetId);
     if (!target) return;
-
     const headerEl = document.querySelector('.header');
     const headerHeight = headerEl ? headerEl.offsetHeight : 80;
-    const offsetTop = target.getBoundingClientRect().top + window.scrollY - headerHeight;
-
-    window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - headerHeight, behavior: 'smooth' });
   };
 
   return (
     <>
-      {/* Backdrop rendered before header so header and nav are strictly on top */}
       {menuOpen && (
         <div
           className="nav-backdrop"
@@ -84,14 +63,44 @@ const Header = () => {
       )}
 
       <header className={`header ${scrolled ? 'scrolled' : ''}`}>
-        <div className="container header-content">
+        {/*
+          Real liquid glass backdrop — rendered only when scrolled, sits behind
+          the header content via z-index. The LiquidGlass div fills the full
+          header area; the header's own background/backdrop-filter is suppressed
+          when scrolled (see .header.scrolled in CSS) so both don't double-blur.
+        */}
+        {scrolled && (
+          <LiquidGlass
+            material="clear"
+            appearance="light"
+            refraction={28}
+            bezel={0}
+            blur={1.5}
+            saturation={1.6}
+            brightness={1.05}
+            mode="auto"
+            interactive={false}
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 0,
+              borderRadius: 0,
+              // Strip the component's own box-shadow — header has its own
+              '--lg-shadow': 'none',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+
+        <div className="container header-content" style={{ position: 'relative', zIndex: 1 }}>
           <a href="#home" className="logo" onClick={(e) => scrollToSection(e, 'home')}>
             <img src={dentzyLogo} alt="Dentzy Logo" className="logo-img" />
           </a>
 
           <button
             className="mobile-menu-btn"
-            onClick={toggleMenu}
+            onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             title={menuOpen ? 'Close Menu' : 'Open Menu'}
           >
