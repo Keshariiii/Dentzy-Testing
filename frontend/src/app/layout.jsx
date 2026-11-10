@@ -92,6 +92,22 @@ export default function RootLayout({ children }) {
             <p>JavaScript is required to use the Dentzy dental lab portal. Please enable JavaScript in your browser settings and refresh the page.</p>
           </div>
         </noscript>
+        {/* Liquid glass SVG filter — singleton, referenced by all mobile navbars */}
+        <svg className="hidden" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+          <defs>
+            <filter id="dz-glass" x="0%" y="0%" width="100%" height="100%"
+              colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65 0.65"
+                numOctaves="1" seed="2" result="turbulence" />
+              <feGaussianBlur in="turbulence" stdDeviation="1" result="blurredNoise" />
+              <feDisplacementMap in="SourceGraphic" in2="blurredNoise"
+                scale="12" xChannelSelector="R" yChannelSelector="B"
+                result="displaced" />
+              <feGaussianBlur in="displaced" stdDeviation="1.5" result="finalBlur" />
+              <feComposite in="finalBlur" in2="finalBlur" operator="over" />
+            </filter>
+          </defs>
+        </svg>
         <Providers>
           {children}
         </Providers>

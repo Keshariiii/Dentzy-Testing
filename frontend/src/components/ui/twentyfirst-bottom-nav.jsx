@@ -29,11 +29,23 @@ export function TwentyFirstBottomNav({
     <nav
       className={cn(
         'fixed bottom-3 left-3 right-3 z-50 flex items-center justify-around',
-        'bg-white/95 backdrop-blur-md border border-neutral-200/80 rounded-2xl',
-        'p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.08)]',
+        'border rounded-2xl p-1.5',
         'md:hidden',
         className,
       )}
+      style={{
+        background: 'rgba(255, 255, 255, 0.55)',
+        backdropFilter: 'blur(20px) saturate(1.6)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+        borderColor: 'rgba(112, 140, 128, 0.18)',
+        boxShadow: [
+          '0 4px 16px rgba(30, 80, 56, 0.07)',
+          'inset 1px 1px 1px -0.5px rgba(112, 140, 128, 0.42)',
+          'inset -1px -1px 1px -0.5px rgba(0, 0, 0, 0.08)',
+          'inset 0 1px 0 rgba(255, 255, 255, 0.65)',
+          'inset 0 0 10px 4px rgba(112, 140, 128, 0.03)',
+        ].join(', '),
+      }}
       aria-label={ariaLabel}
     >
       {items.map((item) => {
@@ -56,7 +68,12 @@ export function TwentyFirstBottomNav({
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-xl bg-[#eef6f2]"
+                className="absolute inset-0 rounded-xl"
+                style={{
+                  background: 'rgba(112, 140, 128, 0.14)',
+                  border: '1px solid rgba(112, 140, 128, 0.2)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
+                }}
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
