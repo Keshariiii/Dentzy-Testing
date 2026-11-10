@@ -20,8 +20,8 @@ const QUICK_LINKS = [
   { label: 'Products',        href: '/#products' },
   { label: 'Services',        href: '/#services' },
   { label: 'Contact Us',      href: '/#contact' },
-  { label: 'Clinic Login',    href: '/login' },
-  { label: 'Register Clinic', href: '/register' },
+  { label: 'Login',           href: '/login' },
+  { label: 'Register',        href: '/register' },
   { label: 'Forgot Password', href: '/forgot-password' },
 ];
 
@@ -182,11 +182,6 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
           </span>
           . All Rights Reserved.
         </p>
-        <div className="dz-footer__legal-links">
-          <Link href="/terms" className="dz-footer__legal-link">Terms &amp; Conditions</Link>
-          <span className="dz-footer__legal-divider">•</span>
-          <Link href="/privacy" className="dz-footer__legal-link">Privacy Policy</Link>
-        </div>
       </div>
     </footer>
   );

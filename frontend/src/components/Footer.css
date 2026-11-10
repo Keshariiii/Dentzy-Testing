@@ -286,11 +286,9 @@
   background: var(--ft-bg-bottom);
   border-top: 1px solid var(--ft-accent-border);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 18px 48px;
-  gap: 12px;
   position: relative;
 }
 
@@ -298,34 +296,13 @@
   font-size: 0.72rem;
   color: var(--ft-text-muted);
   margin: 0;
+  text-align: center;
   letter-spacing: 0.02em;
 }
 
 .dz-footer__copyright-highlight {
   color: var(--ft-text-primary);
   font-weight: 600;
-}
-
-.dz-footer__legal-links {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.82rem;
-}
-
-.dz-footer__legal-link {
-  color: #a3b8ae;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.dz-footer__legal-link:hover {
-  color: #ffffff;
-}
-
-.dz-footer__legal-divider {
-  color: rgba(163, 184, 174, 0.4);
-  font-size: 0.7rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -400,10 +400,7 @@ const MobileRegister = () => {
           </div>
 
           <p style={{ fontSize: '0.76rem', color: '#64748b', lineHeight: 1.45, margin: '4px 0 10px', textAlign: 'center' }}>
-            By verifying your email and signing up, you confirm that you are a licensed dental practitioner and agree to our{' '}
-            <Link href="/terms" style={{ color: '#1e5038', fontWeight: 600, textDecoration: 'underline' }}>Terms &amp; Conditions</Link>
-            {' '}and{' '}
-            <Link href="/privacy" style={{ color: '#1e5038', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</Link>.
+            By verifying your email and signing up, you confirm that you are a licensed dental practitioner and consent to clinic onboarding.
           </p>
 
           <button id="register-submit" type="submit" className="m-auth-submit" disabled={loading}>
