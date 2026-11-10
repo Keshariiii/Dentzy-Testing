@@ -1,24 +1,80 @@
+/* ═══════════════════════════════════════════════
+   LIQUID GLASS HEADER
+   Two-state: transparent at top → frosted glass pill on scroll
+   ═══════════════════════════════════════════════ */
+
 .header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1005; /* High stacking context above page and backdrop */
-    transition:
-        background-color 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        box-shadow 0.35s ease,
-        padding 0.35s ease;
+    z-index: 1005;
     padding: 20px 0;
     background-color: transparent;
     color: var(--color-charcoal);
+    transition:
+        background 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Liquid glass state: triggered on scroll */
 .header.scrolled {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    box-shadow: 0 4px 24px rgba(30, 80, 56, 0.08);
-    padding: 12px 0;
+    /* 8px gap from viewport edges → floating pill feel */
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 1280px;
+    border-radius: 20px;
+    padding: 10px 0;
+
+    /* Layered glass background: main frosted layer + inner highlight */
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.72) 0%,
+            rgba(240, 248, 244, 0.60) 50%,
+            rgba(255, 255, 255, 0.68) 100%
+        );
+    backdrop-filter: blur(28px) saturate(1.8) brightness(1.08);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8) brightness(1.08);
+
+    /* Liquid glass border: top-left catch-light + subtle rim */
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-top-color: rgba(255, 255, 255, 0.85);
+    border-left-color: rgba(255, 255, 255, 0.75);
+
+    /* Layered shadow: distant ambient + near specular glow */
+    box-shadow:
+        0 2px 0 0 rgba(255, 255, 255, 0.6) inset,          /* inner top highlight */
+        0 -1px 0 0 rgba(255, 255, 255, 0.3) inset,          /* inner bottom rim */
+        0 8px 32px rgba(30, 80, 56, 0.10),                  /* green-tinted ambient */
+        0 2px 8px rgba(30, 40, 36, 0.06),                   /* near shadow */
+        0 0 0 1px rgba(163, 191, 177, 0.18);                /* sage rim glow */
+}
+
+/* Shimmer pseudo-element: a subtle refraction sweep */
+.header.scrolled::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0.0) 30%,
+        rgba(255, 255, 255, 0.22) 50%,
+        rgba(255, 255, 255, 0.0) 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Keep content above the pseudo shimmer */
+.header.scrolled .header-content {
+    position: relative;
+    z-index: 1;
 }
 
 .header-content {
@@ -206,8 +262,12 @@
     .header {
         padding: 14px 0;
     }
+    /* On small screens: tighten pill margins */
     .header.scrolled {
-        padding: 10px 0;
+        top: 6px;
+        width: calc(100% - 16px);
+        padding: 8px 0;
+        border-radius: 16px;
     }
 }
 
