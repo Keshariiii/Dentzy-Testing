@@ -1,4 +1,3 @@
-import { DM_Sans } from 'next/font/google';
 import { ReticleDev } from './reticle-dev';
 import '../styles/tokens.css';
 import '../styles/reset.css';
@@ -8,13 +7,6 @@ import '../index.css';
 import '../global-animations.css';
 import '../responsive.css';
 import Providers from './Providers';
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  display: 'swap',
-  variable: '--font-dm-sans',
-});
 
 export const metadata = {
   metadataBase: new URL('https://dentzy-testing.pages.dev'),
@@ -80,8 +72,14 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={dmSans.variable}>
+    <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap"
+        />
         <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
         <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
       </head>
