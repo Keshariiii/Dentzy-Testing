@@ -9,6 +9,7 @@ import StaffNoticeBar from '../../components/common/StaffNoticeBar';
 import StaffSettingsView from '../common/StaffSettingsView';
 import { OrderSkeleton } from '../../components/Skeleton';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
 
 function parseTeeth(order) {
@@ -398,26 +399,19 @@ export default function DeliveryStaffDashboard() {
                   const isUrgent = (delivery.priority || '').toLowerCase() === 'urgent';
 
                   return (
-                    <div
+                    <DentzyCard
                       key={orderId}
                       style={{
-                        background: '#ffffff',
-                        borderRadius: '16px',
-                        padding: '18px 20px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '14px',
-                        transition: 'box-shadow 0.2s ease',
                       }}
                     >
                       {/* ── ROW 1: WHAT (Case info, patient, restoration, priority, QC badge) ── */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.92rem', color: '#1e5038' }}>
-                              #{delivery.caseId || orderId}
-                            </span>
+                            <DentzyCaseChip caseId={delivery.caseId || orderId} />
                             <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e2924' }}>
                               {delivery.patientName || 'Unnamed Patient'}
                             </span>
@@ -680,7 +674,7 @@ export default function DeliveryStaffDashboard() {
                           )}
                         </div>
                       )}
-                    </div>
+                    </DentzyCard>
                   );
                 })}
               </div>

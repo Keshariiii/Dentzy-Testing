@@ -16,6 +16,7 @@ import BaseModal from '../../components/ui/BaseModal';
 import PrintableInvoice from '../../components/common/PrintableInvoice';
 import { CardSkeleton, StatCardSkeleton, OrderSkeleton } from '../../components/Skeleton';
 import { formatINR } from '../../utils/format';
+import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
 
 const ORDER_STAGES = [
@@ -592,30 +593,17 @@ export default function ReceptionistStaffDashboard() {
                         .toUpperCase();
 
                       return (
-                        <div
+                        <DentzyCard
                           key={dentistId}
+                          interactive={true}
                           onClick={() => {
                             setSelectedDentist(d);
                             fetchDentistDetail(dentistId);
                           }}
                           style={{
-                            background: '#ffffff',
-                            borderRadius: '16px',
-                            padding: '16px 18px',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                            cursor: 'pointer',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '12px',
-                            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.07)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.04)';
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -677,7 +665,7 @@ export default function ReceptionistStaffDashboard() {
                               </span>
                             )}
                           </div>
-                        </div>
+                        </DentzyCard>
                       );
                     })}
                   </div>
@@ -782,13 +770,9 @@ export default function ReceptionistStaffDashboard() {
                     {filteredSelectedDentistOrders.map((order) => {
                       const oid = order._id || order.id || order.caseId;
                       return (
-                        <div
+                        <DentzyCard
                           key={oid}
                           style={{
-                            background: '#ffffff',
-                            borderRadius: '14px',
-                            padding: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '10px',
@@ -797,9 +781,7 @@ export default function ReceptionistStaffDashboard() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.92rem', color: '#1e5038' }}>
-                                  #{order.caseId}
-                                </span>
+                                <DentzyCaseChip caseId={order.caseId} />
                                 <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e2924' }}>
                                   {order.patientName || 'Unnamed Patient'}
                                 </span>
@@ -861,7 +843,7 @@ export default function ReceptionistStaffDashboard() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </DentzyCard>
                       );
                     })}
                   </div>
@@ -901,18 +883,18 @@ export default function ReceptionistStaffDashboard() {
                   <StatCardSkeleton count={3} />
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
-                    <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+                    <DentzyCard style={{ padding: '18px 20px' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>Total Billed</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e2924' }}>{formatINR(paymentsSummary.billed)}</div>
-                    </div>
-                    <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+                    </DentzyCard>
+                    <DentzyCard style={{ padding: '18px 20px' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#16a34a', marginBottom: '6px' }}>Collected</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#16a34a' }}>{formatINR(paymentsSummary.collected)}</div>
-                    </div>
-                    <div style={{ background: '#ffffff', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+                    </DentzyCard>
+                    <DentzyCard style={{ padding: '18px 20px' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#d97706', marginBottom: '6px' }}>Pending Balance</div>
                       <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#d97706' }}>{formatINR(paymentsSummary.pending)}</div>
-                    </div>
+                    </DentzyCard>
                   </div>
                 )}
 
@@ -927,8 +909,9 @@ export default function ReceptionistStaffDashboard() {
                     const dentistId = d._id || d.id;
 
                     return (
-                      <div
+                      <DentzyCard
                         key={dentistId}
+                        interactive={true}
                         onClick={() => {
                           setSelectedPayDentist(d);
                           fetchPayDentistDetail(dentistId);
@@ -937,23 +920,9 @@ export default function ReceptionistStaffDashboard() {
                           setPayStatusFilter('all');
                         }}
                         style={{
-                          background: '#ffffff',
-                          borderRadius: '16px',
-                          padding: '16px 18px',
-                          boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                          cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '12px',
-                          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.07)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.04)';
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -995,7 +964,7 @@ export default function ReceptionistStaffDashboard() {
                             </span>
                           )}
                         </div>
-                      </div>
+                      </DentzyCard>
                     );
                   })}
                 </div>
@@ -1223,18 +1192,14 @@ export default function ReceptionistStaffDashboard() {
                       const isSelected = selectedPaymentIds.includes(oid);
 
                       return (
-                        <div
+                        <DentzyCard
                           key={oid}
                           style={{
                             background: isSelected ? '#edf5f0' : '#ffffff',
-                            borderRadius: '14px',
-                            padding: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            border: isSelected ? '1.5px solid #1e5038' : '1px solid transparent',
+                            border: isSelected ? '1.5px solid #1e5038' : '1px solid rgba(112, 140, 128, 0.14)',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '10px',
-                            transition: 'background 0.15s ease, border-color 0.15s ease',
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
@@ -1246,11 +1211,9 @@ export default function ReceptionistStaffDashboard() {
                                 onClick={(e) => e.stopPropagation()}
                                 style={{ width: '16px', height: '16px', accentColor: '#1e5038', cursor: 'pointer' }}
                               />
-                              <div>
-                                <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.92rem', color: '#1e5038' }}>
-                                  #{order.caseId}
-                                </span>
-                                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e2924', marginLeft: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <DentzyCaseChip caseId={order.caseId} />
+                                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e2924' }}>
                                   {order.patientName || 'Unnamed Patient'}
                                 </span>
                               </div>
@@ -1292,7 +1255,7 @@ export default function ReceptionistStaffDashboard() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </DentzyCard>
                       );
                     })}
                   </div>

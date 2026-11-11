@@ -25,6 +25,8 @@ import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
+import { DentzyCaseChip, DentzyStatusPill } from './common/DentzyCard';
+import { DentzyDataTable } from './common/DentzyChartTable';
 
 /* =============================================================================
    NAV ITEMS
@@ -449,30 +451,22 @@ const DentistDashboard = () => {
           subtext="Orders placed through your dashboard will appear here."
         />
       ) : (
-        <div className="ud-table-wrap">
-          <table className="ud-table">
-            <thead><tr>
-              <th>Patient Name</th>
-              <th>Case ID</th>
-              <th>Service</th>
-              <th>Amount</th>
-              <th>Priority</th>
-              <th>Due Date</th>
-              <th>Payment</th>
-              <th>Status</th>
-            </tr></thead>
-            <tbody>{orders.map(o => (
-              <tr key={o._id} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
-                <td><strong>{o.patientName}</strong></td>
-                <td><code className="ud-code">{o.caseId}</code></td>
-                <td>{o.serviceType}</td>
-                <td style={{ fontWeight: 700, color: '#1e5038' }}>
-                  ₹{getOrderPrice(o).toLocaleString('en-IN')}
-                </td>
-                <td><span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span></td>
-                <td>{formatDate(o.dueDate)}</td>
-                <td>
-                  <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
+        <DentzyDataTable
+          data={orders}
+          onRowClick={(o) => setSelectedOrder(o)}
+          columns={[
+            { key: 'patientName', header: 'Patient Name', render: (o) => <strong>{o.patientName}</strong> },
+            { key: 'caseId', header: 'Case ID', render: (o) => <DentzyCaseChip caseId={o.caseId} /> },
+            { key: 'serviceType', header: 'Service' },
+            { key: 'amount', header: 'Amount', render: (o) => <span style={{ fontWeight: 700, color: '#1e5038' }}>₹{getOrderPrice(o).toLocaleString('en-IN')}</span> },
+            { key: 'priority', header: 'Priority', render: (o) => <span className={`ud-priority ud-priority-${o.priority?.toLowerCase()}`}>{o.priority}</span> },
+            { key: 'dueDate', header: 'Due Date', render: (o) => formatDate(o.dueDate) },
+            {
+              key: 'paymentStatus',
+              header: 'Payment',
+              render: (o) => (
+                <>
+                  <DentzyStatusPill status={o.paymentStatus || 'Pending'} type="payment" />
                   {o.batchId && (
                     <button
                       type="button"
@@ -498,12 +492,12 @@ const DentistDashboard = () => {
                       Batch Invoice
                     </button>
                   )}
-                </td>
-                <td><StatusBadge status={o.status} /></td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
+                </>
+              ),
+            },
+            { key: 'status', header: 'Status', render: (o) => <DentzyStatusPill status={o.status} type="workflow" /> },
+          ]}
+        />
       )}
     </div>
   );
@@ -1265,38 +1259,42 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
           subtext="Payment records will appear here once orders are created."
         />
       ) : (
-        <div className="ud-table-wrap">
-          <table className="ud-table">
-            <thead><tr>
-              <th>Patient Name</th><th>Case ID</th><th>Service</th><th>Amount</th>
-              <th>Due Date</th><th>Payment Status</th><th>Mode & Ref</th>
-            </tr></thead>
-            <tbody>{payments.map(p => (
-              <tr key={p._id} onClick={() => onSelectPayment?.(p)} style={{ cursor: 'pointer' }}>
-                <td><strong>{p.patientName}</strong></td>
-                <td><code className="ud-code">{p.caseId}</code></td>
-                <td>{p.serviceType || '—'}</td>
-                <td className="ud-amount">₹{getOrderPrice(p).toLocaleString('en-IN')}</td>
-                <td>{formatDate(p.dueDate)}</td>
-                <td>
-                  <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
-                </td>
-                <td>
-                  {p.paymentStatus === 'Paid' && p.paymentMode ? (
-                    <span style={{ fontSize: '0.78rem' }}>
-                      <span style={{
-                        padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
+        <DentzyDataTable
+          data={payments}
+          onRowClick={(p) => onSelectPayment?.(p)}
+          columns={[
+            { key: 'patientName', header: 'Patient Name', render: (p) => <strong>{p.patientName}</strong> },
+            { key: 'caseId', header: 'Case ID', render: (p) => <DentzyCaseChip caseId={p.caseId} /> },
+            { key: 'serviceType', header: 'Service', render: (p) => p.serviceType || '—' },
+            { key: 'amount', header: 'Amount', render: (p) => <span className="ud-amount">₹{getOrderPrice(p).toLocaleString('en-IN')}</span> },
+            { key: 'dueDate', header: 'Due Date', render: (p) => formatDate(p.dueDate) },
+            { key: 'paymentStatus', header: 'Payment Status', render: (p) => <DentzyStatusPill status={p.paymentStatus || 'Pending'} type="payment" /> },
+            {
+              key: 'modeRef',
+              header: 'Mode & Ref',
+              render: (p) =>
+                p.paymentStatus === 'Paid' && p.paymentMode ? (
+                  <span style={{ fontSize: '0.78rem' }}>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
                         background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
                         color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
-                      }}>{p.paymentMode}</span>
-                      {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                      }}
+                    >
+                      {p.paymentMode}
                     </span>
-                  ) : <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>}
-                </td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
+                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                  </span>
+                ) : (
+                  <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>
+                ),
+            },
+          ]}
+        />
       )}
     </div>
   );

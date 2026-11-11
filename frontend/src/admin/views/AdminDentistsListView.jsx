@@ -6,6 +6,7 @@ import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { DentzyRowCard, DentzyStatusPill } from '../../components/common/DentzyCard';
 
 const DENTIST_TABS = [
   { key: 'all', label: 'All' },
@@ -159,84 +160,67 @@ export default function AdminDentistsListView({
             {filteredUsers.map((user) => {
               const uId = user._id || user.id;
               const isArchived = user.status === 'archived' || Boolean(user.isArchived);
+              const statusLabel = isArchived
+                ? (user.archiveReason || 'Archived')
+                : (user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Pending');
+              const dateFormatted = user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : '—';
+
               return (
-                <div
+                <DentzyRowCard
                   key={uId}
-                  className={isMobile ? `ma-user-card ma-uc--${user.status}` : `ad-user-card ${user.status}`}
+                  title={user?.name || 'Unnamed Dentist'}
+                  avatarMuted={isArchived}
+                  badge={<DentzyStatusPill status={isArchived ? 'archived' : user.status} label={statusLabel} type="account" />}
+                  subtitle={`${user?.email || '—'}${user?.phone ? ` · ${user.phone}` : ''}`}
+                  dateIcon={Ico.clock(11)}
+                  dateText={dateFormatted}
                   onClick={() => onSelectUser(uId)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className={isMobile ? 'ma-uc-top' : 'ad-user-row'}>
-                    <div className={isMobile ? 'ma-uc-avatar' : 'ad-avatar'}>
-                      {(user?.name || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div className={isMobile ? 'ma-uc-info' : 'ad-user-info'}>
-                      <div className={isMobile ? 'ma-uc-name' : 'ad-user-name'} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span>{user?.name || 'Unnamed Dentist'}</span>
-                        <StatusBadge
-                          status={isArchived ? 'archived' : user.status}
-                          label={isArchived ? (user.archiveReason || 'Archived') : undefined}
-                          size="sm"
-                        />
-                      </div>
-                      <div className={isMobile ? 'ma-uc-email' : 'ad-user-email'}>{user?.email || '—'}</div>
-                      {user.clinicName && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--dz-color-text-muted)' }}>
-                          {user.clinicName}
-                        </div>
-                      )}
-                      <div className={isMobile ? 'ma-uc-date' : 'ad-user-date'}>
-                        {Ico.clock(11)}
-                        {user?.createdAt
-                          ? new Date(user.createdAt).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : '—'}
-                      </div>
-                    </div>
-                  </div>
-
-
-                  {/* Inline action buttons — hidden for archived accounts */}
-                  {!isArchived && (user.status === 'pending' || user.status === 'rejected') && (
-                    <div
-                      className={isMobile ? 'ma-card-actions' : 'ad-card-actions'}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
-                    >
-                      <TwentyFirstIconButton
-                        icon={Ico.check(14)}
-                        title="Approve Dentist"
-                        ariaLabel="Approve Dentist"
-                        onClick={() => onApprove(uId, user.name)}
-                        size={isMobile ? 'lg' : 'sm'}
-                        variant="success"
-                      />
-                      {user.status === 'pending' && (
+                  rightPills={
+                    <>
+                      {user?.clinicName && <DentzyStatusPill label={user.clinicName} type="clinic" />}
+                    </>
+                  }
+                  actions={
+                    !isArchived && (user.status === 'pending' || user.status === 'rejected') ? (
+                      <>
                         <TwentyFirstIconButton
-                          icon={Ico.x(14)}
-                          title="Reject Dentist"
-                          ariaLabel="Reject Dentist"
-                          onClick={() => onReject(uId, user.name)}
+                          icon={Ico.check(14)}
+                          title="Approve Dentist"
+                          ariaLabel="Approve Dentist"
+                          onClick={() => onApprove(uId, user.name)}
+                          size={isMobile ? 'lg' : 'sm'}
+                          variant="success"
+                        />
+                        {user.status === 'pending' && (
+                          <TwentyFirstIconButton
+                            icon={Ico.x(14)}
+                            title="Reject Dentist"
+                            ariaLabel="Reject Dentist"
+                            onClick={() => onReject(uId, user.name)}
+                            size={isMobile ? 'lg' : 'sm'}
+                            variant="danger"
+                          />
+                        )}
+                        <TwentyFirstIconButton
+                          icon={Ico.trash(14)}
+                          title="Delete Dentist"
+                          ariaLabel="Delete Dentist"
+                          onClick={() => onDelete(uId, user.name)}
                           size={isMobile ? 'lg' : 'sm'}
                           variant="danger"
                         />
-                      )}
-                      <TwentyFirstIconButton
-                        icon={Ico.trash(14)}
-                        title="Delete Dentist"
-                        ariaLabel="Delete Dentist"
-                        onClick={() => onDelete(uId, user.name)}
-                        size={isMobile ? 'lg' : 'sm'}
-                        variant="danger"
-                      />
-                    </div>
-                  )}
-                </div>
+                      </>
+                    ) : null
+                  }
+                />
               );
             })}
           </div>

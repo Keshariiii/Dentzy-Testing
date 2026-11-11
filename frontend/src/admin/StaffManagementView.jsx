@@ -322,8 +322,12 @@ const StaffManagementView = ({
 
   /* ── Shared Styles ─────────────────────────────────────────────────────── */
   const cardStyle = {
-    background: '#fff', borderRadius: '14px', padding: '16px 20px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'box-shadow 0.2s',
+    background: '#ffffff',
+    borderRadius: '14px',
+    padding: '15px 20px',
+    border: '1px solid rgba(112, 140, 128, 0.14)',
+    boxShadow: '0 1px 3px rgba(26, 48, 40, 0.04)',
+    transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
   };
   const btnPrimary = {
     padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
@@ -507,8 +511,8 @@ const StaffManagementView = ({
                       ...cardStyle, cursor: 'pointer', textAlign: 'center', padding: '24px 16px',
                       transition: 'box-shadow 0.25s, transform 0.25s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 6px rgba(30, 80, 56, 0.05)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(26, 48, 40, 0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   >
                     <div style={{
                       width: '52px', height: '52px', borderRadius: '50%', background: '#e8f5ee',

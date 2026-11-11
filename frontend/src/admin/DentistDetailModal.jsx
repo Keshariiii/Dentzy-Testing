@@ -17,6 +17,8 @@ import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
 import PrintableInvoice from '../components/common/PrintableInvoice';
+import { DentzyCaseChip } from '../components/common/DentzyCard';
+import { DentzyPipelineChart } from '../components/common/DentzyChartTable';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -49,28 +51,7 @@ const getOrderPrice = (o) => {
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 /* ─── Pipeline Progress Bar ──────────────────────────────────────────────── */
-const PipelineBar = ({ stage }) => {
-  const idx = STAGES.indexOf(stage);
-  return (
-    <div className="ddm-pipeline">
-      {STAGES.map((s, i) => (
-        <React.Fragment key={s}>
-          <div className={[
-            'ddm-pipeline-step',
-            i <= idx  ? 'ddm-pipeline-step--done' : '',
-            i === idx ? 'ddm-pipeline-step--current' : '',
-          ].join(' ')}>
-            <div className="ddm-pipeline-dot" />
-            <span className="ddm-pipeline-label">{STAGE_LABELS[s]}</span>
-          </div>
-          {i < STAGES.length - 1 && (
-            <div className={`ddm-pipeline-line ${i < idx ? 'ddm-pipeline-line--done' : ''}`} />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
+const PipelineBar = ({ stage }) => <DentzyPipelineChart stage={stage} />;
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelectDentist }) => {
@@ -515,7 +496,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                         >
                           <div className="ddm-order-top">
                             <div className="ddm-order-id-row">
-                              <span className="ddm-order-caseid">{order.caseId}</span>
+                              <DentzyCaseChip caseId={order.caseId} />
                               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                                 <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
                                 {order.paymentStatus === 'Paid' ? (

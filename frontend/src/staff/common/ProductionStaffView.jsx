@@ -8,6 +8,7 @@ import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav
 import StaffNoticeBar from '../../components/common/StaffNoticeBar';
 import StaffSettingsView from './StaffSettingsView';
 import { SkeletonGroup, OrderSkeleton } from '../../components/Skeleton';
+import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
@@ -340,37 +341,19 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     const clinic = order.clinicName || order.owner?.clinicName || 'Dental Clinic';
 
     return (
-      <div
+      <DentzyCard
         key={orderId}
         className="sd-order-card"
         style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          padding: '18px 20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          border: '1px solid #eef2f0',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
-          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         }}
       >
         {/* Top Header: Case ID, Priority, Status */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              style={{
-                fontFamily: 'monospace',
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                color: '#1a3028',
-                background: '#f1f5f3',
-                padding: '2px 8px',
-                borderRadius: '6px',
-              }}
-            >
-              #{order.caseId || (orderId ? orderId.slice(0, 8) : 'CAS-—')}
-            </span>
+            <DentzyCaseChip caseId={order.caseId || (orderId ? orderId.slice(0, 8) : 'CAS-—')} />
 
             {/* Priority Badge */}
             <span
@@ -515,7 +498,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
 
         {/* Stage Stepper */}
         {renderStageStepper(order)}
-      </div>
+      </DentzyCard>
     );
   };
 

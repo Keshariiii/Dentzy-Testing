@@ -1,0 +1,204 @@
+/* ============================================================================
+   DentzyCard.css — Shared Card, Row Card, KPI Strip, Case Chip & Status Pills
+   Ponytail + Impeccable Operate Mode (14px radius, subtle shadow, -1px lift)
+============================================================================ */
+
+.dz-common-card {
+  background: var(--dz-color-bg-surface, #ffffff);
+  border: 1px solid rgba(112, 140, 128, 0.14);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(26, 48, 40, 0.04), 0 1px 2px rgba(26, 48, 40, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  backface-visibility: hidden;
+  position: relative;
+}
+
+.dz-common-card--interactive {
+  cursor: pointer;
+}
+
+.dz-common-card--interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(30, 80, 56, 0.05);
+  border-color: rgba(30, 80, 56, 0.35);
+}
+
+.dz-common-card--interactive:active {
+  transform: scale(0.997);
+}
+
+/* ── Rebalanced Horizontal Row Card (Dentists, Groups, Staff) ─────────────── */
+.dz-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dz-row-card__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dz-row-card__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5038, #3a8062);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dz-row-card__avatar--muted {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.dz-row-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dz-row-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.dz-row-card__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a3028;
+  line-height: 1.25;
+}
+
+.dz-row-card__sub {
+  font-size: 0.8rem;
+  color: #6a8a7c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dz-row-card__date {
+  font-size: 0.72rem;
+  color: #94a89e;
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dz-row-card__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .dz-row-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 13px 15px;
+    gap: 10px;
+  }
+  .dz-row-card__right {
+    justify-content: flex-start;
+    padding-top: 6px;
+    border-top: 1px solid #f0f4f2;
+  }
+}
+
+/* ── 3-Metric Rollup KPI Header Strip ────────────────────────────────────── */
+.dz-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dz-kpi-card {
+  background: #ffffff;
+  border: 1px solid rgba(112, 140, 128, 0.14);
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(26, 48, 40, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dz-kpi-card__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6a8a7c;
+}
+
+.dz-kpi-card__value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1a3028;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── DESIGN.md Case ID Chip (App font + 0.04em letter-spacing) ───────────── */
+.dz-case-chip {
+  display: inline-block;
+  font-family: var(--dz-font-family);
+  letter-spacing: 0.04em;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #1e5038;
+  background: #f0f5f2;
+  border: 1px solid rgba(112, 140, 128, 0.18);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Differentiated Status & Meta Pills ──────────────────────────────────── */
+.dz-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Clinical Workflow Statuses */
+.dz-pill--wf-completed   { background: #e6f0ec; color: #1e5038; border: 1px solid rgba(30, 80, 56, 0.18); }
+.dz-pill--wf-in-progress { background: #dbeafe; color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.18); }
+.dz-pill--wf-pending     { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.dz-pill--wf-cancelled   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* Financial Payment Statuses */
+.dz-pill--pay-paid       { background: #dcfce7; color: #15803d; border: 1px solid rgba(22, 163, 74, 0.22); }
+.dz-pill--pay-pending    { background: #fef3c7; color: #92400e; border: 1px solid rgba(245, 158, 11, 0.25); }
+
+/* Operational Meta Pills */
+.dz-pill--clinic         { background: #f8faf9; color: #4a6a5a; border: 1px solid rgba(112, 140, 128, 0.16); }
+.dz-pill--orders         { background: #eef6f2; color: #1e5038; font-weight: 700; }

@@ -122,28 +122,28 @@
   --dz-radius-2xl:   28px;
   --dz-radius-full:  9999px;  /* Pill / circle */
 
-  /* ── Elevation (Box Shadows) ─────────────────────────────────── */
-  --dz-shadow-xs:    0 1px 2px rgba(0, 0, 0, 0.04);
-  --dz-shadow-sm:    0 1px 4px rgba(0, 0, 0, 0.06);
-  --dz-shadow-md:    0 4px 12px rgba(0, 0, 0, 0.08);
-  --dz-shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.10);
-  --dz-shadow-xl:    0 16px 48px rgba(0, 0, 0, 0.14);
-  --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.25); /* Focus ring */
+  /* ── Elevation (Box Shadows — Toned Down for Operate Mode) ───── */
+  --dz-shadow-xs:    0 1px 2px rgba(26, 48, 40, 0.03);
+  --dz-shadow-sm:    0 1px 3px rgba(26, 48, 40, 0.04), 0 1px 2px rgba(26, 48, 40, 0.02);
+  --dz-shadow-md:    0 2px 6px rgba(30, 80, 56, 0.05);
+  --dz-shadow-lg:    0 4px 12px rgba(30, 80, 56, 0.07);
+  --dz-shadow-xl:    0 8px 24px rgba(30, 80, 56, 0.10);
+  --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.20); /* Focus ring */
 
-  /* ── Unified Card Tokens (WhyChoose logic: 16px/12px, crisp lesser shadow) ── */
-  --dz-card-radius:          16px;
-  --dz-card-icon-radius:     12px;
-  --dz-card-border:          1px solid var(--border, #e5e7eb);
-  --dz-card-border-hover:    var(--dz-color-primary-accent, #1e5038);
-  --dz-card-shadow-rest:     0 1px 3px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  --dz-card-shadow-hover:    0 6px 16px -2px rgba(30, 80, 56, 0.08);
-  --dz-card-lift:            translateY(-3px);
+  /* ── Unified Card Tokens (14px radius, sage border, subtle shadow & -1px lift) ── */
+  --dz-card-radius:          14px;
+  --dz-card-icon-radius:     10px;
+  --dz-card-border:          1px solid rgba(112, 140, 128, 0.14);
+  --dz-card-border-hover:    rgba(30, 80, 56, 0.35);
+  --dz-card-shadow-rest:     0 1px 3px rgba(26, 48, 40, 0.04), 0 1px 2px rgba(26, 48, 40, 0.02);
+  --dz-card-shadow-hover:    0 2px 6px rgba(30, 80, 56, 0.05);
+  --dz-card-lift:            translateY(-1px);
 
   /* ── Transitions ─────────────────────────────────────────────── */
   --dz-transition-fast:    0.15s ease;
-  --dz-transition-normal:  0.25s ease;
-  --dz-transition-slow:    0.4s ease;
-  --dz-transition-expo:    0.3s cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo */
+  --dz-transition-normal:  0.18s ease;
+  --dz-transition-slow:    0.25s ease;
+  --dz-transition-expo:    0.18s ease-out;
 
   /* ── Z-Index Scale ───────────────────────────────────────────── */
   --dz-z-base:       1;
