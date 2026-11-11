@@ -12,8 +12,6 @@ import { MapPin, Phone, Mail, Clock, AlertTriangle, Info, ShieldAlert } from 'lu
 
 import './Footer.css';
 
-const dentzyLogo = '/dentzy-logo-v2.png';
-
 const QUICK_LINKS = [
   { label: 'Home',            href: '/#home' },
   { label: 'About Us',        href: '/#about' },
@@ -74,14 +72,8 @@ const Footer = ({ whatsappLink = WHATSAPP_LINK }) => {
   return (
     <footer className="dz-footer">
       <div className="dz-footer__inner">
-        {/* ═══ Column 1: Brand & Quick Links ═══ */}
-        <div className="dz-footer__col dz-footer__brand">
-          <div className="dz-footer__logo-wrap">
-            <div className="dz-footer__logo-box">
-              <img src={dentzyLogo} alt="Dentzy" className="dz-footer__logo-img" />
-            </div>
-          </div>
-
+        {/* ═══ Column 1: Quick Links ═══ */}
+        <div className="dz-footer__col dz-footer__links">
           <h3 className="dz-footer__heading">
             <span>QUICK LINKS</span>
             <span className="dz-footer__heading-line" />

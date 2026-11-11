@@ -128,27 +128,67 @@ export const DEFAULT_STAFF_NOTICE_MESSAGES = [
   'Lab Support & Rush Desk hotline: +91 9503668112',
 ];
 
-// GET /api/staff/notice — fetch broadcast notice for authenticated staff
+function checkStaffBirthdayIST(dob) {
+  if (!dob || typeof dob !== 'string') return { isBirthday: false, todayIST: null };
+  const parts = dob.trim().slice(0, 10).split('-');
+  if (parts.length < 3) return { isBirthday: false, todayIST: null };
+  const dobMonth = parseInt(parts[1], 10);
+  const dobDay = parseInt(parts[2], 10);
+  if (!dobMonth || !dobDay) return { isBirthday: false, todayIST: null };
+
+  const todayIST = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  const [, istMonth, istDay] = todayIST.split('-').map(Number);
+  return { isBirthday: dobMonth === istMonth && dobDay === istDay, todayIST };
+}
+
+// GET /api/staff/notice — fetch broadcast notice + private IST birthday greeting for authenticated staff
 staff.get('/notice', verifyStaff(), async (c) => {
+  const staffMember = c.get('staff');
+  const { isBirthday, todayIST } = checkStaffBirthdayIST(staffMember?.dob);
+  const staffName = (staffMember?.displayName || staffMember?.username || 'Team Member').trim();
+  const birthdayMsg = `🎂 Happy Birthday, ${staffName}! Wishing you a wonderful year ahead from the Dentzy team!`;
+
   try {
     const row = await c.env.DB.prepare(
       'SELECT value, updated_at FROM app_settings WHERE key = ?'
     ).bind('staff_notice_bar').first();
-    if (!row?.value) {
-      return c.json({ enabled: true, messages: DEFAULT_STAFF_NOTICE_MESSAGES, message: DEFAULT_STAFF_NOTICE_MESSAGES[0] });
+
+    let enabled = true;
+    let baseMessages = [...DEFAULT_STAFF_NOTICE_MESSAGES];
+    let updatedAt = undefined;
+
+    if (row?.value) {
+      const notice = JSON.parse(row.value);
+      enabled = notice.enabled !== false;
+      baseMessages = Array.isArray(notice.messages) && notice.messages.length > 0
+        ? notice.messages
+        : (notice.message ? [notice.message] : DEFAULT_STAFF_NOTICE_MESSAGES);
+      updatedAt = row.updated_at;
     }
-    const notice = JSON.parse(row.value);
-    const messages = Array.isArray(notice.messages) && notice.messages.length > 0
-      ? notice.messages
-      : (notice.message ? [notice.message] : DEFAULT_STAFF_NOTICE_MESSAGES);
+
+    const finalMessages = isBirthday ? [birthdayMsg, ...baseMessages] : baseMessages;
     return c.json({
-      enabled: notice.enabled !== false,
-      messages,
-      message: messages[0] || '',
-      updatedAt: row.updated_at,
+      enabled: isBirthday ? true : enabled,
+      isBirthday,
+      birthdayDate: todayIST,
+      messages: finalMessages,
+      message: finalMessages[0] || '',
+      updatedAt,
     });
   } catch {
-    return c.json({ enabled: true, messages: DEFAULT_STAFF_NOTICE_MESSAGES, message: DEFAULT_STAFF_NOTICE_MESSAGES[0] });
+    const fallbackMessages = isBirthday ? [birthdayMsg, ...DEFAULT_STAFF_NOTICE_MESSAGES] : DEFAULT_STAFF_NOTICE_MESSAGES;
+    return c.json({
+      enabled: true,
+      isBirthday,
+      birthdayDate: todayIST,
+      messages: fallbackMessages,
+      message: fallbackMessages[0],
+    });
   }
 });
 
@@ -684,7 +724,7 @@ staff.get('/metrics', verifyStaff(), async (c) => {
 staff.get('/users', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
-      "SELECT id, name, email, phone, clinicName, address, createdAt FROM users WHERE status = 'approved' ORDER BY name ASC"
+      "SELECT id, name, email, phone, clinicName, address, createdAt FROM users WHERE status = 'approved' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' ORDER BY name ASC"
     ).all();
     return c.json({ users: results.map(u => ({ ...u, _id: u.id })) });
   } catch (err) {

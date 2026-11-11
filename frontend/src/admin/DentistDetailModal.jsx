@@ -359,7 +359,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                     cursor: 'pointer',
                   }}
                 >
-                  {users.filter(u => u.status === 'approved').map(u => (
+                  {users.filter(u => u.status === 'approved' && !u.isArchived && !u.email?.includes('@dentzy.invalid')).map(u => (
                     <option key={u.id || u._id} value={u.id || u._id}>
                       Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
                     </option>
@@ -388,7 +388,11 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 <div className="ddm-profile-info">
                   <div className="ddm-profile-name-row">
                     <h2 className="ddm-profile-name">{user?.name || 'Dentist'}</h2>
-                    <StatusBadge status={user?.status} size="sm" />
+                    <StatusBadge
+                      status={(user?.isArchived || user?.status === 'archived') ? 'archived' : user?.status}
+                      label={(user?.isArchived || user?.status === 'archived') ? (user?.archiveReason || 'Archived') : undefined}
+                      size="sm"
+                    />
                   </div>
                   <div className="ddm-profile-meta">
                     {user.email     && <span className="ddm-meta-item">{Ico.mail(13)} {user.email}</span>}
@@ -809,16 +813,18 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 </div>
               )}
 
-              {/* ── Delete Dentist Account ────────────────────────────── */}
-              <div className="ddm-danger-zone">
-                <button
-                  type="button"
-                  className="ddm-delete-user-btn"
-                  onClick={() => setShowConfirmDelete(true)}
-                >
-                  {Ico.trash(14)} Delete Dentist Account
-                </button>
-              </div>
+              {/* ── Delete Dentist Account (hidden if already archived) ── */}
+              {!(user?.isArchived || user?.status === 'archived') && (
+                <div className="ddm-danger-zone">
+                  <button
+                    type="button"
+                    className="ddm-delete-user-btn"
+                    onClick={() => setShowConfirmDelete(true)}
+                  >
+                    {Ico.trash(14)} Delete Dentist Account
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

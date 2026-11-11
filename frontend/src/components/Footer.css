@@ -84,39 +84,8 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Column 1: Brand & Quick Links
+   Column 1: Quick Links
    ═══════════════════════════════════════════════════════════════ */
-.dz-footer__logo-wrap {
-  display: flex;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.dz-footer__logo-box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  padding: 8px 18px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25),
-              0 0 0 1px rgba(255, 255, 255, 0.1);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.dz-footer__logo-box:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35),
-              0 0 12px var(--ft-accent-glow);
-}
-
-.dz-footer__logo-img {
-  height: 38px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
-
 /* Quick Links List */
 .dz-footer__links-list {
   list-style: none;
@@ -325,10 +294,6 @@
     padding: 32px 20px 24px;
     gap: 28px;
     text-align: center;
-  }
-
-  .dz-footer__logo-wrap {
-    justify-content: center;
   }
 
   .dz-footer__heading {

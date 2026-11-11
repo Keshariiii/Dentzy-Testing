@@ -29,12 +29,14 @@ const TABS = [
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 const STATUS_BADGE = {
   pending: { label: 'Pending', cls: 'badge-pending' },
   approved: { label: 'Approved', cls: 'badge-approved' },
   rejected: { label: 'Rejected', cls: 'badge-rejected' },
+  archived: { label: 'Archived', cls: 'badge-archived' },
 };
 
 const AdminDashboard = () => {
@@ -65,7 +67,7 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, archived: 0 });
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
@@ -695,10 +697,21 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredUsers = (users || []).filter(u =>
-    (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
-    (u?.email || '').toLowerCase().includes((search || '').toLowerCase())
-  );
+  const filteredUsers = (users || []).filter(u => {
+    const isArch =
+      u?.isArchived ||
+      u?.status === 'archived' ||
+      u?.email?.includes('@dentzy.invalid') ||
+      u?.adminNote?.startsWith('ACCOUNT_ARCHIVED') ||
+      u?.adminNote?.startsWith('ACCOUNT_CLOSED');
+    if (activeTab === 'archived' ? !isArch : isArch) return false;
+    const q = (search || '').toLowerCase();
+    return (
+      (u?.name || '').toLowerCase().includes(q) ||
+      (u?.email || '').toLowerCase().includes(q) ||
+      (u?.clinicName || '').toLowerCase().includes(q)
+    );
+  });
 
   // ponytail: group orders/payments by dentist client-side
   const dentistOrderGroups = React.useMemo(() => {
@@ -1536,6 +1549,7 @@ const AdminDashboard = () => {
                     <div className="ad-user-list">
                       {filteredUsers.map(user => {
                         const uId = user._id || user.id;
+                        const isArchived = user.status === 'archived' || Boolean(user.isArchived);
                         return (
                           <div key={uId} className={`ad-user-card ${user.status}`}
                             onClick={() => setSelectedUserId(uId)}
@@ -1545,7 +1559,14 @@ const AdminDashboard = () => {
                             <div className="ad-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
 
                             <div className="ad-user-info">
-                              <div className="ad-user-name">{user?.name || 'Unnamed Dentist'}</div>
+                              <div className="ad-user-name" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span>{user?.name || 'Unnamed Dentist'}</span>
+                                {isArchived && (
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}>
+                                    {user.archiveReason || 'Archived'}
+                                  </span>
+                                )}
+                              </div>
                               <div className="ad-user-email">{user?.email || '—'}</div>
                               <div className="ad-user-date">
                                 {Ico.clock(12)}
@@ -1553,8 +1574,8 @@ const AdminDashboard = () => {
                               </div>
                             </div>
 
-                            {/* Inline action buttons based on status */}
-                            {(user.status === 'pending' || user.status === 'rejected') && (
+                            {/* Inline action buttons based on status — hidden for archived accounts */}
+                            {!isArchived && (user.status === 'pending' || user.status === 'rejected') && (
                               <div className="ad-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                 <TwentyFirstIconButton
                                   icon={Ico.check(14)}

@@ -24,6 +24,7 @@ import { TICKER_MESSAGES } from './dashboard/shared/constants';
 import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
+import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
 
 /* =============================================================================
    NAV ITEMS
@@ -174,10 +175,18 @@ const DentistDashboard = () => {
       const res = await authFetch(`${DASH_URL}/notice`);
       if (res.ok) {
         const d = await res.json();
-        setNoticeData({ enabled: d.enabled !== false, messages: d.messages?.length ? d.messages : TICKER_MESSAGES });
+        const isBirthday = Boolean(d.isBirthday);
+        setNoticeData({
+          enabled: isBirthday ? true : d.enabled !== false,
+          isBirthday,
+          messages: d.messages?.length ? d.messages : TICKER_MESSAGES,
+        });
+        if (isBirthday && d.birthdayDate) {
+          triggerBirthdayConfettiOnce(user?.id || user?._id || 'dentist', d.birthdayDate);
+        }
       }
     } catch { /* fallback to defaults already set */ }
-  }, [authFetch, DASH_URL]);
+  }, [authFetch, DASH_URL, user?.id, user?._id]);
 
   useEffect(() => {
     if (user) fetchNotice();
@@ -248,7 +257,10 @@ const DentistDashboard = () => {
 
         {/* Announcement Ticker */}
         {noticeData.enabled && noticeData.messages.length > 0 && (
-          <TwentyFirstNoticeBar messages={noticeData.messages} />
+          <TwentyFirstNoticeBar
+            messages={noticeData.messages}
+            label={noticeData.isBirthday ? '🎂 Birthday' : 'Notice'}
+          />
         )}
 
         {/* Welcome banner for first-time users */}

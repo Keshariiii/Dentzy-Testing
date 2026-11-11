@@ -1,11 +1,17 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import TwentyFirstNoticeBar from '../ui/twentyfirst-notice-bar';
+import { useStaffAuth } from '../../staff/StaffAuthContext';
+import { triggerBirthdayConfettiOnce } from '../../utils/birthdayConfetti';
 
 const STAFF_API = '/api/staff';
 
-export default function StaffNoticeBar({ authFetch }) {
-  const [noticeData, setNoticeData] = useState({ enabled: true, messages: [] });
+export default function StaffNoticeBar({ authFetch: propAuthFetch }) {
+  const staffAuth = useStaffAuth();
+  const authFetch = propAuthFetch || staffAuth?.authFetch;
+  const staff = staffAuth?.staff;
+
+  const [noticeData, setNoticeData] = useState({ enabled: true, isBirthday: false, messages: [] });
 
   const fetchNotice = useCallback(async () => {
     if (!authFetch) return;
@@ -16,15 +22,20 @@ export default function StaffNoticeBar({ authFetch }) {
         const messages = Array.isArray(d.messages) && d.messages.length > 0
           ? d.messages
           : (d.message ? [d.message] : []);
+        const isBirthday = Boolean(d.isBirthday);
         setNoticeData({
-          enabled: d.enabled !== false,
+          enabled: isBirthday ? true : d.enabled !== false,
+          isBirthday,
           messages,
         });
+        if (isBirthday && d.birthdayDate) {
+          triggerBirthdayConfettiOnce(staff?.id || staff?.username || 'staff', d.birthdayDate);
+        }
       }
     } catch {
       // fallback
     }
-  }, [authFetch]);
+  }, [authFetch, staff?.id, staff?.username]);
 
   useEffect(() => {
     fetchNotice();
@@ -40,5 +51,10 @@ export default function StaffNoticeBar({ authFetch }) {
     return null;
   }
 
-  return <TwentyFirstNoticeBar messages={noticeData.messages} />;
+  return (
+    <TwentyFirstNoticeBar
+      messages={noticeData.messages}
+      label={noticeData.isBirthday ? '🎂 Birthday' : 'Notice'}
+    />
+  );
 }

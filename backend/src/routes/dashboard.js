@@ -265,7 +265,7 @@ dashboard.get('/payments', async (c) => {
   }
 });
 
-// GET /api/dashboard/notice — dentist notice bar config
+// GET /api/dashboard/notice — dentist notice bar config + private IST birthday greeting
 const DEFAULT_NOTICE = {
   enabled: true,
   messages: [
@@ -279,18 +279,62 @@ const DEFAULT_NOTICE = {
   ],
 };
 
+function checkDentistBirthdayIST(dob) {
+  if (!dob || typeof dob !== 'string') return { isBirthday: false, todayIST: null };
+  const parts = dob.trim().slice(0, 10).split('-');
+  if (parts.length < 3) return { isBirthday: false, todayIST: null };
+  const dobMonth = parseInt(parts[1], 10);
+  const dobDay = parseInt(parts[2], 10);
+  if (!dobMonth || !dobDay) return { isBirthday: false, todayIST: null };
+
+  const todayIST = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  const [, istMonth, istDay] = todayIST.split('-').map(Number);
+  return { isBirthday: dobMonth === istMonth && dobDay === istDay, todayIST };
+}
+
 dashboard.get('/notice', async (c) => {
+  const user = c.get('user');
+  const { isBirthday, todayIST } = checkDentistBirthdayIST(user?.dob);
+  const cleanName = (user?.name || 'Doctor').replace(/^dr\.?\s+/i, '').trim() || 'Doctor';
+  const birthdayMsg = `🎂 Happy Birthday, Dr. ${cleanName}! Wishing you a wonderful year ahead from the Dentzy team!`;
+
   try {
     const row = await c.env.DB.prepare(
       "SELECT value FROM app_settings WHERE key = 'dentist_notice_bar'"
     ).first();
+    let enabled = DEFAULT_NOTICE.enabled;
+    let baseMessages = [...DEFAULT_NOTICE.messages];
+
     if (row?.value) {
       const parsed = JSON.parse(row.value);
-      return c.json({ enabled: !!parsed.enabled, messages: parsed.messages || [] });
+      enabled = !!parsed.enabled;
+      baseMessages = Array.isArray(parsed.messages) ? parsed.messages : [];
     }
-    return c.json(DEFAULT_NOTICE);
+
+    if (isBirthday) {
+      return c.json({
+        enabled: true,
+        isBirthday: true,
+        birthdayDate: todayIST,
+        messages: [birthdayMsg, ...baseMessages],
+      });
+    }
+    return c.json({ enabled, isBirthday: false, messages: baseMessages });
   } catch (error) {
     logger.error('Dashboard notice error', { error: error.message });
+    if (isBirthday) {
+      return c.json({
+        enabled: true,
+        isBirthday: true,
+        birthdayDate: todayIST,
+        messages: [birthdayMsg, ...DEFAULT_NOTICE.messages],
+      });
+    }
     return c.json(DEFAULT_NOTICE);
   }
 });

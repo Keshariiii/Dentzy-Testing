@@ -12,6 +12,7 @@ const DENTIST_TABS = [
   { key: 'pending', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 export default function AdminDentistsListView({
@@ -157,6 +158,7 @@ export default function AdminDentistsListView({
           <div className={isMobile ? 'ma-user-list' : 'ad-user-list'}>
             {filteredUsers.map((user) => {
               const uId = user._id || user.id;
+              const isArchived = user.status === 'archived' || Boolean(user.isArchived);
               return (
                 <div
                   key={uId}
@@ -169,9 +171,13 @@ export default function AdminDentistsListView({
                       {(user?.name || 'U').charAt(0).toUpperCase()}
                     </div>
                     <div className={isMobile ? 'ma-uc-info' : 'ad-user-info'}>
-                      <div className={isMobile ? 'ma-uc-name' : 'ad-user-name'} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div className={isMobile ? 'ma-uc-name' : 'ad-user-name'} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                         <span>{user?.name || 'Unnamed Dentist'}</span>
-                        <StatusBadge status={user.status} size="sm" />
+                        <StatusBadge
+                          status={isArchived ? 'archived' : user.status}
+                          label={isArchived ? (user.archiveReason || 'Archived') : undefined}
+                          size="sm"
+                        />
                       </div>
                       <div className={isMobile ? 'ma-uc-email' : 'ad-user-email'}>{user?.email || '—'}</div>
                       {user.clinicName && (
@@ -195,8 +201,8 @@ export default function AdminDentistsListView({
                   </div>
 
 
-                  {/* Inline action buttons */}
-                  {(user.status === 'pending' || user.status === 'rejected') && (
+                  {/* Inline action buttons — hidden for archived accounts */}
+                  {!isArchived && (user.status === 'pending' || user.status === 'rejected') && (
                     <div
                       className={isMobile ? 'ma-card-actions' : 'ad-card-actions'}
                       onClick={(e) => e.stopPropagation()}

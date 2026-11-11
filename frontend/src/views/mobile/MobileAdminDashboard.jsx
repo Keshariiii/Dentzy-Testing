@@ -39,6 +39,7 @@ const DENTIST_TABS = [
   { key: 'pending',  label: 'Pending' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 const ORDER_TABS = ['all', 'In Progress', 'Pending', 'Completed', 'Cancelled'];
@@ -96,7 +97,7 @@ const MobileAdminDashboard = () => {
   // Dentists view state
   const [activeTab, setActiveTab]         = useState('all');
   const [users, setUsers]                 = useState([]);
-  const [stats, setStats]                 = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats]                 = useState({ total: 0, pending: 0, approved: 0, rejected: 0, archived: 0 });
   const [loadingUsers, setLoadingUsers]   = useState(false);
   const [sortOrder, setSortOrder]         = useState('desc');
   const [search, setSearch]               = useState('');
@@ -746,10 +747,21 @@ const MobileAdminDashboard = () => {
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
   /* -- Filtered lists ---------------------------------------------------- */
-  const filteredUsers = (users || []).filter(u =>
-    (u?.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
-    (u?.email || '').toLowerCase().includes((search || '').toLowerCase())
-  );
+  const filteredUsers = (users || []).filter(u => {
+    const isArch =
+      u?.isArchived ||
+      u?.status === 'archived' ||
+      u?.email?.includes('@dentzy.invalid') ||
+      u?.adminNote?.startsWith('ACCOUNT_ARCHIVED') ||
+      u?.adminNote?.startsWith('ACCOUNT_CLOSED');
+    if (activeTab === 'archived' ? !isArch : isArch) return false;
+    const q = (search || '').toLowerCase();
+    return (
+      (u?.name || '').toLowerCase().includes(q) ||
+      (u?.email || '').toLowerCase().includes(q) ||
+      (u?.clinicName || '').toLowerCase().includes(q)
+    );
+  });
 
   const filteredOrders = (allOrders || []).filter(o => {
     if (drillDentistOrders && (o.owner?._id || o.ownerId) !== drillDentistOrders._id) return false;
@@ -1037,6 +1049,7 @@ const MobileAdminDashboard = () => {
               <div className="ma-user-list">
                 {filteredUsers.map(user => {
                   const uId = user._id || user.id;
+                  const isArchived = user.status === 'archived' || Boolean(user.isArchived);
                   return (
                   <div key={uId} className={`ma-user-card ma-uc--${user.status}`}
                     onClick={() => setSelectedUserId(uId)}
@@ -1045,13 +1058,13 @@ const MobileAdminDashboard = () => {
                     <div className="ma-uc-top">
                       <div className="ma-uc-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
                       <div className="ma-uc-info">
-                        <span className="ma-uc-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="ma-uc-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           {user?.name || 'Unnamed Dentist'}
                           <TwentyFirstBadge
-                            variant={user.status === 'approved' ? 'approved' : user.status === 'rejected' ? 'rejected' : 'pending'}
-                            pulse={user.status === 'pending'}
+                            variant={isArchived ? 'archived' : user.status === 'approved' ? 'approved' : user.status === 'rejected' ? 'rejected' : 'pending'}
+                            pulse={!isArchived && user.status === 'pending'}
                           >
-                            {user.status}
+                            {isArchived ? (user.archiveReason || 'Archived') : user.status}
                           </TwentyFirstBadge>
                         </span>
                         <span className="ma-uc-email">{user?.email || '—'}</span>
@@ -1066,8 +1079,8 @@ const MobileAdminDashboard = () => {
                     </div>
 
 
-                    {/* Inline action buttons based on status */}
-                    {(user.status === 'pending' || user.status === 'rejected') && (
+                    {/* Inline action buttons based on status — hidden for archived accounts */}
+                    {!isArchived && (user.status === 'pending' || user.status === 'rejected') && (
                       <div className="ma-card-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <TwentyFirstIconButton
                           icon={Ico.check(16)}

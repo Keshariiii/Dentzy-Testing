@@ -67,6 +67,49 @@ const stageToStatus = (stage) => {
   return 'In Progress';
 };
 
+// Restore original dentist email from soft-archive adminNote
+function extractOriginalEmail(email, adminNote) {
+  if (adminNote && (adminNote.startsWith('ACCOUNT_ARCHIVED') || adminNote.startsWith('ACCOUNT_CLOSED'))) {
+    const emailMatch = adminNote.match(/email:([^\s|]+)/);
+    if (emailMatch?.[1]) return emailMatch[1];
+  }
+  return email;
+}
+
+// Format user row for Admin UI so @dentzy.invalid and raw ACCOUNT_ARCHIVED notes never leak
+function formatUserForAdmin(u) {
+  if (!u) return u;
+  const isArchived =
+    u.adminNote?.startsWith('ACCOUNT_ARCHIVED') ||
+    u.adminNote?.startsWith('ACCOUNT_CLOSED') ||
+    u.email?.includes('@dentzy.invalid');
+
+  const displayEmail = extractOriginalEmail(u.email, u.adminNote);
+  let archivedAt = null;
+  let archiveReason = null;
+
+  if (isArchived && u.adminNote) {
+    const dateMatch = u.adminNote.match(/(?:archivedAt|closedAt):([^\s|]+)/);
+    if (dateMatch?.[1]) archivedAt = dateMatch[1];
+    archiveReason = u.adminNote.startsWith('ACCOUNT_CLOSED')
+      ? 'Closed by Dentist'
+      : 'Archived by Admin';
+  } else if (isArchived) {
+    archiveReason = u.email?.startsWith('closed_') ? 'Closed by Dentist' : 'Archived by Admin';
+  }
+
+  return {
+    ...u,
+    _id: u.id,
+    email: displayEmail,
+    status: isArchived ? 'archived' : u.status,
+    isArchived: Boolean(isArchived),
+    archivedAt: archivedAt || (isArchived ? u.updatedAt : null),
+    archiveReason,
+    adminNote: isArchived ? '' : (u.adminNote || ''),
+  };
+}
+
 // POST /api/admin/login
 admin.post('/login', validate(adminLoginSchema), async (c) => {
   const { username, password } = c.get('body');
@@ -111,10 +154,11 @@ admin.get('/stats', verifyAdmin(), async (c) => {
   try {
     const row = await c.env.DB.prepare(`
       SELECT
-        COUNT(CASE WHEN adminNote NOT LIKE 'ACCOUNT_CLOSED%' AND adminNote NOT LIKE 'ACCOUNT_ARCHIVED%' THEN 1 END) as total,
-        COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending,
-        COALESCE(SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END), 0) as approved,
-        COALESCE(SUM(CASE WHEN status = 'rejected' AND adminNote NOT LIKE 'ACCOUNT_CLOSED%' AND adminNote NOT LIKE 'ACCOUNT_ARCHIVED%' THEN 1 ELSE 0 END), 0) as rejected
+        COUNT(CASE WHEN COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' THEN 1 END) as total,
+        COALESCE(SUM(CASE WHEN status = 'pending' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' THEN 1 ELSE 0 END), 0) as pending,
+        COALESCE(SUM(CASE WHEN status = 'approved' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' THEN 1 ELSE 0 END), 0) as approved,
+        COALESCE(SUM(CASE WHEN status = 'rejected' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' THEN 1 ELSE 0 END), 0) as rejected,
+        COALESCE(SUM(CASE WHEN COALESCE(adminNote, '') LIKE 'ACCOUNT_CLOSED%' OR COALESCE(adminNote, '') LIKE 'ACCOUNT_ARCHIVED%' OR COALESCE(email, '') LIKE '%@dentzy.invalid' THEN 1 ELSE 0 END), 0) as archived
       FROM users
     `).first();
     return c.json(row);
@@ -134,14 +178,21 @@ admin.get('/users', verifyAdmin(), async (c) => {
 
     let sql = 'SELECT id, name, email, status, adminNote, dob, phone, clinicName, address, createdAt, updatedAt FROM users';
     const params = [];
-    if (status && status !== 'all') {
-      sql += ' WHERE status = ?';
+    if (status === 'archived') {
+      sql += " WHERE (COALESCE(adminNote, '') LIKE 'ACCOUNT_CLOSED%' OR COALESCE(adminNote, '') LIKE 'ACCOUNT_ARCHIVED%' OR COALESCE(email, '') LIKE '%@dentzy.invalid')";
+    } else if (status === 'rejected') {
+      sql += " WHERE status = 'rejected' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid'";
+    } else if (status && status !== 'all') {
+      sql += " WHERE status = ? AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid'";
       params.push(status);
+    } else {
+      // Default / 'all' tab: strictly exclude all deleted/archived users
+      sql += " WHERE COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid'";
     }
     sql += ` ORDER BY ${sort} ${order}`;
 
     const { results } = await c.env.DB.prepare(sql).bind(...params).all();
-    return c.json({ users: results.map(u => ({ ...u, _id: u.id })) });
+    return c.json({ users: results.map(formatUserForAdmin) });
   } catch (error) {
     logger.error('Admin users list error', { error: error.message });
     return c.json({ message: 'Failed to load users.' }, 500);
@@ -152,7 +203,7 @@ admin.get('/users', verifyAdmin(), async (c) => {
 admin.get('/users/approved', verifyAdmin(), async (c) => {
   try {
     const { results } = await c.env.DB.prepare(
-      "SELECT id, name, email, clinicName FROM users WHERE status = 'approved' ORDER BY name ASC"
+      "SELECT id, name, email, clinicName FROM users WHERE status = 'approved' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_CLOSED%' AND COALESCE(adminNote, '') NOT LIKE 'ACCOUNT_ARCHIVED%' AND COALESCE(email, '') NOT LIKE '%@dentzy.invalid' ORDER BY name ASC"
     ).all();
     // ponytail: frontend expects `_id` field from MongoDB; map `id` → `_id` for compat
     return c.json({ users: results.map(u => ({ ...u, _id: u.id })) });
@@ -180,7 +231,7 @@ admin.get('/users/:id', verifyAdmin(), async (c) => {
     ).bind(id).all();
 
     return c.json({
-      user: { ...user, _id: user.id },
+      user: formatUserForAdmin(user),
       orders: orders.map(o => {
         let effAmount = Number(o.paymentAmount) || 0;
         if (effAmount <= 0) {
@@ -338,7 +389,7 @@ admin.get('/orders', verifyAdmin(), async (c) => {
     const search = c.req.query('search');
     const limit = Math.min(Math.max(parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
 
-    let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
+    let sql = `SELECT o.*, u.name as ownerName, u.email as ownerEmail, u.adminNote as ownerAdminNote, u.clinicName as ownerClinicName,
                COALESCE(p.status, 'Pending') as paymentStatus,
                COALESCE(p.paymentMode, '') as paymentMode,
                COALESCE(p.referenceNumber, '') as referenceNumber,
@@ -377,7 +428,8 @@ admin.get('/orders', verifyAdmin(), async (c) => {
         referenceNumber: r.referenceNumber,
         batchId: r.batchId || '',
         paidAt: r.paidAt,
-        owner: { _id: r.ownerId, name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+        ownerEmail: extractOriginalEmail(r.ownerEmail, r.ownerAdminNote),
+        owner: { _id: r.ownerId, name: r.ownerName, email: extractOriginalEmail(r.ownerEmail, r.ownerAdminNote), clinicName: r.ownerClinicName },
       };
     });
     return c.json({ orders });
@@ -754,7 +806,7 @@ admin.get('/payments', verifyAdmin(), async (c) => {
 
     // Filtered list query
     let sql = `SELECT o.id, o.ownerId, o.patientName, o.caseId, o.serviceType, o.status as orderStatus, o.dueDate, o.createdAt,
-       u.name as ownerName, u.email as ownerEmail, u.clinicName as ownerClinicName,
+       u.name as ownerName, u.email as ownerEmail, u.adminNote as ownerAdminNote, u.clinicName as ownerClinicName,
        COALESCE(p.status, 'Pending') as paymentStatus,
        COALESCE(p.paymentMode, '') as paymentMode,
        COALESCE(p.referenceNumber, '') as referenceNumber,
@@ -807,7 +859,8 @@ admin.get('/payments', verifyAdmin(), async (c) => {
           ...r,
           amount: effAmount,
           _id: r.id,
-          owner: { name: r.ownerName, email: r.ownerEmail, clinicName: r.ownerClinicName },
+          ownerEmail: extractOriginalEmail(r.ownerEmail, r.ownerAdminNote),
+          owner: { name: r.ownerName, email: extractOriginalEmail(r.ownerEmail, r.ownerAdminNote), clinicName: r.ownerClinicName },
         };
       }),
     });
@@ -1300,7 +1353,7 @@ admin.get('/staff/metrics', verifyAdmin(), async (c) => {
   try {
     const month = c.req.query('month') || new Date().toISOString().slice(0, 7); // YYYY-MM
 
-    // Cases processed per staff this month
+    // Cases processed per active staff this month (exclude archived/inactive staff)
     const { results: caseResults } = await c.env.DB.prepare(`
       SELECT s.id, s.displayName, s.username, s.status,
         COALESCE(counts.total, 0) as casesProcessed
@@ -1311,6 +1364,7 @@ admin.get('/staff/metrics', verifyAdmin(), async (c) => {
         WHERE updatedAt >= ? AND assigned_staff_id IS NOT NULL AND status != 'Cancelled'
         GROUP BY assigned_staff_id
       ) counts ON s.id = counts.assigned_staff_id
+      WHERE s.status = 'active'
       ORDER BY casesProcessed DESC
     `).bind(`${month}-01T00:00:00.000Z`).all();
 

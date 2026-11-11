@@ -30,6 +30,7 @@ const StaffManagementView = ({
   const subView = activeSubView !== undefined ? activeSubView : internalSubView;
   const setSubView = onSubViewChange || setInternalSubView;
   const [activeDesignation, setActiveDesignation] = useState(null);
+  const [staffStatusFilter, setStaffStatusFilter] = useState('active'); // 'active' | 'inactive'
 
   // Ponytail: ensure staff list is fetched whenever StaffManagementView mounts or subView is members
   useEffect(() => {
@@ -291,22 +292,33 @@ const StaffManagementView = ({
     setEditSaving(false);
   };
 
-  // ── Filtered staff list ─────────────────────────────────────────────────
-  const filtered = (staffList || []).filter(s =>
-    (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
-    (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase())
+  // ── Active vs. Archived counts & strictly separated staff lists ─────────
+  const activeStaffCount = useMemo(
+    () => (staffList || []).filter(s => s.status === 'active').length,
+    [staffList]
+  );
+  const archivedStaffCount = useMemo(
+    () => (staffList || []).filter(s => s.status !== 'active').length,
+    [staffList]
   );
 
-  // ── Designation Groups ──────────────────────────────────────────────────
+  const statusFilteredStaff = useMemo(
+    () => (staffList || []).filter(s =>
+      staffStatusFilter === 'active' ? s.status === 'active' : s.status !== 'active'
+    ),
+    [staffList, staffStatusFilter]
+  );
+
+  // ── Designation Groups (strictly Active Staff when in Active Staff tab) ─
   const designationGroups = useMemo(() => {
     const groups = {};
-    (staffList || []).forEach(s => {
+    statusFilteredStaff.forEach(s => {
       const d = s.designation || 'Unassigned';
       if (!groups[d]) groups[d] = [];
       groups[d].push(s);
     });
     return groups;
-  }, [staffList]);
+  }, [statusFilteredStaff]);
 
   /* ── Shared Styles ─────────────────────────────────────────────────────── */
   const cardStyle = {
@@ -344,8 +356,8 @@ const StaffManagementView = ({
       {/* ── MEMBERS ────────────────────────────────────── */}
       {subView === 'members' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '220px' }}>
               <div className="ad-header-search" style={{ flex: 1, maxWidth: '320px' }}>
                 <span className="ad-search-icon">{Ico.search(14)}</span>
                 <input type="text" className="ad-search" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} />
@@ -381,14 +393,110 @@ const StaffManagementView = ({
             </div>
           </div>
 
+          {/* Active vs. Archived Staff Filter Pills */}
+          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center' }}>
+            <TwentyFirstSegmentedTabs
+              tabs={[
+                { key: 'active', label: 'Active Staff', count: activeStaffCount },
+                { key: 'inactive', label: 'Archived Staff', count: archivedStaffCount },
+              ]}
+              activeKey={staffStatusFilter}
+              onTabChange={(key) => {
+                setStaffStatusFilter(key);
+                setActiveDesignation(null);
+              }}
+              layoutId="staff-status-filter-pill"
+            />
+          </div>
+
           {loadingStaff ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
+          ) : staffStatusFilter === 'inactive' ? (
+            /* ── Archived / Inactive Staff List ── */
+            statusFilteredStaff.filter(s =>
+              (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
+              (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
+              (s.designation || '').toLowerCase().includes((staffSearch || '').toLowerCase())
+            ).length === 0 ? (
+              <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
+                <p style={{ marginTop: '16px', color: '#708c80' }}>No archived staff accounts found.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {statusFilteredStaff.filter(s =>
+                  (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
+                  (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
+                  (s.designation || '').toLowerCase().includes((staffSearch || '').toLowerCase())
+                ).map(s => (
+                  <div key={s.id} className="ad-staff-card" style={cardStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
+                      <div style={{
+                        width: '42px', height: '42px', borderRadius: '50%', background: '#f1f5f9',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 700, color: '#475569', fontSize: '0.92rem', flexShrink: 0,
+                      }}>
+                        {(s.displayName || 'S').charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span>{s.displayName}</span>
+                          {s.employeeId && (
+                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
+                              #{s.employeeId}
+                            </span>
+                          )}
+                          {s.designation && (
+                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e5038', background: '#e8f5ee', padding: '2px 8px', borderRadius: '8px' }}>
+                              {s.designation}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#708c80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          @{s.username}{s.email ? ` | ${s.email}` : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <span style={{
+                        padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
+                        background: '#f1f5f9', color: '#475569', marginRight: '4px',
+                      }}>Archived</span>
+                      <TwentyFirstIconButton
+                        icon={Ico.history(14)}
+                        title="View Attendance History"
+                        ariaLabel={`Attendance history for ${s.displayName}`}
+                        onClick={() => { setSelectedStaffForHistory(s); setSubView('attendance'); }}
+                        size="sm"
+                        variant="secondary"
+                      />
+                      <TwentyFirstIconButton
+                        icon={Ico.pencil(14)}
+                        title="Edit / Reset Password"
+                        ariaLabel={`Edit ${s.displayName}`}
+                        onClick={() => openEditModal(s)}
+                        size="sm"
+                        variant="soft"
+                      />
+                      <TwentyFirstIconButton
+                        icon={Ico.power(14)}
+                        title="Reactivate Staff"
+                        ariaLabel={`Reactivate ${s.displayName}`}
+                        onClick={() => handleToggleStatus(s)}
+                        size="sm"
+                        variant="success"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           ) : !activeDesignation ? (
-            /* ── Designation Cards Grid ── */
+            /* ── Designation Cards Grid (Strictly Active Staff Only) ── */
             Object.keys(designationGroups).length === 0 ? (
               <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
                 {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
-                <p style={{ marginTop: '16px', color: '#708c80' }}>No staff members found. Click "+ Add Staff" to create accounts.</p>
+                <p style={{ marginTop: '16px', color: '#708c80' }}>No active staff members found. Click "+ Add Staff" to create accounts.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
@@ -409,26 +517,14 @@ const StaffManagementView = ({
                     }}>{members.length}</div>
                     <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>{designation}</div>
                     <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '4px' }}>
-                      {members.length} member{members.length !== 1 ? 's' : ''}
-                    </div>
-                    <div style={{ marginTop: '8px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      {members.filter(m => m.status === 'active').length > 0 && (
-                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
-                          {members.filter(m => m.status === 'active').length} active
-                        </span>
-                      )}
-                      {members.filter(m => m.status !== 'active').length > 0 && (
-                        <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>
-                          {members.filter(m => m.status !== 'active').length} inactive
-                        </span>
-                      )}
+                      {members.length} active member{members.length !== 1 ? 's' : ''}
                     </div>
                   </div>
                 ))}
               </div>
             )
           ) : (
-            /* ── Staff List Within Designation ── */
+            /* ── Active Staff List Within Designation ── */
             <div>
               <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>
                 {activeDesignation} ({(designationGroups[activeDesignation] || []).length})
@@ -464,10 +560,8 @@ const StaffManagementView = ({
                     <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <span style={{
                         padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                        background: s.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: s.status === 'active' ? '#16a34a' : '#dc2626',
-                        marginRight: '4px',
-                      }}>{s.status}</span>
+                        background: '#dcfce7', color: '#16a34a', marginRight: '4px',
+                      }}>active</span>
                       <TwentyFirstIconButton
                         icon={Ico.pencil(14)}
                         title="Edit Staff"
@@ -478,15 +572,15 @@ const StaffManagementView = ({
                       />
                       <TwentyFirstIconButton
                         icon={Ico.power(14)}
-                        title={s.status === 'active' ? 'Deactivate Staff' : 'Activate Staff'}
-                        ariaLabel={s.status === 'active' ? 'Deactivate' : 'Activate'}
+                        title="Deactivate Staff"
+                        ariaLabel="Deactivate"
                         onClick={() => handleToggleStatus(s)}
                         size="sm"
-                        variant={s.status === 'active' ? 'secondary' : 'success'}
+                        variant="secondary"
                       />
                       <TwentyFirstIconButton
                         icon={Ico.trash(14)}
-                        title="Delete Staff"
+                        title="Archive / Deactivate Staff"
                         ariaLabel={`Delete ${s.displayName}`}
                         onClick={() => handleDeleteStaff(s)}
                         size="sm"
@@ -678,7 +772,7 @@ const StaffManagementView = ({
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#708c80' }}>No data for this month.</div>
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
-              {metrics.leaderboard.map((s, i) => (
+              {metrics.leaderboard.filter(s => s.status === 'active').map((s, i) => (
                 <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{

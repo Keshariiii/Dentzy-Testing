@@ -40,6 +40,11 @@ const variantStyles = {
     text: 'text-success-text',
     dot: 'bg-success',
   },
+  archived: {
+    bg: 'bg-page',
+    text: 'text-charcoal/75',
+    dot: 'bg-charcoal/40',
+  },
   default: {
     bg: 'bg-page',
     text: 'text-charcoal/70',

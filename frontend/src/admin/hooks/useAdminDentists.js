@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 export function useAdminDentists({ authFetch, ADMIN_API, admin, showToast }) {
   const [users, setUsers] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, archived: 0 });
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -56,17 +56,26 @@ export function useAdminDentists({ authFetch, ADMIN_API, admin, showToast }) {
     fetchUsers();
   }, [admin?.username, activeTab, sortOrder, fetchUsers]);
 
-  // Filtered users memoized
+  // Filtered users memoized — strictly exclude archived/deleted users from All and non-archived tabs
   const filteredUsers = useMemo(() => {
-    if (!search.trim()) return users;
+    const tabFiltered = (users || []).filter(u => {
+      const isArch =
+        u?.isArchived ||
+        u?.status === 'archived' ||
+        u?.email?.includes('@dentzy.invalid') ||
+        u?.adminNote?.startsWith('ACCOUNT_ARCHIVED') ||
+        u?.adminNote?.startsWith('ACCOUNT_CLOSED');
+      return activeTab === 'archived' ? isArch : !isArch;
+    });
+    if (!search.trim()) return tabFiltered;
     const q = search.toLowerCase();
-    return users.filter(u =>
+    return tabFiltered.filter(u =>
       (u.name && u.name.toLowerCase().includes(q)) ||
       (u.email && u.email.toLowerCase().includes(q)) ||
       (u.clinicName && u.clinicName.toLowerCase().includes(q)) ||
       (u.phone && u.phone.includes(q))
     );
-  }, [users, search]);
+  }, [users, search, activeTab]);
 
   const handleApprove = useCallback(async (userId) => {
     setActionLoading(userId);

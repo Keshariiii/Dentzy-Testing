@@ -35,6 +35,7 @@ import { Icon, Icons } from '../../components/common/DashboardIcons';
 import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
+import { triggerBirthdayConfettiOnce } from '../../utils/birthdayConfetti';
 
 const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
 const getOrderPrice = (o) => {
@@ -168,10 +169,18 @@ const MobileDashboard = () => {
       const res = await authFetch(`${DASH_URL}/notice`);
       if (res.ok) {
         const d = await res.json();
-        setNoticeData({ enabled: d.enabled !== false, messages: d.messages?.length ? d.messages : TICKER_MESSAGES });
+        const isBirthday = Boolean(d.isBirthday);
+        setNoticeData({
+          enabled: isBirthday ? true : d.enabled !== false,
+          isBirthday,
+          messages: d.messages?.length ? d.messages : TICKER_MESSAGES,
+        });
+        if (isBirthday && d.birthdayDate) {
+          triggerBirthdayConfettiOnce(user?.id || user?._id || 'dentist', d.birthdayDate);
+        }
       }
     } catch { /* fallback to defaults already set */ }
-  }, [authFetch, DASH_URL]);
+  }, [authFetch, DASH_URL, user?.id, user?._id]);
 
   useEffect(() => {
     if (user) fetchNotice();
@@ -339,7 +348,11 @@ const MobileDashboard = () => {
     return (
       <div className="m-tab-content">
         {noticeData.enabled && noticeData.messages.length > 0 && (
-          <TwentyFirstNoticeBar messages={noticeData.messages} className="mb-4" />
+          <TwentyFirstNoticeBar
+            messages={noticeData.messages}
+            label={noticeData.isBirthday ? '🎂 Birthday' : 'Notice'}
+            className="mb-4"
+          />
         )}
 
         {/* Welcome banner for first-time users */}
