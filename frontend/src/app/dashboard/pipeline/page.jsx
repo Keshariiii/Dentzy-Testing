@@ -19,7 +19,7 @@ import { useMaintenance } from '../../../context/MaintenanceContext';
 import MaintenanceScreen from '../../../components/MaintenanceScreen';
 import { PipelineSteps } from '../../../components/common/ProductionPipeline';
 import OrderDetailModal from '../../../components/OrderDetailModal';
-import { Skeleton, SkeletonGroup } from '../../../components/Skeleton';
+import { PipelinePageSkeleton, PipelineListSkeleton } from '../../../components/SkeletonBlocks';
 import { formatDate } from '../../../utils/format';
 import { PIPELINE_STAGES } from '../../../components/dashboard/shared/constants';
 import useDashboardUrlState from '../../../hooks/useDashboardUrlState';
@@ -49,10 +49,6 @@ export default function PipelinePage() {
   const { user, loading: authLoading, authFetch, DASH_URL } = useAuth();
   const { isDentistBlocked } = useMaintenance();
 
-  if (isDentistBlocked) {
-    return <MaintenanceScreen role="dentist" />;
-  }
-
   const [orders, setOrders]             = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
@@ -80,8 +76,9 @@ export default function PipelinePage() {
       }
     } catch {
       setError('Network error while loading orders');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [authFetch, DASH_URL]);
 
   useEffect(() => {
@@ -115,12 +112,12 @@ export default function PipelinePage() {
   const userName = user?.name || user?.clinicName || 'Doctor';
   const initials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
+  if (isDentistBlocked) {
+    return <MaintenanceScreen role="dentist" />;
+  }
+
   if (authLoading || !user) {
-    return (
-      <div className="plp-loading-screen">
-        <div className="plp-spinner" />
-      </div>
-    );
+    return <PipelinePageSkeleton />;
   }
 
   return (
@@ -198,32 +195,8 @@ export default function PipelinePage() {
         )}
 
         {/* Loading state */}
-        {loading ? (
-          <SkeletonGroup>
-            <div className="plp-list">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="plp-card plp-card--skeleton">
-                  <div className="plp-card-top">
-                    <Skeleton width="140px" height="16px" />
-                    <Skeleton width="80px" height="22px" borderRadius="99px" />
-                  </div>
-                  <div className="plp-card-body">
-                    <div className="plp-card-info">
-                      <Skeleton width="60%" height="14px" style={{ marginBottom: 6 }} />
-                      <Skeleton width="40%" height="12px" />
-                    </div>
-                    <div className="plp-card-pipeline">
-                      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                        {[1, 2, 3, 4, 5].map(j => (
-                          <Skeleton key={j} width="36px" height="36px" borderRadius="50%" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SkeletonGroup>
+        {loading && orders.length === 0 ? (
+          <PipelineListSkeleton />
         ) : filtered.length === 0 ? (
           /* Empty state */
           <div className="plp-empty">

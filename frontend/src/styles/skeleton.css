@@ -74,3 +74,13 @@
     opacity: 0.6;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  [aria-hidden="true"] > .dz-skel-reduce, .dz-skel-reduce { animation: none !important; }
+}
+
+@keyframes dz-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+

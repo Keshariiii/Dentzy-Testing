@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BaseModal from '../components/ui/BaseModal';
 import { Ico } from '../components/common/DashboardIcons';
+import { MaintenanceControllerSkeleton } from '../components/SkeletonBlocks';
 
 const DentistRoleIcon = ({ size = 20, color = '#1e5038' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,7 +78,7 @@ export default function MaintenanceModeController({
     updated_by: null,
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
@@ -119,6 +120,8 @@ export default function MaintenanceModeController({
       setLoading(false);
     }
   }, [ADMIN_API, authFetch, showToast]);
+
+  const fetchConfig = fetchSettings;
 
   useEffect(() => {
     fetchSettings();
@@ -203,6 +206,10 @@ export default function MaintenanceModeController({
     return 'Both Dentists & Staff';
   };
 
+  if (loading) {
+    return <MaintenanceControllerSkeleton />;
+  }
+
   return (
     <div style={{
       background: '#ffffff',
@@ -243,18 +250,14 @@ export default function MaintenanceModeController({
           fontSize: '0.82rem',
           fontWeight: 700,
         }}>
-          {loading ? (
-            <SpinnerIcon size={12} />
-          ) : (
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: config.enabled ? '#dc2626' : '#16a34a',
-              animation: config.enabled ? 'dzPulseDot 1.5s infinite ease-in-out' : 'none',
-            }} />
-          )}
-          <span>{loading ? 'Syncing...' : config.enabled ? 'Maintenance Mode Active' : 'Live (Normal Operation)'}</span>
+          <span style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: config.enabled ? '#dc2626' : '#16a34a',
+            animation: config.enabled ? 'dzPulseDot 1.5s infinite ease-in-out' : 'none',
+          }} />
+          <span>{config.enabled ? 'Maintenance Mode Active' : 'Live (Normal Operation)'}</span>
         </div>
       </div>
 

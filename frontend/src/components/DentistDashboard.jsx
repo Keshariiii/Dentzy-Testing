@@ -27,6 +27,12 @@ import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
 import { DentzyCaseChip, DentzyStatusPill } from './common/DentzyCard';
 import { DentzyDataTable } from './common/DentzyChartTable';
+import {
+  RecentOrdersSkeleton,
+  PipelineCardSkeleton,
+  DataTableSkeleton,
+  BalanceCardSkeleton,
+} from './SkeletonBlocks';
 
 /* =============================================================================
    NAV ITEMS
@@ -103,7 +109,9 @@ const DentistDashboard = () => {
   const [stats, setStats]             = useState(null);
   const [orders, setOrders]           = useState([]);
   const [payments, setPayments]       = useState([]);
-  const [loading, setLoading]         = useState(false);
+  const [ordersLoading, setOrdersLoading]     = useState(true);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [statsLoaded, setStatsLoaded]         = useState(false);
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
@@ -146,25 +154,32 @@ const DentistDashboard = () => {
       const res = await authFetch(`${DASH_URL}/stats`);
       if (res.ok) setStats(await res.json());
     } catch {}
+    finally {
+      setStatsLoaded(true);
+    }
   }, [authFetch, DASH_URL]);
 
   const fetchOrders = useCallback(async () => {
-    setLoading(true);
+    setOrdersLoading(true);
     try {
       const q = search ? `&search=${encodeURIComponent(search)}` : '';
       const res = await authFetch(`${DASH_URL}/orders?limit=50${q}`);
       if (res.ok) { const d = await res.json(); setOrders(d.orders || []); }
     } catch {}
-    setLoading(false);
+    finally {
+      setOrdersLoading(false);
+    }
   }, [authFetch, DASH_URL, search]);
 
   const fetchPayments = useCallback(async () => {
-    setLoading(true);
+    setPaymentsLoading(true);
     try {
       const res = await authFetch(`${DASH_URL}/payments?limit=50`);
       if (res.ok) { const d = await res.json(); setPayments(d.payments || []); }
     } catch {}
-    setLoading(false);
+    finally {
+      setPaymentsLoading(false);
+    }
   }, [authFetch, DASH_URL]);
 
   useEffect(() => {
@@ -327,9 +342,11 @@ const DentistDashboard = () => {
         )}
 
         {/* Production Pipeline Timeline */}
-        {stats && (
+        {!statsLoaded ? (
+          <PipelineCardSkeleton />
+        ) : stats ? (
           <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />
-        )}
+        ) : null}
 
         {/* Credit Limit Warning */}
         {stats?.payments?.totalUnpaid >= 200000 && (
@@ -357,7 +374,9 @@ const DentistDashboard = () => {
               <button onClick={() => setActiveTab('orders')} className="ud-view-all-link">View All →</button>
             )}
           </div>
-          {orders.length > 0 ? (
+          {ordersLoading && orders.length === 0 ? (
+            <RecentOrdersSkeleton rows={5} variant="pc" />
+          ) : orders.length > 0 ? (
             <div className="ud-recent-cases-list">
               {orders.slice(0, 5).map(order => (
                 <div key={order._id || order.id} className="ud-recent-case-row" onClick={() => setSelectedOrder(order)}>
@@ -442,8 +461,11 @@ const DentistDashboard = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="ud-loading"><div className="ud-spinner" /><span>Loading orders...</span></div>
+      {ordersLoading && orders.length === 0 ? (
+        <DataTableSkeleton
+          headers={['Patient Name', 'Case ID', 'Service', 'Amount', 'Priority', 'Due Date', 'Payment', 'Status']}
+          rows={6}
+        />
       ) : orders.length === 0 ? (
         <EmptyState
           variant="orders"
@@ -924,14 +946,14 @@ const DentistDashboard = () => {
       <div className="ud-content-inner">
         <CompletedOrdersView
           orders={orders}
-          loading={loading}
+          loading={ordersLoading}
           onSelectOrder={setSelectedOrder}
           onBack={() => setActiveTab('dashboard')}
         />
       </div>
     );
     if (activeTab === 'settings') return renderSettings();
-    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={loading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} stats={stats} />;
+    if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={paymentsLoading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} stats={stats} statsLoaded={statsLoaded} />;
     return null;
   };
 
@@ -1016,7 +1038,7 @@ const DentistDashboard = () => {
 /* =============================================================================
    PAYMENTS TABLE SUB-COMPONENT
 ============================================================================= */
-const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
+const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLoaded }) => {
   const currentMonthISO = new Date().toISOString().slice(0, 7);
   const [statementMonth, setStatementMonth] = React.useState(currentMonthISO);
 
@@ -1062,130 +1084,134 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
       <h2 className="ud-tab-title">{title}</h2>
 
       {/* Outstanding Bill & Credit Limit Card */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2ece6',
-        borderRadius: '12px',
-        padding: '20px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 10px rgba(30, 80, 56, 0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
-              Outstanding Balance / Amount to Pay
-            </span>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '4px' }}>
-              ₹{totalUnpaid.toLocaleString('en-IN')}
+      {!statsLoaded ? (
+        <BalanceCardSkeleton variant="pc" />
+      ) : (
+        <div style={{
+          background: '#ffffff',
+          border: '1px solid #e2ece6',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 10px rgba(30, 80, 56, 0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
+                Outstanding Balance / Amount to Pay
+              </span>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '4px' }}>
+                ₹{totalUnpaid.toLocaleString('en-IN')}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#555', marginTop: '2px' }}>
+                Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
+              </div>
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#555', marginTop: '2px' }}>
-              Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <input
-              type="month"
-              value={statementMonth}
-              placeholder="Select Month"
-              data-empty={!statementMonth}
-              onClick={(e) => e.currentTarget.showPicker?.()}
-              onChange={(e) => setStatementMonth(e.target.value)}
-              style={{
-                padding: '6px 10px',
-                borderRadius: '6px',
-                border: '1px solid #d0ded6',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                color: '#1a3028',
-                background: '#f8faf9',
-                cursor: 'pointer',
-              }}
-              aria-label="Select Statement Month"
-            />
-            {statementMonth ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <input
+                type="month"
+                value={statementMonth}
+                placeholder="Select Month"
+                data-empty={!statementMonth}
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                onChange={(e) => setStatementMonth(e.target.value)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #d0ded6',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: '#1a3028',
+                  background: '#f8faf9',
+                  cursor: 'pointer',
+                }}
+                aria-label="Select Statement Month"
+              />
+              {statementMonth ? (
+                <button
+                  type="button"
+                  onClick={() => setStatementMonth('')}
+                  style={{
+                    background: '#f0f4f2',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '0.78rem',
+                    color: '#4a7060',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  All Unpaid
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStatementMonth(currentMonthISO)}
+                  style={{
+                    background: '#e8f5ee',
+                    border: '1px solid rgba(30, 80, 56, 0.2)',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '0.78rem',
+                    color: '#1e5038',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  This Month
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setStatementMonth('')}
+                onClick={handleDownloadUnpaid}
                 style={{
-                  background: '#f0f4f2',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  background: '#1e5038',
+                  color: '#ffffff',
                   border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 10px',
-                  fontSize: '0.78rem',
-                  color: '#4a7060',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  fontWeight: 600,
+                  transition: 'background 0.2s',
                 }}
               >
-                All Unpaid
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Pending Bill
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setStatementMonth(currentMonthISO)}
-                style={{
-                  background: '#e8f5ee',
-                  border: '1px solid rgba(30, 80, 56, 0.2)',
-                  borderRadius: '6px',
-                  padding: '6px 10px',
-                  fontSize: '0.78rem',
-                  color: '#1e5038',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
-              >
-                This Month
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleDownloadUnpaid}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                background: '#1e5038',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download Pending Bill
-            </button>
+            </div>
           </div>
-        </div>
 
-        {/* Credit Limit Usage Bar */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
-            <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
-            <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
-          </div>
-          <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${creditUsedPct}%`,
-              background: creditUsedPct > 80 ? '#dc2626' : creditUsedPct > 50 ? '#f59e0b' : '#1e5038',
-              borderRadius: '4px',
-              transition: 'width 0.3s ease',
-            }} />
+          {/* Credit Limit Usage Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+              <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
+              <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
+            </div>
+            <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                width: `${creditUsedPct}%`,
+                background: creditUsedPct > 80 ? '#dc2626' : creditUsedPct > 50 ? '#f59e0b' : '#1e5038',
+                borderRadius: '4px',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Consolidated Batch Receipts Section */}
       {batchStatements.length > 0 && (
@@ -1250,8 +1276,11 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats }) => {
       <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.82rem', color: '#166534', lineHeight: 1.5 }}>
         <strong>Accepted Payment Modes:</strong> Direct UPI (to lab mobile number / UPI ID), Cash, or Cheque. No payment gateway required. Once your payment is received, lab administration will verify and mark the order as Paid.
       </div>
-      {loading ? (
-        <div className="ud-loading"><div className="ud-spinner" /><span>Loading payments...</span></div>
+      {loading && payments.length === 0 ? (
+        <DataTableSkeleton
+          headers={['Patient Name', 'Case ID', 'Service', 'Amount', 'Due Date', 'Payment Status', 'Mode & Ref']}
+          rows={6}
+        />
       ) : payments.length === 0 ? (
         <EmptyState
           variant="payments"

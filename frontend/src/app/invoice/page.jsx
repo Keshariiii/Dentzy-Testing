@@ -2,6 +2,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PrintableInvoice from '../../components/common/PrintableInvoice';
+import { InvoiceSkeleton } from '../../components/SkeletonBlocks';
 
 function InvoiceContent() {
   const searchParams = useSearchParams();
@@ -106,13 +107,7 @@ function InvoiceContent() {
   }, [batchId, id, unpaid, dentistId, month]);
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', gap: '12px', background: '#f4f6f5' }}>
-        <div style={{ width: '36px', height: '36px', border: '3px solid #e8f5ee', borderTopColor: '#1e5038', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <span style={{ color: '#1e5038', fontSize: '15px', fontWeight: 500 }}>Loading official document...</span>
-        <style dangerouslySetInnerHTML={{ __html: '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }' }} />
-      </div>
-    );
+    return <InvoiceSkeleton />;
   }
 
   if (error) {
@@ -158,7 +153,7 @@ function InvoiceContent() {
 
 export default function InvoicePage() {
   return (
-    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', color: '#1e5038' }}>Loading...</div>}>
+    <Suspense fallback={<InvoiceSkeleton />}>
       <InvoiceContent />
     </Suspense>
   );

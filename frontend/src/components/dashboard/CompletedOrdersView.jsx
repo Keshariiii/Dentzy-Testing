@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useMemo } from 'react';
+import { Skeleton } from '../Skeleton';
+import { CompletedOrdersSkeleton } from '../SkeletonBlocks';
 import { Icons } from '../common/DashboardIcons';
 import { StatusBadge } from '../ui/status-badge';
 import EmptyState from '../common/EmptyState';
@@ -62,10 +64,14 @@ export default function CompletedOrdersView({
           <div className="cov-title-wrap">
             <div className="cov-title-row">
               <h2 className="cov-title">Completed Orders</h2>
-              <span className="cov-count-pill">
-                {Icons.checkCircle(14)}
-                {completedOrders.length} {completedOrders.length === 1 ? 'case' : 'cases'}
-              </span>
+              {loading ? (
+                <Skeleton width="64px" height="22px" borderRadius="999px" />
+              ) : (
+                <span className="cov-count-pill">
+                  {Icons.checkCircle(14)}
+                  {completedOrders.length} {completedOrders.length === 1 ? 'case' : 'cases'}
+                </span>
+              )}
             </div>
             <p className="cov-subtitle">Cases that have cleared quality check and been dispatched</p>
           </div>
@@ -96,11 +102,7 @@ export default function CompletedOrdersView({
 
       {/* Main content */}
       {loading ? (
-        <div className="cov-skeleton-wrap">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="cov-skeleton-line" />
-          ))}
-        </div>
+        <CompletedOrdersSkeleton />
       ) : completedOrders.length === 0 ? (
         <EmptyState
           variant="orders"

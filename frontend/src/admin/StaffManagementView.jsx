@@ -10,6 +10,7 @@ import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { Trash2 } from 'lucide-react';
 import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
+import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
 
 const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
@@ -135,6 +136,8 @@ const StaffManagementView = ({
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [attendanceMonth, setAttendanceMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null);
+  const [attendanceLoadedKey, setAttendanceLoadedKey] = useState(null);
+  const attendanceLoading = Boolean(attendanceDate && attendanceLoadedKey !== attendanceDate);
 
   const handleMarkAttendance = async () => {
     if (!attendanceStaff) return;
@@ -153,6 +156,20 @@ const StaffManagementView = ({
     setAttendanceSaving(false);
   };
 
+  const fetchAttendance = useCallback(async (date = attendanceDate) => {
+    try {
+      if (selectedStaffForHistory) {
+        const res = await authFetch(`${ADMIN_API}/staff/${selectedStaffForHistory.id}/attendance?month=${attendanceMonth}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAttendanceHistory(data.attendance || []);
+        }
+      }
+    } catch {} finally {
+      setAttendanceLoadedKey(date);
+    }
+  }, [authFetch, ADMIN_API, selectedStaffForHistory, attendanceMonth, attendanceDate]);
+
   const fetchAttendanceHistory = useCallback(async (staffId) => {
     try {
       const res = await authFetch(`${ADMIN_API}/staff/${staffId}/attendance?month=${attendanceMonth}`);
@@ -160,16 +177,27 @@ const StaffManagementView = ({
         const data = await res.json();
         setAttendanceHistory(data.attendance || []);
       }
-    } catch {}
-  }, [authFetch, ADMIN_API, attendanceMonth]);
+    } catch {} finally {
+      setAttendanceLoadedKey(attendanceDate);
+    }
+  }, [authFetch, ADMIN_API, attendanceMonth, attendanceDate]);
 
   useEffect(() => {
-    if (selectedStaffForHistory) fetchAttendanceHistory(selectedStaffForHistory.id);
+    if (selectedStaffForHistory) {
+      setAttendanceLoadedKey(null);
+      fetchAttendanceHistory(selectedStaffForHistory.id);
+    }
   }, [selectedStaffForHistory, attendanceMonth, fetchAttendanceHistory]);
+
+  useEffect(() => {
+    if (subView === 'attendance') {
+      fetchAttendance(attendanceDate);
+    }
+  }, [subView, attendanceDate, fetchAttendance]);
 
   // ── Inventory State ─────────────────────────────────────────────────────
   const [inventory, setInventory] = useState([]);
-  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [loadingInventory, setLoadingInventory] = useState(true);
   const [showAddItem, setShowAddItem] = useState(false);
   const [itemForm, setItemForm] = useState({ item_name: '', quantity: '', unit: 'pcs', min_stock: '' });
   const [itemFormError, setItemFormError] = useState('');
@@ -180,8 +208,9 @@ const StaffManagementView = ({
     try {
       const res = await authFetch(`${ADMIN_API}/staff/inventory`);
       if (res.ok) { const d = await res.json(); setInventory(d.items || []); }
-    } catch {}
-    setLoadingInventory(false);
+    } catch {} finally {
+      setLoadingInventory(false);
+    }
   }, [authFetch, ADMIN_API]);
 
   useEffect(() => { if (subView === 'inventory') fetchInventory(); }, [subView, fetchInventory]);
@@ -248,15 +277,16 @@ const StaffManagementView = ({
   // ── Metrics State ───────────────────────────────────────────────────────
   const [metrics, setMetrics] = useState(null);
   const [metricsMonth, setMetricsMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
 
   const fetchMetrics = useCallback(async () => {
     setLoadingMetrics(true);
     try {
       const res = await authFetch(`${ADMIN_API}/staff/metrics?month=${metricsMonth}`);
       if (res.ok) { const d = await res.json(); setMetrics(d); }
-    } catch {}
-    setLoadingMetrics(false);
+    } catch {} finally {
+      setLoadingMetrics(false);
+    }
   }, [authFetch, ADMIN_API, metricsMonth]);
 
   useEffect(() => { if (subView === 'metrics') fetchMetrics(); }, [subView, metricsMonth, fetchMetrics]);
@@ -414,7 +444,7 @@ const StaffManagementView = ({
           </div>
 
           {loadingStaff ? (
-            <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
+            <StaffRowSkeleton count={5} />
           ) : staffStatusFilter === 'inactive' ? (
             /* ── Archived / Inactive Staff List ── */
             statusFilteredStaff.filter(s =>
@@ -622,7 +652,9 @@ const StaffManagementView = ({
                 <input type="month" value={attendanceMonth} placeholder="Select Month" data-empty={!attendanceMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceMonth(e.target.value)}
                   style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
               </div>
-              {attendanceHistory.length === 0 ? (
+              {attendanceLoading ? (
+                <AttendanceRowsSkeleton count={6} />
+              ) : attendanceHistory.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: '#708c80' }}>No records for this month.</div>
               ) : (
                 <div style={{ display: 'grid', gap: '8px' }}>
@@ -641,6 +673,10 @@ const StaffManagementView = ({
                 </div>
               )}
             </div>
+          ) : loadingStaff ? (
+            <StaffRowSkeleton count={5} />
+          ) : attendanceLoading ? (
+            <AttendanceRowsSkeleton count={6} />
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
               {(staffList || []).filter(s => s.status === 'active').map(s => (

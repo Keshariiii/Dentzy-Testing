@@ -13,7 +13,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../api/client';
 import { useToast } from '../../context/ToastContext';
-import { Skeleton, SkeletonGroup, OrderSkeleton, StatCardSkeleton } from '../../components/Skeleton';
+import { Skeleton, SkeletonGroup } from '../../components/Skeleton';
+import {
+  RecentOrdersSkeleton,
+  PipelineCardSkeleton,
+  BalanceCardSkeleton,
+  MobileCompactCardSkeleton,
+} from '../../components/SkeletonBlocks';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import OrderDetailModal from '../../components/OrderDetailModal';
@@ -122,7 +128,9 @@ const MobileDashboard = () => {
   const [stats,       setStats]       = useState(null);
   const [orders,      setOrders]      = useState([]);
   const [payments,    setPayments]    = useState([]);
-  const [loading,     setLoading]     = useState(false);
+  const [ordersLoading, setOrdersLoading]     = useState(true);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [statsLoaded, setStatsLoaded]         = useState(false);
   const [error,       setError]       = useState(null);
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -199,10 +207,13 @@ const MobileDashboard = () => {
       if (res.ok) setStats(await res.json());
       else setError('Failed to load stats');
     } catch { setError('Network error while loading stats'); }
+    finally {
+      setStatsLoaded(true);
+    }
   }, [authFetch, DASH_URL]);
 
   const fetchOrders = useCallback(async () => {
-    setLoading(true);
+    setOrdersLoading(true);
     setError(null);
     try {
       const q = search ? `&search=${encodeURIComponent(search)}` : '';
@@ -210,18 +221,22 @@ const MobileDashboard = () => {
       if (res.ok) { const d = await res.json(); setOrders(d.orders || []); }
       else setError('Failed to load orders');
     } catch { setError('Network error while loading orders'); }
-    setLoading(false);
+    finally {
+      setOrdersLoading(false);
+    }
   }, [authFetch, DASH_URL, search]);
 
   const fetchPayments = useCallback(async () => {
-    setLoading(true);
+    setPaymentsLoading(true);
     setError(null);
     try {
       const res = await authFetch(`${DASH_URL}/payments?limit=50`);
       if (res.ok) { const d = await res.json(); setPayments(d.payments || []); }
       else setError('Failed to load payments');
     } catch { setError('Network error while loading payments'); }
-    setLoading(false);
+    finally {
+      setPaymentsLoading(false);
+    }
   }, [authFetch, DASH_URL]);
 
   useEffect(() => {
@@ -444,7 +459,11 @@ const MobileDashboard = () => {
         )}
 
         {/* Pipeline */}
-        {stats && <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />}
+        {!statsLoaded ? (
+          <PipelineCardSkeleton />
+        ) : stats ? (
+          <ProductionPipeline stats={stats} orders={orders} onViewOrders={() => setActiveTab('orders')} />
+        ) : null}
 
         {/* Credit Limit Warning Banner */}
         {(stats?.payments?.totalUnpaid || 0) >= 200000 && (
@@ -485,7 +504,9 @@ const MobileDashboard = () => {
               <button onClick={() => setActiveTab('orders')} className="m-view-all-btn">View All →</button>
             )}
           </div>
-          {orders.length > 0 ? (
+          {ordersLoading && orders.length === 0 ? (
+            <RecentOrdersSkeleton rows={5} variant="mobile" />
+          ) : orders.length > 0 ? (
             <div className="m-recent-cases-list">
               {orders.slice(0, 5).map(order => (
                 <div key={order._id || order.id} className="m-recent-row" onClick={() => setSelectedOrder(order)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 2px' }}>
@@ -588,10 +609,8 @@ const MobileDashboard = () => {
         </div>
       )}
 
-      {loading ? (
-        <SkeletonGroup>
-          <OrderSkeleton count={4} />
-        </SkeletonGroup>
+      {ordersLoading && orders.length === 0 ? (
+        <MobileCompactCardSkeleton count={5} />
       ) : orders.length === 0 ? (
         <EmptyState
           variant="orders"
@@ -705,136 +724,140 @@ const MobileDashboard = () => {
         <h2 className="m-tab-title">Payments</h2>
 
         {/* Mobile Outstanding Bill Card */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2ece6',
-          borderRadius: '12px',
-          padding: '16px',
-          marginBottom: '14px',
-          boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
-        }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#708c80' }}>
-            Outstanding Balance to Pay
-          </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
-            ₹{totalUnpaid.toLocaleString('en-IN')}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '12px' }}>
-            Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
-          </div>
-
-          {/* Credit Limit Usage Bar */}
-          <div style={{ marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
-              <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
-              <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
+        {!statsLoaded ? (
+          <BalanceCardSkeleton variant="mobile" />
+        ) : (
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e2ece6',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '14px',
+            boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#708c80' }}>
+              Outstanding Balance to Pay
             </div>
-            <div style={{ height: '7px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  width: `${creditUsedPct}%`,
-                  height: '100%',
-                  background: creditUsedPct >= 100 ? '#dc2626' : creditUsedPct >= 80 ? '#f59e0b' : '#1e5038',
-                  borderRadius: '4px',
-                  transition: 'width 0.3s ease',
+            <div style={{ fontSize: '1.65rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
+              ₹{totalUnpaid.toLocaleString('en-IN')}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '12px' }}>
+              Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
+            </div>
+
+            {/* Credit Limit Usage Bar */}
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
+                <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
+                <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
+              </div>
+              <div style={{ height: '7px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${creditUsedPct}%`,
+                    height: '100%',
+                    background: creditUsedPct >= 100 ? '#dc2626' : creditUsedPct >= 80 ? '#f59e0b' : '#1e5038',
+                    borderRadius: '4px',
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Month Filter & Download Button */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="month"
+                  value={unpaidMonthFilter}
+                  placeholder="Select Month"
+                  data-empty={!unpaidMonthFilter}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  onChange={(e) => setUnpaidMonthFilter(e.target.value)}
+                  style={{
+                    flex: 1,
+                    border: '1px solid #c2dcd0',
+                    borderRadius: '8px',
+                    padding: '7px 10px',
+                    fontSize: '0.82rem',
+                    color: '#1a3028',
+                    background: '#fff',
+                    cursor: 'pointer',
+                    minHeight: '40px',
+                  }}
+                  title="Filter unpaid statement by month"
+                />
+                {unpaidMonthFilter ? (
+                  <button
+                    type="button"
+                    onClick={() => setUnpaidMonthFilter('')}
+                    style={{
+                      background: '#f0f4f2',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      fontSize: '0.75rem',
+                      color: '#4a7060',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      minHeight: '40px',
+                    }}
+                  >
+                    All Unpaid
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setUnpaidMonthFilter(currentMonthISO)}
+                    style={{
+                      background: '#e8f5ee',
+                      border: '1px solid rgba(30, 80, 56, 0.2)',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      fontSize: '0.75rem',
+                      color: '#1e5038',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      minHeight: '40px',
+                    }}
+                  >
+                    This Month
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = unpaidMonthFilter ? `/invoice?unpaid=true&month=${encodeURIComponent(unpaidMonthFilter)}` : '/invoice?unpaid=true';
+                  window.open(url, '_blank');
                 }}
-              />
-            </div>
-          </div>
-
-          {/* Month Filter & Download Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="month"
-                value={unpaidMonthFilter}
-                placeholder="Select Month"
-                data-empty={!unpaidMonthFilter}
-                onClick={(e) => e.currentTarget.showPicker?.()}
-                onChange={(e) => setUnpaidMonthFilter(e.target.value)}
                 style={{
-                  flex: 1,
-                  border: '1px solid #c2dcd0',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 12px',
+                  background: '#1e5038',
+                  color: '#ffffff',
+                  border: 'none',
                   borderRadius: '8px',
-                  padding: '7px 10px',
                   fontSize: '0.82rem',
-                  color: '#1a3028',
-                  background: '#fff',
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  minHeight: '40px',
+                  minHeight: '42px',
                 }}
-                title="Filter unpaid statement by month"
-              />
-              {unpaidMonthFilter ? (
-                <button
-                  type="button"
-                  onClick={() => setUnpaidMonthFilter('')}
-                  style={{
-                    background: '#f0f4f2',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '8px 10px',
-                    fontSize: '0.75rem',
-                    color: '#4a7060',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    minHeight: '40px',
-                  }}
-                >
-                  All Unpaid
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setUnpaidMonthFilter(currentMonthISO)}
-                  style={{
-                    background: '#e8f5ee',
-                    border: '1px solid rgba(30, 80, 56, 0.2)',
-                    borderRadius: '8px',
-                    padding: '8px 10px',
-                    fontSize: '0.75rem',
-                    color: '#1e5038',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    minHeight: '40px',
-                  }}
-                >
-                  This Month
-                </button>
-              )}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Pending Bill {unpaidMonthFilter ? `(${unpaidMonthFilter})` : ''}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const url = unpaidMonthFilter ? `/invoice?unpaid=true&month=${encodeURIComponent(unpaidMonthFilter)}` : '/invoice?unpaid=true';
-                window.open(url, '_blank');
-              }}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '10px 12px',
-                background: '#1e5038',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                minHeight: '42px',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download Pending Bill {unpaidMonthFilter ? `(${unpaidMonthFilter})` : ''}
-            </button>
           </div>
-        </div>
+        )}
 
         {/* Consolidated Monthly Batch Receipts */}
         {batchGroups.length > 0 && (
@@ -925,10 +948,8 @@ const MobileDashboard = () => {
             />
           </div>
         )}
-        {loading ? (
-          <SkeletonGroup>
-            <OrderSkeleton count={3} />
-          </SkeletonGroup>
+        {paymentsLoading && data.length === 0 ? (
+          <MobileCompactCardSkeleton count={5} />
         ) : data.length === 0 ? (
           <EmptyState
             variant="payments"
@@ -1232,7 +1253,7 @@ const MobileDashboard = () => {
         <div className="m-tab-content">
           <CompletedOrdersView
             orders={orders}
-            loading={loading}
+            loading={ordersLoading}
             onSelectOrder={setSelectedOrder}
             onBack={() => setActiveTab('dashboard')}
             isMobile={true}

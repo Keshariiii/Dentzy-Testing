@@ -14,7 +14,13 @@ import StaffPaymentModal from '../StaffPaymentModal';
 import CreateOrderModal from '../../components/common/CreateOrderModal';
 import BaseModal from '../../components/ui/BaseModal';
 import PrintableInvoice from '../../components/common/PrintableInvoice';
-import { CardSkeleton, StatCardSkeleton, OrderSkeleton } from '../../components/Skeleton';
+import {
+  StaffSummaryTilesSkeleton,
+  DentistFinanceCardsSkeleton,
+  DentistCardSkeleton,
+  StaffOrderRowSkeleton,
+  StaffPayRowSkeleton,
+} from '../../components/SkeletonBlocks';
 import { formatINR } from '../../utils/format';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
@@ -71,7 +77,7 @@ export default function ReceptionistStaffDashboard() {
 
   // ── Global Payments State ─────────────────────────────────────────────────
   const [allPayments, setAllPayments] = useState([]);
-  const [loadingAllPayments, setLoadingAllPayments] = useState(false);
+  const [loadingAllPayments, setLoadingAllPayments] = useState(true);
 
   // ── Multi-select Batch Payment State ──────────────────────────────────────
   const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
@@ -558,11 +564,7 @@ export default function ReceptionistStaffDashboard() {
                 </div>
 
                 {loadingDentists ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <CardSkeleton key={i} />
-                    ))}
-                  </div>
+                  <DentistCardSkeleton />
                 ) : filteredDentists.length === 0 ? (
                   <div
                     style={{
@@ -744,7 +746,7 @@ export default function ReceptionistStaffDashboard() {
 
                 {/* Order List */}
                 {loadingDentistOrders ? (
-                  <OrderSkeleton count={4} />
+                  <StaffOrderRowSkeleton count={4} />
                 ) : filteredSelectedDentistOrders.length === 0 ? (
                   <div
                     style={{
@@ -880,7 +882,7 @@ export default function ReceptionistStaffDashboard() {
 
                 {/* Summary Stat Cards */}
                 {loadingAllPayments ? (
-                  <StatCardSkeleton count={3} />
+                  <StaffSummaryTilesSkeleton />
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
                     <DentzyCard style={{ padding: '18px 20px' }}>
@@ -903,71 +905,75 @@ export default function ReceptionistStaffDashboard() {
                   Billing Breakdown by Dentist
                 </h3>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
-                  {dentistFinancialMap.map((item) => {
-                    const d = item.dentist;
-                    const dentistId = d._id || d.id;
+                {loadingAllPayments || loadingDentists ? (
+                  <DentistFinanceCardsSkeleton />
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                    {dentistFinancialMap.map((item) => {
+                      const d = item.dentist;
+                      const dentistId = d._id || d.id;
 
-                    return (
-                      <DentzyCard
-                        key={dentistId}
-                        interactive={true}
-                        onClick={() => {
-                          setSelectedPayDentist(d);
-                          fetchPayDentistDetail(dentistId);
-                          setSelectedPaymentIds([]);
-                          setPayMonthFilter('all');
-                          setPayStatusFilter('all');
-                        }}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1e2924' }}>
-                              Dr. {d.name}
+                      return (
+                        <DentzyCard
+                          key={dentistId}
+                          interactive={true}
+                          onClick={() => {
+                            setSelectedPayDentist(d);
+                            fetchPayDentistDetail(dentistId);
+                            setSelectedPaymentIds([]);
+                            setPayMonthFilter('all');
+                            setPayStatusFilter('all');
+                          }}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1e2924' }}>
+                                Dr. {d.name}
+                              </div>
+                              <div style={{ fontSize: '0.8rem', color: '#527264', fontWeight: 600 }}>
+                                {d.clinicName}
+                              </div>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#527264', fontWeight: 600 }}>
-                              {d.clinicName}
-                            </div>
+                            <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                              {Ico.chevronRight(18)}
+                            </span>
                           </div>
-                          <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
-                            {Ico.chevronRight(18)}
-                          </span>
-                        </div>
 
-                        {/* Financial Pills */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '6px' }}>
-                            Billed: {formatINR(item.totalBilled)}
-                          </span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px' }}>
-                            Collected: {formatINR(item.totalCollected)}
-                          </span>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px' }}>
-                            Pending: {formatINR(item.totalPending)}
-                          </span>
-                        </div>
+                          {/* Financial Pills */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '6px' }}>
+                              Billed: {formatINR(item.totalBilled)}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px' }}>
+                              Collected: {formatINR(item.totalCollected)}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, background: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px' }}>
+                              Pending: {formatINR(item.totalPending)}
+                            </span>
+                          </div>
 
-                        <div style={{ borderTop: '1px solid #f0f4f2', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                          <span style={{ color: '#64748b' }}>{item.totalCases} total cases</span>
-                          {item.unpaidCount > 0 ? (
-                            <span style={{ fontWeight: 700, color: '#b91c1c', background: '#fee2e2', padding: '1px 8px', borderRadius: '10px' }}>
-                              {item.unpaidCount} unpaid
-                            </span>
-                          ) : (
-                            <span style={{ fontWeight: 700, color: '#15803d', background: '#dcfce7', padding: '1px 8px', borderRadius: '10px' }}>
-                              All settled
-                            </span>
-                          )}
-                        </div>
-                      </DentzyCard>
-                    );
-                  })}
-                </div>
+                          <div style={{ borderTop: '1px solid #f0f4f2', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                            <span style={{ color: '#64748b' }}>{item.totalCases} total cases</span>
+                            {item.unpaidCount > 0 ? (
+                              <span style={{ fontWeight: 700, color: '#b91c1c', background: '#fee2e2', padding: '1px 8px', borderRadius: '10px' }}>
+                                {item.unpaidCount} unpaid
+                              </span>
+                            ) : (
+                              <span style={{ fontWeight: 700, color: '#15803d', background: '#dcfce7', padding: '1px 8px', borderRadius: '10px' }}>
+                                All settled
+                              </span>
+                            )}
+                          </div>
+                        </DentzyCard>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ) : (
               /* ── SUB-VIEW B: Selected Dentist Invoices & Batch Payment ── */
@@ -1170,7 +1176,7 @@ export default function ReceptionistStaffDashboard() {
 
                 {/* Payments Order List */}
                 {loadingPayDentistOrders ? (
-                  <OrderSkeleton count={4} />
+                  <StaffPayRowSkeleton count={4} />
                 ) : filteredPayDentistOrders.length === 0 ? (
                   <div
                     style={{

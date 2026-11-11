@@ -36,3 +36,6 @@ export function useIsMobile(breakpoint = MOBILE_BREAKPOINT) {
 
   return isMobile;
 }
+
+export default useIsMobile;
+

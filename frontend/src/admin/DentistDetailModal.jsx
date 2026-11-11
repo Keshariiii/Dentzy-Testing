@@ -19,6 +19,7 @@ import { formatINR } from '../utils/format';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import { DentzyCaseChip } from '../components/common/DentzyCard';
 import { DentzyPipelineChart } from '../components/common/DentzyChartTable';
+import { DentistDetailSkeleton } from '../components/SkeletonBlocks';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
 const STAGES = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
@@ -355,10 +356,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
         {/* Body */}
         <div className="ddm-body">
           {loading ? (
-            <div className="ddm-spinner-wrap">
-              <div className="ddm-spinner" />
-              <span>Loading profile…</span>
-            </div>
+            <DentistDetailSkeleton />
           ) : !user ? (
             <div className="ddm-error">Failed to load dentist profile.</div>
           ) : (

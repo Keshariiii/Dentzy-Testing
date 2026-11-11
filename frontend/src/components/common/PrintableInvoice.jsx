@@ -156,6 +156,9 @@ export default function PrintableInvoice({
       .pi-modal-shell { box-shadow: none !important; border: none !important; max-height: none !important; border-radius: 0 !important; display: block !important; }
       .pi-scroll-body { overflow: visible !important; background: transparent !important; padding: 0 !important; display: block !important; }
       .pi-paper { box-shadow: none !important; min-height: auto !important; }
+      .pi-address-grid { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 20px !important; align-items: start !important; width: 100% !important; }
+      .pi-col-soldby { text-align: left !important; align-items: flex-start !important; justify-self: start !important; }
+      .pi-col-billing { text-align: right !important; align-items: flex-end !important; justify-self: end !important; margin-left: auto !important; }
       .no-print, .pi-screen-bar, .pi-screen-bar-standalone { display: none !important; }
     </style>
   </head>
@@ -187,8 +190,19 @@ export default function PrintableInvoice({
       </div>
 
       {/* ── Sold By & Single Dentist Details Grid ───────────────── */}
-      <div className="pi-address-grid">
-        <div className="pi-col-soldby">
+      <div
+        className="pi-address-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          alignItems: 'start',
+          width: '100%',
+        }}
+      >
+        <div
+          className="pi-col-soldby"
+          style={{ textAlign: 'left', alignItems: 'flex-start', justifySelf: 'start' }}
+        >
           <div className="pi-section-label">Sold By :</div>
           <div className="pi-bold-name">DENTZY DENTAL LABORATORY</div>
           <div>Dindayal Nagar, Vasai West,</div>
@@ -199,7 +213,10 @@ export default function PrintableInvoice({
         </div>
 
         {/* Unified Single Dentist Block — Checks data before rendering */}
-        <div className="pi-col-billing">
+        <div
+          className="pi-col-billing"
+          style={{ textAlign: 'right', alignItems: 'flex-end', justifySelf: 'end', marginLeft: 'auto' }}
+        >
           <div className="pi-section-label">Billed To (Doctor / Clinic) :</div>
           <div className="pi-bold-name">Dr. {doctorName}</div>
           {clinicName && <div className="pi-clinic-name">{clinicName}</div>}

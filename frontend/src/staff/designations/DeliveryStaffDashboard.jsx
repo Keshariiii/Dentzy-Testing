@@ -7,7 +7,7 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import StaffNoticeBar from '../../components/common/StaffNoticeBar';
 import StaffSettingsView from '../common/StaffSettingsView';
-import { OrderSkeleton } from '../../components/Skeleton';
+import { DeliveryCardSkeleton } from '../../components/SkeletonBlocks';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
@@ -355,7 +355,7 @@ export default function DeliveryStaffDashboard() {
             {/* ── Deliveries List ─────────────────────────────────────────────── */}
             {loading ? (
               <div style={{ marginTop: '12px' }}>
-                <OrderSkeleton count={4} />
+                <DeliveryCardSkeleton count={4} />
               </div>
             ) : displayedDeliveries.length === 0 ? (
               <div

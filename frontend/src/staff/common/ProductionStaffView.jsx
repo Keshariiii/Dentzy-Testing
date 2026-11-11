@@ -7,7 +7,8 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import StaffNoticeBar from '../../components/common/StaffNoticeBar';
 import StaffSettingsView from './StaffSettingsView';
-import { SkeletonGroup, OrderSkeleton } from '../../components/Skeleton';
+import { Skeleton } from '../../components/Skeleton';
+import { TaskCardSkeleton } from '../../components/SkeletonBlocks';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
 
@@ -72,7 +73,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
   const [pendingTasks, setPendingTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [loadingPending, setLoadingPending] = useState(true);
-  const [loadingAll, setLoadingAll] = useState(false);
+  const [loadingAll, setLoadingAll] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
 
   // ── Search & Filter State for All Tasks ──────────────────────────────────
@@ -577,7 +578,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
           >
             {Ico.clock(16)}
             <span>Pending Tasks</span>
-            {pendingCount > 0 && (
+            {!loadingPending && pendingCount > 0 && (
               <span
                 style={{
                   background: activeView === 'pending-tasks' ? '#2a7b55' : '#1e5038',
@@ -685,24 +686,26 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
                   Orders requiring production work in {departmentName}. Advance to QC when finished to dispatch.
                 </p>
               </div>
-              <span
-                style={{
-                  background: '#eef6f2',
-                  color: '#1e5038',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                }}
-              >
-                {pendingCount} Active {pendingCount === 1 ? 'Task' : 'Tasks'}
-              </span>
+              {loadingPending ? (
+                <Skeleton width="86px" height="18px" borderRadius="4px" />
+              ) : (
+                <span
+                  style={{
+                    background: '#eef6f2',
+                    color: '#1e5038',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {pendingCount} Active {pendingCount === 1 ? 'Task' : 'Tasks'}
+                </span>
+              )}
             </div>
 
             {loadingPending ? (
-              <SkeletonGroup>
-                <OrderSkeleton count={4} />
-              </SkeletonGroup>
+              <TaskCardSkeleton count={4} />
             ) : pendingTasks.length === 0 ? (
               <div
                 style={{
@@ -839,9 +842,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
             </div>
 
             {loadingAll ? (
-              <SkeletonGroup>
-                <OrderSkeleton count={4} />
-              </SkeletonGroup>
+              <TaskCardSkeleton count={4} />
             ) : filteredAllTasks.length === 0 ? (
               <div
                 style={{

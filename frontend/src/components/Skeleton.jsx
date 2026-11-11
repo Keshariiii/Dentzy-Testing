@@ -7,13 +7,7 @@
  */
 import React from 'react';
 
-// ── Shimmer wave keyframes ──────────────────────────────────────────────────
-
-const shimmerKeyframes = `
-@keyframes dz-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}`;
+// ── Base Skeleton Style ───────────────────────────────────────────────────
 
 const baseStyle = {
   background: 'linear-gradient(90deg, #e8ede9 25%, #f0f5f2 37%, #e8ede9 63%)',
@@ -30,7 +24,7 @@ export const Skeleton = ({
   borderRadius = '8px',
   style = {},
 }) => (
-  <div style={{ ...baseStyle, width, height, borderRadius, ...style }} />
+  <div className="dz-skel-reduce" style={{ ...baseStyle, width, height, borderRadius, ...style }} />
 );
 
 // ── Card Skeleton ─────────────────────────────────────────────────────────────
@@ -114,17 +108,6 @@ export const TableRowSkeleton = ({ columns = 5, rows = 5 }) => (
   </div>
 );
 
-// ── Style injection (runs once) ─────────────────────────────────────────────
+// ── Wrapper that passes through children (backward compatible) ──────────────
 
-const StyleInjector = () => (
-  <style dangerouslySetInnerHTML={{ __html: shimmerKeyframes }} />
-);
-
-// ── Wrapper that auto-injects keyframes ──────────────────────────────────────
-
-export const SkeletonGroup = ({ children }) => (
-  <>
-    <StyleInjector />
-    {children}
-  </>
-);
+export const SkeletonGroup = ({ children }) => <>{children}</>;
