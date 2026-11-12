@@ -12,9 +12,13 @@
     letter-spacing: 1px;
 }
 
-.makes-us-title span {
+.makes-us-title .dentzy-brand {
     font-weight: 800;
-    color: var(--dz-color-primary-accent, #1e5038);
+    color: #000000;
+}
+
+.makes-us-title .dentzy-t {
+    color: var(--dz-color-primary, #708c80);
 }
 
 .makes-us-item {

@@ -9,7 +9,7 @@ const PartnerSection = () => {
             <div className="container partner-content animate-on-scroll">
                 <h2 className="partner-title">Your Partner In Modern Dentistry</h2>
                 <p className="partner-text">
-                    At DENTZY, we are not just a dental laboratory—we are a collaborative partner committed to improving
+                    At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are not just a dental laboratory—we are a collaborative partner committed to improving
                     workflows, strengthening professional relationships, and supporting the future of modern dentistry.
                 </p>
             </div>

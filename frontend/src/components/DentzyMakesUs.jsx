@@ -5,7 +5,7 @@ const DentzyMakesUs = () => {
     return (
         <section className="dentzy-makes-us section-padding">
             <div className="container">
-                <h2 className="makes-us-title text-center reveal from-bottom">This Is What Makes Us <span>DENTZY</span></h2>
+                <h2 className="makes-us-title text-center reveal from-bottom">This Is What Makes Us <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span></h2>
 
                 <div className="makes-us-item reveal from-left">
                     <div className="makes-us-text">

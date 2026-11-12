@@ -9,7 +9,7 @@ const AboutDetails = () => {
 
                 <div className="details-intro-box">
                     <p>
-                        At DENTZY, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
+                        At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
                         We ensure consistent quality, accuracy, and aesthetics in every case we handle.
                         Our focus is simple - to support dentists with reliable solutions that help create
                         confident, natural-looking smiles.

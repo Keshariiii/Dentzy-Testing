@@ -204,7 +204,7 @@ export default function PrintableInvoice({
           style={{ textAlign: 'left', alignItems: 'flex-start', justifySelf: 'start' }}
         >
           <div className="pi-section-label">Sold By :</div>
-          <div className="pi-bold-name">DENTZY DENTAL LABORATORY</div>
+          <div className="pi-bold-name">DEN<span className="dentzy-t">T</span>ZY DENTAL LABORATORY</div>
           <div>Dindayal Nagar, Vasai West,</div>
           <div>MAHARASHTRA, 401202</div>
           <div>IN</div>
@@ -304,7 +304,7 @@ export default function PrintableInvoice({
         </div>
 
         <div className="pi-sign-col">
-          <div className="pi-sign-title">For DENTZY DENTAL LABORATORY:</div>
+          <div className="pi-sign-title">For DEN<span className="dentzy-t">T</span>ZY DENTAL LABORATORY:</div>
           <div className="pi-sign-img-box">
             <img
               src="/images/founder-signature.png"

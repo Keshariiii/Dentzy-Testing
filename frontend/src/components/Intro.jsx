@@ -10,7 +10,7 @@ const Intro = () => {
                 </h2>
                 <div className="intro-content">
                     <p className="intro-text">
-                        At Dentzy, we don't just take orders; we provide solutions. Our dedicated technical support team is available for real-time case consultations, ensuring every restoration fits perfectly the first time.
+                        At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we don't just take orders; we provide solutions. Our dedicated technical support team is available for real-time case consultations, ensuring every restoration fits perfectly the first time.
                     </p>
                 </div>
             </div>

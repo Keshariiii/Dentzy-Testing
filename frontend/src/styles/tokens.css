@@ -184,3 +184,18 @@
   /* ── Content Max-Width (ultra-wide containment) ─────────────── */
   --dz-content-max-wide:  1440px;
 }
+
+/* ── Brand Typography: DENTZY (Black DEN & ZY, Sage Green T) ─── */
+.dentzy-brand,
+.dentzy-brand-text {
+  color: #000000;
+  display: inline;
+  font-weight: inherit;
+}
+
+.dentzy-brand .dentzy-t,
+.dentzy-brand-text .dentzy-t,
+.dentzy-t {
+  color: var(--dz-color-primary, #708c80);
+}
+

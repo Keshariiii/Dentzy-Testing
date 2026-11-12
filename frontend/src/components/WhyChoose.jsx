@@ -32,7 +32,7 @@ const WhyChoose = () => {
       <div className="container">
         <div className="why-choose-header text-center reveal from-bottom">
           <h2 className="why-choose-title">
-            Why Choose <span>DENTZY?</span>
+            Why Choose <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>?
           </h2>
           <p className="why-choose-subtitle">
             Reliable lab craftsmanship engineered for modern clinical workflows

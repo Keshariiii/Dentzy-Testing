@@ -154,7 +154,7 @@ const MobileHome = () => {
             <span className="m-intro-highlight">Your Partner In Modern Dentistry</span>
           </h2>
           <p className="m-intro-text">
-            At Dentzy, we don't just take orders; we provide solutions. Our dedicated technical support team
+            At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we don't just take orders; we provide solutions. Our dedicated technical support team
             is available for real-time case consultations, ensuring every restoration fits perfectly the first time.
           </p>
         </section>
@@ -233,7 +233,7 @@ const MobileHome = () => {
           <h2 className="m-section-title">Excellence Behind Every Smile</h2>
           <div className="m-details-intro">
             <p>
-              At DENTZY, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
+              At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
               We ensure consistent quality, accuracy, and aesthetics in every case we handle.
               Our focus is simple - to support dentists with reliable solutions that help create
               confident, natural-looking smiles.
@@ -280,7 +280,7 @@ const MobileHome = () => {
           <div className="m-partner-content">
             <h2>Your Partner In Modern Dentistry</h2>
             <p>
-              At DENTZY, we are not just a dental laboratory -- we are a collaborative partner committed to improving
+              At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are not just a dental laboratory -- we are a collaborative partner committed to improving
               workflows, strengthening professional relationships, and supporting the future of modern dentistry.
             </p>
           </div>
@@ -300,7 +300,7 @@ const MobileHome = () => {
 
         {/* 12. Products Catalog (DentzyMakesUs) */}
         <section className="m-catalog-section">
-          <h2 className="m-section-title">This Is What Makes Us <span className="m-accent-inline">DENTZY</span></h2>
+          <h2 className="m-section-title">This Is What Makes Us <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span></h2>
           <div className="m-catalog-list">
             {PRODUCTS.map((p) => (
               <div key={p.key} className="m-catalog-card">
@@ -318,7 +318,7 @@ const MobileHome = () => {
 
         {/* 13. Why Dentzy */}
         <section className="m-why-section" id="why-choose">
-          <h2 className="m-section-title">Why Choose Dentzy?</h2>
+          <h2 className="m-section-title">Why Choose <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>?</h2>
           <div className="m-why-cards">
             {WHY_ITEMS.map((w, i) => (
               <div key={i} className="m-why-card">
