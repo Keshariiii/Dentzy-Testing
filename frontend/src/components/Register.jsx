@@ -32,9 +32,9 @@ const Register = () => {
   const [form, setForm] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('dentzy_remember_email');
-      return { name: '', email: saved || '', password: '', dciNumber: '' };
+      return { name: '', email: saved || '', password: '' };
     }
-    return { name: '', email: '', password: '', dciNumber: '' };
+    return { name: '', email: '', password: '' };
   });
   const [remember, setRemember] = useState(() =>
     typeof window !== 'undefined' && !!localStorage.getItem('dentzy_remember_email')
@@ -212,7 +212,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const result = await register(form.name.trim(), form.email.trim(), form.password, fullOtp, otpToken, form.dciNumber?.trim() || undefined);
+      const result = await register(form.name.trim(), form.email.trim(), form.password, fullOtp, otpToken);
       if (remember) {
         localStorage.setItem('dentzy_remember_email', form.email.trim());
       } else {
@@ -513,26 +513,6 @@ const Register = () => {
                 <PasswordStrength value={form.password} rules={PASSWORD_RULES} />
               </div>
             )}
-
-            {/* DCI Registration Number (optional) */}
-            <div className="auth-input-group">
-              <label htmlFor="register-dci" className="sr-only">DCI Registration Number</label>
-              <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                </svg>
-              </span>
-              <input
-                id="register-dci"
-                type="text"
-                name="dciNumber"
-                placeholder="DCI Reg. No. (e.g. A-12345) — optional"
-                value={form.dciNumber}
-                onChange={handleChange}
-                className="auth-input"
-                autoComplete="off"
-              />
-            </div>
 
             {/* Remember */}
             <div className="auth-options">

@@ -118,8 +118,8 @@ export default function StaffSettingsView() {
       showToast('New password is required.', 'error');
       return;
     }
-    if (pwForm.newPassword.length < 8) {
-      showToast('New password must be at least 8 characters.', 'error');
+    if (pwForm.newPassword.length < 6) {
+      showToast('New password must be at least 6 characters.', 'error');
       return;
     }
     if (pwForm.newPassword !== pwForm.confirmPassword) {

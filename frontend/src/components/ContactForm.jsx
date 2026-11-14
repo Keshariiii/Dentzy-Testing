@@ -136,7 +136,7 @@ export default function ContactForm() {
           {
             icon: Clock,
             label: 'Working Hours',
-            value: 'Mon – Sat | 9:00 AM – 7:00 PM IST',
+            value: 'Mon-Sat, 9 AM - 6 PM IST',
             className: 'sm:col-span-2',
           },
         ]}

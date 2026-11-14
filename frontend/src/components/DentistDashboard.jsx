@@ -394,10 +394,14 @@ const DentistDashboard = () => {
             </div>
           ) : (
             <div className="ud-recent-empty" style={{ padding: '24px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da' }}>
-              <p style={{ margin: '0 0 8px', fontSize: '0.88rem', color: '#6b8a7a' }}>No lab orders yet. Orders are placed by reception on your behalf.</p>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: '#4a7260' }}>
-                Contact reception: <a href="tel:+919503668112" style={{ color: '#1e5038', fontWeight: 600 }}>+91 9503668112</a>
-              </p>
+              <p style={{ margin: '0 0 12px', fontSize: '0.88rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Place First Order
+              </button>
             </div>
           )}
         </div>
@@ -409,7 +413,7 @@ const DentistDashboard = () => {
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
             </svg>
-            <span><strong>Lab Support</strong> &mdash; Mon to Sat, 9 AM &ndash; 7 PM IST</span>
+            <span><strong>Lab Support</strong> &mdash; Mon to Sat, 9 AM &ndash; 6 PM IST</span>
           </div>
           <div className="ud-support-links">
             <a href="tel:+919503668112" className="ud-support-link">
@@ -466,7 +470,7 @@ const DentistDashboard = () => {
         <EmptyState
           variant="orders"
           message="No lab orders found"
-          subtext="Your lab orders will appear here once placed by reception."
+          subtext="Orders placed through your dashboard will appear here."
         />
       ) : (
         <DentzyDataTable

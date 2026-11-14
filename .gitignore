@@ -80,6 +80,3 @@ dentzy_full_code.txt
 # Legal policy drafts (under review)
 docs/TERMS_AND_CONDITIONS.md
 docs/PRIVACY_POLICY.md
-
-# Graphify knowledge graph (regenerate with: graphify update .)
-graphify-out/
