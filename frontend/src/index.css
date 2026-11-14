@@ -359,3 +359,50 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
   transform: scale(1.08);
 }
 
+
+/* ── Mobile Ergonomics (Rule 7) ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom; enforce 44px touch targets */
+  input, select, textarea, button {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* Unified centered PC modal card on mobile */
+  .modal-overlay, .dz-modal-backdrop, [role="dialog"] {
+    padding: 14px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1000 !important;
+  }
+
+  .modal-content, .dz-modal-card, [role="dialog"] > div {
+    width: 100% !important;
+    max-width: calc(100vw - 28px) !important;
+    max-height: calc(100dvh - 28px) !important;
+    margin: auto !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .modal-body, .dz-modal-body {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Prevent number jitter on INR currency, invoices, KPI figures */
+.tabular-nums, .currency, .amount, td, th {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ponytail-minimal button press micro-interaction */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}

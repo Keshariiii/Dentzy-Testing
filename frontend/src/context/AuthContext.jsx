@@ -129,10 +129,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Register Step 2: Verify OTP and create account
-  const register = useCallback(async (name, email, password, otp, otpToken) => {
+  const register = useCallback(async (name, email, password, otp, otpToken, dciNumber) => {
     const data = await apiFetch(`${getAuthUrl()}/register/verify-otp`, {
       method: 'POST',
-      body: JSON.stringify({ name, email, password, otp, otpToken }),
+      body: JSON.stringify({ name, email, password, otp, otpToken, ...(dciNumber ? { dciNumber } : {}) }),
     });
     if (data.pending) {
       return { pending: true, message: data.message, user: data.user };
