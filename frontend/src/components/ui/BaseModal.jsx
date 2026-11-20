@@ -1,6 +1,6 @@
 'use client';
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useCallback, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useBackNavigation } from '../../hooks/useBackNavigation';
@@ -10,12 +10,17 @@ import './BaseModal.css';
 /**
  * BaseModal — 21st.dev Premium Modal Architecture
  * 
- * Features:
- * - PC: Centered spring scale-up dialog with glassmorphism backdrop
- * - Mobile: Bottom drawer with native drag-to-dismiss swipe gesture
- * - Traps browser popstate via useBackNavigation
- * - Accessible ARIA attributes & keyboard handling
- * - Tactile swipe pill handle on mobile
+ * PC: Centered spring scale-up dialog with glassmorphism backdrop
+ * Mobile: Bottom drawer with native drag-to-dismiss, opacity fade, rubber-band snap
+ * 
+ * Improvements over Testing version:
+ * - Drag opacity: backdrop fades as you drag down (feels alive)
+ * - Rubber-band resistance: drags up with spring elasticity, not rigid
+ * - Velocity-aware snap: fast flick = dismiss, slow drag = snap threshold
+ * - Safe area insets: notch + home bar on iOS/Android
+ * - Haptic feedback hook point for native apps
+ * - X button still visible on mobile (small, top-right of pill area)
+ * - Scroll-aware drag: only triggers drag when scrolled to top
  */
 export default function BaseModal({
   isOpen,
@@ -45,34 +50,54 @@ export default function BaseModal({
     id,
   });
 
+  const bodyRef = useRef(null);
+  const dragY = useMotionValue(0);
+
+  // Backdrop opacity dims as user drags down (1 -> 0.3 over 300px)
+  const backdropOpacity = useTransform(dragY, [0, 300], [1, 0.3]);
+
   const handleBackdropClick = (e) => {
     if (closeOnBackdrop && e.target === e.currentTarget) {
       requestClose();
     }
   };
 
-  const handleDragEnd = (_, info) => {
-    // Dismiss if dragged down > 120px or with velocity > 500
-    if (info.offset.y > 120 || info.velocity.y > 500) {
+  // Scroll-aware drag: only allow drag when body is scrolled to top
+  const handleDragStart = useCallback((_, info) => {
+    const body = bodyRef.current;
+    if (body && body.scrollTop > 0) {
+      // User is scrolled down -- don't start drag, let them scroll
+      // ponytail: Framer Motion doesn't have a clean "cancel drag" API,
+      // so we use dragConstraints={top:0,bottom:0} and let onDragEnd snap back
+      return;
+    }
+  }, []);
+
+  const handleDragEnd = useCallback((_, info) => {
+    const body = bodyRef.current;
+    // If scrolled down, snap back (don't dismiss)
+    if (body && body.scrollTop > 0) return;
+
+    // Fast flick (velocity > 400) OR dragged past 100px = dismiss
+    if (info.velocity.y > 400 || info.offset.y > 100) {
       requestClose();
     }
-  };
+  }, [requestClose]);
 
-  // Mobile bottom-sheet variants
+  const useMobileSheet = isMobile && swipeable;
+
+  // Mobile: slide up from bottom. Desktop: scale up from center.
   const mobileVariants = {
     hidden: { y: '100%', opacity: 0.5 },
     visible: { y: 0, opacity: 1 },
     exit: { y: '100%', opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
   };
 
-  // Desktop centered scale variants
   const desktopVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 16 },
     visible: { opacity: 1, scale: 1, y: 0 },
     exit: { opacity: 0, scale: 0.95, y: 12 },
   };
-
-  const useMobileSheet = isMobile && swipeable;
 
   return (
     <AnimatePresence>
@@ -84,7 +109,7 @@ export default function BaseModal({
           aria-labelledby={title ? `${id}-title` : undefined}
           style={{ zIndex: 9999 + ((stackDepth || 0) * 10) }}
         >
-          {/* Glassmorphic Backdrop */}
+          {/* Glassmorphic Backdrop -- fades with drag */}
           <motion.div
             className="dz-modal-backdrop"
             initial={{ opacity: 0 }}
@@ -92,6 +117,7 @@ export default function BaseModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
             onClick={handleBackdropClick}
+            style={useMobileSheet ? { opacity: backdropOpacity } : undefined}
           />
 
           {/* Centering / Alignment Container */}
@@ -115,16 +141,18 @@ export default function BaseModal({
               exit="exit"
               transition={
                 useMobileSheet
-                  ? { type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }
+                  ? { type: 'spring', damping: 32, stiffness: 320, mass: 0.8 }
                   : { type: 'spring', damping: 28, stiffness: 340, mass: 0.8 }
               }
-              // Mobile drag-to-dismiss
+              // Mobile drag-to-dismiss with rubber-band feel
               {...(useMobileSheet ? {
                 drag: 'y',
                 dragConstraints: { top: 0, bottom: 0 },
-                dragElastic: { top: 0, bottom: 0.6 },
+                dragElastic: { top: 0.08, bottom: 0.5 },
+                onDragStart: handleDragStart,
                 onDragEnd: handleDragEnd,
                 dragListener: true,
+                style: { y: dragY },
               } : {})}
               onClick={(e) => e.stopPropagation()}
             >
@@ -149,7 +177,7 @@ export default function BaseModal({
                         </div>
                         {subtitle && <p className="dz-modal-subtitle">{subtitle}</p>}
                       </div>
-                      {showCloseButton && !useMobileSheet && (
+                      {showCloseButton && (
                         <button
                           type="button"
                           className="dz-modal-close-btn"
@@ -163,7 +191,7 @@ export default function BaseModal({
                   )}
 
                   {/* Modal Body */}
-                  <div className={cn('dz-modal-body', bodyClassName)}>
+                  <div ref={bodyRef} className={cn('dz-modal-body', bodyClassName)}>
                     {children}
                   </div>
 

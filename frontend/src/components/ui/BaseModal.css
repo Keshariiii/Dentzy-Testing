@@ -50,7 +50,9 @@
   background: #ffffff;
   border: 1px solid rgba(226, 232, 240, 0.85);
   border-radius: 1.25rem;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 20, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 25px 50px -12px rgba(15, 23, 20, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   max-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
@@ -64,8 +66,12 @@
   max-height: 92vh;
   max-height: 92dvh;
   touch-action: none;
-  /* Safe area padding for notched devices */
+  /* Safe area for notched devices (iPhone, Pixel) */
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Subtle top shadow for depth against backdrop */
+  box-shadow:
+    0 -4px 24px -4px rgba(15, 23, 20, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
 /* Swipe handle for mobile */
@@ -87,7 +93,7 @@
   height: 4px;
   border-radius: 9999px;
   background: #cbd5e1;
-  transition: background 0.15s, width 0.15s;
+  transition: background 0.15s, width 0.2s ease;
 }
 
 .dz-modal-swipe-handle:hover .dz-modal-swipe-pill,
@@ -140,12 +146,15 @@
   margin: 0;
 }
 
+/* Close button — always visible (mobile: smaller, top-right) */
 .dz-modal-close-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 0.5rem;
   background: #f8faf9;
   border: 1px solid #e2e8f0;
@@ -164,6 +173,14 @@
   transform: scale(0.95);
 }
 
+/* Mobile: X button is smaller but still meets 44px touch target */
+.dz-modal-mobile-sheet .dz-modal-close-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
+  background: rgba(248, 250, 249, 0.8);
+}
+
 /* Body */
 .dz-modal-body {
   padding: 1.5rem;
@@ -171,6 +188,8 @@
   flex: 1 1 auto;
   color: var(--dz-color-text-body, #444444);
   -webkit-overflow-scrolling: touch;
+  /* Smooth overscroll for iOS */
+  overscroll-behavior-y: contain;
 }
 
 .dz-modal-mobile-sheet .dz-modal-body {
@@ -191,4 +210,12 @@
 
 .dz-modal-mobile-sheet .dz-modal-footer {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Reduced motion: skip animations, just show/hide */
+@media (prefers-reduced-motion: reduce) {
+  .dz-modal-container,
+  .dz-modal-backdrop {
+    transition: none !important;
+  }
 }
