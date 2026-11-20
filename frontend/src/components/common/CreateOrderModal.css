@@ -4,13 +4,19 @@
 
 .com-modal-content {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  max-height: 90vh;
+  box-shadow: none;
+  border: none;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .com-modal-content {
+    max-height: calc(85dvh - 24px);
+  }
 }
 
 .com-header {
@@ -20,6 +26,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .com-header-info {
@@ -78,11 +85,38 @@
 }
 
 .com-form {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.com-form-body {
   padding: 20px;
   overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.com-form-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.com-form-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.com-form-body::-webkit-scrollbar-thumb {
+  background: #c5d8ce;
+  border-radius: 4px;
 }
 
 .com-field {
@@ -314,8 +348,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 6px;
+  padding: 14px 20px;
   border-top: 1px solid #f1f5f9;
+  background: #f8faf9;
+  flex-shrink: 0;
 }
 
 .com-cancel-btn {

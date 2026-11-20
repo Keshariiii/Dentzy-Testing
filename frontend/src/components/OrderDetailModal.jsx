@@ -137,7 +137,8 @@ export default function OrderDetailModal({
             </button>
           </div>
 
-          {/* Title / Patient */}
+          <div className="odm-body">
+            {/* Title / Patient */}
           <div className="odm-title-section">
             <h2 className="odm-patient-name">{displayOrder.patientName || 'Unnamed Patient'}</h2>
             <p className="odm-dentist-sub">
@@ -355,7 +356,8 @@ export default function OrderDetailModal({
             </button>
           </div>
         </div>
-      </BaseModal>
+      </div>
+    </BaseModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog

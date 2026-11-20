@@ -1,6 +1,7 @@
 'use client';
-import React, { useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import React, { useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence, useMotionValue, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useBackNavigation } from '../../hooks/useBackNavigation';
@@ -8,19 +9,10 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import './BaseModal.css';
 
 /**
- * BaseModal — 21st.dev Premium Modal Architecture
+ * BaseModal — Unified Admin-Style Modal Architecture
  * 
- * PC: Centered spring scale-up dialog with glassmorphism backdrop
- * Mobile: Bottom drawer with native drag-to-dismiss, opacity fade, rubber-band snap
- * 
- * Improvements over Testing version:
- * - Drag opacity: backdrop fades as you drag down (feels alive)
- * - Rubber-band resistance: drags up with spring elasticity, not rigid
- * - Velocity-aware snap: fast flick = dismiss, slow drag = snap threshold
- * - Safe area insets: notch + home bar on iOS/Android
- * - Haptic feedback hook point for native apps
- * - X button still visible on mobile (small, top-right of pill area)
- * - Scroll-aware drag: only triggers drag when scrolled to top
+ * PC: Centered spring scale-up dialog with dark blurred glassmorphism backdrop
+ * Mobile: Pinned header + scrollable body bottom sheet with isolated swipe handle
  */
 export default function BaseModal({
   isOpen,
@@ -50,11 +42,14 @@ export default function BaseModal({
     id,
   });
 
-  const bodyRef = useRef(null);
+  const dragControls = useDragControls();
   const dragY = useMotionValue(0);
 
-  // Backdrop opacity dims as user drags down (1 -> 0.3 over 300px)
-  const backdropOpacity = useTransform(dragY, [0, 300], [1, 0.3]);
+  useEffect(() => {
+    if (isOpen) {
+      dragY.set(0);
+    }
+  }, [isOpen, dragY]);
 
   const handleBackdropClick = (e) => {
     if (closeOnBackdrop && e.target === e.currentTarget) {
@@ -62,22 +57,7 @@ export default function BaseModal({
     }
   };
 
-  // Scroll-aware drag: only allow drag when body is scrolled to top
-  const handleDragStart = useCallback((_, info) => {
-    const body = bodyRef.current;
-    if (body && body.scrollTop > 0) {
-      // User is scrolled down -- don't start drag, let them scroll
-      // ponytail: Framer Motion doesn't have a clean "cancel drag" API,
-      // so we use dragConstraints={top:0,bottom:0} and let onDragEnd snap back
-      return;
-    }
-  }, []);
-
   const handleDragEnd = useCallback((_, info) => {
-    const body = bodyRef.current;
-    // If scrolled down, snap back (don't dismiss)
-    if (body && body.scrollTop > 0) return;
-
     // Fast flick (velocity > 400) OR dragged past 100px = dismiss
     if (info.velocity.y > 400 || info.offset.y > 100) {
       requestClose();
@@ -99,7 +79,9 @@ export default function BaseModal({
     exit: { opacity: 0, scale: 0.95, y: 12 },
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div 
@@ -109,7 +91,7 @@ export default function BaseModal({
           aria-labelledby={title ? `${id}-title` : undefined}
           style={{ zIndex: 9999 + ((stackDepth || 0) * 10) }}
         >
-          {/* Glassmorphic Backdrop -- fades with drag */}
+          {/* Full-viewport glassmorphic backdrop */}
           <motion.div
             className="dz-modal-backdrop"
             initial={{ opacity: 0 }}
@@ -117,7 +99,6 @@ export default function BaseModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
             onClick={handleBackdropClick}
-            style={useMobileSheet ? { opacity: backdropOpacity } : undefined}
           />
 
           {/* Centering / Alignment Container */}
@@ -144,21 +125,25 @@ export default function BaseModal({
                   ? { type: 'spring', damping: 32, stiffness: 320, mass: 0.8 }
                   : { type: 'spring', damping: 28, stiffness: 340, mass: 0.8 }
               }
-              // Mobile drag-to-dismiss with rubber-band feel
+              // Mobile drag-to-dismiss via top handle only to prevent scroll conflicts
               {...(useMobileSheet ? {
                 drag: 'y',
+                dragControls,
+                dragListener: false,
                 dragConstraints: { top: 0, bottom: 0 },
                 dragElastic: { top: 0.08, bottom: 0.5 },
-                onDragStart: handleDragStart,
                 onDragEnd: handleDragEnd,
-                dragListener: true,
                 style: { y: dragY },
               } : {})}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Mobile swipe pill handle */}
               {useMobileSheet && (
-                <div className="dz-modal-swipe-handle" aria-hidden="true">
+                <div 
+                  className="dz-modal-swipe-handle" 
+                  aria-hidden="true"
+                  onPointerDown={(e) => dragControls.start(e)}
+                >
                   <div className="dz-modal-swipe-pill" />
                 </div>
               )}
@@ -167,7 +152,7 @@ export default function BaseModal({
                 children
               ) : (
                 <>
-                  {/* Standard Premium Header */}
+                  {/* Pinned Header */}
                   {(title || showCloseButton || badge) && (
                     <div className="dz-modal-header">
                       <div className="dz-modal-header-text">
@@ -190,12 +175,12 @@ export default function BaseModal({
                     </div>
                   )}
 
-                  {/* Modal Body */}
-                  <div ref={bodyRef} className={cn('dz-modal-body', bodyClassName)}>
+                  {/* Scrollable Body */}
+                  <div className={cn('dz-modal-body', bodyClassName)}>
                     {children}
                   </div>
 
-                  {/* Optional Footer */}
+                  {/* Optional Pinned Footer */}
                   {footer && (
                     <div className="dz-modal-footer">
                       {footer}
@@ -207,6 +192,7 @@ export default function BaseModal({
           </div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

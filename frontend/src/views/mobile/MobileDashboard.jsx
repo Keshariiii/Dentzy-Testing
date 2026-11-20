@@ -1195,24 +1195,38 @@ const MobileDashboard = () => {
       <BaseModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
+        title="Delete Account?"
+        subtitle="Permanent Action Advisory"
+        footer={
+          <div className="m-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+            <button className="m-btn m-btn--ghost" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+              Cancel
+            </button>
+            <button className="m-btn m-btn--danger" onClick={handleDeleteAccount}
+              disabled={deleting || !deleteConfirm}>
+              {deleting ? <span className="m-spinner-sm" /> : 'Delete Account'}
+            </button>
+          </div>
+        }
         maxWidth="max-w-md"
-        raw={true}
         id="m-delete-modal"
       >
-        <div className="m-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
-          <motion.div
-            className="m-modal-icon"
-            initial={{ scale: 0, rotate: -15 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
-          >
+        <div style={{ padding: '4px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: '#fee2e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
-          </motion.div>
-          <h3 className="m-modal-title">Delete Account?</h3>
-          <p className="m-modal-body">
+          </div>
+          <p style={{ margin: 0, fontSize: '0.88rem', color: '#4a5c54', lineHeight: 1.5 }}>
             This will permanently delete your account and all associated data. Enter your password to confirm.
           </p>
           <input
@@ -1226,15 +1240,6 @@ const MobileDashboard = () => {
           {deleteMsg.text && (
             <div className="m-msg m-msg--error">{deleteMsg.text}</div>
           )}
-          <div className="m-modal-actions">
-            <button className="m-btn m-btn--ghost" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
-              Cancel
-            </button>
-            <button className="m-btn m-btn--danger" onClick={handleDeleteAccount}
-              disabled={deleting || !deleteConfirm}>
-              {deleting ? <span className="m-spinner-sm" /> : 'Delete Account'}
-            </button>
-          </div>
         </div>
       </BaseModal>
 

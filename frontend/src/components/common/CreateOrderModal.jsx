@@ -242,7 +242,8 @@ export default function CreateOrderModal({
 
         {/* Form Body */}
         <form className="com-form" onSubmit={handleSubmit}>
-          {/* Optional Dentist Selector if not preselected */}
+          <div className="com-form-body">
+            {/* Optional Dentist Selector if not preselected */}
           {!dentist && dentistList.length > 0 && (
             <div className="com-field">
               <label className="com-label">Select Dentist *</label>
@@ -475,9 +476,10 @@ export default function CreateOrderModal({
               onChange={e => setNotes(e.target.value)}
             />
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="com-actions">
+        {/* Actions */}
+        <div className="com-actions">
             <button
               type="button"
               className="com-cancel-btn"

@@ -882,23 +882,49 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
       <BaseModal
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
-        maxWidth="max-w-md"
-        className="ad-pay-modal"
-        id="ddm-batch-pay-modal"
-      >
-        <div className="ad-pay-modal-content" style={{ padding: '24px' }}>
-          <div className="ad-pay-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1a3028' }}>
-              Batch Settle {selectedPaymentIds.length} Orders
-            </h3>
+        title={`Batch Settle ${selectedPaymentIds.length} Orders`}
+        subtitle={`Dr. ${user?.name || ''}${user?.clinicName ? ` · ${user.clinicName}` : ''}`}
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button
+              type="button"
               onClick={() => setBatchPayModalOpen(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#708c80' }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: '1px solid #c2dcd0',
+                background: '#fff',
+                color: '#4a7060',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
-              {Ico.x(16)}
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBatchRecordPayment}
+              disabled={batchPaySaving}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#1e5038',
+                color: '#fff',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: batchPaySaving ? 'wait' : 'pointer',
+              }}
+            >
+              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
             </button>
           </div>
-
+        }
+        maxWidth="max-w-md"
+        id="ddm-batch-pay-modal"
+      >
+        <div style={{ padding: '4px 0' }}>
           <div style={{ background: '#f8faf9', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Dentist:</span>
@@ -1014,42 +1040,6 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
               {batchPayError}
             </div>
           )}
-
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={() => setBatchPayModalOpen(false)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                background: '#fff',
-                color: '#4a7060',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleBatchRecordPayment}
-              disabled={batchPaySaving}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#1e5038',
-                color: '#fff',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: batchPaySaving ? 'wait' : 'pointer',
-              }}
-            >
-              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
-            </button>
-          </div>
         </div>
       </BaseModal>
 

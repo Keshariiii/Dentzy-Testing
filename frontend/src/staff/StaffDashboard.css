@@ -713,7 +713,17 @@
 }
 
 .sd-modal-content {
-  padding: 24px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 88vh;
+}
+
+@media (max-width: 768px) {
+  .sd-modal-content {
+    max-height: calc(85dvh - 24px);
+  }
 }
 
 .sd-modal {
@@ -730,7 +740,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eef2f0;
+  background: #ffffff;
 }
 
 .sd-modal-header h3 {
@@ -751,7 +764,26 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-bottom: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.sd-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sd-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sd-modal-body::-webkit-scrollbar-thumb {
+  background: #c5d8ce;
+  border-radius: 4px;
 }
 
 .sd-field label {
@@ -796,6 +828,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #eef2f0;
+  background: #f8faf9;
+  flex-shrink: 0;
 }
 
 @keyframes fadeIn {

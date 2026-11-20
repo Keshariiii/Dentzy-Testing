@@ -2170,16 +2170,21 @@ const AdminDashboard = () => {
       <BaseModal
         isOpen={Boolean(payModal)}
         onClose={() => setPayModal(null)}
+        title="Record Payment"
+        subtitle={payModal ? `${payModal.caseId} · ${payModal.patientName || ''}${payModal.owner?.name ? ` (Dr. ${payModal.owner.name})` : ''}` : undefined}
+        footer={
+          <div className="ad-pay-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+            <button className="ad-pay-btn-cancel" onClick={() => setPayModal(null)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleRecordPayment} disabled={payFormSaving}>
+              {payFormSaving ? 'Saving…' : 'Confirm Payment'}
+            </button>
+          </div>
+        }
         maxWidth="max-w-md"
-        raw={true}
         id="ad-pay-modal"
       >
         {payModal && (
-          <div className="ad-pay-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
-            <div className="ad-pay-modal-header">
-              <h3>Record Payment</h3>
-              <button className="ad-pay-modal-close" onClick={() => setPayModal(null)}>{Ico.x(16)}</button>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
             <div className="ad-pay-modal-meta">
               <span><strong>Case:</strong> {payModal.caseId}</span>
               <span><strong>Patient:</strong> {payModal.patientName}</span>
@@ -2227,13 +2232,6 @@ const AdminDashboard = () => {
             )}
 
             {payFormError && <div className="ad-pay-form-error">{payFormError}</div>}
-
-            <div className="ad-pay-modal-actions">
-              <button className="ad-pay-btn-cancel" onClick={() => setPayModal(null)}>Cancel</button>
-              <button className="ad-pay-btn-confirm" onClick={handleRecordPayment} disabled={payFormSaving}>
-                {payFormSaving ? 'Saving…' : 'Confirm Payment'}
-              </button>
-            </div>
           </div>
         )}
       </BaseModal>
@@ -2242,16 +2240,20 @@ const AdminDashboard = () => {
       <BaseModal
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
+        title={`Update Payment Details (${selectedPaymentIds.length} Orders)`}
+        subtitle={drillDentistPayments ? `Dr. ${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
+        footer={
+          <div className="ad-pay-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
+            <button className="ad-pay-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleBatchRecordPayment} disabled={batchPaySaving}>
+              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
+            </button>
+          </div>
+        }
         maxWidth="max-w-md"
-        raw={true}
         id="ad-batch-pay-modal"
       >
-        <div className="ad-pay-modal" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
-          <div className="ad-pay-modal-header">
-            <h3>Update Payment Details ({selectedPaymentIds.length} Orders)</h3>
-            <button className="ad-pay-modal-close" onClick={() => setBatchPayModalOpen(false)}>{Ico.x(16)}</button>
-          </div>
-          
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
           <div className="ad-pay-modal-meta" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
@@ -2324,13 +2326,6 @@ const AdminDashboard = () => {
           </div>
 
           {batchPayError && <div className="ad-pay-form-error">{batchPayError}</div>}
-
-          <div className="ad-pay-modal-actions">
-            <button className="ad-pay-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
-            <button className="ad-pay-btn-confirm" onClick={handleBatchRecordPayment} disabled={batchPaySaving}>
-              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
-            </button>
-          </div>
         </div>
       </BaseModal>
 

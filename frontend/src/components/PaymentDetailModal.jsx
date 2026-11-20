@@ -126,7 +126,8 @@ export default function PaymentDetailModal({
             </button>
           </div>
 
-          {/* Amount Card & Add/Edit Amount Section */}
+          <div className="pdm-body">
+            {/* Amount Card & Add/Edit Amount Section */}
           <div className="pdm-amount-card">
             <div className="pdm-amount-top">
               <span className="pdm-amount-lbl">Payment Amount</span>
@@ -389,7 +390,8 @@ export default function PaymentDetailModal({
             </div>
           </div>
         </div>
-      </BaseModal>
+      </div>
+    </BaseModal>
 
       {/* Official Printable Invoice / Receipt Modal */}
       {showInvoice && (

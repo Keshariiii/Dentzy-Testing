@@ -40,6 +40,12 @@
   position: relative;
 }
 
+@media (max-width: 768px) {
+  .ddm-panel-content {
+    max-height: calc(85dvh - 24px) !important;
+  }
+}
+
 .ddm-panel {
   background: #fff;
   border-radius: 18px;
