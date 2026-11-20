@@ -27,13 +27,6 @@
   background: #ffffff;
 }
 
-@media (max-width: 640px) {
-  .odm-modal-wrap {
-    border-radius: 1.5rem 1.5rem 0 0 !important;
-    max-width: 100% !important;
-  }
-}
-
 .odm-modal-content {
   padding: 24px;
   display: flex;
@@ -495,8 +488,8 @@
   align-items: center;
   gap: 6px;
   background: #fef2f2;
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--dz-color-error);
+  border: 1px solid #fecaca;
   padding: 9px 16px;
   border-radius: 10px;
   font-size: 0.82rem;
@@ -506,10 +499,7 @@
 }
 
 .odm-delete-btn:hover {
-  background: #EF4444;
-  color: #fff;
-  border-color: #EF4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.28);
+  background: var(--dz-color-error-bg);
 }
 
 .odm-close-footer-btn {

@@ -18,7 +18,6 @@ export default function ConfirmDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   type = 'primary',
-  danger = false,
   onConfirm,
   onCancel,
   loading = false,
@@ -36,8 +35,7 @@ export default function ConfirmDialog({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onConfirm, loading]);
 
-  const finalType = danger ? 'danger' : type;
-  const config = ICON_MAP[finalType] || ICON_MAP.primary;
+  const config = ICON_MAP[type] || ICON_MAP.primary;
   const { Icon } = config;
 
   return (

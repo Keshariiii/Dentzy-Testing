@@ -50,7 +50,6 @@ export default function BaseModal({
     id,
   });
 
-  const containerRef = useRef(null);
   const bodyRef = useRef(null);
   const dragY = useMotionValue(0);
 
@@ -63,35 +62,27 @@ export default function BaseModal({
     }
   };
 
-  const getScrollContainer = useCallback(() => {
-    if (bodyRef.current) return bodyRef.current;
-    if (containerRef.current) {
-      return containerRef.current.querySelector(
-        '.dz-modal-body, .ddm-body, .odm-modal-content, .pdm-modal-content, [data-modal-body], [style*="overflow"]'
-      );
-    }
-    return null;
-  }, []);
-
   // Scroll-aware drag: only allow drag when body is scrolled to top
   const handleDragStart = useCallback((_, info) => {
-    const scrollEl = getScrollContainer();
-    if (scrollEl && scrollEl.scrollTop > 0) {
+    const body = bodyRef.current;
+    if (body && body.scrollTop > 0) {
       // User is scrolled down -- don't start drag, let them scroll
+      // ponytail: Framer Motion doesn't have a clean "cancel drag" API,
+      // so we use dragConstraints={top:0,bottom:0} and let onDragEnd snap back
       return;
     }
-  }, [getScrollContainer]);
+  }, []);
 
   const handleDragEnd = useCallback((_, info) => {
-    const scrollEl = getScrollContainer();
+    const body = bodyRef.current;
     // If scrolled down, snap back (don't dismiss)
-    if (scrollEl && scrollEl.scrollTop > 0) return;
+    if (body && body.scrollTop > 0) return;
 
     // Fast flick (velocity > 400) OR dragged past 100px = dismiss
     if (info.velocity.y > 400 || info.offset.y > 100) {
       requestClose();
     }
-  }, [requestClose, getScrollContainer]);
+  }, [requestClose]);
 
   const useMobileSheet = isMobile && swipeable;
 
@@ -138,7 +129,6 @@ export default function BaseModal({
             onClick={handleBackdropClick}
           >
             <motion.div
-              ref={containerRef}
               className={cn(
                 'dz-modal-container',
                 maxWidth,

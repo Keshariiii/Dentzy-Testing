@@ -1,20 +1,20 @@
-/* ConfirmDialog.css — Dentzy Design System */
-
-.dz-modal-root:has(#confirm-dialog),
-.dz-modal-root:has(.cd-panel-modal) {
-  z-index: 10005;
+.cd-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(26, 48, 40, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: cdFadeIn 0.2s ease;
 }
 
-/* Modern Danger Aura: Deep dark background with subtle centered #EF4444 radial glow vignette */
-.dz-modal-root:has(.cd-panel-danger) .dz-modal-backdrop {
-  background: radial-gradient(
-    ellipse 65% 55% at 50% 50%,
-    rgba(239, 68, 68, 0.18) 0%,
-    rgba(30, 16, 18, 0.6) 45%,
-    rgba(12, 18, 15, 0.85) 100%
-  ) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
+@keyframes cdFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .cd-panel-modal {
@@ -22,30 +22,30 @@
   background: #ffffff;
 }
 
-/* Modal card danger gradient */
-.cd-panel-modal.cd-panel-danger {
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #ffffff 48%,
-    #fff9f9 78%,
-    #fff2f2 100%
-  );
-  border: 1px solid rgba(239, 68, 68, 0.22);
-  box-shadow: 
-    0 0 0 1px rgba(239, 68, 68, 0.12),
-    0 14px 40px -8px rgba(239, 68, 68, 0.22),
-    0 25px 50px -12px rgba(15, 23, 20, 0.35);
-}
-
 .cd-panel-content {
   padding: 28px 24px;
   text-align: center;
 }
 
+.cd-panel {
+  background: #ffffff;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  animation: cdSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cdSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .cd-icon-container {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -53,25 +53,20 @@
   margin: 0 auto 20px;
 }
 
-.cd-icon-primary { background: #eef6f2; }
-.cd-icon-warning { background: #fff8e6; }
-.cd-icon-danger  {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18);
-}
+.cd-icon-primary { background: #eef6f2; color: var(--dz-color-primary-accent); }
+.cd-icon-warning { background: #fff8e6; color: #d97706; }
+.cd-icon-danger  { background: var(--dz-color-error-bg); color: #dc2626; }
 
 .cd-title {
   font-size: 18px;
-  font-weight: 700;
-  color: var(--dz-color-text-primary, #1e2824);
-  margin-bottom: 8px;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: #2d3a34;
+  margin-bottom: 12px;
 }
 
 .cd-message {
   font-size: 14px;
-  color: var(--dz-color-text-muted, #64748b);
+  color: var(--dz-color-primary);
   line-height: 1.5;
   margin-bottom: 24px;
 }
@@ -85,15 +80,14 @@
 .cd-actions button {
   flex: 1;
   padding: 10px 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 }
 
 .cd-cancel-btn {
@@ -106,21 +100,21 @@
 .cd-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .cd-confirm-btn { border: none; color: #ffffff; }
-.cd-btn-primary { background: var(--dz-color-primary-accent, #1e5038); }
-.cd-btn-primary:hover:not(:disabled) { background: #174430; }
-.cd-btn-warning { background: #d97706; }
-.cd-btn-warning:hover:not(:disabled) { background: #b45309; }
-.cd-btn-danger {
-  background: #EF4444 !important;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.32);
-}
-.cd-btn-danger:hover:not(:disabled) {
-  background: #dc2626 !important;
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.42);
-  transform: translateY(-1px);
-}
-.cd-btn-danger:active:not(:disabled) {
-  transform: translateY(0);
-}
+.cd-btn-primary { background: var(--dz-color-primary-accent); }
+.cd-btn-primary:hover:not(:disabled) { background: #1a422e; }
+.cd-btn-warning { background: var(--dz-color-warning); }
+.cd-btn-warning:hover:not(:disabled) { background: #d97706; }
+.cd-btn-danger { background: var(--dz-color-error); }
+.cd-btn-danger:hover:not(:disabled) { background: #dc2626; }
 
 .cd-confirm-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.cd-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: cdSpin 0.8s linear infinite;
+}
+
+@keyframes cdSpin { to { transform: rotate(360deg); } }

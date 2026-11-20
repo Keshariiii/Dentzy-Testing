@@ -2330,30 +2330,24 @@ const MobileAdminDashboard = () => {
         isOpen={Boolean(payModal)}
         onClose={() => setPayModal(null)}
         maxWidth="max-w-md"
-        title="Record Payment"
-        subtitle={payModal ? <>
-          <span><strong>Case:</strong> {payModal.caseId}</span>{' · '}
-          <span><strong>Patient:</strong> {payModal.patientName}</span>
-          {payModal.owner?.name && <>{' · '}<span><strong>Dentist:</strong> {payModal.owner.name}</span></>}
-        </> : null}
+        raw={true}
         id="ma-pay-modal"
-        footer={
-          <>
-            <button className="ma-modal-btn-cancel" onClick={() => setPayModal(null)}>
-              Cancel
-            </button>
-            <button
-              className="ma-modal-btn-confirm"
-              onClick={handleRecordPayment}
-              disabled={payFormSaving}
-            >
-              {payFormSaving ? 'Saving…' : 'Confirm Payment'}
-            </button>
-          </>
-        }
       >
         {payModal && (
-          <>
+          <div className="ma-modal-sheet" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
+            <div className="ma-modal-header">
+              <h3>Record Payment</h3>
+              <button className="ma-modal-close" onClick={() => setPayModal(null)}>
+                {Ico.x(16)}
+              </button>
+            </div>
+
+            <div className="ma-modal-info">
+              <div><strong>Case:</strong> {payModal.caseId}</div>
+              <div><strong>Patient:</strong> {payModal.patientName}</div>
+              {payModal.owner?.name && <div><strong>Dentist:</strong> {payModal.owner.name}</div>}
+            </div>
+
             {/* Mode Switcher */}
             <div className="ma-modal-mode-toggle">
               {['Cash', 'Cheque', 'UPI'].map(m => (
@@ -2415,7 +2409,20 @@ const MobileAdminDashboard = () => {
             )}
 
             {payFormError && <div className="ma-modal-error">{payFormError}</div>}
-          </>
+
+            <div className="ma-modal-actions">
+              <button className="ma-modal-btn-cancel" onClick={() => setPayModal(null)}>
+                Cancel
+              </button>
+              <button
+                className="ma-modal-btn-confirm"
+                onClick={handleRecordPayment}
+                disabled={payFormSaving}
+              >
+                {payFormSaving ? 'Saving…' : 'Confirm Payment'}
+              </button>
+            </div>
+          </div>
         )}
       </BaseModal>
 
@@ -2426,32 +2433,29 @@ const MobileAdminDashboard = () => {
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
         maxWidth="max-w-md"
-        title={`Update Payment Details (${selectedPaymentIds.length} Orders)`}
-        subtitle={<>
-          <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>{' · '}
-          <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
-            {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
-          </strong></span>
-          {drillDentistPayments && (
-            <>{' · '}<span><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</span></>
-          )}
-        </>}
+        raw={true}
         id="ma-batch-pay-modal"
-        footer={
-          <>
-            <button className="ma-modal-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>
-              Cancel
-            </button>
-            <button
-              className="ma-modal-btn-confirm"
-              onClick={handleBatchRecordPayment}
-              disabled={batchPaySaving}
-            >
-              {batchPaySaving ? 'Saving…' : `Confirm (${selectedPaymentIds.length})`}
-            </button>
-          </>
-        }
       >
+        <div className="ma-modal-sheet" style={{ width: '100%', maxWidth: 'none', margin: 0 }}>
+          <div className="ma-modal-header">
+            <h3>Update Payment Details ({selectedPaymentIds.length} Orders)</h3>
+            <button className="ma-modal-close" onClick={() => setBatchPayModalOpen(false)}>
+              {Ico.x(16)}
+            </button>
+          </div>
+
+          <div className="ma-modal-info" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
+              <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+                {formatINR(filteredPaymentsForDrill.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
+              </strong></span>
+            </div>
+            {drillDentistPayments && (
+              <div><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</div>
+            )}
+          </div>
+
           {/* Status Toggle */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
             {[
@@ -2529,6 +2533,20 @@ const MobileAdminDashboard = () => {
           </div>
 
           {batchPayError && <div className="ma-modal-error">{batchPayError}</div>}
+
+          <div className="ma-modal-actions">
+            <button className="ma-modal-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>
+              Cancel
+            </button>
+            <button
+              className="ma-modal-btn-confirm"
+              onClick={handleBatchRecordPayment}
+              disabled={batchPaySaving}
+            >
+              {batchPaySaving ? 'Saving…' : `Confirm (${selectedPaymentIds.length})`}
+            </button>
+          </div>
+        </div>
       </BaseModal>
 
 
