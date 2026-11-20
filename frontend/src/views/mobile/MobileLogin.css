@@ -76,6 +76,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.m-auth-logo:active {
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
 .m-auth-logo img {

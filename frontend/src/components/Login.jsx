@@ -227,9 +227,14 @@ const Login = ({ defaultRole }) => {
           </svg>
         </button>
 
-        <div className="auth-header-logo">
+        <Link
+          href="/"
+          className="auth-header-logo"
+          aria-label="Go to Dentzy home page"
+          title="Back to Home"
+        >
           <img src={dentzyLogo} alt="Dentzy Logo" />
-        </div>
+        </Link>
 
         <div className="auth-card login-unified-card">
 

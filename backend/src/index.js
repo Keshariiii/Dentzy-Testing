@@ -183,7 +183,7 @@ app.get('/api/payments/batch/:batchId', verifyAnyAuth(), async (c) => {
       name: first.dentistName || 'Registered Practitioner',
       clinicName: first.clinicName || '',
       phone: first.dentistPhone || '',
-      address: first.dentistAddress || 'Maharashtra, India',
+      address: (first.dentistAddress || '').trim(),
     },
     items,
     totalAmount,
@@ -340,7 +340,7 @@ app.get('/api/payments/single/:id', verifyAnyAuth(), async (c) => {
       name: payment.dentistName || 'Registered Practitioner',
       clinicName: payment.clinicName || '',
       phone: payment.dentistPhone || '',
-      address: payment.dentistAddress || 'Maharashtra, India',
+      address: (payment.dentistAddress || '').trim(),
     },
   });
 });

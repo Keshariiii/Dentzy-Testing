@@ -105,6 +105,23 @@
   position: absolute;
   top: 22px;
   left: 30px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 15;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.auth-header-logo:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.auth-header-logo:focus-visible {
+  outline: 2px solid #1e5038;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .auth-header-logo img {

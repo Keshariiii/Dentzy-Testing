@@ -109,9 +109,14 @@ const MobileLogin = () => {
       </button>
 
       {/* Logo */}
-      <div className="m-auth-logo">
+      <Link
+        href="/"
+        className="m-auth-logo"
+        aria-label="Go to Dentzy home page"
+        title="Back to Home"
+      >
         <img src={dentzyLogo} alt="Dentzy" />
-      </div>
+      </Link>
 
       <div className="m-auth-card">
         {/* Role Switcher */}

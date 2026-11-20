@@ -2,6 +2,7 @@
 import React from 'react';
 import { formatINR, formatDate } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
+import { resolvePlaceOfDelivery } from '../../utils/placeOfDelivery';
 import './PrintableInvoice.css';
 
 /**
@@ -41,6 +42,7 @@ export default function PrintableInvoice({
   const resolvedDentist =
     dentist ||
     statement?.dentist ||
+    payment?.dentist ||
     payment?.owner ||
     (user?.role !== 'admin' && user?.role !== 'staff' ? user : null);
 
@@ -59,12 +61,16 @@ export default function PrintableInvoice({
   const rawAddress =
     resolvedDentist?.address ||
     payment?.address ||
+    statement?.dentist?.address ||
     '';
 
   // Only show address if dentist actually updated it (skip dummy defaults)
-  const clinicAddress = rawAddress && !rawAddress.toLowerCase().includes('girnar darshan')
-    ? rawAddress.trim()
-    : (rawAddress.trim() || null);
+  const cleanedAddress = rawAddress.trim();
+  const hasRealAddress = Boolean(
+    cleanedAddress && !cleanedAddress.toLowerCase().includes('girnar darshan')
+  );
+  const clinicAddress = hasRealAddress ? cleanedAddress : null;
+  const placeOfDelivery = resolvePlaceOfDelivery(clinicAddress);
 
   const doctorPhone =
     resolvedDentist?.phone ||
@@ -227,7 +233,7 @@ export default function PrintableInvoice({
             <div className="pi-meta-line"><strong>Phone:</strong> {doctorPhone}</div>
           ) : null}
           <div className="pi-meta-line"><strong>Place of supply:</strong> MAHARASHTRA (27)</div>
-          <div className="pi-meta-line"><strong>Place of delivery:</strong> MAHARASHTRA (27)</div>
+          <div className="pi-meta-line"><strong>Place of delivery:</strong> {placeOfDelivery}</div>
         </div>
       </div>
 
