@@ -27,6 +27,13 @@
   background: #ffffff;
 }
 
+@media (max-width: 640px) {
+  .odm-modal-wrap {
+    border-radius: 1.5rem 1.5rem 0 0 !important;
+    max-width: 100% !important;
+  }
+}
+
 .odm-modal-content {
   padding: 24px;
   display: flex;

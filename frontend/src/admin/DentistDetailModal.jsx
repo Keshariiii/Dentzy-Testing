@@ -883,174 +883,137 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
         maxWidth="max-w-md"
-        className="ad-pay-modal"
+        title={`Batch Settle ${selectedPaymentIds.length} Orders`}
+        subtitle={<>
+          <span><strong>Dentist:</strong> Dr. {user?.name} {user?.clinicName ? `· ${user?.clinicName}` : ''}</span>
+          {' · '}
+          <span><strong>Total:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
+            {formatINR(orders.filter(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id)).reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0))}
+          </strong></span>
+        </>}
         id="ddm-batch-pay-modal"
-      >
-        <div className="ad-pay-modal-content" style={{ padding: '24px' }}>
-          <div className="ad-pay-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1a3028' }}>
-              Batch Settle {selectedPaymentIds.length} Orders
-            </h3>
-            <button
-              onClick={() => setBatchPayModalOpen(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#708c80' }}
-            >
-              {Ico.x(16)}
-            </button>
-          </div>
-
-          <div style={{ background: '#f8faf9', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span>Dentist:</span>
-              <strong>Dr. {user?.name} {user?.clinicName ? `· ${user?.clinicName}` : ''}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Total Batch Amount:</span>
-              <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
-                {formatINR(orders.filter(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id)).reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0))}
-              </strong>
-            </div>
-          </div>
-
-          {/* Status selector */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            {['Paid', 'Pending'].map(st => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setBatchPayForm(f => ({ ...f, status: st }))}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  borderRadius: '8px',
-                  border: '1px solid #c2dcd0',
-                  background: batchPayForm.status === st ? '#1e5038' : '#fff',
-                  color: batchPayForm.status === st ? '#fff' : '#4a7060',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-
-          {batchPayForm.status === 'Paid' && (
-            <>
-              {/* Payment Mode Selector */}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '6px' }}>
-                  Payment Mode
-                </label>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}
-                      style={{
-                        flex: 1,
-                        padding: '6px 4px',
-                        borderRadius: '6px',
-                        border: '1px solid #c2dcd0',
-                        background: batchPayForm.mode === m ? '#e8f5ee' : '#fff',
-                        color: batchPayForm.mode === m ? '#1e5038' : '#4a7060',
-                        fontWeight: batchPayForm.mode === m ? 700 : 500,
-                        fontSize: '0.76rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {batchPayForm.mode !== 'Cash' && (
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
-                    {batchPayForm.mode === 'Cheque' ? 'Cheque Number *' : (batchPayForm.mode === 'UPI' ? 'UPI UTR / Txn ID *' : 'Transaction Ref *')}
-                  </label>
-                  <input
-                    type="text"
-                    value={batchPayForm.referenceNumber}
-                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
-                    placeholder={batchPayForm.mode === 'Cheque' ? 'e.g. CHQ-650124' : 'e.g. 428190382910'}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      border: '1px solid #c2dcd0',
-                      fontSize: '0.82rem',
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
-              Notes / Remarks
-            </label>
-            <input
-              type="text"
-              value={batchPayForm.notes}
-              onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="e.g. Batch settlement clearance"
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                fontSize: '0.82rem',
-              }}
-            />
-          </div>
-
-          {batchPayError && (
-            <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', marginBottom: '14px' }}>
-              {batchPayError}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+        footer={
+          <>
             <button
               type="button"
+              className="ad-pay-btn-cancel"
               onClick={() => setBatchPayModalOpen(false)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                background: '#fff',
-                color: '#4a7060',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
             >
               Cancel
             </button>
             <button
               type="button"
+              className="ad-pay-btn-confirm"
               onClick={handleBatchRecordPayment}
               disabled={batchPaySaving}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#1e5038',
-                color: '#fff',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: batchPaySaving ? 'wait' : 'pointer',
-              }}
             >
               {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
             </button>
-          </div>
+          </>
+        }
+      >
+        {/* Status selector */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          {['Paid', 'Pending'].map(st => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => setBatchPayForm(f => ({ ...f, status: st }))}
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: '1px solid #c2dcd0',
+                background: batchPayForm.status === st ? '#1e5038' : '#fff',
+                color: batchPayForm.status === st ? '#fff' : '#4a7060',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+              }}
+            >
+              {st}
+            </button>
+          ))}
         </div>
+
+        {batchPayForm.status === 'Paid' && (
+          <>
+            {/* Payment Mode Selector */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '6px' }}>
+                Payment Mode
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '6px 4px',
+                      borderRadius: '6px',
+                      border: '1px solid #c2dcd0',
+                      background: batchPayForm.mode === m ? '#e8f5ee' : '#fff',
+                      color: batchPayForm.mode === m ? '#1e5038' : '#4a7060',
+                      fontWeight: batchPayForm.mode === m ? 700 : 500,
+                      fontSize: '0.76rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {batchPayForm.mode !== 'Cash' && (
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
+                  {batchPayForm.mode === 'Cheque' ? 'Cheque Number *' : (batchPayForm.mode === 'UPI' ? 'UPI UTR / Txn ID *' : 'Transaction Ref *')}
+                </label>
+                <input
+                  type="text"
+                  value={batchPayForm.referenceNumber}
+                  onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
+                  placeholder={batchPayForm.mode === 'Cheque' ? 'e.g. CHQ-650124' : 'e.g. 428190382910'}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid #c2dcd0',
+                    fontSize: '0.82rem',
+                  }}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
+            Notes / Remarks
+          </label>
+          <input
+            type="text"
+            value={batchPayForm.notes}
+            onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))}
+            placeholder="e.g. Batch settlement clearance"
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: '8px',
+              border: '1px solid #c2dcd0',
+              fontSize: '0.82rem',
+            }}
+          />
+        </div>
+
+        {batchPayError && (
+          <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', marginBottom: '14px' }}>
+            {batchPayError}
+          </div>
+        )}
       </BaseModal>
 
       {/* Batch Statement Printable Invoice Modal */}

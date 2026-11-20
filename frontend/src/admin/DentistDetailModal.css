@@ -32,6 +32,16 @@
   overflow: hidden;
 }
 
+@media (max-width: 640px) {
+  .ddm-panel-wrap {
+    border-radius: 1.5rem 1.5rem 0 0 !important;
+    max-width: 100% !important;
+  }
+  .ddm-panel-content {
+    max-height: calc(92dvh - 20px) !important;
+  }
+}
+
 .ddm-panel-content {
   display: flex;
   flex-direction: column;

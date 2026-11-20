@@ -11,6 +11,7 @@ import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { Trash2 } from 'lucide-react';
 import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
 import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
+import BaseModal from '../components/ui/BaseModal';
 
 const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
@@ -861,180 +862,167 @@ const StaffManagementView = ({
       )}
 
       {/* ── CREATE STAFF MODAL ────────────────────────── */}
-      {showCreateModal && (
-        <div className="ad-modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-            <div className="ad-pay-modal-header">
-              <h3>Create Staff Account</h3>
-              <button className="ad-pay-modal-close" onClick={() => setShowCreateModal(false)}>{Ico.x(16)}</button>
-            </div>
-            <div className="ad-pay-modal-body">
-              <div className="ad-pay-form-group">
-                <label>Display Name</label>
-                <input type="text" placeholder="e.g. Rahul Sharma" value={createForm.displayName}
-                  onChange={e => setCreateForm(f => ({ ...f, displayName: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Email</label>
-                <input type="email" placeholder="e.g. rahul@example.com" value={createForm.email}
-                  onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Designation</label>
-                <select value={createForm.designation}
-                  onChange={e => setCreateForm(f => ({ ...f, designation: e.target.value }))}>
-                  {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Username</label>
-                <input type="text" placeholder="e.g. rahul_tech" value={createForm.username}
-                  onChange={e => setCreateForm(f => ({ ...f, username: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Password</label>
-                <input type="text" placeholder="Min 6 characters" value={createForm.password}
-                  onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))} />
-              </div>
-            </div>
-            {createError && <div className="ad-pay-form-error">{createError}</div>}
-            <div className="ad-pay-modal-actions">
-              <button className="ad-pay-btn-cancel" onClick={() => setShowCreateModal(false)}>Cancel</button>
-              <button className="ad-pay-btn-confirm" onClick={handleCreateStaff} disabled={createSaving}>
-                {createSaving ? 'Creating...' : 'Create Account'}
-              </button>
-            </div>
-          </div>
+      <BaseModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Create Staff Account"
+        maxWidth="max-w-md"
+        id="create-staff-modal"
+        footer={
+          <>
+            <button className="ad-pay-btn-cancel" onClick={() => setShowCreateModal(false)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleCreateStaff} disabled={createSaving}>
+              {createSaving ? 'Creating...' : 'Create Account'}
+            </button>
+          </>
+        }
+      >
+        <div className="ad-pay-form-group">
+          <label>Display Name</label>
+          <input type="text" placeholder="e.g. Rahul Sharma" value={createForm.displayName}
+            onChange={e => setCreateForm(f => ({ ...f, displayName: e.target.value }))} />
         </div>
-      )}
+        <div className="ad-pay-form-group">
+          <label>Email</label>
+          <input type="email" placeholder="e.g. rahul@example.com" value={createForm.email}
+            onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} />
+        </div>
+        <div className="ad-pay-form-group">
+          <label>Designation</label>
+          <select value={createForm.designation}
+            onChange={e => setCreateForm(f => ({ ...f, designation: e.target.value }))}>
+            {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+        <div className="ad-pay-form-group">
+          <label>Username</label>
+          <input type="text" placeholder="e.g. rahul_tech" value={createForm.username}
+            onChange={e => setCreateForm(f => ({ ...f, username: e.target.value }))} />
+        </div>
+        <div className="ad-pay-form-group">
+          <label>Password</label>
+          <input type="text" placeholder="Min 6 characters" value={createForm.password}
+            onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))} />
+        </div>
+        {createError && <div className="ad-pay-form-error">{createError}</div>}
+      </BaseModal>
 
       {/* ── MARK ATTENDANCE MODAL ─────────────────────── */}
-      {attendanceStaff && (
-        <div className="ad-modal-overlay" onClick={() => setAttendanceStaff(null)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
-            <div className="ad-pay-modal-header">
-              <h3>Mark Attendance</h3>
-              <button className="ad-pay-modal-close" onClick={() => setAttendanceStaff(null)}>{Ico.x(16)}</button>
-            </div>
-            <div style={{ padding: '8px 22px', fontSize: '0.88rem', color: '#4a7060' }}>
-              Marking for <strong style={{ color: '#1a3028' }}>{attendanceStaff.displayName}</strong>
-            </div>
-            <div className="ad-pay-modal-body">
-              <div className="ad-pay-form-group">
-                <label>Date</label>
-                <input type="date" value={attendanceDate} placeholder="Select Date" data-empty={!attendanceDate} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceDate(e.target.value)} style={{ cursor: 'pointer' }} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Status</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {['Present', 'Absent', 'Half-day'].map(st => (
-                    <button key={st} onClick={() => setAttendanceStatus(st)}
-                      style={{
-                        flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                        fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s',
-                        background: attendanceStatus === st ? (st === 'Present' ? '#16a34a' : st === 'Half-day' ? '#d97706' : '#dc2626') : '#f0f7f3',
-                        color: attendanceStatus === st ? '#fff' : '#4a7060',
-                      }}>
-                      {st}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="ad-pay-modal-actions">
-              <button className="ad-pay-btn-cancel" onClick={() => setAttendanceStaff(null)}>Cancel</button>
-              <button className="ad-pay-btn-confirm" onClick={handleMarkAttendance} disabled={attendanceSaving}>
-                {attendanceSaving ? 'Saving...' : 'Mark Attendance'}
+      <BaseModal
+        isOpen={!!attendanceStaff}
+        onClose={() => setAttendanceStaff(null)}
+        title="Mark Attendance"
+        subtitle={attendanceStaff ? <>Marking for <strong style={{ color: '#1a3028' }}>{attendanceStaff.displayName}</strong></> : null}
+        maxWidth="max-w-sm"
+        id="mark-attendance-modal"
+        footer={
+          <>
+            <button className="ad-pay-btn-cancel" onClick={() => setAttendanceStaff(null)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleMarkAttendance} disabled={attendanceSaving}>
+              {attendanceSaving ? 'Saving...' : 'Mark Attendance'}
+            </button>
+          </>
+        }
+      >
+        <div className="ad-pay-form-group">
+          <label>Date</label>
+          <input type="date" value={attendanceDate} placeholder="Select Date" data-empty={!attendanceDate} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceDate(e.target.value)} style={{ cursor: 'pointer' }} />
+        </div>
+        <div className="ad-pay-form-group">
+          <label>Status</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {['Present', 'Absent', 'Half-day'].map(st => (
+              <button key={st} onClick={() => setAttendanceStatus(st)}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                  fontWeight: 600, fontSize: '0.82rem', transition: 'all 0.2s',
+                  background: attendanceStatus === st ? (st === 'Present' ? '#16a34a' : st === 'Half-day' ? '#d97706' : '#dc2626') : '#f0f7f3',
+                  color: attendanceStatus === st ? '#fff' : '#4a7060',
+                }}>
+                {st}
               </button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </BaseModal>
 
       {/* ── ADD INVENTORY ITEM MODAL ──────────────────── */}
-      {showAddItem && (
-        <div className="ad-modal-overlay" onClick={() => setShowAddItem(false)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-            <div className="ad-pay-modal-header">
-              <h3>Add Inventory Item</h3>
-              <button className="ad-pay-modal-close" onClick={() => setShowAddItem(false)}>{Ico.x(16)}</button>
-            </div>
-            <div className="ad-pay-modal-body">
-              <div className="ad-pay-form-group">
-                <label>Item Name</label>
-                <input type="text" placeholder="e.g. Zirconia Disc 98mm" value={itemForm.item_name}
-                  onChange={e => setItemForm(f => ({ ...f, item_name: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-row">
-                <div>
-                  <label>Quantity</label>
-                  <input type="number" min="0" placeholder="0" value={itemForm.quantity}
-                    onChange={e => setItemForm(f => ({ ...f, quantity: e.target.value }))} />
-                </div>
-                <div>
-                  <label>Unit</label>
-                  <input type="text" placeholder="pcs / grams / ml" value={itemForm.unit}
-                    onChange={e => setItemForm(f => ({ ...f, unit: e.target.value }))} />
-                </div>
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Min Stock Alert</label>
-                <input type="number" min="0" placeholder="0 (disabled)" value={itemForm.min_stock}
-                  onChange={e => setItemForm(f => ({ ...f, min_stock: e.target.value }))} />
-              </div>
-            </div>
-            {itemFormError && <div className="ad-pay-form-error">{itemFormError}</div>}
-            <div className="ad-pay-modal-actions">
-              <button className="ad-pay-btn-cancel" onClick={() => setShowAddItem(false)}>Cancel</button>
-              <button className="ad-pay-btn-confirm" onClick={handleAddItem} disabled={itemFormSaving}>
-                {itemFormSaving ? 'Saving...' : 'Add Item'}
-              </button>
-            </div>
+      <BaseModal
+        isOpen={showAddItem}
+        onClose={() => setShowAddItem(false)}
+        title="Add Inventory Item"
+        maxWidth="max-w-sm"
+        id="add-inventory-modal"
+        footer={
+          <>
+            <button className="ad-pay-btn-cancel" onClick={() => setShowAddItem(false)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleAddItem} disabled={itemFormSaving}>
+              {itemFormSaving ? 'Saving...' : 'Add Item'}
+            </button>
+          </>
+        }
+      >
+        <div className="ad-pay-form-group">
+          <label>Item Name</label>
+          <input type="text" placeholder="e.g. Zirconia Disc 98mm" value={itemForm.item_name}
+            onChange={e => setItemForm(f => ({ ...f, item_name: e.target.value }))} />
+        </div>
+        <div className="ad-pay-form-row">
+          <div>
+            <label>Quantity</label>
+            <input type="number" min="0" placeholder="0" value={itemForm.quantity}
+              onChange={e => setItemForm(f => ({ ...f, quantity: e.target.value }))} />
+          </div>
+          <div>
+            <label>Unit</label>
+            <input type="text" placeholder="pcs / grams / ml" value={itemForm.unit}
+              onChange={e => setItemForm(f => ({ ...f, unit: e.target.value }))} />
           </div>
         </div>
-      )}
+        <div className="ad-pay-form-group">
+          <label>Min Stock Alert</label>
+          <input type="number" min="0" placeholder="0 (disabled)" value={itemForm.min_stock}
+            onChange={e => setItemForm(f => ({ ...f, min_stock: e.target.value }))} />
+        </div>
+        {itemFormError && <div className="ad-pay-form-error">{itemFormError}</div>}
+      </BaseModal>
 
       {/* ── EDIT STAFF MODAL ────────────────────────────── */}
-      {editStaff && (
-        <div className="ad-modal-overlay" onClick={() => setEditStaff(null)}>
-          <div className="ad-pay-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '460px' }}>
-            <div className="ad-pay-modal-header">
-              <h3>Edit Staff — {editStaff.displayName}</h3>
-              <button className="ad-pay-modal-close" onClick={() => setEditStaff(null)}>{Ico.x(16)}</button>
-            </div>
-            <div style={{ padding: '8px 22px', fontSize: '0.82rem', color: '#708c80' }}>
-              Employee ID: <strong style={{ color: '#1a3028' }}>#{editStaff.employeeId || 'N/A'}</strong>
-              {' | '} Username: <strong style={{ color: '#1a3028' }}>@{editStaff.username}</strong>
-            </div>
-            <div className="ad-pay-modal-body">
-              <div className="ad-pay-form-group">
-                <label>Display Name</label>
-                <input type="text" value={editForm.displayName}
-                  onChange={e => setEditForm(f => ({ ...f, displayName: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Email</label>
-                <input type="email" value={editForm.email}
-                  onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
-              </div>
-              <div className="ad-pay-form-group">
-                <label>Designation</label>
-                <select value={editForm.designation}
-                  onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}>
-                  {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-            </div>
-            {editError && <div className="ad-pay-form-error">{editError}</div>}
-            <div className="ad-pay-modal-actions">
-              <button className="ad-pay-btn-cancel" onClick={() => setEditStaff(null)}>Cancel</button>
-              <button className="ad-pay-btn-confirm" onClick={handleEditStaff} disabled={editSaving}>
-                {editSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
+      <BaseModal
+        isOpen={!!editStaff}
+        onClose={() => setEditStaff(null)}
+        title={editStaff ? `Edit Staff — ${editStaff.displayName}` : 'Edit Staff'}
+        subtitle={editStaff ? <>Employee ID: <strong style={{ color: '#1a3028' }}>#{editStaff.employeeId || 'N/A'}</strong>{' | '} Username: <strong style={{ color: '#1a3028' }}>@{editStaff.username}</strong></> : null}
+        maxWidth="max-w-md"
+        id="edit-staff-modal"
+        footer={
+          <>
+            <button className="ad-pay-btn-cancel" onClick={() => setEditStaff(null)}>Cancel</button>
+            <button className="ad-pay-btn-confirm" onClick={handleEditStaff} disabled={editSaving}>
+              {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </>
+        }
+      >
+        <div className="ad-pay-form-group">
+          <label>Display Name</label>
+          <input type="text" value={editForm.displayName}
+            onChange={e => setEditForm(f => ({ ...f, displayName: e.target.value }))} />
         </div>
-      )}
+        <div className="ad-pay-form-group">
+          <label>Email</label>
+          <input type="email" value={editForm.email}
+            onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
+        </div>
+        <div className="ad-pay-form-group">
+          <label>Designation</label>
+          <select value={editForm.designation}
+            onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}>
+            {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+        {editError && <div className="ad-pay-form-error">{editError}</div>}
+      </BaseModal>
     </div>
   );
 };

@@ -594,55 +594,10 @@ export default function MaintenanceModeController({
         isOpen={confirmModalOpen}
         onClose={() => setConfirmModalOpen(false)}
         maxWidth="max-w-md"
-        raw={true}
+        title="Activate Maintenance Mode?"
         id="ad-maintenance-confirm-modal"
-      >
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          padding: '28px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-          fontFamily: 'Inter, -apple-system, sans-serif',
-          maxWidth: '460px',
-          width: '100%',
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: '#fee2e2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '16px',
-          }}>
-            <AlertTriangleIcon size={26} color="#dc2626" />
-          </div>
-
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: '0 0 8px 0' }}>
-            Activate Maintenance Mode?
-          </h3>
-
-          <p style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-            This will immediately restrict access for <strong>{getTargetLabel(config.target)}</strong>.
-            Users will be presented with the clinical maintenance screen.
-          </p>
-
-          <div style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '10px',
-            padding: '12px 14px',
-            fontSize: '0.82rem',
-            color: '#166534',
-            fontWeight: 600,
-            marginBottom: '24px',
-            lineHeight: 1.45,
-          }}>
-            You (Administrator) will NEVER be locked out and can restore live operation at any moment.
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        footer={
+          <>
             <button
               type="button"
               onClick={() => setConfirmModalOpen(false)}
@@ -685,7 +640,38 @@ export default function MaintenanceModeController({
               {saving ? <SpinnerIcon size={16} /> : null}
               <span>Confirm & Activate</span>
             </button>
-          </div>
+          </>
+        }
+      >
+        <div style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '12px',
+          background: '#fee2e2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+        }}>
+          <AlertTriangleIcon size={26} color="#dc2626" />
+        </div>
+
+        <p style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+          This will immediately restrict access for <strong>{getTargetLabel(config.target)}</strong>.
+          Users will be presented with the clinical maintenance screen.
+        </p>
+
+        <div style={{
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '10px',
+          padding: '12px 14px',
+          fontSize: '0.82rem',
+          color: '#166534',
+          fontWeight: 600,
+          lineHeight: 1.45,
+        }}>
+          You (Administrator) will NEVER be locked out and can restore live operation at any moment.
         </div>
       </BaseModal>
     </div>

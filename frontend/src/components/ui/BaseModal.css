@@ -65,7 +65,7 @@
   border-radius: 1.5rem 1.5rem 0 0;
   max-height: 92vh;
   max-height: 92dvh;
-  touch-action: none;
+  touch-action: pan-y;
   /* Safe area for notched devices (iPhone, Pixel) */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   /* Subtle top shadow for depth against backdrop */
@@ -82,6 +82,7 @@
   padding: 10px 0 4px;
   flex-shrink: 0;
   cursor: grab;
+  touch-action: none;
 }
 
 .dz-modal-swipe-handle:active {
