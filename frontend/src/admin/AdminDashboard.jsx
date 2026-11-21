@@ -1653,12 +1653,12 @@ const AdminDashboard = () => {
                                 </>
                               ) : isArchived ? (
                                 <TwentyFirstIconButton
-                                  icon={Ico.check(14)}
+                                  icon={Ico.refresh(14)}
                                   title="Re-Approve Dentist"
                                   ariaLabel="Re-Approve Dentist"
                                   onClick={() => handleRestore(uId, user.name)}
                                   size="sm"
-                                  variant="success"
+                                  variant="primary"
                                 />
                               ) : null
                             }

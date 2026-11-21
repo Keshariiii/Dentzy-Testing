@@ -812,7 +812,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                   <button
                     type="button"
                     className="ddm-stage-btn"
-                    style={{ background: '#16a34a', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                    style={{ background: '#1e5038', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 6px -1px rgba(30, 80, 56, 0.3)' }}
                     onClick={async () => {
                       if (!confirm(`Re-approve "${user.name}"? They will need to use "Forgot Password" to log in again.`)) return;
                       setStageLoading('restore');
@@ -826,7 +826,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                     }}
                     disabled={stageLoading === 'restore'}
                   >
-                    {stageLoading === 'restore' ? 'Restoring…' : '✓ Re-Approve This Dentist'}
+                    {Ico.refresh(14)} {stageLoading === 'restore' ? 'Restoring…' : 'Re-Approve This Dentist'}
                   </button>
                   <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>This will restore the archived account. The dentist must reset their password to log in.</p>
                 </div>
