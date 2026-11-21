@@ -805,6 +805,32 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                   </button>
                 </div>
               )}
+
+              {/* ── Re-Approve archived dentist ── */}
+              {(user?.isArchived || user?.status === 'archived') && (
+                <div style={{ padding: '16px 0', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    className="ddm-stage-btn"
+                    style={{ background: '#16a34a', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                    onClick={async () => {
+                      if (!confirm(`Re-approve "${user.name}"? They will need to use "Forgot Password" to log in again.`)) return;
+                      setStageLoading('restore');
+                      try {
+                        const res = await authFetch(`${ADMIN_API}/users/${activeUserId}/restore`, { method: 'PATCH' });
+                        const data = await res.json();
+                        if (res.ok) { showToast(data.message || 'Dentist re-approved.'); load(); }
+                        else showToast(data.message || 'Failed to re-approve', 'error');
+                      } catch { showToast('Network error', 'error'); }
+                      setStageLoading(null);
+                    }}
+                    disabled={stageLoading === 'restore'}
+                  >
+                    {stageLoading === 'restore' ? 'Restoring…' : '✓ Re-Approve This Dentist'}
+                  </button>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>This will restore the archived account. The dentist must reset their password to log in.</p>
+                </div>
+              )}
             </>
           )}
         </div>

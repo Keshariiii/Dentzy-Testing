@@ -381,6 +381,58 @@ admin.delete('/users/:id', verifyAdmin(), async (c) => {
   }
 });
 
+// PATCH /api/admin/users/:id/restore — re-approve an archived/closed dentist account
+admin.patch('/users/:id/restore', verifyAdmin(), async (c) => {
+  try {
+    const id = c.req.param('id');
+    const user = await c.env.DB.prepare('SELECT id, name, email, status, adminNote FROM users WHERE id = ?').bind(id).first();
+    if (!user) return c.json({ message: 'User not found.' }, 404);
+
+    const isArchived =
+      user.adminNote?.startsWith('ACCOUNT_ARCHIVED') ||
+      user.adminNote?.startsWith('ACCOUNT_CLOSED') ||
+      user.email?.includes('@dentzy.invalid');
+    if (!isArchived) {
+      return c.json({ message: 'This account is not archived. Use the approve endpoint instead.' }, 400);
+    }
+
+    // Extract original email from adminNote
+    const originalEmail = extractOriginalEmail(user.email, user.adminNote);
+    if (!originalEmail || originalEmail.includes('@dentzy.invalid')) {
+      return c.json({ message: 'Cannot restore: original email could not be recovered from archive record.' }, 400);
+    }
+
+    // Check no other active account uses this email now
+    const conflict = await c.env.DB.prepare(
+      "SELECT id FROM users WHERE email = ? AND id != ?"
+    ).bind(originalEmail, id).first();
+    if (conflict) {
+      return c.json({ message: `Cannot restore: another account already uses ${originalEmail}.` }, 409);
+    }
+
+    const ts = now();
+    // Restore email, set approved, clear archive note; password stays scrambled — dentist must use "Forgot Password"
+    await c.env.DB.prepare(
+      "UPDATE users SET status = 'approved', email = ?, adminNote = ?, updatedAt = ? WHERE id = ?"
+    ).bind(originalEmail, `RESTORED_BY_ADMIN | restoredAt:${ts}`, ts, id).run();
+
+    const restored = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+
+    auditLog('USER_RESTORED_BY_ADMIN', { userId: id, name: user.name, originalEmail, adminUsername: c.get('admin').username });
+
+    // Fire-and-forget approval email so the dentist knows they're back
+    try {
+      const work = sendUserApprovedEmail({ env: c.env, user: { ...restored, email: originalEmail } });
+      safeWait(c, work);
+    } catch {}
+
+    return c.json({ message: `Dentist "${user.name}" re-approved successfully. They must use "Forgot Password" to set a new password.`, user: formatUserForAdmin(restored) });
+  } catch (error) {
+    logger.error('Restore user error', { error: error.message });
+    return c.json({ message: 'Failed to restore user.' }, 500);
+  }
+});
+
 // GET /api/admin/orders
 admin.get('/orders', verifyAdmin(), async (c) => {
   try {

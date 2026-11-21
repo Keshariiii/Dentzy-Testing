@@ -519,6 +519,28 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleRestore = async (userId, userName) => {
+    setConfirmConfig({
+      title: 'Re-Approve Archived Dentist',
+      message: `Are you sure you want to re-approve "${userName || 'this dentist'}"? Their account will be restored and they will need to use "Forgot Password" to set a new password.`,
+      type: 'primary',
+      confirmText: 'Re-Approve',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        setActionLoading(userId + '_restore');
+        try {
+          const res = await authFetch(`${ADMIN_API}/users/${userId}/restore`, { method: 'PATCH' });
+          const data = await res.json();
+          if (res.ok) { showToast(data.message || 'Dentist re-approved successfully.'); fetchUsers(); fetchStats(); }
+          else showToast(data.message || 'Failed to re-approve', 'error');
+        } catch { showToast('Network error', 'error'); }
+        setActionLoading(null);
+        setConfirmConfig(null);
+      },
+      onCancel: () => setConfirmConfig(null)
+    });
+  };
+
   const handleLogout = () => { adminLogout(); router.push('/login?role=admin'); };
 
   const openRecordPayment = (order) => {
@@ -1629,6 +1651,15 @@ const AdminDashboard = () => {
                                     variant="danger"
                                   />
                                 </>
+                              ) : isArchived ? (
+                                <TwentyFirstIconButton
+                                  icon={Ico.check(14)}
+                                  title="Re-Approve Dentist"
+                                  ariaLabel="Re-Approve Dentist"
+                                  onClick={() => handleRestore(uId, user.name)}
+                                  size="sm"
+                                  variant="success"
+                                />
                               ) : null
                             }
                           />
