@@ -2,6 +2,9 @@
  * Dentzy GST — All India tax logic for dental prosthetics.
  * HSN 9021 21 00 | 5% GST | Maharashtra (27) supplier.
  *
+ * PRICES ARE GST-INCLUSIVE. ₹1500 means ₹1428.57 base + ₹71.43 GST.
+ * The dentist always pays the catalog price — invoice just shows the split.
+ *
  * ponytail: frontend-only, no DB columns. Store when filing returns matters.
  */
 
@@ -17,31 +20,34 @@ function extractCode(place) {
 function round2(n) { return Math.round(n * 100) / 100; }
 
 /**
- * @param {number} baseAmount — pre-tax amount (from existing pricing)
+ * @param {number} inclusiveAmount — GST-inclusive price (what dentist pays)
  * @param {string} placeOfDelivery — e.g. "MAHARASHTRA (27)" or "GUJARAT (24)"
- * @returns {Object} full GST breakdown
+ * @returns {Object} full GST breakdown extracted from inclusive price
  */
-export function calculateGST(baseAmount, placeOfDelivery) {
-  const amt = Number(baseAmount) || 0;
+export function calculateGST(inclusiveAmount, placeOfDelivery) {
+  const total = Number(inclusiveAmount) || 0;
   const destCode = extractCode(placeOfDelivery);
   const intra = !destCode || destCode === LAB_STATE_CODE;
 
+  // Extract tax from inclusive price: base = total / (1 + rate/100)
+  const baseAmount = round2(total / 1.05);
+  const totalTax = round2(total - baseAmount);
+
   if (intra) {
-    const half = round2(amt * 2.5 / 100);
+    const half = round2(totalTax / 2);
     return {
-      baseAmount: amt, hsnCode: '90212100', taxRate: 5,
+      baseAmount, totalAmount: total, hsnCode: '90212100', taxRate: 5,
       isIntraState: true, taxType: 'CGST+SGST',
       cgstRate: 2.5, sgstRate: 2.5, igstRate: 0,
-      cgstAmount: half, sgstAmount: half, igstAmount: 0,
-      totalTax: round2(half + half), totalAmount: round2(amt + half + half),
+      cgstAmount: half, sgstAmount: round2(totalTax - half), igstAmount: 0,
+      totalTax,
     };
   }
-  const igst = round2(amt * 5 / 100);
   return {
-    baseAmount: amt, hsnCode: '90212100', taxRate: 5,
+    baseAmount, totalAmount: total, hsnCode: '90212100', taxRate: 5,
     isIntraState: false, taxType: 'IGST',
     cgstRate: 0, sgstRate: 0, igstRate: 5,
-    cgstAmount: 0, sgstAmount: 0, igstAmount: igst,
-    totalTax: igst, totalAmount: round2(amt + igst),
+    cgstAmount: 0, sgstAmount: 0, igstAmount: totalTax,
+    totalTax,
   };
 }

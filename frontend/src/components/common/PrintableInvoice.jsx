@@ -92,9 +92,10 @@ export default function PrintableInvoice({
   }
 
   function applyGST(item) {
-    const net = Number(item.netAmount ?? item.amount) || 0;
-    const gst = calculateGST(net, placeOfDelivery);
-    return { ...item, hsn: item.hsn || '90212100', taxRate: gst.taxRate, taxType: gst.taxType, taxAmount: gst.totalTax, total: gst.totalAmount };
+    const inclusivePrice = Number(item.netAmount ?? item.amount) || 0;
+    const gst = calculateGST(inclusivePrice, placeOfDelivery);
+    // Price is GST-inclusive: total stays the same, we just extract the tax split
+    return { ...item, hsn: item.hsn || '90212100', taxRate: gst.taxRate, taxType: gst.taxType, taxAmount: gst.totalTax, baseAmount: gst.baseAmount, total: inclusivePrice };
   }
 
   let lineItems = [];
@@ -140,9 +141,11 @@ export default function PrintableInvoice({
     })];
   }
 
-  const subtotal = lineItems.reduce((acc, item) => acc + (Number(item.netAmount ?? item.amount) || 0), 0);
-  const totalTax = lineItems.reduce((acc, item) => acc + (Number(item.taxAmount) || 0), 0);
   const totalAmount = lineItems.reduce((acc, item) => acc + (Number(item.total ?? item.amount) || 0), 0);
+  const totalTax = lineItems.reduce((acc, item) => acc + (Number(item.taxAmount) || 0), 0);
+  const taxableValue = lineItems.reduce((acc, item) => acc + (Number(item.baseAmount) || 0), 0);
+  // ponytail: subtotal kept for backward compat — same as totalAmount (GST-inclusive)
+  const subtotal = totalAmount;
 
   const paymentMode = statement?.paymentMode || payment?.paymentMode || (isUnpaid ? 'Direct Clearance / UPI' : 'Direct Clearance / UPI');
   const txnId = statement?.referenceNumber || payment?.referenceNumber || 'TXN-' + (payment?.caseId || Date.now().toString(36).toUpperCase());
@@ -330,24 +333,24 @@ export default function PrintableInvoice({
               ) : null;
             })()}
             <tr>
-              <td colSpan="8" style={{ textAlign: 'right' }}>Subtotal (Taxable Value):</td>
-              <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(subtotal)}</td>
+              <td colSpan="8" style={{ textAlign: 'right' }}>Taxable Value (excl. GST):</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(taxableValue)}</td>
             </tr>
             {gstInfo.isIntraState ? (
               <>
                 <tr>
                   <td colSpan="8" style={{ textAlign: 'right' }}>CGST @ {gstInfo.cgstRate}%:</td>
-                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).cgstAmount)}</td>
+                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(totalAmount, placeOfDelivery).cgstAmount)}</td>
                 </tr>
                 <tr>
                   <td colSpan="8" style={{ textAlign: 'right' }}>SGST @ {gstInfo.sgstRate}%:</td>
-                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).sgstAmount)}</td>
+                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(totalAmount, placeOfDelivery).sgstAmount)}</td>
                 </tr>
               </>
             ) : (
               <tr>
                 <td colSpan="8" style={{ textAlign: 'right' }}>IGST @ {gstInfo.igstRate}%:</td>
-                <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).igstAmount)}</td>
+                <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(totalAmount, placeOfDelivery).igstAmount)}</td>
               </tr>
             )}
             <tr className="pi-total-row">
