@@ -94,8 +94,11 @@ export default function PrintableInvoice({
   function applyGST(item) {
     const inclusivePrice = Number(item.netAmount ?? item.amount) || 0;
     const gst = calculateGST(inclusivePrice, placeOfDelivery);
-    // Price is GST-inclusive: total stays the same, we just extract the tax split
-    return { ...item, hsn: item.hsn || '90212100', taxRate: gst.taxRate, taxType: gst.taxType, taxAmount: gst.totalTax, baseAmount: gst.baseAmount, total: inclusivePrice };
+    // Price is GST-inclusive: extract base from inclusive price for Unit Price & Net Amount columns
+    // Unit Price = base of gross (incl. discount back), Net Amount = base of net inclusive
+    const grossInclusive = Number(item.unitPrice) || inclusivePrice;
+    const grossGst = grossInclusive !== inclusivePrice ? calculateGST(grossInclusive, placeOfDelivery) : gst;
+    return { ...item, unitPrice: grossGst.baseAmount, netAmount: gst.baseAmount, hsn: item.hsn || '90212100', taxRate: gst.taxRate, taxType: gst.taxType, taxAmount: gst.totalTax, baseAmount: gst.baseAmount, total: inclusivePrice };
   }
 
   let lineItems = [];
@@ -318,7 +321,8 @@ export default function PrintableInvoice({
           <tfoot>
             {(() => {
               const totalDiscount = lineItems.reduce((acc, it) => acc + (Number(it.discount) || 0), 0);
-              const totalGross = lineItems.reduce((acc, it) => acc + (Number(it.unitPrice) || 0), 0);
+              // Gross = net inclusive (total) + discount (all GST-inclusive values)
+              const totalGross = lineItems.reduce((acc, it) => acc + (Number(it.total) || 0) + (Number(it.discount) || 0), 0);
               return totalDiscount > 0 ? (
                 <>
                   <tr>
