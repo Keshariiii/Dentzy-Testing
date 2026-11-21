@@ -4,8 +4,7 @@
  */
 export default function HomeLoading() {
   return (
-    <div style={{
-      minHeight: '100vh',
+    <div className="dz-min-vh" style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

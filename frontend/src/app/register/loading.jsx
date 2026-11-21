@@ -3,8 +3,7 @@
  */
 export default function RegisterLoading() {
   return (
-    <div style={{
-      minHeight: '100vh',
+    <div className="dz-min-vh" style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

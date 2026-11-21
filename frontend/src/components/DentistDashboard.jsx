@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
+import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
 import BaseModal from './ui/BaseModal';
@@ -494,7 +495,7 @@ const DentistDashboard = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(`/invoice?batchId=${encodeURIComponent(o.batchId)}`, '_blank');
+                        openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(o.batchId)}`);
                       }}
                       style={{
                         display: 'block',
@@ -715,7 +716,7 @@ const DentistDashboard = () => {
                 value={profileForm.dob}
                 placeholder="Select Date of Birth"
                 data-empty={!profileForm.dob}
-                onClick={e => e.currentTarget.showPicker?.()}
+                onClick={safeShowPicker}
                 onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
                 max={new Date().toISOString().split('T')[0]}
                 className="ud-settings-input"
@@ -1077,11 +1078,11 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
 
   const handleDownloadUnpaid = () => {
     const query = statementMonth ? `&month=${encodeURIComponent(statementMonth)}` : '';
-    window.open(`/invoice?unpaid=true${query}`, '_blank');
+    openInvoiceWindow(`/invoice?unpaid=true${query}`);
   };
 
   const handleDownloadBatch = (batchId) => {
-    window.open(`/invoice?batchId=${encodeURIComponent(batchId)}`, '_blank');
+    openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(batchId)}`);
   };
 
   return (
@@ -1122,7 +1123,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
                 value={statementMonth}
                 placeholder="Select Month"
                 data-empty={!statementMonth}
-                onClick={(e) => e.currentTarget.showPicker?.()}
+                onClick={safeShowPicker}
                 onChange={(e) => setStatementMonth(e.target.value)}
                 style={{
                   padding: '6px 10px',

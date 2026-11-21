@@ -9,12 +9,11 @@ export default function GlobalError({ error, reset }) {
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Dentzy Portal Unavailable</title>
       </head>
-      <body style={{
+      <body className="dz-min-vh" style={{
         margin: 0,
-        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

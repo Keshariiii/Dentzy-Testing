@@ -504,7 +504,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
   };
 
   return (
-    <div className="sd-shell" style={{ minHeight: '100vh', background: '#f4f6f5', paddingBottom: '90px' }}>
+    <div className="sd-shell dz-min-vh" style={{ background: '#f4f6f5', paddingBottom: '90px' }}>
       
       {/* ── Top Header ────────────────────────────────────────────────────── */}
       <header

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BaseModal from '../components/ui/BaseModal';
 import { Icons as Ico } from '../components/common/DashboardIcons';
+import { safeShowPicker } from '../utils/appleCompat';
 
 const STAGES = [
   { key: 'received', label: 'Received' },
@@ -74,7 +75,7 @@ export default function StaffOrderModal({ order, onClose, onSave, saving }) {
                 value={(form.dueDate || '').slice(0, 10)}
                 placeholder="Select Due Date"
                 data-empty={!(form.dueDate || '').slice(0, 10)}
-                onClick={e => e.currentTarget.showPicker?.()}
+                onClick={safeShowPicker}
                 onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
                 style={{ cursor: 'pointer' }}
               />

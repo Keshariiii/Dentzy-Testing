@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
 
   if (!admin) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f6f5', gap: '14px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div className="dz-min-vh" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f4f6f5', gap: '14px', fontFamily: 'Inter, system-ui, sans-serif' }}>
         <p style={{ color: '#64748b', fontSize: '0.875rem', margin: 0 }}>Verifying admin access...</p>
         <a href="/login?role=admin" style={{ color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'underline' }}>
           Click here to log in

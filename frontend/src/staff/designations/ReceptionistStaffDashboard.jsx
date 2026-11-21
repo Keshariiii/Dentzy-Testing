@@ -22,6 +22,7 @@ import {
   StaffPayRowSkeleton,
 } from '../../components/SkeletonBlocks';
 import { formatINR } from '../../utils/format';
+import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import '../StaffDashboard.css';
 
@@ -1008,7 +1009,7 @@ export default function ReceptionistStaffDashboard() {
                       onClick={() => {
                         const dId = selectedPayDentist.id || selectedPayDentist._id;
                         const mQuery = payMonthFilter && payMonthFilter !== 'all' ? `&month=${encodeURIComponent(payMonthFilter)}` : '';
-                        window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
+                        openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`);
                       }}
                       style={{
                         background: '#1e5038',
@@ -1063,7 +1064,7 @@ export default function ReceptionistStaffDashboard() {
                     id="rec-pay-month"
                     type="month"
                     value={payMonthFilter === 'all' ? '' : payMonthFilter}
-                    onClick={(e) => e.currentTarget.showPicker?.()}
+                    onClick={safeShowPicker}
                     onChange={(e) => {
                       setPayMonthFilter(e.target.value || 'all');
                       setSelectedPaymentIds([]);

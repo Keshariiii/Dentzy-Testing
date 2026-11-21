@@ -23,7 +23,7 @@ export default function RegisterPage() {
   }, [user, admin, userLoading, adminLoading, router]);
 
   if (userLoading || adminLoading) {
-    return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', height:'100vh' }}><span style={{ fontSize:'1.5rem', opacity:0.5 }}>Loading…</span></div>;
+    return <div className="dz-h-vh" style={{ display:'flex', justifyContent:'center', alignItems:'center' }}><span style={{ fontSize:'1.5rem', opacity:0.5 }}>Loading…</span></div>;
   }
   if (user || admin) return null;
 

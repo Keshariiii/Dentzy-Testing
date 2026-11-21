@@ -5,6 +5,7 @@
 .auth-page {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
 }
@@ -578,6 +579,7 @@
     flex-direction: column;
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .auth-left {

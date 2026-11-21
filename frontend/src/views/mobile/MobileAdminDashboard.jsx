@@ -21,6 +21,7 @@ import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import MaintenanceModeController from '../../admin/MaintenanceModeController';
 import { formatINR, formatDate } from '../../utils/format';
+import { getAudioContext, safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
 
@@ -277,7 +278,8 @@ const MobileAdminDashboard = () => {
   /* -- Notification sound ------------------------------------------------ */
   const playNotifSound = useCallback(() => {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getAudioContext();
+      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
@@ -1420,7 +1422,7 @@ const MobileAdminDashboard = () => {
                   type="month"
                   placeholder="Select Month"
                   data-empty={payFilterMonth === 'all' || !payFilterMonth}
-                  onClick={e => e.currentTarget.showPicker?.()}
+                  onClick={safeShowPicker}
                   value={payFilterMonth === 'all' ? '' : payFilterMonth}
                   onChange={e => setPayFilterMonth(e.target.value || 'all')}
                   style={{
@@ -1499,7 +1501,7 @@ const MobileAdminDashboard = () => {
                   onClick={() => {
                     const dentistId = drillDentistPayments._id || drillDentistPayments.id;
                     const url = `/invoice?unpaid=true&dentistId=${encodeURIComponent(dentistId)}${payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : ''}`;
-                    window.open(url, '_blank');
+                    openInvoiceWindow(url);
                   }}
                   style={{
                     background: '#1e5038',

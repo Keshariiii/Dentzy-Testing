@@ -28,6 +28,7 @@ import BaseModal from '../../components/ui/BaseModal';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
+import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
@@ -639,7 +640,7 @@ const MobileDashboard = () => {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`/invoice?batchId=${encodeURIComponent(o.batchId)}`, '_blank');
+                          openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(o.batchId)}`);
                         }}
                         style={{
                           background: '#e8f2ec',
@@ -772,7 +773,7 @@ const MobileDashboard = () => {
                   value={unpaidMonthFilter}
                   placeholder="Select Month"
                   data-empty={!unpaidMonthFilter}
-                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  onClick={safeShowPicker}
                   onChange={(e) => setUnpaidMonthFilter(e.target.value)}
                   style={{
                     flex: 1,
@@ -829,7 +830,7 @@ const MobileDashboard = () => {
                 type="button"
                 onClick={() => {
                   const url = unpaidMonthFilter ? `/invoice?unpaid=true&month=${encodeURIComponent(unpaidMonthFilter)}` : '/invoice?unpaid=true';
-                  window.open(url, '_blank');
+                  openInvoiceWindow(url);
                 }}
                 style={{
                   width: '100%',
@@ -901,7 +902,7 @@ const MobileDashboard = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(bg.batchId)}`, '_blank')}
+                    onClick={() => openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(bg.batchId)}`)}
                     style={{
                       width: '100%',
                       background: '#ffffff',
@@ -979,7 +980,7 @@ const MobileDashboard = () => {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/invoice?batchId=${encodeURIComponent(p.batchId)}`, '_blank');
+                            openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(p.batchId)}`);
                           }}
                           style={{
                             background: '#e8f2ec',
@@ -1090,7 +1091,7 @@ const MobileDashboard = () => {
                 value={profileForm.dob}
                 placeholder="Select Date of Birth"
                 data-empty={!profileForm.dob}
-                onClick={(e) => e.currentTarget.showPicker?.()}
+                onClick={safeShowPicker}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
               />

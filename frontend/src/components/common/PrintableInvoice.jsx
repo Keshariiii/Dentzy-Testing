@@ -3,6 +3,7 @@ import React from 'react';
 import { formatINR, formatDate } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import { resolvePlaceOfDelivery } from '../../utils/placeOfDelivery';
+import { isAppleTouchDevice } from '../../utils/appleCompat';
 import './PrintableInvoice.css';
 
 /**
@@ -130,6 +131,11 @@ export default function PrintableInvoice({
   const txnId = statement?.referenceNumber || payment?.referenceNumber || 'TXN-' + (payment?.caseId || Date.now().toString(36).toUpperCase());
 
   const handlePrint = () => {
+    if (isAppleTouchDevice()) {
+      window.print();
+      return;
+    }
+
     const el = document.getElementById('printable-invoice-root');
     if (!el) return;
 

@@ -15,7 +15,7 @@ export class DashboardErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px', background: '#f4f6f5', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div className="dz-min-vh" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#f4f6f5', fontFamily: 'Inter, system-ui, sans-serif' }}>
           <div style={{ maxWidth: '440px', width: '100%', background: '#ffffff', borderRadius: '16px', padding: '32px', border: '1px solid #e0ebe5', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e2824', marginBottom: '8px' }}>Admin Dashboard Reload</h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '20px', lineHeight: 1.5 }}>

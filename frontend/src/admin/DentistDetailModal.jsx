@@ -16,6 +16,7 @@ import CreateOrderModal from '../components/common/CreateOrderModal';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR } from '../utils/format';
+import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import { DentzyCaseChip } from '../components/common/DentzyCard';
 import { DentzyPipelineChart } from '../components/common/DentzyChartTable';
@@ -429,7 +430,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                       {orders.length > 0 && (
                         <button
                           type="button"
-                          onClick={() => window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}`, '_blank')}
+                          onClick={() => openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}`)}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -525,7 +526,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    window.open(`/invoice?batchId=${encodeURIComponent(order.batchId)}`, '_blank');
+                                    openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(order.batchId)}`);
                                   }}
                                   style={{
                                     fontFamily: 'monospace',
@@ -579,7 +580,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                       type="month"
                       placeholder="Select Month"
                       data-empty={payMonth === 'all' || !payMonth}
-                      onClick={e => e.currentTarget.showPicker?.()}
+                      onClick={safeShowPicker}
                       value={payMonth === 'all' ? '' : payMonth}
                       onChange={e => setPayMonth(e.target.value || 'all')}
                       style={{
@@ -630,7 +631,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                       type="button"
                       onClick={() => {
                         const mParam = payMonth !== 'all' ? `&month=${encodeURIComponent(payMonth)}` : '';
-                        window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}${mParam}`, '_blank');
+                        openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}${mParam}`);
                       }}
                       style={{
                         background: '#1e5038',
@@ -716,7 +717,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                               {order.batchId && (
                                 <button
                                   type="button"
-                                  onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(order.batchId)}`, '_blank')}
+                                  onClick={() => openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(order.batchId)}`)}
                                   style={{
                                     background: '#1e5038',
                                     color: '#fff',

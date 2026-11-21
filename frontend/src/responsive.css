@@ -394,6 +394,7 @@
     flex-direction: column;
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
   }
   .auth-left {
     display: none;
@@ -401,6 +402,7 @@
   .auth-right {
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 30px 20px;
   }
   .auth-right-inner {

@@ -6,6 +6,7 @@ import '../styles/registry.css';
 import '../index.css';
 import '../global-animations.css';
 import '../responsive.css';
+import '../styles/apple-webkit.css';
 import Providers from './Providers';
 
 export const metadata = {
@@ -13,6 +14,17 @@ export const metadata = {
   title: 'Denty lab | official site | Get started',
   description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
   applicationName: 'Dentzy',
+  appleWebApp: {
+    capable: true,
+    title: 'Dentzy',
+    statusBarStyle: 'default',
+  },
+  formatDetection: {
+    telephone: false,
+    date: false,
+    email: false,
+    address: false,
+  },
   manifest: '/manifest.json',
   robots: {
     index: false,
@@ -68,6 +80,8 @@ export const metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#f0f5f2',
 };
 
 export default function RootLayout({ children }) {

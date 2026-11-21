@@ -5,6 +5,7 @@ import EmptyState from '../../components/common/EmptyState';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { formatINR, formatDate } from '../../utils/format';
+import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
 const PAY_MODE_TABS = ['all', 'Cash', 'Cheque', 'UPI'];
@@ -119,7 +120,7 @@ export default function AdminPaymentsListView({
             onClick={() => {
               const dId = drillDentistPayments.id || drillDentistPayments._id;
               const mQuery = payFilterMonth && payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : '';
-              window.open(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`, '_blank');
+              openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`);
             }}
             style={{
               display: 'inline-flex',
@@ -253,7 +254,7 @@ export default function AdminPaymentsListView({
               value={payFilterMonth === 'all' ? '' : payFilterMonth}
               placeholder="Select Month"
               data-empty={payFilterMonth === 'all' || !payFilterMonth}
-              onClick={(e) => e.currentTarget.showPicker?.()}
+              onClick={safeShowPicker}
               onChange={(e) => setPayFilterMonth(e.target.value || 'all')}
               className={isMobile ? 'ma-sort-select' : 'ad-sort-select'}
               style={{ fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}

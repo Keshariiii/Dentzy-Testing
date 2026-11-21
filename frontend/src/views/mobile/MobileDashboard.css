@@ -16,7 +16,7 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0));
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Header Search Bar (PC-Grade Search Pill) ───────── */
@@ -1390,8 +1390,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding: 16px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0));
+    padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
 }
 
 .m-modal {

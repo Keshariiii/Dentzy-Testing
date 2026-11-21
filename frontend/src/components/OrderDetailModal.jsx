@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
+import { openInvoiceWindow } from '../utils/appleCompat';
 import { StatusBadge } from './ui/status-badge';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
@@ -288,7 +289,7 @@ export default function OrderDetailModal({
                         <code>{displayOrder.batchId}</code>
                         <button
                           type="button"
-                          onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(displayOrder.batchId)}`, '_blank')}
+                          onClick={() => openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(displayOrder.batchId)}`)}
                           style={{
                             background: '#1e5038',
                             color: '#ffffff',

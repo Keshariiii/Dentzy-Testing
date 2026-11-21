@@ -112,7 +112,7 @@ function InvoiceContent() {
 
   if (error) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f6f5', padding: '24px' }}>
+      <div className="dz-min-vh" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f4f6f5', padding: '24px' }}>
         <div style={{ maxWidth: '480px', width: '100%', background: '#ffffff', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', textAlign: 'center' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -145,7 +145,7 @@ function InvoiceContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8faf9', padding: '16px 0' }}>
+    <div className="dz-min-vh" style={{ background: '#f8faf9', padding: '16px 0' }}>
       <PrintableInvoice statement={statementData} payment={paymentData} isStandalone={true} />
     </div>
   );

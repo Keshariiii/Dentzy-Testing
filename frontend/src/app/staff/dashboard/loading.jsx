@@ -12,8 +12,8 @@ export default function StaffDashboardLoading() {
   return (
     <SkeletonGroup>
       <div
+        className="dz-min-vh"
         style={{
-          minHeight: '100vh',
           background: 'var(--dz-color-bg-page, #f4f7f5)',
           padding: '24px',
           maxWidth: '1200px',

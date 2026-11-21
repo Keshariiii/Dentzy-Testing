@@ -28,6 +28,7 @@ export function triggerBirthdayConfettiOnce(userId, birthdayDate) {
   canvas.style.inset = '0';
   canvas.style.width = '100vw';
   canvas.style.height = '100vh';
+  canvas.style.height = '100dvh';
   canvas.style.pointerEvents = 'none';
   canvas.style.zIndex = '99999';
   canvas.width = window.innerWidth;

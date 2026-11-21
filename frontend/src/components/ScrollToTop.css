@@ -1,8 +1,8 @@
 /* Scroll to Top Button */
 .scroll-to-top {
   position: fixed;
-  bottom: 36px;
-  right: 32px;
+  bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+  right: calc(32px + env(safe-area-inset-right, 0px));
   z-index: 999;
 
   width: 48px;

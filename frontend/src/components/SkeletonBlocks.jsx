@@ -629,7 +629,8 @@ export const PipelinePageSkeleton = () => (
 
 export const InvoiceSkeleton = () => (
   <div
-    style={{ minHeight: '100vh', background: '#f8faf9', padding: '16px 0' }}
+    className="dz-min-vh"
+    style={{ background: '#f8faf9', padding: '16px 0' }}
     aria-hidden="true"
   >
     <div

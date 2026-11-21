@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate } from '../utils/format';
+import { openInvoiceWindow } from '../utils/appleCompat';
 import { StatusBadge } from './ui/status-badge';
 import PrintableInvoice from './common/PrintableInvoice';
 import './PaymentDetailModal.css';
@@ -281,7 +282,7 @@ export default function PaymentDetailModal({
               </div>
               <button
                 type="button"
-                onClick={() => window.open(`/invoice?batchId=${encodeURIComponent(displayPayment.batchId)}`, '_blank')}
+                onClick={() => openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(displayPayment.batchId)}`)}
                 style={{
                   background: '#1e5038',
                   color: '#fff',

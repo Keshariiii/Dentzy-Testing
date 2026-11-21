@@ -1,0 +1,59 @@
+/* =============================================================================
+   APPLE WEBKIT COMPATIBILITY
+   iOS, iPadOS, macOS Safari fixes
+   ============================================================================= */
+
+/* 1. Viewport height helper classes */
+.dz-min-vh {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.dz-h-vh {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* 2. Global touch action and tap highlight */
+button, a, [role="button"], input, select, textarea, label {
+  touch-action: manipulation;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. iOS/iPadOS/Safari specific overrides */
+@supports (-webkit-touch-callout: none) {
+  /* Fix background-attachment: fixed bug on WebKit (forces scroll) */
+  .hero,
+  .hero-bg,
+  .cta,
+  .cta-section,
+  .future-services,
+  .connect-with-us,
+  .partner-bg,
+  .partner-section {
+    background-attachment: scroll !important;
+  }
+
+  /* Prevent auto-zoom on input focus by ensuring at least 16px */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+
+  /* Date & month input fixes for iOS Safari */
+  input[type="date"],
+  input[type="month"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 38px;
+  }
+
+  ::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.2em;
+  }
+}

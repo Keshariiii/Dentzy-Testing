@@ -230,6 +230,10 @@ img {
 }
 
 /* ── Sonner Toast Dentzy Theme ────────────────────────────────────────── */
+.dz-sonner-toaster {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 .dz-sonner-toaster .dz-toast-base {
   border: none;
   color: var(--dz-color-white, #ffffff);

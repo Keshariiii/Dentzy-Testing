@@ -9,8 +9,7 @@ import { SkeletonGroup, StatCardSkeleton, TableRowSkeleton } from '../../../comp
 export default function AdminDashboardLoading() {
   return (
     <SkeletonGroup>
-      <div style={{
-        minHeight: '100vh',
+      <div className="dz-min-vh" style={{
         background: 'var(--dz-color-bg-page, #f4f7f5)',
         padding: '24px',
         maxWidth: '1200px',

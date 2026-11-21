@@ -20,7 +20,7 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0 16px calc(84px + env(safe-area-inset-bottom, 0));
+  padding: 0 16px calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Greeting ───────────────────────────────── */
@@ -770,10 +770,11 @@
   width: 100%;
   max-width: 500px;
   border-radius: 20px 20px 0 0;
-  padding: 20px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
   animation: ma-slide-up 0.25s ease-out;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
 }
 

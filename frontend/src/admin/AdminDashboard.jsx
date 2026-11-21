@@ -15,6 +15,7 @@ import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import './AdminDashboard.css';
 import { formatINR, formatOrderDateTime } from '../utils/format';
+import { safeShowPicker, openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
@@ -241,7 +242,8 @@ const AdminDashboard = () => {
   /* ── Notification sound ────────────────────────────────────────────────── */
   const playNotifSound = useCallback(() => {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getAudioContext();
+      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
@@ -1117,7 +1119,7 @@ const AdminDashboard = () => {
                         type="month"
                         placeholder="Select Month"
                         data-empty={payFilterMonth === 'all' || !payFilterMonth}
-                        onClick={e => e.currentTarget.showPicker?.()}
+                        onClick={safeShowPicker}
                         value={payFilterMonth === 'all' ? '' : payFilterMonth}
                         onChange={e => setPayFilterMonth(e.target.value || 'all')}
                         className="ad-month-input"
@@ -1193,7 +1195,7 @@ const AdminDashboard = () => {
                         onClick={() => {
                           const dentistId = drillDentistPayments._id || drillDentistPayments.id;
                           const url = `/invoice?unpaid=true&dentistId=${encodeURIComponent(dentistId)}${payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : ''}`;
-                          window.open(url, '_blank');
+                          openInvoiceWindow(url);
                         }}
                         style={{
                           background: '#1e5038',

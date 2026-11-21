@@ -9,7 +9,7 @@
     left: 0;
     width: 100%;
     z-index: 1005;
-    padding: 20px 0;
+    padding: calc(20px + env(safe-area-inset-top, 0px)) env(safe-area-inset-right, 0px) 20px env(safe-area-inset-left, 0px);
     background-color: transparent;
     color: var(--color-charcoal);
     transition:
@@ -25,7 +25,7 @@
     left: 0;
     width: 100%;
     border-radius: 0;
-    padding: 12px 0;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) env(safe-area-inset-right, 0px) 12px env(safe-area-inset-left, 0px);
 
     /* Layered glass background: main frosted layer + subtle ambient blend */
     background:
@@ -211,7 +211,7 @@
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         box-shadow: -8px 0 32px rgba(30, 80, 56, 0.15);
         z-index: 1006;
-        padding: 40px 24px;
+        padding: calc(40px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-right, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)) calc(24px + env(safe-area-inset-left, 0px));
         backdrop-filter: blur(24px) saturate(1.8) url("#dz-glass") !important;
         -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
         border-left: 1px solid rgba(112, 140, 128, 0.18);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useStaffAuth } from '../StaffAuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
+import { safeShowPicker } from '../../utils/appleCompat';
 import '../StaffDashboard.css';
 
 /**
@@ -339,7 +340,7 @@ export default function StaffSettingsView() {
                 value={profileForm.dob}
                 onChange={(e) => setProfileForm((p) => ({ ...p, dob: e.target.value }))}
                 max={new Date().toISOString().split('T')[0]}
-                onClick={(e) => e.currentTarget.showPicker?.()}
+                onClick={safeShowPicker}
                 style={{
                   height: '42px',
                   borderRadius: '10px',

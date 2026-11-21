@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getAuthUrl, getDashUrl } from '../api/client';
+import { isAppleTouchDevice } from '../utils/appleCompat';
 
 const AuthContext = createContext(null);
 
@@ -16,17 +17,28 @@ export const AuthProvider = ({ children }) => {
     const hydrate = async () => {
       const savedUser = typeof window !== 'undefined' ? localStorage.getItem('dentzy_user') : null;
 
-      // Fast path: fresh visitor with no stored session — skip the network call entirely.
-      // This eliminates a wasted /api/auth/me round-trip that always returns 401 on new devices.
+      const isSafariWebKit =
+        (typeof navigator !== 'undefined' &&
+          /Safari/.test(navigator.userAgent) &&
+          !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg|Android/.test(navigator.userAgent)) ||
+        isAppleTouchDevice();
+
+      // Fast path: fresh visitor with no stored session — skip the network call entirely on non-Safari browsers.
+      // Safari/WebKit can purge localStorage after 7 days of inactivity (ITP) while the HttpOnly
+      // cookie session remains valid, so Safari/WebKit visitors proceed to verify against /api/auth/me.
       if (!savedUser) {
-        if (isMounted) setLoading(false);
-        return;
+        if (!isSafariWebKit) {
+          if (isMounted) setLoading(false);
+          return;
+        }
       }
 
       // Optimistically restore from localStorage (display data only, not a token)
-      try {
-        if (isMounted) setUser(JSON.parse(savedUser));
-      } catch { /* ignore */ }
+      if (savedUser) {
+        try {
+          if (isMounted) setUser(JSON.parse(savedUser));
+        } catch { /* ignore */ }
+      }
 
       // Verify against server
       const controller = new AbortController();

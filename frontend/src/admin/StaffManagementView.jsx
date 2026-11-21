@@ -10,6 +10,7 @@ import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { Trash2 } from 'lucide-react';
 import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
+import { safeShowPicker } from '../utils/appleCompat';
 import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
 import BaseModal from '../components/ui/BaseModal';
 
@@ -650,7 +651,7 @@ const StaffManagementView = ({
               />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h4 style={{ margin: 0, color: '#1a3028' }}>{selectedStaffForHistory.displayName} - Attendance History</h4>
-                <input type="month" value={attendanceMonth} placeholder="Select Month" data-empty={!attendanceMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceMonth(e.target.value)}
+                <input type="month" value={attendanceMonth} placeholder="Select Month" data-empty={!attendanceMonth} onClick={safeShowPicker} onChange={e => setAttendanceMonth(e.target.value)}
                   style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
               </div>
               {attendanceLoading ? (
@@ -803,7 +804,7 @@ const StaffManagementView = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Staff Leaderboard</h3>
-            <input type="month" value={metricsMonth} placeholder="Select Month" data-empty={!metricsMonth} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setMetricsMonth(e.target.value)}
+            <input type="month" value={metricsMonth} placeholder="Select Month" data-empty={!metricsMonth} onClick={safeShowPicker} onChange={e => setMetricsMonth(e.target.value)}
               style={{ ...inputStyle, width: 'auto', maxWidth: '180px', cursor: 'pointer' }} />
           </div>
 
@@ -930,7 +931,7 @@ const StaffManagementView = ({
           <div className="ad-pay-modal-body" style={{ padding: '4px 0' }}>
             <div className="ad-pay-form-group">
               <label>Date</label>
-              <input type="date" value={attendanceDate} placeholder="Select Date" data-empty={!attendanceDate} onClick={e => e.currentTarget.showPicker?.()} onChange={e => setAttendanceDate(e.target.value)} style={{ cursor: 'pointer' }} />
+              <input type="date" value={attendanceDate} placeholder="Select Date" data-empty={!attendanceDate} onClick={safeShowPicker} onChange={e => setAttendanceDate(e.target.value)} style={{ cursor: 'pointer' }} />
             </div>
             <div className="ad-pay-form-group">
               <label>Status</label>

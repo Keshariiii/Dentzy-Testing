@@ -9,11 +9,12 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   overflow-y: auto;
 }
 
@@ -427,6 +428,30 @@
   .pi-screen-bar,
   .pi-screen-bar-standalone {
     display: none !important;
+  }
+
+  .pi-backdrop {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .pi-modal-shell {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .pi-scroll-body {
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
   }
 
   .pi-paper {

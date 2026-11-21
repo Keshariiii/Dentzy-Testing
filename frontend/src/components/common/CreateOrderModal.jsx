@@ -18,6 +18,7 @@ import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
 import { Icons as Ico } from './DashboardIcons';
 import './CreateOrderModal.css';
 import { inferDepartment } from '../../utils/roles';
+import { safeShowPicker } from '../../utils/appleCompat';
 
 /**
  * Official Dentzy Rate Card Catalog (from further plans.md §4.2)
@@ -457,7 +458,7 @@ export default function CreateOrderModal({
                   className="com-input"
                   placeholder="Select Due Date"
                   data-empty={!dueDate}
-                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  onClick={safeShowPicker}
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
                 />
