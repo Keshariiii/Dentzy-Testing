@@ -3,6 +3,7 @@ import React from 'react';
 import { formatINR, formatDate } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import { resolvePlaceOfDelivery } from '../../utils/placeOfDelivery';
+import { calculateGST } from '../../utils/gst';
 import { isAppleTouchDevice } from '../../utils/appleCompat';
 import './PrintableInvoice.css';
 
@@ -79,48 +80,64 @@ export default function PrintableInvoice({
     payment?.ownerPhone ||
     '';
 
-  // Normalize Line Items
+  // Normalize Line Items — apply GST from placeOfDelivery
+  const gstInfo = calculateGST(1, placeOfDelivery); // get tax structure (rates/type) once
+
+  // Parse discount from notes "[Discount: ₹500 (10%)]"
+  function parseDiscount(notesStr) {
+    if (!notesStr) return { flat: 0, percent: 0 };
+    const m = notesStr.match(/\[Discount:\s*₹?([\d,.]+)\s*\(([\d.]+)%\)\]/i);
+    if (m) return { flat: Number(m[1].replace(/,/g, '')) || 0, percent: Number(m[2]) || 0 };
+    return { flat: 0, percent: 0 };
+  }
+
+  function applyGST(item) {
+    const net = Number(item.netAmount ?? item.amount) || 0;
+    const gst = calculateGST(net, placeOfDelivery);
+    return { ...item, hsn: item.hsn || '90212100', taxRate: gst.taxRate, taxType: gst.taxType, taxAmount: gst.totalTax, total: gst.totalAmount };
+  }
+
   let lineItems = [];
   if (statement?.items && Array.isArray(statement.items)) {
-    lineItems = statement.items;
+    lineItems = statement.items.map(it => {
+      const disc = parseDiscount(it.specs || it.notes);
+      const grossPrice = (Number(it.netAmount ?? it.amount) || 0) + disc.flat;
+      return applyGST({ ...it, unitPrice: grossPrice, discount: disc.flat, discountPercent: disc.percent, netAmount: Number(it.netAmount ?? it.amount) || 0 });
+    });
   } else if (directItems && Array.isArray(directItems)) {
-    lineItems = directItems;
+    lineItems = directItems.map(it => {
+      const disc = parseDiscount(it.specs || it.notes);
+      const grossPrice = (Number(it.netAmount ?? it.amount) || 0) + disc.flat;
+      return applyGST({ ...it, unitPrice: grossPrice, discount: disc.flat, discountPercent: disc.percent, netAmount: Number(it.netAmount ?? it.amount) || 0 });
+    });
   } else if (payment) {
-    lineItems = [
-      {
-        caseId: payment.caseId,
-        patientName: payment.patientName,
-        description: payment.serviceType || payment.service || 'Dental Prosthetics Restoration',
-        teeth: payment.teeth || payment.units || '',
-        specs: payment.notes || 'Custom Dental Lab Prosthetics | 5-10 Years Lab Guarantee',
-        hsn: '90212000',
-        unitPrice: Number(payment.amount) || 0,
-        discount: 0,
-        qty: 1,
-        netAmount: Number(payment.amount) || 0,
-        taxRate: 0,
-        taxType: 'GST Exempt',
-        taxAmount: 0,
-        total: Number(payment.amount) || 0,
-      },
-    ];
+    const disc = parseDiscount(payment.notes || payment.description);
+    const netAmt = Number(payment.amount) || 0;
+    const grossPrice = netAmt + disc.flat;
+    lineItems = [applyGST({
+      caseId: payment.caseId,
+      patientName: payment.patientName,
+      description: payment.serviceType || payment.service || 'Dental Prosthetics Restoration',
+      teeth: payment.teeth || payment.units || '',
+      specs: payment.notes || 'Custom Dental Lab Prosthetics | 5-10 Years Lab Guarantee',
+      hsn: '90212100',
+      unitPrice: grossPrice,
+      discount: disc.flat,
+      discountPercent: disc.percent,
+      qty: 1,
+      netAmount: netAmt,
+    })];
   } else {
-    lineItems = [
-      {
-        description: 'Dental Prosthetics Restoration',
-        teeth: '',
-        specs: 'Custom Dental Lab Prosthetics | 5-10 Years Lab Guarantee',
-        hsn: '90212000',
-        unitPrice: 0,
-        discount: 0,
-        qty: 1,
-        netAmount: 0,
-        taxRate: 0,
-        taxType: 'GST Exempt',
-        taxAmount: 0,
-        total: 0,
-      },
-    ];
+    lineItems = [applyGST({
+      description: 'Dental Prosthetics Restoration',
+      teeth: '',
+      specs: 'Custom Dental Lab Prosthetics | 5-10 Years Lab Guarantee',
+      hsn: '90212100',
+      unitPrice: 0,
+      discount: 0,
+      qty: 1,
+      netAmount: 0,
+    })];
   }
 
   const subtotal = lineItems.reduce((acc, item) => acc + (Number(item.netAmount ?? item.amount) || 0), 0);
@@ -285,7 +302,7 @@ export default function PrintableInvoice({
                   <div className="pi-item-hsn">HSN:{item.hsn || '90212000'}</div>
                 </td>
                 <td style={{ textAlign: 'right' }}>{formatINR(item.unitPrice || item.amount || 0)}</td>
-                <td style={{ textAlign: 'right' }}>{formatINR(item.discount || 0)}</td>
+                <td style={{ textAlign: 'right' }}>{(item.discount > 0) ? <><span style={{ color: '#b45309' }}>-{formatINR(item.discount)}</span>{item.discountPercent > 0 && <span style={{ fontSize: '10px', display: 'block', color: '#92400e' }}>({item.discountPercent}%)</span>}</> : formatINR(0)}</td>
                 <td style={{ textAlign: 'center' }}>{item.qty || 1}</td>
                 <td style={{ textAlign: 'right' }}>{formatINR(item.netAmount || item.amount || 0)}</td>
                 <td style={{ textAlign: 'center' }}>{item.taxRate ?? 0}%</td>
@@ -296,9 +313,46 @@ export default function PrintableInvoice({
             ))}
           </tbody>
           <tfoot>
+            {(() => {
+              const totalDiscount = lineItems.reduce((acc, it) => acc + (Number(it.discount) || 0), 0);
+              const totalGross = lineItems.reduce((acc, it) => acc + (Number(it.unitPrice) || 0), 0);
+              return totalDiscount > 0 ? (
+                <>
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'right' }}>Gross Amount:</td>
+                    <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(totalGross)}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'right', color: '#b45309' }}>Less: Discount:</td>
+                    <td colSpan="2" style={{ textAlign: 'right', color: '#b45309' }}>-{formatINR(totalDiscount)}</td>
+                  </tr>
+                </>
+              ) : null;
+            })()}
+            <tr>
+              <td colSpan="8" style={{ textAlign: 'right' }}>Subtotal (Taxable Value):</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(subtotal)}</td>
+            </tr>
+            {gstInfo.isIntraState ? (
+              <>
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'right' }}>CGST @ {gstInfo.cgstRate}%:</td>
+                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).cgstAmount)}</td>
+                </tr>
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'right' }}>SGST @ {gstInfo.sgstRate}%:</td>
+                  <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).sgstAmount)}</td>
+                </tr>
+              </>
+            ) : (
+              <tr>
+                <td colSpan="8" style={{ textAlign: 'right' }}>IGST @ {gstInfo.igstRate}%:</td>
+                <td colSpan="2" style={{ textAlign: 'right' }}>{formatINR(calculateGST(subtotal, placeOfDelivery).igstAmount)}</td>
+              </tr>
+            )}
             <tr className="pi-total-row">
               <td colSpan="8" style={{ textAlign: 'left', fontWeight: 'bold' }}>
-                {isUnpaid ? 'TOTAL OUTSTANDING AMOUNT TO PAY:' : 'TOTAL:'}
+                {isUnpaid ? 'TOTAL OUTSTANDING AMOUNT (Incl. GST):' : 'GRAND TOTAL (Incl. GST):'}
               </td>
               <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalTax)}</td>
               <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatINR(totalAmount)}</td>
@@ -311,7 +365,7 @@ export default function PrintableInvoice({
       <div className="pi-words-and-sign">
         <div className="pi-words-col">
           <div className="pi-words-lbl"><strong>Amount in Words:</strong></div>
-          <div className="pi-words-val">{formatINR(totalAmount)} {isUnpaid ? '(Total Outstanding Balance)' : '(Inclusive of all taxes)'}</div>
+          <div className="pi-words-val">{formatINR(totalAmount)} {isUnpaid ? '(Total Outstanding Balance Incl. GST @5%)' : '(Inclusive of GST @5% under HSN 9021)'}</div>
           <div className="pi-rc-text">Whether tax is payable under reverse charge - No</div>
         </div>
 

@@ -74,6 +74,8 @@ export default function CreateOrderModal({
   const [priority, setPriority] = useState('Normal');
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [discount, setDiscount] = useState('');
+  const [discountMode, setDiscountMode] = useState('flat'); // 'flat' (₹) or 'percent' (%)
   const [assignedDepartment, setAssignedDepartment] = useState('Ceramic');
 
   // Auto price detector state with manual override latch
@@ -143,8 +145,16 @@ export default function CreateOrderModal({
     return price;
   }, [currentProduct, selectedTeeth, selectedArches, claspCount]);
 
-  // Effective displayed amount
-  const displayAmount = isPriceOverridden ? manualAmount : autoAmount;
+  // Effective displayed amount (after discount)
+  const rawDisplay = isPriceOverridden ? Number(manualAmount) || 0 : autoAmount;
+  const discountInput = Number(discount) || 0;
+  const discountFlat = discountMode === 'percent'
+    ? Math.round(rawDisplay * discountInput / 100)
+    : discountInput;
+  const discountPercent = rawDisplay > 0
+    ? (discountMode === 'percent' ? discountInput : Math.round((discountInput / rawDisplay) * 100 * 100) / 100)
+    : 0;
+  const displayAmount = Math.max(0, rawDisplay - discountFlat);
 
   // Handle manual amount input
   const handleAmountChange = (e) => {
@@ -184,6 +194,7 @@ export default function CreateOrderModal({
     let notesSummary = `[Product: ${currentProduct.name}]`;
     if (toothDetails) notesSummary += ` [${toothDetails}]`;
     if (claspCount > 0) notesSummary += ` [Clasps: ${claspCount}]`;
+    if (discountFlat > 0) notesSummary += ` [Discount: ₹${discountFlat} (${discountPercent}%)]`;
     if (notes.trim()) notesSummary += ` | Notes: ${notes.trim()}`;
 
     const payload = {
@@ -193,6 +204,8 @@ export default function CreateOrderModal({
       priority,
       dueDate: dueDate || null,
       amount: finalAmount,
+      discount: discountFlat,
+      discountPercent,
       notes: notesSummary,
       teethData: selectedTeeth,
       teeth_data: selectedTeeth,
@@ -422,7 +435,7 @@ export default function CreateOrderModal({
                 step="any"
                 className="com-input com-price-input"
                 placeholder="0"
-                value={displayAmount}
+                value={rawDisplay}
                 onChange={handleAmountChange}
                 required
               />
@@ -432,6 +445,46 @@ export default function CreateOrderModal({
               Catalog: {currentProduct.name} @ ₹{currentProduct.price.toLocaleString('en-IN')}/{currentProduct.metric}.
               {currentProduct.metric === 'unit' && ` (${selectedTeeth.length || 1} unit(s))`}
             </p>
+          </div>
+
+          {/* 5b. Discount (Optional) */}
+          <div className="com-field">
+            <label className="com-label">Discount (Optional)</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div className="com-input-with-icon" style={{ flex: 1 }}>
+                <span className="com-currency-sym">{discountMode === 'flat' ? '₹' : '%'}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className="com-input"
+                  placeholder={discountMode === 'flat' ? 'e.g. 500' : 'e.g. 15'}
+                  value={discount}
+                  onChange={e => setDiscount(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                className={`com-cat-tab ${discountMode === 'flat' ? 'com-cat-tab--active' : ''}`}
+                style={{ padding: '6px 12px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                onClick={() => { setDiscountMode('flat'); setDiscount(''); }}
+              >
+                ₹ Flat
+              </button>
+              <button
+                type="button"
+                className={`com-cat-tab ${discountMode === 'percent' ? 'com-cat-tab--active' : ''}`}
+                style={{ padding: '6px 12px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                onClick={() => { setDiscountMode('percent'); setDiscount(''); }}
+              >
+                % Percent
+              </button>
+            </div>
+            {discountFlat > 0 && (
+              <p className="com-price-hint" style={{ marginTop: '4px', color: '#d97706' }}>
+                Discount: ₹{discountFlat.toLocaleString('en-IN')} ({discountPercent}%) — Net: ₹{displayAmount.toLocaleString('en-IN')}
+              </p>
+            )}
           </div>
 
           {/* 6. Priority & Due Date */}
