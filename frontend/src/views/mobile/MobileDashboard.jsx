@@ -28,6 +28,8 @@ import BaseModal from '../../components/ui/BaseModal';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
+import { getOrderPrice } from '../../utils/pricing';
+import { usePolling } from '../../hooks/usePolling';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
@@ -43,24 +45,6 @@ import { TICKER_MESSAGES } from '../../components/dashboard/shared/constants';
 import TwentyFirstNoticeBar from '../../components/ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from '../../components/common/DentistWelcomeBanner';
 import { triggerBirthdayConfettiOnce } from '../../utils/birthdayConfetti';
-
-const FALLBACK_RATES = { Crown: 750, Bridge: 750, Denture: 1500, Implant: 1800, Veneer: 1800, Retainer: 1200, Other: 500 };
-const getOrderPrice = (o) => {
-  const val = Number(o?.amount) || Number(o?.paymentAmount) || 0;
-  if (val > 0) return val;
-  const matched = Object.keys(FALLBACK_RATES).find(k => k.toLowerCase() === (o?.serviceType || '').toLowerCase()) || 'Other';
-  const base = FALLBACK_RATES[matched] || 500;
-  let units = 1;
-  const raw = o?.teeth_data ?? o?.teethData ?? o?.teeth;
-  if (Array.isArray(raw)) units = raw.length > 0 ? raw.length : 1;
-  else if (typeof raw === 'string' && raw.trim()) {
-    try {
-      const p = JSON.parse(raw);
-      if (Array.isArray(p) && p.length > 0) units = p.length;
-    } catch {}
-  }
-  return base * units;
-};
 
 /* ============================================================
    TICKER
@@ -257,22 +241,10 @@ const MobileDashboard = () => {
   fetchStatsRef.current = fetchStats;
 
   // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  useEffect(() => {
-    if (!user) return;
-    const handlePoll = () => {
-      if (document.hidden) return;
-      fetchStatsRef.current?.();
-      fetchOrdersRef.current?.();
-    };
-    const timer = setInterval(handlePoll, 30000);
-    window.addEventListener('focus', handlePoll);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('focus', handlePoll);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
-  }, [user]);
+  usePolling(() => {
+    fetchStatsRef.current?.();
+    fetchOrdersRef.current?.();
+  }, 30000, Boolean(user));
 
   const handleLogout = () => { logout(); router.push('/login'); };
 

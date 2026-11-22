@@ -13,16 +13,10 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import './MobileLogin.css';
 import PasswordStrength from '../../components/ui/password-strength';
 import { EyeToggleIcon } from '../../components/ui/animated-state-icons';
+import { PASSWORD_RULES } from '../../utils/validation';
+import { useCountdown } from '../../hooks/useCountdown';
 
 const API_URL = getAuthUrl();
-
-const PASSWORD_RULES = [
-  { id: 'length',  label: 'At least 8 characters',             test: (p) => p.length >= 8 },
-  { id: 'upper',   label: 'At least 1 uppercase letter (A–Z)', test: (p) => /[A-Z]/.test(p) },
-  { id: 'lower',   label: 'At least 1 lowercase letter (a–z)', test: (p) => /[a-z]/.test(p) },
-  { id: 'number',  label: 'At least 1 number (0–9)',           test: (p) => /[0-9]/.test(p) },
-  { id: 'special', label: 'At least 1 special character',       test: (p) => /[^A-Za-z0-9]/.test(p) },
-];
 
 const MobileForgotPassword = () => {
   const router = useRouter();
@@ -33,7 +27,7 @@ const MobileForgotPassword = () => {
   const [otp, setOtp]             = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]   = useState('');
   const [resetToken, setResetToken] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const { seconds: resendCooldown, start: startResendCooldown } = useCountdown(0);
 
   const [password, setPassword]   = useState('');
   const [confirm, setConfirm]     = useState('');
@@ -60,14 +54,7 @@ const MobileForgotPassword = () => {
     });
   }, [siteKey]);
 
-  // ── Resend cooldown timer ──────────────────────────────────────────────────
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+
 
   // ── Step 1: Send OTP ──────────────────────────────────────────────────────
   const handleSendOtp = async (e) => {
@@ -96,7 +83,7 @@ const MobileForgotPassword = () => {
       } else {
         if (data.otpToken) setOtpToken(data.otpToken);
         setStep(2);
-        setResendCooldown(60);
+        startResendCooldown(60);
         setInfoMsg(`Code sent to ${cleanEmail}`);
         setOtp(['', '', '', '', '', '']);
         setTimeout(() => otpInputsRef.current[0]?.focus(), 150);

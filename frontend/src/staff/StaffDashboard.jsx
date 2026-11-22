@@ -5,14 +5,11 @@ import { useStaffAuth } from './StaffAuthContext';
 import { normalizeDesignation } from '../utils/roles';
 import ExecutiveStaffDashboard from './designations/ExecutiveStaffDashboard';
 import ReceptionistStaffDashboard from './designations/ReceptionistStaffDashboard';
-import CeramicStaffDashboard from './designations/CeramicStaffDashboard';
-import AcrylicStaffDashboard from './designations/AcrylicStaffDashboard';
-import CadCamStaffDashboard from './designations/CadCamStaffDashboard';
-import MillingStaffDashboard from './designations/MillingStaffDashboard';
-import SinteringStaffDashboard from './designations/SinteringStaffDashboard';
-import ThreeDPrintingStaffDashboard from './designations/ThreeDPrintingStaffDashboard';
 import DeliveryStaffDashboard from './designations/DeliveryStaffDashboard';
+import ProductionStaffView from './common/ProductionStaffView';
 import './StaffDashboard.css';
+
+const PRODUCTION_DEPTS = ['Ceramic', 'Acrylic', 'CAD/CAM', 'Milling', 'Sintering', '3D Printing'];
 
 /**
  * StaffDashboard — Canonical Role Dispatcher & Router.
@@ -31,28 +28,12 @@ export default function StaffDashboard() {
     case 'Receptionist':
       return <ReceptionistStaffDashboard />;
 
-    case 'Ceramic':
-      return <CeramicStaffDashboard />;
-
-    case 'Acrylic':
-      return <AcrylicStaffDashboard />;
-
-    case 'CAD/CAM':
-      return <CadCamStaffDashboard />;
-
-    case 'Milling':
-      return <MillingStaffDashboard />;
-
-    case 'Sintering':
-      return <SinteringStaffDashboard />;
-
-    case '3D Printing':
-      return <ThreeDPrintingStaffDashboard />;
-
     case 'Delivery':
       return <DeliveryStaffDashboard />;
 
-    default:
-      return <CeramicStaffDashboard />;
+    default: {
+      const dept = PRODUCTION_DEPTS.includes(designation) ? designation : 'Ceramic';
+      return <ProductionStaffView departmentName={dept} title={`${dept} Section`} />;
+    }
   }
 }

@@ -45,11 +45,12 @@ export function StatusBadge({
   label,
   size = 'sm',
   pulse,
+  fixedWidth,
   className = '',
   children,
   ...props
 }) {
-  const rawStatus = (status || children || '').toString().trim();
+  const rawStatus = (status || (typeof children === 'string' ? children : '')).toString().trim();
   const animatedStatus = mapToAnimatedStatus(rawStatus);
   const displayLabel = label || (children ? children : (rawStatus ? rawStatus : 'Pending'));
   const badgeSize = size === 'lg' ? 'md' : 'sm';
@@ -59,8 +60,8 @@ export function StatusBadge({
       status={animatedStatus}
       size={badgeSize}
       pulse={pulse !== undefined ? pulse : animatedStatus === 'loading'}
-      contentKey={displayLabel}
-      className={cn('tracking-normal font-semibold', className)}
+      contentKey={typeof displayLabel === 'string' ? displayLabel : undefined}
+      className={cn('tracking-normal font-semibold', fixedWidth && 'w-40 justify-center', className)}
       {...props}
     >
       {displayLabel}

@@ -11,39 +11,10 @@ import { DeliveryCardSkeleton } from '../../components/SkeletonBlocks';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import { parseTeeth } from '../../utils/teeth';
+import { formatDate } from '../../utils/format';
+import { usePolling } from '../../hooks/usePolling';
 import '../StaffDashboard.css';
-
-function parseTeeth(order) {
-  const raw = order?.teeth_data ?? order?.teethData ?? order?.teeth;
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw.map(String);
-  if (typeof raw === 'string') {
-    const trimmed = raw.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) return parsed.map(String);
-      } catch {}
-    }
-    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
-  }
-  return [];
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return null;
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 function formatTime(dateStr) {
   if (!dateStr) return null;
@@ -96,18 +67,10 @@ export default function DeliveryStaffDashboard() {
 
   useEffect(() => {
     fetchDeliveries();
-
-    // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-    const handlePoll = () => {
-      if (!document.hidden) fetchDeliveries();
-    };
-    const timer = setInterval(handlePoll, 30000);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
   }, [fetchDeliveries]);
+
+  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
+  usePolling(fetchDeliveries, 30000, true);
 
   // ── Status update: PATCH /api/staff/deliveries/:orderId/status ──────────
   const handleUpdateDeliveryStatus = async (orderId, newStatus) => {

@@ -143,11 +143,11 @@ export function AnimatedBadge({
   status = 'neutral',
   size = 'md',
   children,
-  icon,
+  icon = null,
   showIcon = true,
   pulse = status === 'loading',
-  contentKey,
-  className,
+  contentKey = undefined,
+  className = '',
   ...rest
 }) {
   const reduce = useReducedMotion();

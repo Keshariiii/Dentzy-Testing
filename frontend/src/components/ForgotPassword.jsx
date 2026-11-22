@@ -9,17 +9,11 @@ import PasswordStrength from './ui/password-strength';
 import { EyeToggleIcon } from './ui/animated-state-icons';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { Icons as Ico } from './common/DashboardIcons';
+import { PASSWORD_RULES } from '../utils/validation';
+import { useCountdown } from '../hooks/useCountdown';
 import './Register.css';
 
 const API = () => getAuthUrl();
-
-const PASSWORD_RULES = [
-  { id: 'length',  label: 'At least 8 characters',               test: (p) => p.length >= 8 },
-  { id: 'upper',   label: 'At least 1 uppercase letter (A–Z)',    test: (p) => /[A-Z]/.test(p) },
-  { id: 'lower',   label: 'At least 1 lowercase letter (a–z)',    test: (p) => /[a-z]/.test(p) },
-  { id: 'number',  label: 'At least 1 number (0–9)',              test: (p) => /[0-9]/.test(p) },
-  { id: 'special', label: 'At least 1 special character (!@#$%)',  test: (p) => /[^A-Za-z0-9]/.test(p) },
-];
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -30,7 +24,7 @@ const ForgotPassword = () => {
   const [otp, setOtp]             = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]   = useState('');
   const [resetToken, setResetToken] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const { seconds: resendCooldown, start: startResendCooldown } = useCountdown(0);
 
   const [form, setForm]                 = useState({ password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -58,14 +52,7 @@ const ForgotPassword = () => {
     });
   }, [siteKey]);
 
-  // ── Resend cooldown timer ──────────────────────────────────────────────────
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+
 
   // ── Password strength ─────────────────────────────────────────────────────
   const ruleResults = useMemo(
@@ -110,7 +97,7 @@ const ForgotPassword = () => {
       } else {
         if (data.otpToken) setOtpToken(data.otpToken);
         setStep(2);
-        setResendCooldown(60);
+        startResendCooldown(60);
         setInfoMsg(`Verification code sent to ${cleanEmail}`);
         setOtp(['', '', '', '', '', '']);
         setTimeout(() => otpInputsRef.current[0]?.focus(), 150);

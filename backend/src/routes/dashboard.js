@@ -5,18 +5,9 @@ import { updateOrderSchema } from '../validators/dashboard.js';
 import { now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
+import { safeWait } from '../utils/worker.js';
 
 const dashboard = new Hono();
-
-function safeWait(c, promise) {
-  try {
-    if (c.executionCtx?.waitUntil) {
-      c.executionCtx.waitUntil(promise);
-      return;
-    }
-  } catch {}
-  promise?.catch?.(() => {});
-}
 
 // All dashboard routes require authenticated, approved user
 dashboard.use('*', verifyUser());

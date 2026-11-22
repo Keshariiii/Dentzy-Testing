@@ -7,22 +7,9 @@ import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, send
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
+import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
 
 const auth = new Hono();
-
-// ── Cookie helpers ───────────────────────────────────────────────────────────
-const cookieHeader = (name, value, maxAge, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
-};
-const clearCookieHeader = (name, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
-};
 
 const safeUserObj = (u) => ({
   id: u.id, name: u.name, email: u.email,

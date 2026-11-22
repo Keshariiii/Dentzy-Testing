@@ -13,6 +13,7 @@ import MaintenanceModeController from './MaintenanceModeController';
 import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
+import { usePolling } from '../hooks/usePolling';
 import './AdminDashboard.css';
 import { formatINR, formatOrderDateTime } from '../utils/format';
 import { safeShowPicker, openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
@@ -99,26 +100,7 @@ const AdminDashboard = () => {
   const [paySearch, setPaySearch] = useState('');
   // Record Payment modal state
   const [payModal, setPayModal] = useState(null); // { orderId, caseId, patientName, amount, ... }
-  const [isRecalculating, setIsRecalculating] = useState(false);
-  const handleRecalculateAll = async () => {
-    if (!window.confirm('Recalculate and backfill rate-card amounts for all legacy orders?')) return;
-    setIsRecalculating(true);
-    try {
-      const res = await authFetch(`${ADMIN_API}/orders/recalculate-all`, { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) {
-        showToast(data.message || 'All orders recalculated successfully.');
-        fetchAllOrders();
-        fetchPaymentsRef.current?.();
-      } else {
-        showToast(data.message || 'Failed to recalculate orders.', 'error');
-      }
-    } catch (err) {
-      showToast(err.message || 'Failed to recalculate orders.', 'error');
-    } finally {
-      setIsRecalculating(false);
-    }
-  };
+
 
   const [payForm, setPayForm] = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
@@ -432,24 +414,12 @@ const AdminDashboard = () => {
   playNotifSoundRef.current = playNotifSound;
 
   // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  useEffect(() => {
-    if (!admin?.username) return;
-    const handlePoll = () => {
-      if (document.hidden) return;
-      fetchUsersRef.current?.();
-      fetchStatsRef.current?.();
-      fetchAllOrdersRef.current?.();
-      fetchPaymentsRef.current?.();
-    };
-    const timer = setInterval(handlePoll, 30000);
-    window.addEventListener('focus', handlePoll);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('focus', handlePoll);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
-  }, [admin?.username]);
+  usePolling(() => {
+    fetchUsersRef.current?.();
+    fetchStatsRef.current?.();
+    fetchAllOrdersRef.current?.();
+    fetchPaymentsRef.current?.();
+  }, 30000, Boolean(admin?.username));
 
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
@@ -1034,22 +1004,6 @@ const AdminDashboard = () => {
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRecalculateAll}
-                  disabled={isRecalculating}
-                  style={{
-                    padding: '8px 14px', borderRadius: '8px', border: '1px solid #c2dcd0',
-                    background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.8rem',
-                    cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  }}
-                  title="Auto-calculate and backfill rate-card amounts for all legacy orders"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
-                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                  </svg>
-                  {isRecalculating ? 'Syncing...' : 'Sync Order Amounts'}
-                </button>
               </div>
             )}
 

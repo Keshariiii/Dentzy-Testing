@@ -23,6 +23,7 @@ import {
 } from '../../components/SkeletonBlocks';
 import { formatINR } from '../../utils/format';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
+import { usePolling } from '../../hooks/usePolling';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
 import '../StaffDashboard.css';
@@ -172,25 +173,16 @@ export default function ReceptionistStaffDashboard() {
   }, [authFetch, apiBase, showToast]);
 
   // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-  useEffect(() => {
-    const handlePoll = () => {
-      if (document.hidden) return;
-      fetchDentists();
-      fetchAllPayments();
-      if (selectedDentist?._id || selectedDentist?.id) {
-        fetchDentistDetail(selectedDentist._id || selectedDentist.id);
-      }
-      if (selectedPayDentist?._id || selectedPayDentist?.id) {
-        fetchPayDentistDetail(selectedPayDentist._id || selectedPayDentist.id);
-      }
-    };
-    const timer = setInterval(handlePoll, 30000);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
-  }, [fetchDentists, fetchAllPayments, selectedDentist, selectedPayDentist, fetchDentistDetail, fetchPayDentistDetail]);
+  usePolling(() => {
+    fetchDentists();
+    fetchAllPayments();
+    if (selectedDentist?._id || selectedDentist?.id) {
+      fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+    }
+    if (selectedPayDentist?._id || selectedPayDentist?.id) {
+      fetchPayDentistDetail(selectedPayDentist._id || selectedPayDentist.id);
+    }
+  }, 30000, true);
 
   // ── Dentists Tab Filters ──────────────────────────────────────────────────
   const filteredDentists = useMemo(() => {

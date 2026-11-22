@@ -6,11 +6,11 @@
 export const formatINR = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
-export const formatDate = (d) => {
-  if (!d) return '\u2014';
+export const formatDate = (d, fallback = '\u2014', options) => {
+  if (!d) return fallback;
   const parsed = new Date(d);
-  if (isNaN(parsed.getTime())) return '\u2014';
-  return parsed.toLocaleDateString('en-IN', {
+  if (isNaN(parsed.getTime())) return typeof d === 'string' && fallback === null ? d : fallback;
+  return parsed.toLocaleDateString('en-IN', options || {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });

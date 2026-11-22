@@ -21,6 +21,7 @@ import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import MaintenanceModeController from '../../admin/MaintenanceModeController';
 import { formatINR, formatDate } from '../../utils/format';
+import { usePolling } from '../../hooks/usePolling';
 import { getAudioContext, safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
@@ -126,26 +127,7 @@ const MobileAdminDashboard = () => {
 
   // Record Payment modal state
   const [payModal, setPayModal]         = useState(null);
-  const [isRecalculating, setIsRecalculating] = useState(false);
-  const handleRecalculateAll = async () => {
-    if (!window.confirm('Recalculate and backfill rate-card amounts for all legacy orders?')) return;
-    setIsRecalculating(true);
-    try {
-      const res = await authFetch(`${ADMIN_API}/orders/recalculate-all`, { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) {
-        showToast(data.message || 'All orders recalculated successfully.');
-        fetchAllOrders();
-        fetchPayments();
-      } else {
-        showToast(data.message || 'Failed to recalculate orders.', 'error');
-      }
-    } catch (err) {
-      showToast(err.message || 'Failed to recalculate orders.', 'error');
-    } finally {
-      setIsRecalculating(false);
-    }
-  };
+
 
   const [payForm, setPayForm]           = useState({ mode: 'Cash', referenceNumber: '', amount: '', notes: '' });
   const [payFormError, setPayFormError] = useState('');
@@ -462,24 +444,12 @@ const MobileAdminDashboard = () => {
   playNotifSoundRef.current = playNotifSound;
 
   // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  useEffect(() => {
-    if (!admin?.username) return;
-    const handlePoll = () => {
-      if (document.hidden) return;
-      fetchUsersRef.current?.();
-      fetchStatsRef.current?.();
-      fetchAllOrdersRef.current?.();
-      fetchPaymentsRef.current?.();
-    };
-    const timer = setInterval(handlePoll, 30000);
-    window.addEventListener('focus', handlePoll);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('focus', handlePoll);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
-  }, [admin?.username]);
+  usePolling(() => {
+    fetchUsersRef.current?.();
+    fetchStatsRef.current?.();
+    fetchAllOrdersRef.current?.();
+    fetchPaymentsRef.current?.();
+  }, 30000, Boolean(admin?.username));
 
   /* -- Toast helper (using context) -------------------------------------- */
 
@@ -980,7 +950,7 @@ const MobileAdminDashboard = () => {
       {adminView === 'dentists' && dentistSubView === 'users' && (
         <>
           {/* Back to Dentist landing */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button onClick={() => setDentistSubView(null)} aria-label="Back"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
@@ -990,21 +960,6 @@ const MobileAdminDashboard = () => {
               </button>
               <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
             </div>
-            <button
-              type="button"
-              onClick={handleRecalculateAll}
-              disabled={isRecalculating}
-              style={{
-                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
-                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
-                cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-              </svg>
-              {isRecalculating ? 'Syncing...' : 'Sync Amounts'}
-            </button>
           </div>
 
           {/* #50 -- Section heading with count badge */}
@@ -1145,7 +1100,7 @@ const MobileAdminDashboard = () => {
       {adminView === 'dentists' && dentistSubView === 'orders' && (
         <>
           {/* Back to Dentist landing */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button onClick={() => setDentistSubView(null)} aria-label="Back"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--dz-color-primary-dark)', display: 'flex', alignItems: 'center' }}>
@@ -1155,21 +1110,6 @@ const MobileAdminDashboard = () => {
               </button>
               <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
             </div>
-            <button
-              type="button"
-              onClick={handleRecalculateAll}
-              disabled={isRecalculating}
-              style={{
-                padding: '6px 12px', borderRadius: '6px', border: '1px solid #c2dcd0',
-                background: '#e8f2ec', color: '#1e5038', fontWeight: 600, fontSize: '0.75rem',
-                cursor: isRecalculating ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isRecalculating ? 'spin 1s linear infinite' : 'none' }}>
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-              </svg>
-              {isRecalculating ? 'Syncing...' : 'Sync Amounts'}
-            </button>
           </div>
           {drillDentistOrders ? (
             /* ── Drill-down: single dentist's orders ── */

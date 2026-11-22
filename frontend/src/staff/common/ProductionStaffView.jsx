@@ -11,6 +11,9 @@ import { Skeleton } from '../../components/Skeleton';
 import { TaskCardSkeleton } from '../../components/SkeletonBlocks';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import { parseTeeth } from '../../utils/teeth';
+import { formatDate } from '../../utils/format';
+import { usePolling } from '../../hooks/usePolling';
 import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
@@ -19,38 +22,6 @@ const TECHNICIAN_STAGES = [
   { key: 'production', label: 'Production', color: '#2563eb' },
   { key: 'qc', label: 'QC', color: '#16a34a' },
 ];
-
-function parseTeeth(order) {
-  const raw = order?.teeth_data ?? order?.teethData ?? order?.teeth;
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw.map(String);
-  if (typeof raw === 'string') {
-    const trimmed = raw.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) return parsed.map(String);
-      } catch {}
-    }
-    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
-  }
-  return [];
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return null;
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 /**
  * ProductionStaffView — Lean technician task engine shared across all 6 production designations:
@@ -127,19 +98,10 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
   }, [activeView, fetchAllTasks]);
 
   // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-  useEffect(() => {
-    const handlePoll = () => {
-      if (document.hidden) return;
-      if (activeView === 'pending-tasks') fetchPendingTasks();
-      if (activeView === 'all-tasks') fetchAllTasks();
-    };
-    const timer = setInterval(handlePoll, 30000);
-    document.addEventListener('visibilitychange', handlePoll);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', handlePoll);
-    };
-  }, [activeView, fetchPendingTasks, fetchAllTasks]);
+  usePolling(() => {
+    if (activeView === 'pending-tasks') fetchPendingTasks();
+    if (activeView === 'all-tasks') fetchAllTasks();
+  }, 30000, true);
 
   // Live pending count
   const pendingCount = pendingTasks.length;
@@ -350,7 +312,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
   const renderTaskCard = (order) => {
     const orderId = order.id || order._id;
     const teeth = parseTeeth(order);
-    const dueDate = formatDate(order.dueDate);
+    const dueDate = formatDate(order.dueDate, null);
     const priority = order.priority || 'Normal';
     const isUrgent = ['urgent', 'rush', 'high'].includes(priority.toLowerCase());
 

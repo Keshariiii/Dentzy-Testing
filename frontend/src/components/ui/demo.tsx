@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatedBadge, type AnimatedBadgeStatus } from "@/components/ui/be-ui-animated-badge";
+import { AnimatedBadge } from "@/components/ui/be-ui-animated-badge";
+
+type AnimatedBadgeStatus = "neutral" | "info" | "success" | "warning" | "danger" | "loading";
 
 const STATES: Array<{ status: AnimatedBadgeStatus; label: string }> = [
   { status: "loading", label: "Syncing" },

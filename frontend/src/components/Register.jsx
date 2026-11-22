@@ -10,17 +10,10 @@ import PasswordStrength from './ui/password-strength';
 import { EyeToggleIcon } from './ui/animated-state-icons';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { Icons as Ico } from './common/DashboardIcons';
+import { PASSWORD_RULES } from '../utils/validation';
+import { useCountdown } from '../hooks/useCountdown';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Register.css';
-
-// Password requirement rules
-const PASSWORD_RULES = [
-  { id: 'length',    label: 'At least 8 characters',           test: (p) => p.length >= 8 },
-  { id: 'upper',     label: 'At least 1 uppercase letter (A–Z)', test: (p) => /[A-Z]/.test(p) },
-  { id: 'lower',     label: 'At least 1 lowercase letter (a–z)', test: (p) => /[a-z]/.test(p) },
-  { id: 'number',    label: 'At least 1 number (0–9)',           test: (p) => /[0-9]/.test(p) },
-  { id: 'special',   label: 'At least 1 special character (!@#$%)', test: (p) => /[^A-Za-z0-9]/.test(p) },
-];
 
 const Register = () => {
   const router = useRouter();
@@ -49,7 +42,7 @@ const Register = () => {
 
   const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]             = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const { seconds: resendCooldown, start: startResendCooldown } = useCountdown(0);
   const otpInputsRef                        = useRef([]);
   const [pending, setPending]               = useState(null);
 
@@ -69,14 +62,7 @@ const Register = () => {
     });
   }, [siteKey]);
 
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+
 
 
   // Compute which rules pass in real time
@@ -159,7 +145,7 @@ const Register = () => {
       if (result?.otpToken) {
         setOtpToken(result.otpToken);
         setStep(2);
-        setResendCooldown(60);
+        startResendCooldown(60);
         setOtp(['', '', '', '', '', '']);
         setError('');
         setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
@@ -350,7 +336,7 @@ const Register = () => {
                       const result = await resendRegisterOtp(form.email.trim(), otpToken);
                       if (result?.otpToken) {
                         setOtpToken(result.otpToken);
-                        setResendCooldown(60);
+                        startResendCooldown(60);
                         setOtp(['', '', '', '', '', '']);
                         setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
                       }

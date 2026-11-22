@@ -9,18 +9,10 @@ import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail,
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
 import { inferDepartment } from '../utils/roles.js';
+import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
+import { safeWait } from '../utils/worker.js';
 
 const admin = new Hono();
-
-function safeWait(c, promise) {
-  try {
-    if (c.executionCtx?.waitUntil) {
-      c.executionCtx.waitUntil(promise);
-      return;
-    }
-  } catch {}
-  promise?.catch?.(() => {});
-}
 
 // -- Doctor Credit Limit Helper -----------------------------------------------
 const CREDIT_LIMIT = 200000;
@@ -32,19 +24,7 @@ async function getDoctorDebt(db, dentistId) {
   return row?.totalDebt || 0;
 }
 
-// ── Cookie helpers ───────────────────────────────────────────────────────────
-const cookieHeader = (name, value, maxAge, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
-};
-const clearCookieHeader = (name, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
-};
+
 
 // -- Timing-safe compare -------------------------------------------------------------------
 // ponytail: SHA-256 digest comparison -- no length leak, Cloudflare Workers crypto.subtle

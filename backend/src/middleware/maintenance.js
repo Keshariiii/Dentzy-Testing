@@ -1,25 +1,7 @@
 // ponytail: Fast zero-leak Hono middleware checking D1 maintenance_mode with admin immunity
 import { verifyJWT } from '../utils/crypto.js';
 import { isExecutiveRole } from '../utils/roles.js';
-
-// Parse cookie string into key-value map without external libraries
-const parseCookies = (cookieHeader) => {
-  if (!cookieHeader) return {};
-  return Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    })
-  );
-};
-
-const extractToken = (c, cookieName) => {
-  const cookies = parseCookies(c.req.header('Cookie'));
-  if (cookies[cookieName]) return cookies[cookieName];
-  const auth = c.req.header('Authorization');
-  if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  return null;
-};
+import { extractToken } from '../utils/cookies.js';
 
 // ponytail: Reusable response builder keeping payload standardized across all blocked routes
 export const buildMaintenance503 = (c, maintenance, affectedRole) => {

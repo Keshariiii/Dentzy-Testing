@@ -1,26 +1,6 @@
 import { verifyJWT } from '../utils/crypto.js';
 import { isExecutiveRole } from '../utils/roles.js';
-
-// Cookie parser helper — Workers doesn't have cookie-parser
-const parseCookies = (cookieHeader) => {
-  if (!cookieHeader) return {};
-  return Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    })
-  );
-};
-
-const extractToken = (c, cookieName) => {
-  // 1. Cookie
-  const cookies = parseCookies(c.req.header('Cookie'));
-  if (cookies[cookieName]) return cookies[cookieName];
-  // 2. Bearer header
-  const auth = c.req.header('Authorization');
-  if (auth?.startsWith('Bearer ')) return auth.slice(7);
-  return null;
-};
+import { extractToken } from '../utils/cookies.js';
 
 export const verifyUser = () => async (c, next) => {
   const token = extractToken(c, 'dentzy_jwt');

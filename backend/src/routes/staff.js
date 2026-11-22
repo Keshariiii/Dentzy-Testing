@@ -8,6 +8,8 @@ import logger, { auditLog } from '../utils/logger.js';
 import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
 import { normalizeDesignation, inferDepartment, isProductionRole, isDeliveryRole } from '../utils/roles.js';
+import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
+import { safeWait } from '../utils/worker.js';
 
 const staff = new Hono();
 
@@ -20,29 +22,7 @@ const requireStaffRoles = (allowedRoles) => async (c, next) => {
   await next();
 };
 
-function safeWait(c, promise) {
-  try {
-    if (c.executionCtx?.waitUntil) {
-      c.executionCtx.waitUntil(promise);
-      return;
-    }
-  } catch {}
-  promise?.catch?.(() => {});
-}
 
-// ── Cookie helpers ───────────────────────────────────────────────────────────
-const cookieHeader = (name, value, maxAge, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
-};
-const clearCookieHeader = (name, env) => {
-  const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
-  const secure = isProd ? '; Secure' : '';
-  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
-};
 
 // POST /api/staff/login
 staff.post('/login', validate(staffLoginSchema), async (c) => {
