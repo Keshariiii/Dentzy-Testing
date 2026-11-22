@@ -83,11 +83,11 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   const token = await signJWT(
     { id: row.id, role: 'staff', username: row.username },
     c.env.STAFF_JWT_SECRET,
-    '8h'
+    '30d'
   );
 
   auditLog('STAFF_LOGIN', { username: row.username });
-  c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 8 * 60 * 60 * 1000, c.env));
+  c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
   return c.json({
     token,
     staff: {
@@ -113,10 +113,21 @@ staff.post('/logout', (c) => {
 
 // GET /api/staff/me
 staff.get('/me', verifyStaff(), async (c) => {
+  const staffMember = c.get('staff');
   const row = await c.env.DB.prepare(
     'SELECT id, username, displayName, designation, employeeId, email, phone, dob, status FROM staff WHERE id = ?'
-  ).bind(c.get('staff').id).first();
-  return c.json({ staff: { ...row, role: 'staff' } });
+  ).bind(staffMember.id).first();
+  if (!row) return c.json({ message: 'Staff not found.' }, 404);
+
+  // Sliding Session: Issue a fresh 30-day token on every /me fetch (identical to dentist auth)
+  const token = await signJWT(
+    { id: row.id, role: 'staff', username: row.username },
+    c.env.STAFF_JWT_SECRET,
+    '30d'
+  );
+  c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
+
+  return c.json({ staff: { ...row, role: 'staff' }, token });
 });
 
 // GET /api/staff/notice — fetch broadcast notice for authenticated staff

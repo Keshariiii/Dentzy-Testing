@@ -430,17 +430,24 @@ const AdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  // Refresh admin data on window focus
+  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
   useEffect(() => {
     if (!admin?.username) return;
-    const onFocus = () => {
+    const handlePoll = () => {
+      if (document.hidden) return;
       fetchUsersRef.current?.();
       fetchStatsRef.current?.();
       fetchAllOrdersRef.current?.();
       fetchPaymentsRef.current?.();
     };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
+    const timer = setInterval(handlePoll, 30000);
+    window.addEventListener('focus', handlePoll);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', handlePoll);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
   }, [admin?.username]);
 
   const handleApprove = async (userId, userName) => {
@@ -1111,14 +1118,6 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                   </div>
-                  <TwentyFirstIconButton
-                    icon={Ico.refresh(15)}
-                    title="Refresh Payments"
-                    ariaLabel="Refresh Payments"
-                    onClick={() => fetchPaymentsRef.current?.()}
-                    size="sm"
-                    variant="soft"
-                  />
                 </div>
 
                 {drillDentistPayments && (
@@ -1457,14 +1456,6 @@ const AdminDashboard = () => {
                       ) : 'Lab Orders'}
                     </p>
                   </div>
-                  <TwentyFirstIconButton
-                    icon={Ico.refresh(15)}
-                    title="Refresh Orders"
-                    ariaLabel="Refresh Orders"
-                    onClick={fetchAllOrders}
-                    size="sm"
-                    variant="soft"
-                  />
                 </div>
                 <div className="ad-content">
                   {loadingOrders ? (

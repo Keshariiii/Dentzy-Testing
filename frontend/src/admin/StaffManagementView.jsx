@@ -217,6 +217,22 @@ const StaffManagementView = ({
 
   useEffect(() => { if (subView === 'inventory') fetchInventory(); }, [subView, fetchInventory]);
 
+  // Ponytail: Lightweight background polling (every 30s when active) + visibility change
+  useEffect(() => {
+    const handlePoll = () => {
+      if (document.hidden) return;
+      if (subView === 'staff') fetchStaff?.();
+      if (subView === 'inventory') fetchInventory();
+      if (subView === 'attendance') fetchAttendance(attendanceDate);
+    };
+    const timer = setInterval(handlePoll, 30000);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
+  }, [subView, fetchStaff, fetchInventory, fetchAttendance, attendanceDate]);
+
   const handleAddItem = async () => {
     setItemFormError('');
     if (!itemForm.item_name.trim() || !itemForm.unit.trim()) {
@@ -410,14 +426,6 @@ const StaffManagementView = ({
                   size="md"
                 />
               )}
-              <TwentyFirstIconButton
-                icon={Ico.refresh ? Ico.refresh(16) : null}
-                title="Refresh Staff"
-                ariaLabel="Refresh Staff"
-                onClick={fetchStaff}
-                variant="secondary"
-                size="md"
-              />
               <TwentyFirstIconButton
                 icon={Ico.userPlus ? Ico.userPlus(18) : (Ico.plus ? Ico.plus(18) : null)}
                 title="Add Staff"
@@ -725,14 +733,6 @@ const StaffManagementView = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1a3028' }}>Inventory</h3>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <TwentyFirstIconButton
-                icon={Ico.refresh ? Ico.refresh(16) : null}
-                title="Refresh Inventory"
-                ariaLabel="Refresh Inventory"
-                onClick={fetchInventory}
-                variant="secondary"
-                size="md"
-              />
               <TwentyFirstIconButton
                 icon={Ico.plus ? Ico.plus(18) : null}
                 title="Add Item"

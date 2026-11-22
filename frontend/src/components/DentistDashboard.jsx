@@ -228,15 +228,22 @@ const DentistDashboard = () => {
   const fetchStatsRef = useRef(fetchStats);
   fetchStatsRef.current = fetchStats;
 
-  // Refresh stats and orders on window focus
+  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
   useEffect(() => {
     if (!user) return;
-    const onFocus = () => {
+    const handlePoll = () => {
+      if (document.hidden) return;
       fetchStatsRef.current?.();
       fetchOrdersRef.current?.();
     };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
+    const timer = setInterval(handlePoll, 30000);
+    window.addEventListener('focus', handlePoll);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', handlePoll);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
   }, [user]);
 
   const handleLogout = () => { logout(); router.push('/login'); };

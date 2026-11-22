@@ -170,6 +170,27 @@ export default function ReceptionistStaffDashboard() {
     }
   }, [authFetch, apiBase, showToast]);
 
+  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
+  useEffect(() => {
+    const handlePoll = () => {
+      if (document.hidden) return;
+      fetchDentists();
+      fetchAllPayments();
+      if (selectedDentist?._id || selectedDentist?.id) {
+        fetchDentistDetail(selectedDentist._id || selectedDentist.id);
+      }
+      if (selectedPayDentist?._id || selectedPayDentist?.id) {
+        fetchPayDentistDetail(selectedPayDentist._id || selectedPayDentist.id);
+      }
+    };
+    const timer = setInterval(handlePoll, 30000);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
+  }, [fetchDentists, fetchAllPayments, selectedDentist, selectedPayDentist, fetchDentistDetail, fetchPayDentistDetail]);
+
   // ── Dentists Tab Filters ──────────────────────────────────────────────────
   const filteredDentists = useMemo(() => {
     if (!dentistSearch.trim()) return dentists;
@@ -553,14 +574,6 @@ export default function ReceptionistStaffDashboard() {
                         style={{ width: '100%' }}
                       />
                     </div>
-                    <TwentyFirstIconButton
-                      icon={Ico.refresh(16)}
-                      title="Refresh Dentists"
-                      ariaLabel="Refresh Dentists"
-                      onClick={fetchDentists}
-                      variant="secondary"
-                      size="md"
-                    />
                   </div>
                 </div>
 
@@ -871,14 +884,6 @@ export default function ReceptionistStaffDashboard() {
                       Financial overview across all dentist clinics
                     </div>
                   </div>
-                  <TwentyFirstIconButton
-                    icon={Ico.refresh(16)}
-                    title="Refresh Payments"
-                    ariaLabel="Refresh Payments"
-                    onClick={fetchAllPayments}
-                    variant="secondary"
-                    size="md"
-                  />
                 </div>
 
                 {/* Summary Stat Cards */}

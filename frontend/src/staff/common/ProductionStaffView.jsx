@@ -125,6 +125,21 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     }
   }, [activeView, fetchAllTasks]);
 
+  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
+  useEffect(() => {
+    const handlePoll = () => {
+      if (document.hidden) return;
+      if (activeView === 'pending-tasks') fetchPendingTasks();
+      if (activeView === 'all-tasks') fetchAllTasks();
+    };
+    const timer = setInterval(handlePoll, 30000);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
+  }, [activeView, fetchPendingTasks, fetchAllTasks]);
+
   // Live pending count
   const pendingCount = pendingTasks.length;
 
@@ -638,30 +653,6 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
           >
             {Ico.settings(16)}
             <span>Settings</span>
-          </button>
-
-          {/* Refresh button */}
-          <button
-            type="button"
-            onClick={() => {
-              if (activeView === 'pending-tasks') fetchPendingTasks();
-              if (activeView === 'all-tasks') fetchAllTasks();
-            }}
-            title="Refresh Tasks"
-            style={{
-              background: '#fff',
-              border: '1px solid #d2ded7',
-              borderRadius: '10px',
-              padding: '8px',
-              cursor: 'pointer',
-              color: '#1e5038',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: '4px',
-            }}
-          >
-            {Ico.refresh(16)}
           </button>
         </div>
       </header>

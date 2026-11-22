@@ -95,6 +95,17 @@ export default function DeliveryStaffDashboard() {
 
   useEffect(() => {
     fetchDeliveries();
+
+    // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
+    const handlePoll = () => {
+      if (!document.hidden) fetchDeliveries();
+    };
+    const timer = setInterval(handlePoll, 30000);
+    document.addEventListener('visibilitychange', handlePoll);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handlePoll);
+    };
   }, [fetchDeliveries]);
 
   // ── Status update: PATCH /api/staff/deliveries/:orderId/status ──────────
@@ -339,16 +350,6 @@ export default function DeliveryStaffDashboard() {
                     </span>
                   </button>
                 </div>
-
-                {/* Refresh Button */}
-                <TwentyFirstIconButton
-                  icon={Ico.refresh(16)}
-                  title="Refresh Deliveries"
-                  ariaLabel="Refresh Deliveries"
-                  onClick={fetchDeliveries}
-                  variant="secondary"
-                  size="md"
-                />
               </div>
             </div>
 
