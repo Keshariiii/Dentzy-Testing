@@ -28,6 +28,7 @@ import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
 import { DentzyCaseChip, DentzyStatusPill } from './common/DentzyCard';
 import { DentzyDataTable } from './common/DentzyChartTable';
+import DentzySearchBar from './common/DentzySearchBar';
 import {
   RecentOrdersSkeleton,
   PipelineCardSkeleton,
@@ -460,11 +461,13 @@ const DentistDashboard = () => {
       <div className="ud-tab-header">
         <h2 className="ud-tab-title">Lab Orders</h2>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <input
-            type="text" placeholder="Search patient or case ID..." value={search}
+          <DentzySearchBar
+            placeholder="Search patient or case ID..."
+            value={search}
             onChange={e => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
             onKeyDown={e => e.key === 'Enter' && fetchOrders()}
-            className="ud-search-inline"
+            style={{ width: '260px' }}
           />
         </div>
       </div>
@@ -985,10 +988,15 @@ const DentistDashboard = () => {
           <img src={dentzyLogo} alt="Dentzy" className="ud-logo-img" />
         </div>
 
-        <div className="ud-header-search">
-          <span className="ud-search-icon">{Icons.search(15)}</span>
-          <input type="text" className="ud-search-input" placeholder="Search patient, case ID..."
-            value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="ud-header-search" style={{ border: 'none', background: 'transparent', padding: 0 }}>
+          <DentzySearchBar
+            placeholder="Search patient, case ID..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+            onKeyDown={e => e.key === 'Enter' && fetchOrders()}
+            style={{ width: '240px' }}
+          />
         </div>
 
         <div

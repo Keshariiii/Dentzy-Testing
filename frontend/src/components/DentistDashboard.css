@@ -101,10 +101,12 @@
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
-.ud-search-input:focus {
+.ud-search-input:focus,
+.ud-search-input:focus-visible {
   border-color: #708c80;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.12);
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .ud-search-input::placeholder { color: #bcc8c2; }
@@ -500,9 +502,11 @@
   color: #333;
 }
 
-.ud-search-inline:focus {
+.ud-search-inline:focus,
+.ud-search-inline:focus-visible {
   border-color: #7aa08d;
-  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */

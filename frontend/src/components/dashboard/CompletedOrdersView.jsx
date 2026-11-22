@@ -7,6 +7,7 @@ import { StatusBadge } from '../ui/status-badge';
 import EmptyState from '../common/EmptyState';
 import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
 import { formatDate } from '../../utils/format';
+import DentzySearchBar from '../common/DentzySearchBar';
 import './CompletedOrdersView.css';
 
 /**
@@ -78,25 +79,13 @@ export default function CompletedOrdersView({
         </div>
 
         {/* Search input */}
-        <div className="cov-search-wrap">
-          <span className="cov-search-icon">{Icons.search(15)}</span>
-          <input
-            type="text"
-            className="cov-search-input"
+        <div style={{ flex: 1, maxWidth: '340px' }}>
+          <DentzySearchBar
             placeholder="Search patient, case ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
           />
-          {search && (
-            <button
-              type="button"
-              className="cov-search-clear"
-              onClick={() => setSearch('')}
-              aria-label="Clear search"
-            >
-              {Icons.x(12)}
-            </button>
-          )}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
 import { formatINR, formatDate } from '../../utils/format';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
 const PAY_MODE_TABS = ['all', 'Cash', 'Cheque', 'UPI'];
@@ -189,26 +190,13 @@ export default function AdminPaymentsListView({
       )}
 
       {/* Search Bar */}
-      <div className={isMobile ? 'ma-search-wrap' : 'ad-search-wrap'} style={{ marginBottom: '12px' }}>
-        <div className={isMobile ? 'ma-search-bar' : 'ad-search-bar'}>
-          {Ico.search(14)}
-          <input
-            type="text"
-            className={isMobile ? 'ma-search-input' : 'ad-search-input'}
-            placeholder="Search patient, case, ref #, dentist..."
-            value={paySearch}
-            onChange={(e) => setPaySearch(e.target.value)}
-          />
-          {paySearch && (
-            <button
-              className={isMobile ? 'ma-search-clear' : 'ad-search-clear'}
-              onClick={() => setPaySearch('')}
-              aria-label="Clear search"
-            >
-              {Ico.x(12)}
-            </button>
-          )}
-        </div>
+      <div style={{ marginBottom: '12px' }}>
+        <DentzySearchBar
+          placeholder="Search patient, case, ref #, dentist..."
+          value={paySearch}
+          onChange={(e) => setPaySearch(e.target.value)}
+          onClear={() => setPaySearch('')}
+        />
       </div>
 
       {/* Filter Status & Mode Chips */}

@@ -125,7 +125,7 @@
   border-color: #7aa08d;
   background: #fff;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+  box-shadow: none !important;
 }
 
 .ad-search::placeholder { color: #bcc8c2; }
@@ -626,7 +626,8 @@
 
 .ad-search-wrap:focus-within {
   border-color: #7aa08d;
-  box-shadow: 0 0 0 3px rgba(122,160,141,0.1);
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .ad-search-input {

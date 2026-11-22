@@ -7,6 +7,7 @@ import { StatusBadge } from '../../components/ui/status-badge';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyRowCard, DentzyStatusPill } from '../../components/common/DentzyCard';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 
 const DENTIST_TABS = [
   { key: 'all', label: 'All' },
@@ -73,26 +74,13 @@ export default function AdminDentistsListView({
       </div>
 
       {/* Search Bar */}
-      <div className={isMobile ? 'ma-search-wrap' : 'ad-search-wrap'} style={{ marginBottom: '12px' }}>
-        <div className={isMobile ? 'ma-search-bar' : 'ad-search-bar'}>
-          {Ico.search(14)}
-          <input
-            type="text"
-            className={isMobile ? 'ma-search-input' : 'ad-search-input'}
-            placeholder="Search dentists by name, clinic, email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              className={isMobile ? 'ma-search-clear' : 'ad-search-clear'}
-              onClick={() => setSearch('')}
-              aria-label="Clear search"
-            >
-              {Ico.x(12)}
-            </button>
-          )}
-        </div>
+      <div style={{ marginBottom: '12px' }}>
+        <DentzySearchBar
+          placeholder="Search dentists by name, clinic, email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+        />
       </div>
 
       {/* Controls: Segmented Tabs & Sort */}

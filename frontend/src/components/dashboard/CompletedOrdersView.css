@@ -110,9 +110,11 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.cov-search-input:focus {
+.cov-search-input:focus,
+.cov-search-input:focus-visible {
   border-color: #1e5038;
-  box-shadow: 0 0 0 3px rgba(30, 80, 56, 0.12);
+  outline: none !important;
+  box-shadow: none !important;
   background: #ffffff;
 }
 

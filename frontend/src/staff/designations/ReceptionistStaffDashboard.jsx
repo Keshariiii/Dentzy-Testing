@@ -24,6 +24,7 @@ import {
 import { formatINR } from '../../utils/format';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 import '../StaffDashboard.css';
 
 const ORDER_STAGES = [
@@ -563,17 +564,13 @@ export default function ReceptionistStaffDashboard() {
                   </div>
 
                   <div className="sd-controls" style={{ flexWrap: 'wrap', gap: '8px' }}>
-                    <div className="sd-search-wrap" style={{ minWidth: '220px' }}>
-                      {Ico.search(14)}
-                      <input
-                        type="text"
-                        className="sd-search"
-                        placeholder="Search dentists, clinic, phone..."
-                        value={dentistSearch}
-                        onChange={(e) => setDentistSearch(e.target.value)}
-                        style={{ width: '100%' }}
-                      />
-                    </div>
+                    <DentzySearchBar
+                      placeholder="Search dentists, clinic, phone..."
+                      value={dentistSearch}
+                      onChange={(e) => setDentistSearch(e.target.value)}
+                      onClear={() => setDentistSearch('')}
+                      style={{ minWidth: '240px' }}
+                    />
                   </div>
                 </div>
 

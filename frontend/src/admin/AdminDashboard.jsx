@@ -22,6 +22,7 @@ import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { DentzyRowCard, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
 import { DentzyDataTable } from '../components/common/DentzyChartTable';
+import DentzySearchBar from '../components/common/DentzySearchBar';
 import { Skeleton } from '../components/Skeleton';
 import {
   DataTableSkeleton,
@@ -853,14 +854,12 @@ const AdminDashboard = () => {
         </button>
 
         {/* Search */}
-        <div className="ad-header-search">
-          <span className="ad-search-icon">{Ico.search(14)}</span>
-          <input
-            type="text"
-            className="ad-search"
+        <div style={{ maxWidth: '300px', flex: 1 }}>
+          <DentzySearchBar
             placeholder="Search users..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
           />
         </div>
 

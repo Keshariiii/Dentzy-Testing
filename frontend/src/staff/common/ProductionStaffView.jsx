@@ -10,6 +10,7 @@ import StaffSettingsView from './StaffSettingsView';
 import { Skeleton } from '../../components/Skeleton';
 import { TaskCardSkeleton } from '../../components/SkeletonBlocks';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
@@ -759,46 +760,13 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
               }}
             >
               {/* Search input */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <span style={{ position: 'absolute', left: '12px', color: '#708c80', display: 'flex', alignItems: 'center' }}>
-                  {Ico.search(16)}
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search by Case ID, patient, dentist, clinic, or notes...`}
-                  style={{
-                    width: '100%',
-                    height: '40px',
-                    borderRadius: '10px',
-                    border: '1px solid #d2ded7',
-                    padding: '0 36px 0 38px',
-                    fontSize: '0.88rem',
-                    outline: 'none',
-                    background: '#fafbfa',
-                  }}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#708c80',
-                      padding: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {Ico.x(14)}
-                  </button>
-                )}
-              </div>
+              <DentzySearchBar
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery('')}
+                placeholder="Search by Case ID, patient, dentist, clinic, or notes..."
+                style={{ height: '40px' }}
+              />
 
               {/* Status Filter Pills */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>

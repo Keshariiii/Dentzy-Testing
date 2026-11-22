@@ -13,6 +13,7 @@ import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
 import { safeShowPicker } from '../utils/appleCompat';
 import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
 import BaseModal from '../components/ui/BaseModal';
+import DentzySearchBar from '../components/common/DentzySearchBar';
 
 const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
@@ -410,10 +411,13 @@ const StaffManagementView = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '220px' }}>
-              <div className="ad-header-search" style={{ flex: 1, maxWidth: '320px' }}>
-                <span className="ad-search-icon">{Ico.search(14)}</span>
-                <input type="text" className="ad-search" placeholder="Search staff..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} />
-              </div>
+              <DentzySearchBar
+                placeholder="Search staff..."
+                value={staffSearch}
+                onChange={e => setStaffSearch(e.target.value)}
+                onClear={() => setStaffSearch('')}
+                style={{ maxWidth: '320px' }}
+              />
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               {activeDesignation && (

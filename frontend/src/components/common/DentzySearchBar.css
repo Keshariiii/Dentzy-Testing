@@ -1,0 +1,76 @@
+/* ── Dentzy Universal Clean Search Bar (Ponytail: zero bloat, zero outline) ── */
+.dz-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8faf9;
+  border: 1px solid #e0e8e4;
+  border-radius: 9px;
+  padding: 6px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dz-search-bar:focus-within {
+  background: #ffffff;
+  border-color: #708c80;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dz-search-icon {
+  display: flex;
+  align-items: center;
+  color: #8fa398;
+  flex-shrink: 0;
+}
+
+.dz-search-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-size: 0.84rem;
+  color: #1a3028;
+  padding: 2px 0;
+  font-family: inherit;
+}
+
+.dz-search-input:focus,
+.dz-search-input:focus-visible,
+.dz-search-input:active {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+}
+
+.dz-search-input::placeholder {
+  color: #9cb0a5;
+  font-size: 0.82rem;
+}
+
+.dz-search-clear {
+  background: transparent;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  color: #8fa398;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.dz-search-clear:hover {
+  color: #1e5038;
+}

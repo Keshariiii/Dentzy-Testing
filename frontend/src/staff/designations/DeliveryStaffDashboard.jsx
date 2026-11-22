@@ -10,6 +10,7 @@ import StaffSettingsView from '../common/StaffSettingsView';
 import { DeliveryCardSkeleton } from '../../components/SkeletonBlocks';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 import '../StaffDashboard.css';
 
 function parseTeeth(order) {
@@ -295,17 +296,13 @@ export default function DeliveryStaffDashboard() {
 
               <div className="sd-controls" style={{ flexWrap: 'wrap', gap: '8px' }}>
                 {/* Search Bar */}
-                <div className="sd-search-wrap" style={{ minWidth: '220px' }}>
-                  {Ico.search(14)}
-                  <input
-                    type="text"
-                    className="sd-search"
-                    placeholder="Search clinic, case ID, address..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
+                <DentzySearchBar
+                  placeholder="Search clinic, case ID, address..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClear={() => setSearchQuery('')}
+                  style={{ minWidth: '240px' }}
+                />
 
                 {/* Filter Pills: Pending vs Completed */}
                 <div className="sd-filter-group" style={{ display: 'flex', gap: '4px' }}>

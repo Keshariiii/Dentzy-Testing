@@ -363,3 +363,61 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover {
   transform: scale(1.08);
 }
 
+/* ── Global Search Bar Focus Outline Removal (Ponytail: zero outline across all dashboards) ── */
+.sd-search,
+.sd-search:focus,
+.sd-search:focus-visible,
+.sd-search:active,
+.ad-search,
+.ad-search:focus,
+.ad-search:focus-visible,
+.ad-search:active,
+.ad-search-input,
+.ad-search-input:focus,
+.ad-search-input:focus-visible,
+.ad-search-input:active,
+.ma-search-input,
+.ma-search-input:focus,
+.ma-search-input:focus-visible,
+.ma-search-input:active,
+.ud-search-inline,
+.ud-search-inline:focus,
+.ud-search-inline:focus-visible,
+.ud-search-inline:active,
+.ud-search-input,
+.ud-search-input:focus,
+.ud-search-input:focus-visible,
+.ud-search-input:active,
+.m-search-input,
+.m-search-input:focus,
+.m-search-input:focus-visible,
+.m-search-input:active,
+.m-header-search-input,
+.m-header-search-input:focus,
+.m-header-search-input:focus-visible,
+.m-header-search-input:active,
+.cov-search-input,
+.cov-search-input:focus,
+.cov-search-input:focus-visible,
+.cov-search-input:active,
+.dz-search-input,
+.dz-search-input:focus,
+.dz-search-input:focus-visible,
+.dz-search-input:active,
+input[type="search"],
+input[type="search"]:focus,
+input[type="search"]:focus-visible,
+input[type="search"]:active {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+}
+
+.sd-search-wrap:focus-within,
+.ad-search-wrap:focus-within,
+.dz-search-bar:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
