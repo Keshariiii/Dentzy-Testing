@@ -11,9 +11,10 @@ import { Skeleton } from '../../components/Skeleton';
 import { TaskCardSkeleton } from '../../components/SkeletonBlocks';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import PortalNavbar from '../../components/common/PortalNavbar';
+import PortalSidebar from '../../components/common/PortalSidebar';
 import { parseTeeth } from '../../utils/teeth';
 import { formatDate } from '../../utils/format';
-import { usePolling } from '../../hooks/usePolling';
 import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
@@ -33,13 +34,14 @@ const TECHNICIAN_STAGES = [
  */
 export default function ProductionStaffView({ departmentName = 'Production', title }) {
   const displayTitle = title || `${departmentName} Section`;
-  const { authFetch, STAFF_API, staff } = useStaffAuth();
+  const { authFetch, STAFF_API, staff, staffLogout } = useStaffAuth();
   const { showToast } = useToast();
 
   const apiBase = STAFF_API || '/api/staff';
 
   // ── Views: 'pending-tasks' | 'all-tasks' | 'settings' ────────────────────
   const [activeView, setActiveView] = useState('pending-tasks');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Task lists & Loading ─────────────────────────────────────────────────
   const [pendingTasks, setPendingTasks] = useState([]);
@@ -96,12 +98,6 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
       fetchAllTasks();
     }
   }, [activeView, fetchAllTasks]);
-
-  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-  usePolling(() => {
-    if (activeView === 'pending-tasks') fetchPendingTasks();
-    if (activeView === 'all-tasks') fetchAllTasks();
-  }, 30000, true);
 
   // Live pending count
   const pendingCount = pendingTasks.length;
@@ -481,144 +477,104 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     );
   };
 
+  const productionNavItems = useMemo(
+    () => [
+      {
+        key: 'pending-tasks',
+        label: 'Pending Tasks',
+        icon: (size) => Ico.clock(size || 16),
+        badge: !loadingPending && pendingCount > 0 ? pendingCount : undefined,
+        onClick: () => setActiveView('pending-tasks'),
+      },
+      {
+        key: 'all-tasks',
+        label: 'All Tasks',
+        icon: (size) => Ico.labOrder(size || 16),
+        onClick: () => setActiveView('all-tasks'),
+      },
+      {
+        key: 'settings',
+        label: 'Settings',
+        icon: (size) => Ico.settings(size || 16),
+        onClick: () => setActiveView('settings'),
+      },
+    ],
+    [loadingPending, pendingCount]
+  );
+
   return (
     <div className="sd-shell dz-min-vh" style={{ background: '#f4f6f5', paddingBottom: '90px' }}>
       
-      {/* ── Top Header ────────────────────────────────────────────────────── */}
-      <header
-        className="sd-header"
-        style={{
-          background: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(112, 140, 128, 0.15)',
-          padding: '0 24px',
-          height: '64px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.08rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>
-                {displayTitle}
-              </h1>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: '#eef6f2',
-                  color: '#1e5038',
-                  padding: '2px 8px',
-                  borderRadius: '9999px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.03em',
-                }}
-              >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }} />
-                {departmentName}
-              </span>
-            </div>
-            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-              {staff?.displayName ? `${staff.displayName} • ` : ''}
-              Technician Portal
-            </div>
+      {/* ── Unified Top Navbar ────────────────────────────────────────── */}
+      <PortalNavbar
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
+        sidebarOpen={sidebarOpen}
+        portalTitle={displayTitle}
+        portalBadge={`${departmentName} Lab`}
+        centerContent={
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveView('pending-tasks')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'pending-tasks'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.clock(14)}
+              <span>Pending Tasks</span>
+              {!loadingPending && pendingCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('all-tasks')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'all-tasks'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.labOrder(14)}
+              <span>All Tasks</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('settings')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeView === 'settings'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.settings(14)}
+              <span>Settings</span>
+            </button>
           </div>
-        </div>
+        }
+        user={{
+          name: staff?.displayName || `${departmentName} Staff`,
+          role: `${departmentName} Technician`,
+          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : departmentName.charAt(0),
+          onProfileClick: () => setActiveView('settings'),
+          title: 'Staff Profile Settings',
+        }}
+        onLogout={staffLogout}
+      />
 
-        {/* Desktop Tabs & Controls */}
-        <div className="hidden md:flex items-center gap-2">
-          {/* Pending Tasks Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveView('pending-tasks')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              background: activeView === 'pending-tasks' ? '#1e5038' : '#f0f5f2',
-              color: activeView === 'pending-tasks' ? '#ffffff' : '#2d3748',
-              transition: 'all 0.2s',
-            }}
-          >
-            {Ico.clock(16)}
-            <span>Pending Tasks</span>
-            {!loadingPending && pendingCount > 0 && (
-              <span
-                style={{
-                  background: activeView === 'pending-tasks' ? '#2a7b55' : '#1e5038',
-                  color: '#fff',
-                  borderRadius: '9999px',
-                  padding: '1px 6px',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                }}
-              >
-                {pendingCount}
-              </span>
-            )}
-          </button>
-
-          {/* All Tasks Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveView('all-tasks')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              background: activeView === 'all-tasks' ? '#1e5038' : '#f0f5f2',
-              color: activeView === 'all-tasks' ? '#ffffff' : '#2d3748',
-              transition: 'all 0.2s',
-            }}
-          >
-            {Ico.labOrder(16)}
-            <span>All Tasks</span>
-          </button>
-
-          {/* Settings Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveView('settings')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              background: activeView === 'settings' ? '#1e5038' : '#f0f5f2',
-              color: activeView === 'settings' ? '#ffffff' : '#2d3748',
-              transition: 'all 0.2s',
-            }}
-          >
-            {Ico.settings(16)}
-            <span>Settings</span>
-          </button>
-        </div>
-      </header>
+      {/* ── Unified Sidebar ───────────────────────────────────────────── */}
+      <PortalSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        items={productionNavItems}
+        activeKey={activeView}
+        onLogout={staffLogout}
+        logoutId="production-logout-btn"
+      />
 
       {/* ── Notice Bar ────────────────────────────────────────────────────── */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 16px 0 16px' }}>

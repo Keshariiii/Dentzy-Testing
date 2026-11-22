@@ -21,7 +21,6 @@ import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import MaintenanceModeController from '../../admin/MaintenanceModeController';
 import { formatINR, formatDate } from '../../utils/format';
-import { usePolling } from '../../hooks/usePolling';
 import { getAudioContext, safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
@@ -443,13 +442,18 @@ const MobileAdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  usePolling(() => {
-    fetchUsersRef.current?.();
-    fetchStatsRef.current?.();
-    fetchAllOrdersRef.current?.();
-    fetchPaymentsRef.current?.();
-  }, 30000, Boolean(admin?.username));
+  // Refresh admin data on window focus
+  useEffect(() => {
+    if (!admin?.username) return;
+    const onFocus = () => {
+      fetchUsersRef.current?.();
+      fetchStatsRef.current?.();
+      fetchAllOrdersRef.current?.();
+      fetchPaymentsRef.current?.();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [admin?.username]);
 
   /* -- Toast helper (using context) -------------------------------------- */
 

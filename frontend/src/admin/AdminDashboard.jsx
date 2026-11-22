@@ -13,7 +13,6 @@ import MaintenanceModeController from './MaintenanceModeController';
 import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
-import { usePolling } from '../hooks/usePolling';
 import './AdminDashboard.css';
 import { formatINR, formatOrderDateTime } from '../utils/format';
 import { safeShowPicker, openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
@@ -24,6 +23,8 @@ import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { DentzyRowCard, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
 import { DentzyDataTable } from '../components/common/DentzyChartTable';
 import DentzySearchBar from '../components/common/DentzySearchBar';
+import PortalNavbar from '../components/common/PortalNavbar';
+import PortalSidebar from '../components/common/PortalSidebar';
 import { Skeleton } from '../components/Skeleton';
 import {
   DataTableSkeleton,
@@ -413,13 +414,18 @@ const AdminDashboard = () => {
   const playNotifSoundRef = useRef(playNotifSound);
   playNotifSoundRef.current = playNotifSound;
 
-  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  usePolling(() => {
-    fetchUsersRef.current?.();
-    fetchStatsRef.current?.();
-    fetchAllOrdersRef.current?.();
-    fetchPaymentsRef.current?.();
-  }, 30000, Boolean(admin?.username));
+  // Refresh admin data on window focus
+  useEffect(() => {
+    if (!admin?.username) return;
+    const onFocus = () => {
+      fetchUsersRef.current?.();
+      fetchStatsRef.current?.();
+      fetchAllOrdersRef.current?.();
+      fetchPaymentsRef.current?.();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [admin?.username]);
 
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
@@ -800,156 +806,119 @@ const AdminDashboard = () => {
   ═══════════════════════════════════════════════════════════════════════ */
   return (
     <div className="ad-layout">
-
-      {/* ── TOP HEADER BAR (mirrors ud-header) ─────────────────────────────── */}
-      <header className="ad-top-header">
-        {/* Hamburger */}
-        <button className="ad-hamburger" onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar">
-          <span /><span /><span />
-        </button>
-        {/* Logo */}
-        <button
-          type="button"
-          onClick={() => {
-            setAdminView('settings');
-            fetchStatsRef.current?.();
-            fetchPaymentsRef.current?.();
-          }}
-          aria-label="Go to Settings"
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-        >
-          <div className="ad-header-logo">
-            <img src={dentzyLogo} alt="Dentzy" className="ad-logo-img" />
-          </div>
-        </button>
-
-        {/* Search */}
-        <div style={{ maxWidth: '300px', flex: 1 }}>
-          <DentzySearchBar
-            placeholder="Search users..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onClear={() => setSearch('')}
-          />
-        </div>
-
-{/* Maintenance Active Persistent Header Badge */}
-        {maintenanceBadgeConfig?.enabled && (
-          <button
-            type="button"
-            onClick={() => {
-              setAdminView('settings');
-              setSettingsSubView('maintenance');
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: '#fee2e2',
-              border: '1px solid #fca5a5',
-              color: '#991b1b',
-              padding: '6px 14px',
-              borderRadius: '9999px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
-              margin: '0 12px',
-              whiteSpace: 'nowrap',
-            }}
-            title="Click to manage maintenance mode"
-          >
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#dc2626',
-              animation: 'dzPulseDot 1.5s infinite ease-in-out',
-              display: 'inline-block',
-            }} />
-            <span>
-              Maintenance Active: {
-                maintenanceBadgeConfig?.target === 'both' ? 'Dentists & Staff' :
-                maintenanceBadgeConfig?.target === 'dentists' ? 'Dentists Only' : 'Staff Only'
-              }
-            </span>
-          </button>
-        )}
-
-        {/* Admin info */}
-        <button
-          type="button"
-          className="ad-header-user"
-          onClick={() => {
-            setAdminView('settings');
-            fetchStatsRef.current?.();
-            fetchPaymentsRef.current?.();
-          }}
-          aria-label="Admin Profile Settings"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <div className="ad-header-user-details">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="ad-header-admin-name">{adminName}</span>
-              {(admin?.isExecutiveStaff || admin?.designation) && (
-                <span style={{
-                  background: '#1e5038',
-                  color: '#ffffff',
-                  fontSize: '0.68rem',
-                  fontWeight: 800,
-                  padding: '2px 8px',
-                  borderRadius: '9999px',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
+      {/* Unified Top Navbar */}
+      <PortalNavbar
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
+        sidebarOpen={sidebarOpen}
+        onLogoClick={() => {
+          setAdminView('settings');
+          fetchStatsRef.current?.();
+          fetchPaymentsRef.current?.();
+        }}
+        search={{
+          placeholder: 'Search users...',
+          value: search,
+          onChange: e => setSearch(e.target.value),
+          onClear: () => setSearch(''),
+          width: '300px',
+        }}
+        badges={
+          maintenanceBadgeConfig?.enabled && (
+            <button
+              type="button"
+              onClick={() => {
+                setAdminView('settings');
+                setSettingsSubView('maintenance');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#fee2e2',
+                border: '1px solid #fca5a5',
+                color: '#991b1b',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.15)',
+                margin: '0 12px',
+                whiteSpace: 'nowrap',
+              }}
+              title="Click to manage maintenance mode"
+            >
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#dc2626',
+                  animation: 'dzPulseDot 1.5s infinite ease-in-out',
                   display: 'inline-block',
-                }}>
-                  {admin?.designation || 'CEO'}
-                </span>
-              )}
-            </div>
-            <span className="ad-header-admin-role">
-              <span className="ad-live-dot" />
-              Admin
-            </span>
-          </div>
-          <div className="ad-header-avatar">{initials}</div>
-        </button>
-      </header>
+                }}
+              />
+              <span>
+                Maintenance Active:{' '}
+                {maintenanceBadgeConfig?.target === 'both'
+                  ? 'Dentists & Staff'
+                  : maintenanceBadgeConfig?.target === 'dentists'
+                  ? 'Dentists Only'
+                  : 'Staff Only'}
+              </span>
+            </button>
+          )
+        }
+        user={{
+          name: adminName,
+          role: 'Admin',
+          isLive: true,
+          designationBadge: (admin?.isExecutiveStaff || admin?.designation) ? (admin?.designation || 'CEO') : null,
+          avatar: initials,
+          onProfileClick: () => {
+            setAdminView('settings');
+            fetchStatsRef.current?.();
+            fetchPaymentsRef.current?.();
+          },
+          title: 'Admin Profile Settings',
+        }}
+      />
 
       {/* ── BODY ──────────────────────────────────────────────────────────── */}
       <div className="ad-body">
-
-        {/* Sidebar overlay */}
-        {sidebarOpen && <div className="ad-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-
-        {/* ── SIDEBAR (mirrors ud-sidebar) ─────────────────────────────────── */}
-        <aside className={`ad-sidebar ${sidebarOpen ? 'ad-sidebar--open' : ''}`}>
-          <div className="ad-sidebar-top">
-
-            {/* Nav — mirrors ud-nav */}
-            <nav className="ad-nav">
-              <button className={`ad-nav-item ${adminView === 'dentists' ? 'active' : ''}`} onClick={() => setAdminView('dentists')} aria-label="Dentist">
-                <span className="ad-nav-icon">{Ico.grid(16)}</span>
-                Dentist
-              </button>
-              <button className={`ad-nav-item ${adminView === 'staff' ? 'active' : ''}`} onClick={() => { setAdminView('staff'); fetchStaff(); }} aria-label="Staff">
-                <span className="ad-nav-icon">{Ico.usersS ? Ico.usersS(16) : Ico.grid(16)}</span>
-                Staff
-              </button>
-              <button className={`ad-nav-item ${adminView === 'settings' ? 'active' : ''}`} onClick={() => { setAdminView('settings'); setSettingsSubView(null); fetchStatsRef.current?.(); fetchPaymentsRef.current?.(); }} aria-label="Settings">
-                <span className="ad-nav-icon">{Ico.settings(16)}</span>
-                Settings
-              </button>
-            </nav>
-
-
-          </div>
-
-          {/* Logout — mirrors ud-logout */}
-          <button id="admin-logout-btn" className="ad-logout" onClick={handleLogout}>
-            {Ico.logout(15)} Logout
-          </button>
-        </aside>
+        {/* Unified Sidebar */}
+        <PortalSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          items={[
+            {
+              key: 'dentists',
+              label: 'Dentist',
+              icon: () => Ico.grid(16),
+              onClick: () => setAdminView('dentists'),
+            },
+            {
+              key: 'staff',
+              label: 'Staff',
+              icon: () => Ico.usersS ? Ico.usersS(16) : Ico.grid(16),
+              onClick: () => { setAdminView('staff'); fetchStaff(); },
+            },
+            {
+              key: 'settings',
+              label: 'Settings',
+              icon: () => Ico.settings(16),
+              onClick: () => {
+                setAdminView('settings');
+                setSettingsSubView(null);
+                fetchStatsRef.current?.();
+                fetchPaymentsRef.current?.();
+              },
+            },
+          ]}
+          activeKey={adminView}
+          onLogout={handleLogout}
+          logoutId="admin-logout-btn"
+        />
 
         {/* ── MAIN (mirrors ud-main) ───────────────────────────────────────── */}
         <main className="ad-main">

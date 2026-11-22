@@ -11,9 +11,10 @@ import { DeliveryCardSkeleton } from '../../components/SkeletonBlocks';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import PortalNavbar from '../../components/common/PortalNavbar';
+import PortalSidebar from '../../components/common/PortalSidebar';
 import { parseTeeth } from '../../utils/teeth';
 import { formatDate } from '../../utils/format';
-import { usePolling } from '../../hooks/usePolling';
 import '../StaffDashboard.css';
 
 function formatTime(dateStr) {
@@ -41,6 +42,7 @@ export default function DeliveryStaffDashboard() {
   const apiBase = STAFF_API || '/api/staff';
 
   const [activeTab, setActiveTab] = useState('delivery');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterType, setFilterType] = useState('pending'); // 'pending' | 'completed'
   const [searchQuery, setSearchQuery] = useState('');
   const [deliveries, setDeliveries] = useState([]);
@@ -68,9 +70,6 @@ export default function DeliveryStaffDashboard() {
   useEffect(() => {
     fetchDeliveries();
   }, [fetchDeliveries]);
-
-  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-  usePolling(fetchDeliveries, 30000, true);
 
   // ── Status update: PATCH /api/staff/deliveries/:orderId/status ──────────
   const handleUpdateDeliveryStatus = async (orderId, newStatus) => {
@@ -159,85 +158,85 @@ export default function DeliveryStaffDashboard() {
     [pendingDeliveries.length]
   );
 
+  const deliveryNavItems = useMemo(
+    () => [
+      {
+        key: 'delivery',
+        label: 'Deliveries',
+        icon: (size) => Ico.map(size || 16),
+        badge: pendingDeliveries.length > 0 ? pendingDeliveries.length : undefined,
+        onClick: () => setActiveTab('delivery'),
+      },
+      {
+        key: 'settings',
+        label: 'Settings',
+        icon: (size) => Ico.settings(size || 16),
+        onClick: () => setActiveTab('settings'),
+      },
+    ],
+    [pendingDeliveries.length]
+  );
+
   return (
     <div className="sd-shell">
-      {/* ── Top Header ────────────────────────────────────────────────────── */}
-      <header className="sd-header">
-        <div className="sd-header-left">
-          <div className="sd-header-logo-btn">
-            <span className="sd-header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Delivery & Logistics</span>
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  background: '#e0ece5',
-                  color: '#1e5038',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                }}
-              >
-                Logistics Portal
-              </span>
-            </span>
+      {/* ── Unified Top Navbar ────────────────────────────────────────── */}
+      <PortalNavbar
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
+        sidebarOpen={sidebarOpen}
+        portalTitle="Delivery & Logistics"
+        portalBadge="Logistics Portal"
+        centerContent={
+          <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setActiveTab('delivery')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'delivery'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.map(14)}
+              <span>Deliveries</span>
+              {pendingDeliveries.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
+                  {pendingDeliveries.length}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'settings'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.settings(14)}
+              <span>Settings</span>
+            </button>
           </div>
-        </div>
+        }
+        user={{
+          name: staff?.displayName || 'Delivery Staff',
+          role: 'Delivery Specialist',
+          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'D',
+          onProfileClick: () => setActiveTab('settings'),
+          title: 'Staff Profile Settings',
+        }}
+        onLogout={staffLogout}
+      />
 
-        {/* Desktop View Switcher */}
-        <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
-          <button
-            type="button"
-            onClick={() => setActiveTab('delivery')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'delivery'
-                ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            {Ico.map(14)}
-            <span>Deliveries</span>
-            {pendingDeliveries.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
-                {pendingDeliveries.length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'settings'
-                ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            {Ico.settings(14)}
-            <span>Settings</span>
-          </button>
-        </div>
-
-        <div className="sd-header-right">
-          <div className="sd-header-user">
-            <div className="sd-avatar">
-              {staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'D'}
-            </div>
-            <div className="sd-header-user-details">
-              <span className="sd-header-name">{staff?.displayName || 'Delivery Staff'}</span>
-              <span className="sd-header-role">Delivery Specialist</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={staffLogout}
-            className="sd-logout-btn"
-            title="Log Out"
-            aria-label="Log Out"
-          >
-            {Ico.logout(15)}
-            <span className="sd-logout-text">Logout</span>
-          </button>
-        </div>
-      </header>
+      {/* ── Unified Sidebar ───────────────────────────────────────────── */}
+      <PortalSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        items={deliveryNavItems}
+        activeKey={activeTab}
+        onLogout={staffLogout}
+        logoutId="delivery-logout-btn"
+      />
 
       {/* ── Notice Bar ────────────────────────────────────────────────────── */}
       <StaffNoticeBar />

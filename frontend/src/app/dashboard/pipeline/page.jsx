@@ -23,7 +23,6 @@ import { PipelinePageSkeleton, PipelineListSkeleton } from '../../../components/
 import { formatDate } from '../../../utils/format';
 import { PIPELINE_STAGES } from '../../../components/dashboard/shared/constants';
 import useDashboardUrlState from '../../../hooks/useDashboardUrlState';
-import { usePolling } from '../../../hooks/usePolling';
 import './PipelinePage.css';
 
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -90,10 +89,13 @@ export default function PipelinePage() {
   const fetchOrdersRef = useRef(fetchOrders);
   fetchOrdersRef.current = fetchOrders;
 
-  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  usePolling(() => {
-    fetchOrdersRef.current?.();
-  }, 30000, Boolean(user));
+  // Refresh pipeline orders on window focus
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => fetchOrdersRef.current?.();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user]);
 
   // Filter logic
   const filtered = orders.filter(o => {

@@ -8,7 +8,6 @@ import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { getOrderPrice } from '../utils/pricing';
-import { usePolling } from '../hooks/usePolling';
 import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
@@ -31,6 +30,8 @@ import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
 import { DentzyCaseChip, DentzyStatusPill } from './common/DentzyCard';
 import { DentzyDataTable } from './common/DentzyChartTable';
 import DentzySearchBar from './common/DentzySearchBar';
+import PortalNavbar from './common/PortalNavbar';
+import PortalSidebar from './common/PortalSidebar';
 import {
   RecentOrdersSkeleton,
   PipelineCardSkeleton,
@@ -213,11 +214,16 @@ const DentistDashboard = () => {
   const fetchStatsRef = useRef(fetchStats);
   fetchStatsRef.current = fetchStats;
 
-  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  usePolling(() => {
-    fetchStatsRef.current?.();
-    fetchOrdersRef.current?.();
-  }, 30000, Boolean(user));
+  // Refresh stats and orders on window focus
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => {
+      fetchStatsRef.current?.();
+      fetchOrdersRef.current?.();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user]);
 
   const handleLogout = () => { logout(); router.push('/login'); };
   const userName  = user?.name || 'Doctor';
@@ -950,62 +956,37 @@ const DentistDashboard = () => {
   ============================================================ */
   return (
     <div className="ud-layout">
-
-      {/* Top Header */}
-      <header className="ud-header">
-        <button className="ud-hamburger" onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar">
-          <span /><span /><span />
-        </button>
-        <div className="ud-header-logo">
-          <img src={dentzyLogo} alt="Dentzy" className="ud-logo-img" />
-        </div>
-
-        <div className="ud-header-search" style={{ border: 'none', background: 'transparent', padding: 0 }}>
-          <DentzySearchBar
-            placeholder="Search patient, case ID..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onClear={() => setSearch('')}
-            onKeyDown={e => e.key === 'Enter' && fetchOrders()}
-            style={{ width: '240px' }}
-          />
-        </div>
-
-        <div
-          className="ud-header-user"
-          onClick={() => setActiveTab('settings')}
-          title="Account Settings"
-          role="button"
-          tabIndex={0}
-        >
-          <div className="ud-user-details">
-            <span className="ud-user-name">{userName}</span>
-          </div>
-          <div className="ud-user-avatar">{initials}</div>
-        </div>
-      </header>
+      {/* Unified Top Navbar */}
+      <PortalNavbar
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
+        sidebarOpen={sidebarOpen}
+        search={{
+          placeholder: 'Search patient, case ID...',
+          value: search,
+          onChange: e => setSearch(e.target.value),
+          onClear: () => setSearch(''),
+          onKeyDown: e => e.key === 'Enter' && fetchOrders(),
+          width: '240px',
+        }}
+        user={{
+          name: userName,
+          avatar: initials,
+          onProfileClick: () => setActiveTab('settings'),
+          title: 'Account Settings',
+        }}
+      />
 
       <div className="ud-body">
-        {/* Sidebar overlay */}
-        {sidebarOpen && <div className="ud-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-        {/* Sidebar */}
-        <aside className={`ud-sidebar ${sidebarOpen ? 'ud-sidebar--open' : ''}`}>
-          <nav className="ud-nav">
-            {NAV_ITEMS.map(item => (
-              <button key={item.key} id={`nav-${item.key}`}
-                className={`ud-nav-item ${activeTab === item.key ? 'active' : ''}`}
-                onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
-              >
-                <span className="ud-nav-icon">{item.icon(16)}</span>
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <button id="user-logout-btn" className="ud-logout" onClick={handleLogout}>
-            {Icons.logout(15)} Logout
-          </button>
-        </aside>
+        {/* Unified Sidebar */}
+        <PortalSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          items={NAV_ITEMS}
+          activeKey={activeTab}
+          onSelect={key => setActiveTab(key)}
+          onLogout={handleLogout}
+          logoutId="user-logout-btn"
+        />
 
         {/* Main Content */}
         <main className="ud-main">{renderContent()}</main>

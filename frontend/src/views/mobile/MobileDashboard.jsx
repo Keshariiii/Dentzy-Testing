@@ -29,7 +29,6 @@ import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
-import { usePolling } from '../../hooks/usePolling';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
@@ -240,11 +239,16 @@ const MobileDashboard = () => {
   const fetchStatsRef = useRef(fetchStats);
   fetchStatsRef.current = fetchStats;
 
-  // Ponytail: Lightweight background polling (every 30s when active) + window focus & visibility
-  usePolling(() => {
-    fetchStatsRef.current?.();
-    fetchOrdersRef.current?.();
-  }, 30000, Boolean(user));
+  // Refresh stats and orders on window focus
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => {
+      fetchStatsRef.current?.();
+      fetchOrdersRef.current?.();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [user]);
 
   const handleLogout = () => { logout(); router.push('/login'); };
 

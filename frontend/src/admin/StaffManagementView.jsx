@@ -14,7 +14,6 @@ import { safeShowPicker } from '../utils/appleCompat';
 import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
 import BaseModal from '../components/ui/BaseModal';
 import DentzySearchBar from '../components/common/DentzySearchBar';
-import { usePolling } from '../hooks/usePolling';
 
 const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
@@ -218,13 +217,6 @@ const StaffManagementView = ({
   }, [authFetch, ADMIN_API]);
 
   useEffect(() => { if (subView === 'inventory') fetchInventory(); }, [subView, fetchInventory]);
-
-  // Ponytail: Lightweight background polling (every 30s when active) + visibility change
-  usePolling(() => {
-    if (subView === 'staff') fetchStaff?.();
-    if (subView === 'inventory') fetchInventory();
-    if (subView === 'attendance') fetchAttendance(attendanceDate);
-  }, 30000, true);
 
   const handleAddItem = async () => {
     setItemFormError('');

@@ -23,9 +23,10 @@ import {
 } from '../../components/SkeletonBlocks';
 import { formatINR } from '../../utils/format';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
-import { usePolling } from '../../hooks/usePolling';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import PortalNavbar from '../../components/common/PortalNavbar';
+import PortalSidebar from '../../components/common/PortalSidebar';
 import '../StaffDashboard.css';
 
 const ORDER_STAGES = [
@@ -59,6 +60,7 @@ export default function ReceptionistStaffDashboard() {
   const apiBase = STAFF_API || '/api/staff';
 
   const [activeTab, setActiveTab] = useState('dentists'); // 'dentists' | 'payments' | 'settings'
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Dentists State ────────────────────────────────────────────────────────
   const [dentists, setDentists] = useState([]);
@@ -171,18 +173,6 @@ export default function ReceptionistStaffDashboard() {
       setLoadingPayDentistOrders(false);
     }
   }, [authFetch, apiBase, showToast]);
-
-  // Ponytail: Lightweight background polling (every 30s when tab is active) + visibility change
-  usePolling(() => {
-    fetchDentists();
-    fetchAllPayments();
-    if (selectedDentist?._id || selectedDentist?.id) {
-      fetchDentistDetail(selectedDentist._id || selectedDentist.id);
-    }
-    if (selectedPayDentist?._id || selectedPayDentist?.id) {
-      fetchPayDentistDetail(selectedPayDentist._id || selectedPayDentist.id);
-    }
-  }, 30000, true);
 
   // ── Dentists Tab Filters ──────────────────────────────────────────────────
   const filteredDentists = useMemo(() => {
@@ -436,98 +426,109 @@ export default function ReceptionistStaffDashboard() {
     []
   );
 
+  const receptionistNavItems = useMemo(
+    () => [
+      {
+        key: 'dentists',
+        label: 'Dentists',
+        icon: (size) => Ico.clinic(size || 16),
+        onClick: () => {
+          setActiveTab('dentists');
+          setSelectedPayDentist(null);
+        },
+      },
+      {
+        key: 'payments',
+        label: 'Payments',
+        icon: (size) => (Ico.payments ? Ico.payments(size || 16) : Ico.wallet(size || 16)),
+        onClick: () => {
+          setActiveTab('payments');
+          setSelectedDentist(null);
+        },
+      },
+      {
+        key: 'settings',
+        label: 'Settings',
+        icon: (size) => Ico.settings(size || 16),
+        onClick: () => setActiveTab('settings'),
+      },
+    ],
+    []
+  );
+
   return (
     <div className="sd-shell">
-      {/* ── Top Header ────────────────────────────────────────────────────── */}
-      <header className="sd-header">
-        <div className="sd-header-left">
-          <div className="sd-header-logo-btn">
-            <span className="sd-header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Reception Desk</span>
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  background: '#e0ece5',
-                  color: '#1e5038',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                }}
-              >
-                Receptionist Portal
-              </span>
-            </span>
+      {/* ── Unified Top Navbar ────────────────────────────────────────── */}
+      <PortalNavbar
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
+        sidebarOpen={sidebarOpen}
+        portalTitle="Reception Desk"
+        portalBadge="Receptionist Portal"
+        centerContent={
+          <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('dentists');
+                setSelectedPayDentist(null);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'dentists'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.clinic(14)}
+              <span>Dentists</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('payments');
+                setSelectedDentist(null);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'payments'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.payments ? Ico.payments(14) : Ico.wallet(14)}
+              <span>Payments</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'settings'
+                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              {Ico.settings(14)}
+              <span>Settings</span>
+            </button>
           </div>
-        </div>
+        }
+        user={{
+          name: staff?.displayName || 'Receptionist',
+          role: 'Receptionist',
+          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'R',
+          onProfileClick: () => setActiveTab('settings'),
+          title: 'Staff Profile Settings',
+        }}
+        onLogout={staffLogout}
+      />
 
-        {/* Desktop Tab Switcher */}
-        <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('dentists');
-              setSelectedPayDentist(null);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'dentists'
-                ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            {Ico.clinic(14)}
-            <span>Dentists</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('payments');
-              setSelectedDentist(null);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'payments'
-                ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            {Ico.payments ? Ico.payments(14) : Ico.wallet(14)}
-            <span>Payments</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'settings'
-                ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            {Ico.settings(14)}
-            <span>Settings</span>
-          </button>
-        </div>
-
-        <div className="sd-header-right">
-          <div className="sd-header-user">
-            <div className="sd-avatar">
-              {staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'R'}
-            </div>
-            <div className="sd-header-user-details">
-              <span className="sd-header-name">{staff?.displayName || 'Receptionist'}</span>
-              <span className="sd-header-role">Receptionist</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={staffLogout}
-            className="sd-logout-btn"
-            title="Log Out"
-            aria-label="Log Out"
-          >
-            {Ico.logout(15)}
-            <span className="sd-logout-text">Logout</span>
-          </button>
-        </div>
-      </header>
+      {/* ── Unified Sidebar ───────────────────────────────────────────── */}
+      <PortalSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        items={receptionistNavItems}
+        activeKey={activeTab}
+        onLogout={staffLogout}
+        logoutId="receptionist-logout-btn"
+      />
 
       {/* ── Notice Bar ────────────────────────────────────────────────────── */}
       <StaffNoticeBar />
