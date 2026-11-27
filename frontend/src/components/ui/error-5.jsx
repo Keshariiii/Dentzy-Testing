@@ -76,6 +76,7 @@ export default function Error5({
 
   return (
     <PortalStatusPage
+      pov={role === 'staff' ? 'lab' : role === 'dentist' ? 'dentist' : null}
       backHref="/"
       backLabel="Back to Home"
       portalBadge={portalBadge}

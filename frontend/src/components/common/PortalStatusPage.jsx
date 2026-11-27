@@ -8,56 +8,42 @@ import PortalNavbar from './PortalNavbar';
 import { AuthContext } from '@/context/AuthContext';
 import { StaffAuthContext } from '@/staff/StaffAuthContext';
 import { AdminAuthContext } from '@/admin/AdminAuthContext';
+import {
+  resolvePortalContext,
+  getPortalFooterLinks,
+} from '@/utils/portalStatusPov';
 
-export function resolvePortalContext({ pathname = '', user, staff, admin }) {
-  if (pathname.startsWith('/admin') || (admin && !pathname.startsWith('/staff') && !pathname.startsWith('/dashboard'))) {
-    return {
-      backHref: admin ? '/admin/dashboard' : '/login?role=admin',
-      backLabel: admin ? 'Back to Admin Dashboard' : 'Back to Admin Login',
-      portalBadge: 'Admin Portal',
-      navUser: admin
-        ? {
-            name: admin.displayName || admin.username || 'Admin',
-            role: admin.designation || 'Executive',
-          }
-        : null,
-    };
-  }
+export { resolvePortalContext };
 
-  if (pathname.startsWith('/staff') || (staff && !pathname.startsWith('/dashboard'))) {
-    return {
-      backHref: staff ? '/staff/dashboard' : '/login?role=staff',
-      backLabel: staff ? 'Back to Staff Dashboard' : 'Back to Staff Login',
-      portalBadge: 'Staff Portal',
-      navUser: staff
-        ? {
-            name: staff.displayName || staff.username || 'Staff',
-            role: staff.designation || 'Lab Staff',
-          }
-        : null,
-    };
-  }
+/**
+ * React hook returning the resolved POV ('dentist' | 'lab' | 'guest'),
+ * auth hydration state, and portal navigation targets.
+ */
+export function usePortalContext(povOverride = null) {
+  const authCtx = useContext(AuthContext);
+  const staffCtx = useContext(StaffAuthContext);
+  const adminCtx = useContext(AdminAuthContext);
 
-  if (pathname.startsWith('/dashboard') || user) {
-    return {
-      backHref: user ? '/dashboard' : '/login',
-      backLabel: user ? 'Back to Dashboard' : 'Back to Login',
-      portalBadge: 'Clinical Portal',
-      navUser: user
-        ? {
-            name: user.name || user.clinicName || 'Doctor',
-            role: user.clinicName || 'Dentist',
-          }
-        : null,
-    };
-  }
+  const [loc, setLoc] = useState({ pathname: '', search: '' });
 
-  return {
-    backHref: '/',
-    backLabel: 'Back to Home',
-    portalBadge: null,
-    navUser: null,
-  };
+  useEffect(() => {
+    setLoc({
+      pathname: window.location.pathname || '',
+      search: window.location.search || '',
+    });
+  }, []);
+
+  const resolved = resolvePortalContext({
+    pathname: loc.pathname,
+    search: loc.search,
+    user: authCtx?.user || null,
+    staff: staffCtx?.staff || null,
+    admin: adminCtx?.admin || null,
+    pov: povOverride,
+  });
+
+  const loading = Boolean(authCtx?.loading || staffCtx?.loading || adminCtx?.loading);
+  return { ...resolved, loading };
 }
 
 export const statusBtnPrimaryStyle = {
@@ -96,6 +82,91 @@ export const statusBtnSecondaryStyle = {
   fontFamily: 'inherit',
 };
 
+/** Renders a configured status action descriptor as a Link, anchor, or reload button. */
+export function StatusActionButton({ action, variant = 'primary' }) {
+  if (!action) return null;
+  const style = variant === 'primary' ? statusBtnPrimaryStyle : statusBtnSecondaryStyle;
+
+  if (action.type === 'reload') {
+    return (
+      <button type="button" onClick={() => window.location.reload()} style={style}>
+        {action.label}
+      </button>
+    );
+  }
+
+  if (action.external) {
+    return (
+      <a href={action.href} style={style}>
+        {action.label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={action.href} style={style}>
+      {action.label}
+    </Link>
+  );
+}
+
+function renderSupportLine(portal) {
+  const linkStyle = {
+    color: 'var(--dz-color-primary-accent, #1e5038)',
+    textDecoration: 'underline',
+  };
+  const phoneStyle = {
+    color: 'var(--dz-color-primary-accent, #1e5038)',
+    textDecoration: 'none',
+    fontWeight: 500,
+  };
+
+  if (portal.pov === 'lab') {
+    if (portal.isGuest) {
+      return (
+        <p style={{ margin: 0 }}>
+          Sign in with your Dentzy Staff or Executive Admin credentials to continue.
+        </p>
+      );
+    }
+    return (
+      <p style={{ margin: 0 }}>
+        Internal Lab Notice: If this persists across refreshes, flag it to Executive Admin (CEO / CTO) so the lab team can inspect it.
+      </p>
+    );
+  }
+
+  if (portal.pov === 'dentist') {
+    return (
+      <p style={{ margin: 0 }}>
+        Need help with your clinic account or billing? Contact{' '}
+        <a href="mailto:support@dentzy.in" style={linkStyle}>
+          Dentzy Lab Desk
+        </a>{' '}
+        (
+        <a href="tel:+919503668112" style={phoneStyle}>
+          +91 95036 68112
+        </a>
+        ).
+      </p>
+    );
+  }
+
+  return (
+    <p style={{ margin: 0 }}>
+      Sign in with your Dentzy Clinic or Lab account, or contact{' '}
+      <a href="mailto:support@dentzy.in" style={linkStyle}>
+        Dentzy Support
+      </a>{' '}
+      (
+      <a href="tel:+919503668112" style={phoneStyle}>
+        +91 95036 68112
+      </a>
+      ) if you think this is a mistake.
+    </p>
+  );
+}
+
 export default function PortalStatusPage({
   title,
   eyebrow,
@@ -105,22 +176,19 @@ export default function PortalStatusPage({
   backHref: backHrefProp,
   backLabel: backLabelProp,
   portalBadge: portalBadgeProp,
+  pov: povProp = null,
+  portalContext: portalContextProp = null,
   showSupportLine = true,
   children = null,
 }) {
-  const { user } = useContext(AuthContext) || {};
-  const { staff } = useContext(StaffAuthContext) || {};
-  const { admin } = useContext(AdminAuthContext) || {};
-  const [pathname, setPathname] = useState('');
+  const detectedPortal = usePortalContext(povProp);
+  const resolved = portalContextProp || detectedPortal;
 
-  useEffect(() => {
-    setPathname(window.location.pathname || '');
-  }, []);
-
-  const resolved = resolvePortalContext({ pathname, user, staff, admin });
   const backHref = backHrefProp ?? resolved.backHref;
   const backLabel = backLabelProp ?? resolved.backLabel;
   const portalBadge = portalBadgeProp !== undefined ? portalBadgeProp : resolved.portalBadge;
+  const footerLinks = getPortalFooterLinks(resolved);
+  const navSignInHref = resolved.pov === 'lab' ? '/login?role=staff' : '/login';
 
   return (
     <div
@@ -140,7 +208,7 @@ export default function PortalStatusPage({
         actions={
           !resolved.navUser ? (
             <Link
-              href="/login"
+              href={navSignInHref}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -152,7 +220,7 @@ export default function PortalStatusPage({
                 padding: '0 var(--dz-space-3, 12px)',
               }}
             >
-              Sign in
+              {resolved.pov === 'lab' ? 'Lab Sign in' : 'Sign in'}
             </Link>
           ) : null
         }
@@ -232,25 +300,7 @@ export default function PortalStatusPage({
 
           {children}
 
-          {showSupportLine && (
-            <p style={{ margin: 0 }}>
-              Ask your clinic or lab administrator for help, or contact{' '}
-              <a
-                href="mailto:support@dentzy.in"
-                style={{ color: 'var(--dz-color-primary-accent, #1e5038)', textDecoration: 'underline' }}
-              >
-                Dentzy Support
-              </a>{' '}
-              (
-              <a
-                href="tel:+919503668112"
-                style={{ color: 'var(--dz-color-primary-accent, #1e5038)', textDecoration: 'none', fontWeight: 500 }}
-              >
-                +91 95036 68112
-              </a>
-              ) if you think this is a mistake.
-            </p>
-          )}
+          {showSupportLine && renderSupportLine(resolved)}
         </div>
 
         {extra}
@@ -289,10 +339,25 @@ export default function PortalStatusPage({
           }}
         >
           <nav style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--dz-space-4, 16px)' }} aria-label="Support links">
-            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>Home</Link>
-            <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>Login</Link>
-            <a href="tel:+919503668112" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>Lab Support</a>
-            <a href="mailto:support@dentzy.in" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}>support@dentzy.in</a>
+            {footerLinks.map((item) =>
+              item.external ? (
+                <a
+                  key={`${item.label}-${item.href}`}
+                  href={item.href}
+                  style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={`${item.label}-${item.href}`}
+                  href={item.href}
+                  style={{ display: 'inline-flex', alignItems: 'center', minHeight: '44px', color: 'inherit', textDecoration: 'none' }}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </nav>
           <span>© 2026 Dentzy by Namrata Dental Solutions</span>
         </div>

@@ -1,3 +1,5 @@
+import { appendLabPortalHint } from './portalStatusPov';
+
 export function isAppleTouchDevice() {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
@@ -22,12 +24,13 @@ export function safeShowPicker(e) {
 
 export function openInvoiceWindow(url) {
   if (typeof window === 'undefined') return;
-  const w = window.open(url, '_blank');
+  const targetUrl = appendLabPortalHint(url, window.location.pathname);
+  const w = window.open(targetUrl, '_blank');
   if (w) {
     try { w.opener = null; } catch {}
     return;
   }
-  window.location.assign(url);
+  window.location.assign(targetUrl);
 }
 
 let audioCtxSingleton = null;

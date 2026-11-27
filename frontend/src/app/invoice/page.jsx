@@ -4,9 +4,10 @@ import { useSearchParams } from 'next/navigation';
 import PrintableInvoice from '../../components/common/PrintableInvoice';
 import { InvoiceSkeleton } from '../../components/SkeletonBlocks';
 import PortalStatusPage, {
-  statusBtnPrimaryStyle,
-  statusBtnSecondaryStyle,
+  StatusActionButton,
+  usePortalContext,
 } from '@/components/common/PortalStatusPage';
+import { buildInvoiceStatusConfig } from '@/utils/portalStatusPov';
 
 function InvoiceContent() {
   const searchParams = useSearchParams();
@@ -15,6 +16,7 @@ function InvoiceContent() {
   const unpaid = searchParams.get('unpaid') === 'true';
   const dentistId = searchParams.get('dentistId');
   const month = searchParams.get('month');
+  const portal = usePortalContext();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -110,29 +112,23 @@ function InvoiceContent() {
     };
   }, [batchId, id, unpaid, dentistId, month]);
 
-  if (loading) {
+  if (loading || (error && portal.loading)) {
     return <InvoiceSkeleton />;
   }
 
   if (error) {
+    const view = buildInvoiceStatusConfig({ error, batchId, id, portal });
     return (
       <PortalStatusPage
-        eyebrow={error.status ? `Invoice · HTTP ${error.status}` : 'Invoice'}
-        title={error.title}
-        paragraphs={[
-          error.message,
-          "Make sure you're signed in to the Dentzy clinic or admin account associated with this invoice.",
-        ]}
+        portalContext={portal}
+        eyebrow={view.eyebrow}
+        title={view.title}
+        paragraphs={view.paragraphs}
+        showSupportLine={false}
         actions={
           <>
-            {error.status === 401 && (
-              <a href="/login" style={statusBtnPrimaryStyle}>
-                Sign in to Dentzy
-              </a>
-            )}
-            <a href="/" style={error.status === 401 ? statusBtnSecondaryStyle : statusBtnPrimaryStyle}>
-              Return to Home
-            </a>
+            <StatusActionButton action={view.primaryAction} variant="primary" />
+            <StatusActionButton action={view.secondaryAction} variant="secondary" />
           </>
         }
       />
