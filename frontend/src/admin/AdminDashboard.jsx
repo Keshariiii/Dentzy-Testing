@@ -800,6 +800,19 @@ const AdminDashboard = () => {
 
   const adminName = admin?.username || 'Admin';
   const initials = (adminName || 'AD').slice(0, 2).toUpperCase();
+  const adminUser = {
+    name: adminName,
+    role: 'Admin',
+    isLive: true,
+    designationBadge: (admin?.isExecutiveStaff || admin?.designation) ? (admin?.designation || 'CEO') : null,
+    avatar: initials,
+    onProfileClick: () => {
+      setAdminView('settings');
+      fetchStatsRef.current?.();
+      fetchPaymentsRef.current?.();
+    },
+    title: 'Admin Profile Settings',
+  };
 
   /* ═══════════════════════════════════════════════════════════════════════
      RENDER
@@ -869,19 +882,7 @@ const AdminDashboard = () => {
             </button>
           )
         }
-        user={{
-          name: adminName,
-          role: 'Admin',
-          isLive: true,
-          designationBadge: (admin?.isExecutiveStaff || admin?.designation) ? (admin?.designation || 'CEO') : null,
-          avatar: initials,
-          onProfileClick: () => {
-            setAdminView('settings');
-            fetchStatsRef.current?.();
-            fetchPaymentsRef.current?.();
-          },
-          title: 'Admin Profile Settings',
-        }}
+        user={adminUser}
       />
 
       {/* ── BODY ──────────────────────────────────────────────────────────── */}
@@ -890,6 +891,7 @@ const AdminDashboard = () => {
         <PortalSidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          user={adminUser}
           items={[
             {
               key: 'dentists',

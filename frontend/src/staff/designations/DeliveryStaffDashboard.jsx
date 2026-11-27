@@ -177,6 +177,14 @@ export default function DeliveryStaffDashboard() {
     [pendingDeliveries.length]
   );
 
+  const staffUser = {
+    name: staff?.displayName || 'Delivery Staff',
+    role: 'Delivery Specialist',
+    avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'D',
+    onProfileClick: () => setActiveTab('settings'),
+    title: 'Staff Profile Settings',
+  };
+
   return (
     <div className="sd-shell">
       {/* ── Unified Top Navbar ────────────────────────────────────────── */}
@@ -185,46 +193,7 @@ export default function DeliveryStaffDashboard() {
         sidebarOpen={sidebarOpen}
         portalTitle="Delivery & Logistics"
         portalBadge="Logistics Portal"
-        centerContent={
-          <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setActiveTab('delivery')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'delivery'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.map(14)}
-              <span>Deliveries</span>
-              {pendingDeliveries.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
-                  {pendingDeliveries.length}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('settings')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'settings'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.settings(14)}
-              <span>Settings</span>
-            </button>
-          </div>
-        }
-        user={{
-          name: staff?.displayName || 'Delivery Staff',
-          role: 'Delivery Specialist',
-          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'D',
-          onProfileClick: () => setActiveTab('settings'),
-          title: 'Staff Profile Settings',
-        }}
+        user={staffUser}
         onLogout={staffLogout}
       />
 
@@ -234,6 +203,7 @@ export default function DeliveryStaffDashboard() {
         onClose={() => setSidebarOpen(false)}
         items={deliveryNavItems}
         activeKey={activeTab}
+        user={staffUser}
         onLogout={staffLogout}
         logoutId="delivery-logout-btn"
       />

@@ -502,6 +502,14 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     [loadingPending, pendingCount]
   );
 
+  const staffUser = {
+    name: staff?.displayName || `${departmentName} Staff`,
+    role: `${departmentName} Technician`,
+    avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : departmentName.charAt(0),
+    onProfileClick: () => setActiveView('settings'),
+    title: 'Staff Profile Settings',
+  };
+
   return (
     <div className="sd-shell dz-min-vh" style={{ background: '#f4f6f5', paddingBottom: '90px' }}>
       
@@ -511,58 +519,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         sidebarOpen={sidebarOpen}
         portalTitle={displayTitle}
         portalBadge={`${departmentName} Lab`}
-        centerContent={
-          <div className="hidden md:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveView('pending-tasks')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeView === 'pending-tasks'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.clock(14)}
-              <span>Pending Tasks</span>
-              {!loadingPending && pendingCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
-                  {pendingCount}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('all-tasks')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeView === 'all-tasks'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.labOrder(14)}
-              <span>All Tasks</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('settings')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeView === 'settings'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.settings(14)}
-              <span>Settings</span>
-            </button>
-          </div>
-        }
-        user={{
-          name: staff?.displayName || `${departmentName} Staff`,
-          role: `${departmentName} Technician`,
-          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : departmentName.charAt(0),
-          onProfileClick: () => setActiveView('settings'),
-          title: 'Staff Profile Settings',
-        }}
+        user={staffUser}
         onLogout={staffLogout}
       />
 
@@ -572,6 +529,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         onClose={() => setSidebarOpen(false)}
         items={productionNavItems}
         activeKey={activeView}
+        user={staffUser}
         onLogout={staffLogout}
         logoutId="production-logout-btn"
       />

@@ -456,6 +456,14 @@ export default function ReceptionistStaffDashboard() {
     []
   );
 
+  const staffUser = {
+    name: staff?.displayName || 'Receptionist',
+    role: 'Receptionist',
+    avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'R',
+    onProfileClick: () => setActiveTab('settings'),
+    title: 'Staff Profile Settings',
+  };
+
   return (
     <div className="sd-shell">
       {/* ── Unified Top Navbar ────────────────────────────────────────── */}
@@ -464,59 +472,7 @@ export default function ReceptionistStaffDashboard() {
         sidebarOpen={sidebarOpen}
         portalTitle="Reception Desk"
         portalBadge="Receptionist Portal"
-        centerContent={
-          <div className="hidden md:flex items-center gap-1 bg-[#f0f4f2] p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('dentists');
-                setSelectedPayDentist(null);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'dentists'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.clinic(14)}
-              <span>Dentists</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('payments');
-                setSelectedDentist(null);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'payments'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.payments ? Ico.payments(14) : Ico.wallet(14)}
-              <span>Payments</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('settings')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'settings'
-                  ? 'bg-white text-[#1e5038] shadow-sm font-bold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              {Ico.settings(14)}
-              <span>Settings</span>
-            </button>
-          </div>
-        }
-        user={{
-          name: staff?.displayName || 'Receptionist',
-          role: 'Receptionist',
-          avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'R',
-          onProfileClick: () => setActiveTab('settings'),
-          title: 'Staff Profile Settings',
-        }}
+        user={staffUser}
         onLogout={staffLogout}
       />
 
@@ -526,6 +482,7 @@ export default function ReceptionistStaffDashboard() {
         onClose={() => setSidebarOpen(false)}
         items={receptionistNavItems}
         activeKey={activeTab}
+        user={staffUser}
         onLogout={staffLogout}
         logoutId="receptionist-logout-btn"
       />

@@ -13,6 +13,7 @@ export default function PortalSidebar({
   items = [],
   activeKey,
   onSelect,
+  user,
   headerContent,
   footerContent,
   onLogout,
@@ -39,7 +40,37 @@ export default function PortalSidebar({
         aria-label="Sidebar navigation"
       >
         <div className="dz-portal-sidebar-top ad-sidebar-top sd-sidebar-top">
-          {headerContent}
+          {headerContent ?? (user && (
+            <button
+              type="button"
+              className="dz-portal-sidebar-user"
+              onClick={() => {
+                user.onProfileClick?.();
+                onClose?.();
+              }}
+              title={user.title || user.name || 'Account Settings'}
+              aria-label={user.title || user.name || 'Account Settings'}
+              style={{ cursor: user.onProfileClick ? 'pointer' : 'default' }}
+            >
+              <div className="dz-portal-sidebar-avatar">
+                {user.avatar || (user.name ? user.name.charAt(0).toUpperCase() : 'U')}
+              </div>
+              <div className="dz-portal-sidebar-user-info">
+                <div className="dz-portal-sidebar-user-name-row">
+                  <span className="dz-portal-sidebar-user-name">{user.name}</span>
+                  {user.designationBadge && (
+                    <span className="dz-portal-sidebar-badge">{user.designationBadge}</span>
+                  )}
+                </div>
+                {user.role && (
+                  <span className="dz-portal-sidebar-user-role">
+                    {user.isLive && <span className="dz-portal-live-dot ad-live-dot" />}
+                    {user.role}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
 
           <nav className="dz-portal-nav ud-nav ad-nav sd-nav">
             {items.map((item) => {

@@ -170,6 +170,9 @@
 .sd-logout-btn:hover { background: #fee2e2; }
 
 @media (max-width: 767px) {
+  .sd-shell .sd-hamburger,
+  .sd-shell .sd-sidebar,
+  .sd-shell .sd-sidebar-overlay { display: none; }
   .sd-header { padding: 0 16px; }
   .sd-header-user-details { display: none; }
   .sd-header-title { display: none; }

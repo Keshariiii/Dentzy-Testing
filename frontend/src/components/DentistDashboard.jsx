@@ -954,6 +954,14 @@ const DentistDashboard = () => {
   /* ============================================================
      LAYOUT
   ============================================================ */
+  const dentistUser = {
+    name: userName,
+    role: user?.clinicName || 'Dentist',
+    avatar: initials,
+    onProfileClick: () => setActiveTab('settings'),
+    title: 'Account Settings',
+  };
+
   return (
     <div className="ud-layout">
       {/* Unified Top Navbar */}
@@ -968,12 +976,7 @@ const DentistDashboard = () => {
           onKeyDown: e => e.key === 'Enter' && fetchOrders(),
           width: '240px',
         }}
-        user={{
-          name: userName,
-          avatar: initials,
-          onProfileClick: () => setActiveTab('settings'),
-          title: 'Account Settings',
-        }}
+        user={dentistUser}
       />
 
       <div className="ud-body">
@@ -984,6 +987,7 @@ const DentistDashboard = () => {
           items={NAV_ITEMS}
           activeKey={activeTab}
           onSelect={key => setActiveTab(key)}
+          user={dentistUser}
           onLogout={handleLogout}
           logoutId="user-logout-btn"
         />
