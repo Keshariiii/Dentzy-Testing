@@ -85,3 +85,6 @@ docs/PRIVACY_POLICY.md
 graphify-out/
 .graphify/
 
+# One-off data fix scripts (contains staff IDs/names)
+backend/d1/fix_remove_employee_3_blunder.sql
+
