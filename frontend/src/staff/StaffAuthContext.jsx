@@ -1,45 +1,43 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch, getStaffUrl } from '../api/client';
 
-const StaffAuthContext = createContext(null);
+export const StaffAuthContext = createContext(null);
+
+function clearLegacyStaffTokens() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('dentzy_staff_token');
+  localStorage.removeItem('dentzy_staff_jwt');
+  sessionStorage.removeItem('dentzy_staff_token');
+}
 
 export const StaffAuthProvider = ({ children }) => {
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
   const STAFF_API = useMemo(() => getStaffUrl(), []);
 
-  // ── Session hydration on mount ─────────────────────────────────────────────
+  // ── Session hydration on mount (HttpOnly cookie only) ──────────────────────
   useEffect(() => {
     let isMounted = true;
     const hydrate = async () => {
+      clearLegacyStaffTokens();
       const saved = typeof window !== 'undefined'
         ? localStorage.getItem('dentzy_staff_info') : null;
+      const onStaffPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/staff');
 
-      // Fast path: no stored staff session — skip network call
-      if (!saved) { if (isMounted) setLoading(false); return; }
-
-      try {
-        if (isMounted) setStaff(JSON.parse(saved));
-      } catch {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('dentzy_staff_info');
-          localStorage.removeItem('dentzy_staff_token');
-          localStorage.removeItem('dentzy_staff_jwt');
-        }
+      // Fast path: no stored staff hint and not on staff route — skip network call
+      if (!saved && !onStaffPath) {
+        if (isMounted) setLoading(false);
+        return;
       }
 
+      // ponytail: Never trust localStorage before /me verifies HttpOnly cookie (blocks F12 UI spoofing)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
-      const staffToken = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_staff_token') || localStorage.getItem('dentzy_staff_jwt')) : null;
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(staffToken ? { 'Authorization': `Bearer ${staffToken}` } : {}),
-      };
 
       try {
         const res = await fetch(`${getStaffUrl()}/me`, {
           signal: controller.signal,
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         });
         clearTimeout(timeoutId);
@@ -48,9 +46,6 @@ export const StaffAuthProvider = ({ children }) => {
           if (isMounted) {
             setStaff(data.staff);
             localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
-            if (data.token) {
-              localStorage.setItem('dentzy_staff_token', data.token);
-            }
           }
         } else if (res.status === 503) {
           try {
@@ -61,16 +56,17 @@ export const StaffAuthProvider = ({ children }) => {
               }
             }
           } catch {}
-        } else if (res.status === 401 || res.status === 403) {
+          if (isMounted) setStaff(null);
+        } else {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_staff_info');
-            localStorage.removeItem('dentzy_staff_token');
-            localStorage.removeItem('dentzy_staff_jwt');
           }
           if (isMounted) setStaff(null);
         }
       } catch {
         clearTimeout(timeoutId);
+        // ponytail: Fail closed on network/blocked /me
+        if (isMounted) setStaff(null);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -85,14 +81,12 @@ export const StaffAuthProvider = ({ children }) => {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
+    clearLegacyStaffTokens();
     localStorage.setItem('dentzy_staff_info', JSON.stringify(data.staff));
-    if (data.token) {
-      localStorage.setItem('dentzy_staff_token', data.token);
-    }
-    // Clear any stale regular user or admin session
     localStorage.removeItem('dentzy_user');
     localStorage.removeItem('dentzy_admin_info');
     setStaff(data.staff);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('dentzy:auth-sync'));
     return data.staff;
   }, []);
 
@@ -103,8 +97,8 @@ export const StaffAuthProvider = ({ children }) => {
     } catch { /* ignore */ }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('dentzy_staff_info');
-      localStorage.removeItem('dentzy_staff_token');
-      localStorage.removeItem('dentzy_staff_jwt');
+      clearLegacyStaffTokens();
+      window.dispatchEvent(new Event('dentzy:auth-sync'));
     }
     setStaff(null);
   }, []);
@@ -120,25 +114,22 @@ export const StaffAuthProvider = ({ children }) => {
   // ── Authenticated fetch helper ────────────────────────────────────────────
   const authFetch = useCallback(async (url, options = {}) => {
     try {
-      const staffToken = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_staff_token') || localStorage.getItem('dentzy_staff_jwt')) : null;
       const res = await fetch(url, {
         ...options,
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(staffToken ? { 'Authorization': `Bearer ${staffToken}` } : {}),
           ...(options.headers || {}),
         },
       });
       if (res.status === 401 || res.status === 403) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('dentzy_staff_info');
-          localStorage.removeItem('dentzy_staff_token');
-          localStorage.removeItem('dentzy_staff_jwt');
+          clearLegacyStaffTokens();
         }
       }
       return res;
-    } catch (err) {
+    } catch {
       return {
         ok: false, status: 0,
         json: async () => ({ message: 'Network error' }),

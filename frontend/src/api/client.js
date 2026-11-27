@@ -30,12 +30,10 @@ export function normalizeApiUrl(url) {
  */
 export async function apiFetch(url, options = {}) {
   const isClient = typeof window !== 'undefined';
-  const adminToken = isClient ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
   const isRequestAdmin = typeof url === 'string' && url.includes('/api/admin');
 
   const headers = {
     'Content-Type': 'application/json',
-    ...(adminToken && isRequestAdmin ? { 'Authorization': `Bearer ${adminToken}` } : {}),
     ...(options.headers || {}),
   };
 

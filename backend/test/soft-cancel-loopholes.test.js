@@ -311,12 +311,12 @@ describe('Soft-Cancel & Soft-Archive Loopholes Verification', () => {
         JWT_SECRET: userSecret,
         DB: {
           prepare: (q) => ({
-            bind: () => ({
+            bind: (id) => ({
               all: async () => {
                 statementSql = q;
                 return { results: [] };
               },
-              first: async () => null
+              first: async () => (q.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : null)
             })
           })
         }

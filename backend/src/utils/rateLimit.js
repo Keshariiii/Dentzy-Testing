@@ -75,3 +75,26 @@ export async function recordRateLimitAttempt(db, key) {
 export async function clearRateLimit(db, key) {
   await db.prepare('DELETE FROM rate_limits WHERE key = ?').bind(key).run();
 }
+
+// ponytail: Zero-migration JWT revocation reusing indexed rate_limits table
+export async function revokeToken(db, jti, ttlMs = 30 * 24 * 60 * 60 * 1000) {
+  if (!db || !jti) return;
+  try {
+    const now = Date.now();
+    await db.batch([
+      db.prepare('DELETE FROM rate_limits WHERE key LIKE ? AND ts < ?').bind('revoked_jwt:%', now),
+      db.prepare('INSERT INTO rate_limits (key, ts) VALUES (?, ?)').bind(`revoked_jwt:${jti}`, now + ttlMs),
+    ]);
+  } catch {}
+}
+
+export async function isTokenRevoked(db, jti) {
+  if (!db || !jti) return false;
+  try {
+    const row = await db.prepare('SELECT key FROM rate_limits WHERE key = ? AND ts >= ? LIMIT 1')
+      .bind(`revoked_jwt:${jti}`, Date.now()).first();
+    return Boolean(row);
+  } catch {
+    return false;
+  }
+}

@@ -18,14 +18,13 @@ export const extractToken = (c, cookieName) => {
 
 export const cookieHeader = (name, value, maxAge, env) => {
   const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
+  // ponytail: SameSite=Lax blocks cross-site CSRF while working same-origin via Pages proxy
   const secure = isProd ? '; Secure' : '';
-  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; ${sameSite}${secure}`;
+  return `${name}=${value}; HttpOnly; Path=/; Max-Age=${Math.floor(maxAge / 1000)}; SameSite=Lax${secure}`;
 };
 
 export const clearCookieHeader = (name, env) => {
   const isProd = env?.NODE_ENV === 'production';
-  const sameSite = isProd ? 'SameSite=None' : 'SameSite=Lax';
   const secure = isProd ? '; Secure' : '';
-  return `${name}=; HttpOnly; Path=/; Max-Age=0; ${sameSite}${secure}`;
+  return `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`;
 };

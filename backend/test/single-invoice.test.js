@@ -59,9 +59,9 @@ describe('Single Payment Invoicing API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
-            first: async () => mockRecord,
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : mockRecord),
           }),
         }),
       },
@@ -99,9 +99,9 @@ describe('Single Payment Invoicing API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
-            first: async () => mockRecord,
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : mockRecord),
           }),
         }),
       },

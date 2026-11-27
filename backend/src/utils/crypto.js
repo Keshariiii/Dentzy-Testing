@@ -20,12 +20,20 @@ export function generateSecureOtp(length = 6) {
 // ── Password hashing ────────────────────────────────────────────────────────
 export const hashPassword = (plain) => bcrypt.hash(plain, 10);
 export const comparePassword = (plain, hash) => bcrypt.compare(plain, hash);
+export const passwordVersion = (hash) => (typeof hash === 'string' && hash.length >= 10 ? hash.slice(-10) : '');
+
+function timingSafeEqualStr(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 // ── JWT ──────────────────────────────────────────────────────────────────────
 const enc = new TextEncoder();
 
 export const signJWT = (payload, secret, expiresIn = '7d') =>
-  new SignJWT(payload)
+  new SignJWT({ jti: crypto.randomUUID(), ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiresIn)
@@ -50,6 +58,18 @@ async function hmacSHA256(secret, message) {
   return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function consumeOneTimeToken(db, hmac, expiresAtMs, label) {
+  if (!db) return { valid: true };
+  const usedKey = `used_token:${hmac}`;
+  const alreadyUsed = await db.prepare('SELECT key FROM rate_limits WHERE key = ? LIMIT 1')
+    .bind(usedKey).first();
+  if (alreadyUsed) {
+    return { valid: false, message: `${label} already used. Please request a new one.` };
+  }
+  await db.prepare('INSERT INTO rate_limits (key, ts) VALUES (?, ?)').bind(usedKey, expiresAtMs).run();
+  return { valid: true };
+}
+
 export const createCaptchaToken = async (text, secret) => {
   const expiresAt = Date.now() + 5 * 60 * 1000;
   const payload = `${text.toUpperCase()}:${expiresAt}`;
@@ -57,7 +77,7 @@ export const createCaptchaToken = async (text, secret) => {
   return `${payload}:${hmac}`;
 };
 
-export const verifyCaptchaToken = async (token, userInput, secret) => {
+export const verifyCaptchaToken = async (token, userInput, secret, db = null) => {
   if (!token || !userInput)
     return { valid: false, message: 'CAPTCHA code is required.' };
 
@@ -66,17 +86,18 @@ export const verifyCaptchaToken = async (token, userInput, secret) => {
     return { valid: false, message: 'Invalid CAPTCHA. Please refresh and try again.' };
 
   const [expectedCode, expiresAtStr, hmac] = parts;
-  if (Date.now() > parseInt(expiresAtStr, 10))
+  const expiresAtMs = parseInt(expiresAtStr, 10);
+  if (Date.now() > expiresAtMs)
     return { valid: false, message: 'CAPTCHA expired. Please refresh and try again.' };
 
   const expectedHmac = await hmacSHA256(secret, `${expectedCode}:${expiresAtStr}`);
-  if (hmac !== expectedHmac)
+  if (!timingSafeEqualStr(hmac, expectedHmac))
     return { valid: false, message: 'CAPTCHA security check failed. Please refresh.' };
 
   if (userInput.trim().toUpperCase() !== expectedCode)
     return { valid: false, message: 'Incorrect CAPTCHA code. Please try again.' };
 
-  return { valid: true };
+  return consumeOneTimeToken(db, hmac, expiresAtMs, 'CAPTCHA');
 };
 
 // ── Email OTP Token (HMAC-SHA256, 5 min expiry) ─────────────────────────────
@@ -87,7 +108,7 @@ export const createOtpToken = async (email, otp, secret) => {
   return `${payload}:${hmac}`;
 };
 
-export const verifyOtpToken = async (token, userEmail, userOtp, secret) => {
+export const verifyOtpToken = async (token, userEmail, userOtp, secret, db = null) => {
   if (!token || !userEmail || !userOtp)
     return { valid: false, message: 'Email and 6-digit OTP code are required.' };
 
@@ -96,21 +117,22 @@ export const verifyOtpToken = async (token, userEmail, userOtp, secret) => {
     return { valid: false, message: 'Invalid or malformed OTP token. Please request a new code.' };
 
   const [storedEmail, expectedOtp, expiresAtStr, hmac] = parts;
+  const expiresAtMs = parseInt(expiresAtStr, 10);
 
   if (storedEmail !== userEmail.toLowerCase().trim())
     return { valid: false, message: 'Email does not match OTP request. Please request a new code.' };
 
-  if (Date.now() > parseInt(expiresAtStr, 10))
+  if (Date.now() > expiresAtMs)
     return { valid: false, message: 'Verification code has expired. Please request a new one.' };
 
   const expectedHmac = await hmacSHA256(secret, `${storedEmail}:${expectedOtp}:${expiresAtStr}`);
-  if (hmac !== expectedHmac)
+  if (!timingSafeEqualStr(hmac, expectedHmac))
     return { valid: false, message: 'Security check failed. Please request a new code.' };
 
   if (userOtp.trim() !== expectedOtp)
     return { valid: false, message: 'Invalid verification code. Please check your email and try again.' };
 
-  return { valid: true };
+  return consumeOneTimeToken(db, hmac, expiresAtMs, 'Verification code');
 };
 
 // ── Password Reset JWT Token (15 min expiry) ────────────────────────────────
@@ -128,4 +150,3 @@ export const verifyResetToken = async (token, secret) => {
     return { valid: false, message: 'Reset session expired. Please start over.' };
   }
 };
-

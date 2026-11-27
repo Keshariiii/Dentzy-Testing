@@ -24,14 +24,9 @@ export const MaintenanceProvider = ({ children }) => {
   const checkStatus = useCallback(async () => {
     setChecking(true);
     try {
-      const token = typeof window !== 'undefined' ? (localStorage.getItem('dentzy_admin_token') || sessionStorage.getItem('dentzy_admin_token')) : null;
-      const headers = {
-        'Cache-Control': 'no-cache',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      };
       const res = await fetch(`/api/maintenance/status?_t=${Date.now()}`, {
         credentials: 'include',
-        headers,
+        headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
         const data = await res.json();

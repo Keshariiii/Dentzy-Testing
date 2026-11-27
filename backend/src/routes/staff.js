@@ -1,14 +1,27 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyStaff } from '../middleware/auth.js';
-import { staffLoginSchema } from '../validators/staff.js';
-import { comparePassword, hashPassword, signJWT } from '../utils/crypto.js';
+import {
+  staffLoginSchema,
+  staffProfileSchema,
+  staffUpdateOrderSchema,
+  staffPaymentUpdateSchema,
+  staffDeliveryStatusSchema,
+} from '../validators/staff.js';
+import {
+  updateOrderStageSchema,
+  paymentAmountSchema,
+  batchPaymentSchema,
+  inventoryCreateSchema,
+  inventoryUpdateSchema,
+} from '../validators/admin.js';
+import { comparePassword, hashPassword, signJWT, verifyJWT, passwordVersion } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
-import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
+import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit, revokeToken } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
-import { normalizeDesignation, inferDepartment, isProductionRole, isDeliveryRole } from '../utils/roles.js';
-import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
+import { normalizeDesignation, inferDepartment, isProductionRole, PRODUCTION_ROLES } from '../utils/roles.js';
+import { cookieHeader, clearCookieHeader, extractToken } from '../utils/cookies.js';
 import { safeWait } from '../utils/worker.js';
 
 const staff = new Hono();
@@ -61,7 +74,7 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   await clearRateLimit(c.env.DB, rlKey);
 
   const token = await signJWT(
-    { id: row.id, role: 'staff', username: row.username },
+    { id: row.id, role: 'staff', username: row.username, pv: passwordVersion(row.password) },
     c.env.STAFF_JWT_SECRET,
     '30d'
   );
@@ -69,7 +82,6 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
   auditLog('STAFF_LOGIN', { username: row.username });
   c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
   return c.json({
-    token,
     staff: {
       id: row.id,
       username: row.username,
@@ -86,7 +98,14 @@ staff.post('/login', validate(staffLoginSchema), async (c) => {
 });
 
 // POST /api/staff/logout
-staff.post('/logout', (c) => {
+staff.post('/logout', async (c) => {
+  const token = extractToken(c, 'dentzy_staff_jwt');
+  if (token && c.env.STAFF_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(token, c.env.STAFF_JWT_SECRET);
+      await revokeToken(c.env.DB, payload.jti, 30 * 24 * 60 * 60 * 1000);
+    } catch {}
+  }
   c.header('Set-Cookie', clearCookieHeader('dentzy_staff_jwt', c.env));
   return c.json({ message: 'Staff logged out successfully.' });
 });
@@ -100,14 +119,15 @@ staff.get('/me', verifyStaff(), async (c) => {
   if (!row) return c.json({ message: 'Staff not found.' }, 404);
 
   // Sliding Session: Issue a fresh 30-day token on every /me fetch (identical to dentist auth)
+  const pv = c.get('staffPv');
   const token = await signJWT(
-    { id: row.id, role: 'staff', username: row.username },
+    { id: row.id, role: 'staff', username: row.username, ...(pv ? { pv } : {}) },
     c.env.STAFF_JWT_SECRET,
     '30d'
   );
   c.header('Set-Cookie', cookieHeader('dentzy_staff_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
 
-  return c.json({ staff: { ...row, role: 'staff' }, token });
+  return c.json({ staff: { ...row, role: 'staff' } });
 });
 
 // GET /api/staff/notice — fetch broadcast notice for authenticated staff
@@ -184,10 +204,10 @@ staff.get('/notice', verifyStaff(), async (c) => {
 });
 
 // PUT /api/staff/profile
-staff.put('/profile', verifyStaff(), async (c) => {
+staff.put('/profile', verifyStaff(), validate(staffProfileSchema), async (c) => {
   try {
     const staffId = c.get('staff').id;
-    const { displayName, email, phone, dob } = await c.req.json();
+    const { displayName, email, phone, dob } = c.get('body');
     const ts = now();
 
     const { meta } = await c.env.DB.prepare(
@@ -320,20 +340,16 @@ staff.get('/orders', verifyStaff(), async (c) => {
   }
 });
 
-// PATCH /api/staff/orders/:id/stage — staff can update production stage only
-staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
+// PATCH /api/staff/orders/:id/stage — production/reception/executive stage updates with department isolation
+staff.patch('/orders/:id/stage', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist', ...PRODUCTION_ROLES]), validate(updateOrderStageSchema), async (c) => {
   try {
     const orderId = c.req.param('id');
     const staffId = c.get('staff').id;
-    const body = await c.req.json();
-    const { stage } = body;
+    const { stage } = c.get('body');
 
-    const validStages = ['received', 'design', 'production', 'qc', 'dispatched', 'completed'];
-    if (!validStages.includes(stage)) {
-      return c.json({ message: 'Invalid stage.' }, 400);
-    }
-
-    const existingOrder = await c.env.DB.prepare('SELECT stage, status FROM lab_orders WHERE id = ?').bind(orderId).first();
+    const existingOrder = await c.env.DB.prepare(
+      'SELECT stage, status, assigned_department, assigned_staff_id FROM lab_orders WHERE id = ?'
+    ).bind(orderId).first();
     if (!existingOrder) return c.json({ message: 'Order not found.' }, 404);
     if (existingOrder.status === 'Cancelled') {
       return c.json({ message: 'Cannot update production stage of a cancelled order.' }, 400);
@@ -341,6 +357,11 @@ staff.patch('/orders/:id/stage', verifyStaff(), async (c) => {
 
     const callerRole = normalizeDesignation(c.get('staff')?.designation);
     if (isProductionRole(callerRole)) {
+      // ponytail: block cross-department edits unless directly assigned to this technician
+      const orderDept = existingOrder.assigned_department ? normalizeDesignation(existingOrder.assigned_department) : null;
+      if (orderDept && orderDept !== callerRole && existingOrder.assigned_staff_id !== staffId) {
+        return c.json({ message: 'Forbidden: This order is assigned to a different department.' }, 403);
+      }
       if (['dispatched', 'completed'].includes(existingOrder.stage) || existingOrder.status === 'Completed') {
         return c.json({ message: 'Completed or dispatched orders cannot be modified by production staff.' }, 403);
       }
@@ -604,20 +625,18 @@ staff.get('/inventory', verifyStaff(), async (c) => {
 });
 
 // POST /api/staff/inventory — add new inventory item
-staff.post('/inventory', verifyStaff(), async (c) => {
+staff.post('/inventory', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(inventoryCreateSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const { item_name, quantity, unit, min_stock } = body;
-    if (!item_name || !unit) return c.json({ message: 'Item name and unit are required.' }, 400);
+    const { item_name, quantity, unit, min_stock } = c.get('body');
 
     const id = newId();
     const ts = now();
     await c.env.DB.prepare(
       'INSERT INTO inventory (id, item_name, quantity, unit, min_stock, updated_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, item_name.trim(), quantity || 0, unit.trim(), min_stock || 0, c.get('staff').username, ts, ts).run();
+    ).bind(id, item_name, quantity, unit, min_stock, c.get('staff').username, ts, ts).run();
 
     auditLog('INVENTORY_ITEM_ADDED', { id, item_name, staffId: c.get('staff').id });
-    return c.json({ message: 'Item added.', item: { id, item_name, quantity: quantity || 0, unit, min_stock: min_stock || 0 } }, 201);
+    return c.json({ message: 'Item added.', item: { id, item_name, quantity, unit, min_stock } }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE')) return c.json({ message: 'Item already exists.' }, 409);
     logger.error('Staff inventory add error', { error: err.message });
@@ -626,11 +645,10 @@ staff.post('/inventory', verifyStaff(), async (c) => {
 });
 
 // PATCH /api/staff/inventory/:id — update stock quantity (+/- adjustment)
-staff.patch('/inventory/:id', verifyStaff(), async (c) => {
+staff.patch('/inventory/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(inventoryUpdateSchema), async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const { quantity, item_name, unit, min_stock } = body;
+    const { quantity, item_name, unit, min_stock } = c.get('body');
     const ts = now();
 
     const updates = ['updated_at = ?', 'updated_by = ?'];
@@ -772,7 +790,7 @@ staff.get('/users/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Recepti
 });
 
 // PATCH /api/staff/orders/:id — staff can update order fields (status, dueDate, notes, priority)
-staff.patch('/orders/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
+staff.patch('/orders/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(staffUpdateOrderSchema), async (c) => {
   try {
     const orderId = c.req.param('id');
     const existing = await c.env.DB.prepare('SELECT id, status FROM lab_orders WHERE id = ?').bind(orderId).first();
@@ -781,8 +799,7 @@ staff.patch('/orders/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Rece
       return c.json({ message: 'Cannot modify a cancelled order.' }, 400);
     }
 
-    const body = await c.req.json();
-    const { status, dueDate, notes, priority, stage } = body;
+    const { status, dueDate, notes, priority, stage } = c.get('body');
     const ts = now();
 
     const updates = ['updatedAt = ?'];
@@ -863,14 +880,10 @@ staff.get('/payments', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptio
 });
 
 // PATCH /api/staff/payments/:id/amount — staff updates payment amount
-staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
+staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(paymentAmountSchema), async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const amount = Number(body.amount);
-    if (isNaN(amount) || amount < 0) {
-      return c.json({ message: 'Amount must be a valid positive number.' }, 400);
-    }
+    const { amount } = c.get('body');
 
     // Guard: check if payment or associated order is cancelled
     const existing = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ? OR caseId = ?').bind(id, id).first();
@@ -908,7 +921,7 @@ staff.patch('/payments/:id/amount', verifyStaff(), requireStaffRoles(['CEO', 'CT
 });
 
 // PATCH /api/staff/payments/:id — staff updates payment status
-staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
+staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(staffPaymentUpdateSchema), async (c) => {
   try {
     const id = c.req.param('id');
     const existingPayment = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ?').bind(id).first();
@@ -917,11 +930,8 @@ staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Re
       return c.json({ message: 'Cannot update payment status for a cancelled record.' }, 400);
     }
 
-    const body = await c.req.json();
-    const { status, paymentMode, referenceNumber } = body;
+    const { status, paymentMode, referenceNumber } = c.get('body');
     const ts = now();
-
-    if (!status) return c.json({ message: 'Status is required.' }, 400);
 
     const updates = ['status = ?', 'updatedAt = ?'];
     const binds = [status, ts];
@@ -946,10 +956,9 @@ staff.patch('/payments/:id', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Re
 });
 
 // POST /api/staff/payments/batch — staff updates multiple orders' payments in one single payment details
-staff.post('/payments/batch', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), async (c) => {
+staff.post('/payments/batch', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist']), validate(batchPaymentSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const { orderIds = [], paymentIds = [], status = 'Paid', paymentMode = '', referenceNumber = '', notes = '' } = body;
+    const { orderIds, paymentIds, status, paymentMode, referenceNumber, notes } = c.get('body');
     const targetIds = Array.from(new Set([...orderIds, ...paymentIds])).filter(Boolean);
 
     if (targetIds.length === 0) {
@@ -1038,7 +1047,7 @@ staff.post('/payments/batch', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'R
 // ── Staff Deliveries (Dispatch & Logistics Queue) ───────────────────────────
 
 // GET /api/staff/deliveries — list post-QC, dispatched, and completed delivery tasks
-staff.get('/deliveries', verifyStaff(), async (c) => {
+staff.get('/deliveries', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist', 'Delivery']), async (c) => {
   try {
     const sql = `SELECT o.*, u.name as dentistName, u.clinicName, 
            COALESCE(NULLIF(dt.address, ''), u.address) as deliveryAddress,
@@ -1077,21 +1086,15 @@ staff.get('/deliveries', verifyStaff(), async (c) => {
 });
 
 // PATCH /api/staff/deliveries/:orderId/status — update delivery dispatch and completion status
-staff.patch('/deliveries/:orderId/status', verifyStaff(), async (c) => {
+staff.patch('/deliveries/:orderId/status', verifyStaff(), requireStaffRoles(['CEO', 'CTO', 'Receptionist', 'Delivery']), validate(staffDeliveryStatusSchema), async (c) => {
   try {
     const orderId = c.req.param('orderId');
     const staffMember = c.get('staff');
     const staffId = staffMember.id;
-    const body = await c.req.json();
-    const { status, notes } = body;
-
-    const validStatuses = ['in_progress', 'dispatched', 'completed'];
-    if (!validStatuses.includes(status)) {
-      return c.json({ message: 'Invalid delivery status.' }, 400);
-    }
+    const { status, notes } = c.get('body');
 
     const order = await c.env.DB.prepare(
-      `SELECT o.id, o.caseId, o.status, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
+      `SELECT o.id, o.caseId, o.stage, o.status, o.patientName, o.dueDate, o.notes, u.name as dentistName, u.clinicName, u.address, u.phone
        FROM lab_orders o
        JOIN users u ON o.ownerId = u.id
        WHERE o.id = ? OR o.caseId = ?`
@@ -1102,6 +1105,9 @@ staff.patch('/deliveries/:orderId/status', verifyStaff(), async (c) => {
     }
     if (order.status === 'Cancelled') {
       return c.json({ message: 'Cannot update delivery status for a cancelled order.' }, 400);
+    }
+    if (!['qc', 'dispatched', 'completed'].includes(order.stage)) {
+      return c.json({ message: 'Order has not passed QC and cannot be dispatched yet.' }, 400);
     }
 
     const ts = now();

@@ -228,6 +228,8 @@ describe('Staff Role-Based Flows, Profile Lock, Department Isolation & Delivery 
                   return {
                     id: o.id,
                     caseId: o.caseId,
+                    stage: o.stage,
+                    status: o.status,
                     patientName: o.patientName,
                     dueDate: o.dueDate,
                     notes: o.notes,
@@ -543,7 +545,7 @@ describe('Staff Role-Based Flows, Profile Lock, Department Isolation & Delivery 
   });
 
   describe('1. Staff Profile Lock & Retrieval Integrity', () => {
-    it('POST /api/staff/login returns token and full staff profile with employeeId and status', async () => {
+    it('POST /api/staff/login sets HttpOnly cookie and omits token from JSON body', async () => {
       const res = await app.request('/api/staff/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -554,8 +556,12 @@ describe('Staff Role-Based Flows, Profile Lock, Department Isolation & Delivery 
       }, mockEnv);
 
       assert.equal(res.status, 200);
+      const setCookie = res.headers.get('set-cookie') || '';
+      assert.match(setCookie, /dentzy_staff_jwt=/);
+      assert.match(setCookie, /HttpOnly/i);
+      assert.match(setCookie, /SameSite=Lax/i);
       const data = await res.json();
-      assert.ok(data.token, 'token must be returned in response body');
+      assert.equal(data.token, undefined, 'token must not be exposed in JSON response body');
       assert.equal(data.staff.username, 'ceramic_tech');
       assert.equal(data.staff.displayName, 'Jane Ceramist');
       assert.equal(data.staff.designation, 'Ceramic');

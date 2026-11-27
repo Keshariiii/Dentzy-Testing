@@ -1,9 +1,17 @@
 'use client';
 
-// ponytail: Upgraded 21st.dev not-found-2 404 screen in Dentzy brand styling
+// ponytail: Cloudflare-style 404 backed by shared PortalStatusPage shell
 import React from 'react';
-import NotFound2 from '@/components/ui/not-found-2';
+import PortalStatusPage from '@/components/common/PortalStatusPage';
 
 export default function NotFound() {
-  return <NotFound2 />;
+  return (
+    <PortalStatusPage
+      title="Page not found"
+      paragraphs={[
+        'This page may not exist, or you may not have permission to access it.',
+        "Make sure you're using the correct Dentzy account and have the required permissions.",
+      ]}
+    />
+  );
 }

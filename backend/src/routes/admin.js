@@ -1,15 +1,29 @@
 import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyAdmin } from '../middleware/auth.js';
-import { adminLoginSchema, rejectUserSchema, createOrderSchema, updateOrderStageSchema, updatePaymentStatusSchema, createStaffSchema, updateMaintenanceSchema } from '../validators/admin.js';
-import { signJWT, hashPassword } from '../utils/crypto.js';
+import {
+  adminLoginSchema,
+  rejectUserSchema,
+  createOrderSchema,
+  updateOrderStageSchema,
+  updatePaymentStatusSchema,
+  createStaffSchema,
+  updateMaintenanceSchema,
+  paymentAmountSchema,
+  batchPaymentSchema,
+  editStaffSchema,
+  attendanceSchema,
+  inventoryCreateSchema,
+  inventoryUpdateSchema,
+} from '../validators/admin.js';
+import { signJWT, verifyJWT, hashPassword } from '../utils/crypto.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
 import { sendUserApprovedEmail, sendUserRejectedEmail, sendPaymentReminderEmail, sendStaffWelcomeEmail } from '../utils/email.js';
-import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
+import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit, revokeToken } from '../utils/rateLimit.js';
 import { calculateOrderAmount } from '../utils/pricing.js';
 import { inferDepartment } from '../utils/roles.js';
-import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
+import { cookieHeader, clearCookieHeader, extractToken } from '../utils/cookies.js';
 import { safeWait } from '../utils/worker.js';
 
 const admin = new Hono();
@@ -103,8 +117,13 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
     return c.json({ message: `Too many login attempts. Please try again in ${Math.ceil(rl.retryAfterSecs / 60)} minute(s).`, retryAfter: rl.retryAfterSecs }, 429);
   }
 
-  const isUserValid = await safeCompare(username, c.env.ADMIN_USERNAME || '');
-  const isPassValid = await safeCompare(password, c.env.ADMIN_PASSWORD || '');
+  if (!c.env.ADMIN_USERNAME || !c.env.ADMIN_PASSWORD || !c.env.ADMIN_JWT_SECRET) {
+    logger.error('Admin auth secrets are not configured');
+    return c.json({ message: 'Admin authentication is not configured.' }, 500);
+  }
+
+  const isUserValid = await safeCompare(username, c.env.ADMIN_USERNAME);
+  const isPassValid = await safeCompare(password, c.env.ADMIN_PASSWORD);
 
   if (!isUserValid || !isPassValid) {
     await recordRateLimitAttempt(c.env.DB, rlKey);
@@ -117,11 +136,18 @@ admin.post('/login', validate(adminLoginSchema), async (c) => {
 
   auditLog('ADMIN_LOGIN', { username });
   c.header('Set-Cookie', cookieHeader('dentzy_admin_jwt', token, 8 * 60 * 60 * 1000, c.env));
-  return c.json({ admin: { username, role: 'admin' }, token });
+  return c.json({ admin: { username, role: 'admin' } });
 });
 
 // POST /api/admin/logout
-admin.post('/logout', (c) => {
+admin.post('/logout', async (c) => {
+  const token = extractToken(c, 'dentzy_admin_jwt');
+  if (token && c.env.ADMIN_JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(token, c.env.ADMIN_JWT_SECRET);
+      await revokeToken(c.env.DB, payload.jti, 8 * 60 * 60 * 1000);
+    } catch {}
+  }
   c.header('Set-Cookie', clearCookieHeader('dentzy_admin_jwt', c.env));
   return c.json({ message: 'Admin logged out successfully.' });
 });
@@ -770,14 +796,10 @@ admin.delete('/payments/:id', verifyAdmin(), async (c) => {
 });
 
 // PATCH /api/admin/payments/:id/amount — update payment amount
-admin.patch('/payments/:id/amount', verifyAdmin(), async (c) => {
+admin.patch('/payments/:id/amount', verifyAdmin(), validate(paymentAmountSchema), async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const amount = Number(body.amount);
-    if (isNaN(amount) || amount < 0) {
-      return c.json({ message: 'Amount must be a valid positive number.' }, 400);
-    }
+    const { amount } = c.get('body');
 
     // Guard: check if payment or associated order is cancelled
     const existing = await c.env.DB.prepare('SELECT id, status FROM payments WHERE id = ? OR caseId = ?').bind(id, id).first();
@@ -951,10 +973,9 @@ admin.patch('/orders/:id/payment', verifyAdmin(), validate(updatePaymentStatusSc
 });
 
 // POST /api/admin/payments/batch — update multiple orders' payments in one single payment details
-admin.post('/payments/batch', verifyAdmin(), async (c) => {
+admin.post('/payments/batch', verifyAdmin(), validate(batchPaymentSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const { orderIds = [], paymentIds = [], status = 'Paid', paymentMode = '', referenceNumber = '', notes = '' } = body;
+    const { orderIds, paymentIds, status, paymentMode, referenceNumber, notes } = c.get('body');
     const targetIds = Array.from(new Set([...orderIds, ...paymentIds])).filter(Boolean);
 
     if (targetIds.length === 0) {
@@ -1129,10 +1150,9 @@ admin.post('/staff', verifyAdmin(), validate(createStaffSchema), async (c) => {
 });
 
 // PATCH /api/admin/staff/:id -- edit staff details (displayName, email, designation) or reset password
-admin.patch('/staff/:id', verifyAdmin(), async (c) => {
+admin.patch('/staff/:id', verifyAdmin(), validate(editStaffSchema), async (c) => {
   const { id } = c.req.param();
-  const body = await c.req.json();
-  const { displayName, email, designation, password } = body;
+  const { displayName, email, designation, password } = c.get('body');
   const ts = now();
 
   const updates = ['updatedAt = ?'];
@@ -1141,8 +1161,8 @@ admin.patch('/staff/:id', verifyAdmin(), async (c) => {
   if (displayName !== undefined) { updates.push('displayName = ?'); binds.push(displayName.trim()); }
   if (email !== undefined) { updates.push('email = ?'); binds.push(email.trim()); }
   if (designation !== undefined) { updates.push('designation = ?'); binds.push(designation); }
-  if (password !== undefined) {
-    if (typeof password !== 'string' || password.trim().length < 8) {
+  if (password && password.trim().length > 0) {
+    if (password.trim().length < 8) {
       return c.json({ message: 'Password must be at least 8 characters long.' }, 400);
     }
     const hashed = await hashPassword(password.trim());
@@ -1234,15 +1254,10 @@ admin.delete('/staff/:id', verifyAdmin(), async (c) => {
 // ── Staff Attendance (Admin marks manually) ─────────────────────────────────
 
 // POST /api/admin/staff/:id/attendance — mark attendance for a date
-admin.post('/staff/:id/attendance', verifyAdmin(), async (c) => {
+admin.post('/staff/:id/attendance', verifyAdmin(), validate(attendanceSchema), async (c) => {
   try {
     const staffId = c.req.param('id');
-    const body = await c.req.json();
-    const { date, status } = body;
-
-    if (!date || !status) return c.json({ message: 'Date and status are required.' }, 400);
-    if (!['Present', 'Absent', 'Half-day'].includes(status))
-      return c.json({ message: 'Status must be Present, Absent, or Half-day.' }, 400);
+    const { date, status } = c.get('body');
 
     // Verify staff exists
     const staff = await c.env.DB.prepare('SELECT id FROM staff WHERE id = ?').bind(staffId).first();
@@ -1313,20 +1328,18 @@ admin.get('/staff/inventory', verifyAdmin(), async (c) => {
 });
 
 // POST /api/admin/staff/inventory — admin adds inventory item
-admin.post('/staff/inventory', verifyAdmin(), async (c) => {
+admin.post('/staff/inventory', verifyAdmin(), validate(inventoryCreateSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const { item_name, quantity, unit, min_stock } = body;
-    if (!item_name || !unit) return c.json({ message: 'Item name and unit are required.' }, 400);
+    const { item_name, quantity, unit, min_stock } = c.get('body');
 
     const id = newId();
     const ts = now();
     await c.env.DB.prepare(
       'INSERT INTO inventory (id, item_name, quantity, unit, min_stock, updated_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(id, item_name.trim(), quantity || 0, unit.trim(), min_stock || 0, c.get('admin').username, ts, ts).run();
+    ).bind(id, item_name, quantity, unit, min_stock, c.get('admin').username, ts, ts).run();
 
     auditLog('ADMIN_INVENTORY_ADDED', { id, item_name });
-    return c.json({ message: 'Item added.', item: { id, item_name, quantity: quantity || 0, unit, min_stock: min_stock || 0, created_at: ts, updated_at: ts } }, 201);
+    return c.json({ message: 'Item added.', item: { id, item_name, quantity, unit, min_stock, created_at: ts, updated_at: ts } }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE')) return c.json({ message: 'Item already exists.' }, 409);
     logger.error('Admin inventory add error', { error: err.message });
@@ -1335,11 +1348,10 @@ admin.post('/staff/inventory', verifyAdmin(), async (c) => {
 });
 
 // PATCH /api/admin/staff/inventory/:id — admin updates inventory
-admin.patch('/staff/inventory/:id', verifyAdmin(), async (c) => {
+admin.patch('/staff/inventory/:id', verifyAdmin(), validate(inventoryUpdateSchema), async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const { quantity, item_name, unit, min_stock } = body;
+    const { quantity, item_name, unit, min_stock } = c.get('body');
     const ts = now();
 
     const updates = ['updated_at = ?', 'updated_by = ?'];

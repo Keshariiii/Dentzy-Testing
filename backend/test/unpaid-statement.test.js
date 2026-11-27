@@ -50,10 +50,10 @@ describe('Unpaid Statement / Outstanding Bill API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
+        prepare: (query) => ({
+          bind: (id) => ({
             all: async () => ({ results: mockResults }),
-            first: async () => mockResults[0],
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { ...mockResults[0], id, status: 'approved' } : mockResults[0]),
           }),
         }),
       },
@@ -90,10 +90,10 @@ describe('Unpaid Statement / Outstanding Bill API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
+        prepare: (query) => ({
+          bind: (id) => ({
             all: async () => ({ results: [] }),
-            first: async () => null,
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : null),
           }),
         }),
       },

@@ -205,8 +205,9 @@ describe('Batch Payments Invoicing API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : null),
             all: async () => ({ results: mockBatchPayments }),
           }),
         }),
@@ -265,8 +266,9 @@ describe('Batch Payments Invoicing API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => (query.includes('FROM staff WHERE id = ?') ? { id, status: 'active' } : null),
             all: async () => ({ results: mockBatchPayments }),
           }),
         }),
@@ -303,8 +305,9 @@ describe('Batch Payments Invoicing API', () => {
 
     const mockEnv = {
       DB: {
-        prepare: () => ({
-          bind: () => ({
+        prepare: (query) => ({
+          bind: (id) => ({
+            first: async () => (query.includes('FROM users WHERE id = ?') ? { id, status: 'approved' } : null),
             all: async () => ({ results: mockBatchPayments }),
           }),
         }),

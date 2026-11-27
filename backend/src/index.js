@@ -19,13 +19,13 @@ app.use('*', async (c, next) => {
 
   const corsMiddleware = cors({
     origin: (origin) => {
-      if (!origin) return '*';
+      if (!origin) return null;
       // Exact match
       if (origins.includes(origin)) return origin;
-      // Wildcard match (e.g. https://*.pages.dev)
+      // Wildcard match (e.g. https://*.dentzy-testing.pages.dev — single DNS label only)
       for (const o of origins) {
         if (o.includes('*')) {
-          const re = new RegExp('^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+          const re = new RegExp('^' + o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^./]+') + '$');
           if (re.test(origin)) return origin;
         }
       }

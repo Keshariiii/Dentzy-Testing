@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { apiFetch, getAuthUrl, getDashUrl } from '../api/client';
 import { isAppleTouchDevice } from '../utils/appleCompat';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
 
     const hydrate = async () => {
       const savedUser = typeof window !== 'undefined' ? localStorage.getItem('dentzy_user') : null;
+      const onDashPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard');
 
       const isSafariWebKit =
         (typeof navigator !== 'undefined' &&
@@ -23,24 +24,14 @@ export const AuthProvider = ({ children }) => {
           !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg|Android/.test(navigator.userAgent)) ||
         isAppleTouchDevice();
 
-      // Fast path: fresh visitor with no stored session — skip the network call entirely on non-Safari browsers.
-      // Safari/WebKit can purge localStorage after 7 days of inactivity (ITP) while the HttpOnly
-      // cookie session remains valid, so Safari/WebKit visitors proceed to verify against /api/auth/me.
-      if (!savedUser) {
-        if (!isSafariWebKit) {
-          if (isMounted) setLoading(false);
-          return;
-        }
+      // Fast path: fresh visitor with no stored session — skip the network call entirely on non-Safari browsers
+      // unless already navigating directly to /dashboard.
+      if (!savedUser && !isSafariWebKit && !onDashPath) {
+        if (isMounted) setLoading(false);
+        return;
       }
 
-      // Optimistically restore from localStorage (display data only, not a token)
-      if (savedUser) {
-        try {
-          if (isMounted) setUser(JSON.parse(savedUser));
-        } catch { /* ignore */ }
-      }
-
-      // Verify against server
+      // ponytail: Never commit localStorage user state before /me verifies the HttpOnly session (blocks F12 UI spoofing)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -78,15 +69,17 @@ export const AuthProvider = ({ children }) => {
               }
             }
           } catch {}
-        } else if (res.status === 401 || res.status === 403) {
+          if (isMounted) setUser(null);
+        } else {
           if (typeof window !== 'undefined') {
             localStorage.removeItem('dentzy_user');
           }
           if (isMounted) setUser(null);
         }
-      } catch (err) {
+      } catch {
         clearTimeout(timeoutId);
-        // Timeout or network error — keep optimistic state from localStorage
+        // ponytail: Fail closed when /me cannot be reached so DevTools offline/blocking cannot bypass login
+        if (isMounted) setUser(null);
       } finally {
         if (isMounted) setLoading(false);
       }

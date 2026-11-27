@@ -71,4 +71,43 @@ export const updateMaintenanceSchema = z.object({
   showEmergencyContact: z.boolean().optional().default(true),
 });
 
+export const paymentAmountSchema = z.object({
+  amount: z.coerce.number().min(0, 'Amount must be a valid positive number.').max(10000000),
+});
+
+export const batchPaymentSchema = z.object({
+  orderIds: z.array(z.string().min(1)).optional().default([]),
+  paymentIds: z.array(z.string().min(1)).optional().default([]),
+  status: z.enum(['Paid', 'Pending', 'Overdue']).optional().default('Paid'),
+  paymentMode: z.string().max(50).optional().default(''),
+  referenceNumber: z.string().max(100).optional().default(''),
+  notes: z.string().max(500).optional().default(''),
+});
+
+export const editStaffSchema = z.object({
+  displayName: z.string().trim().min(1).max(100).optional(),
+  email: z.string().trim().max(150).refine(v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Invalid email.').optional(),
+  designation: z.string().trim().min(1).max(50).optional(),
+  password: z.string().max(128).optional(),
+});
+
+export const attendanceSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format.'),
+  status: z.enum(['Present', 'Absent', 'Half-day'], { errorMap: () => ({ message: 'Status must be Present, Absent, or Half-day.' }) }),
+});
+
+export const inventoryCreateSchema = z.object({
+  item_name: z.string().trim().min(1, 'Item name and unit are required.').max(120),
+  unit: z.string().trim().min(1, 'Item name and unit are required.').max(30),
+  quantity: z.coerce.number().int().min(0).max(1000000).optional().default(0),
+  min_stock: z.coerce.number().int().min(0).max(1000000).optional().default(0),
+});
+
+export const inventoryUpdateSchema = z.object({
+  item_name: z.string().trim().min(1).max(120).optional(),
+  unit: z.string().trim().min(1).max(30).optional(),
+  quantity: z.coerce.number().int().min(0).max(1000000).optional(),
+  min_stock: z.coerce.number().int().min(0).max(1000000).optional(),
+});
+
 export { DESIGNATIONS };

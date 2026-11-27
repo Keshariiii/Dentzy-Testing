@@ -55,6 +55,7 @@ const NORMALIZATION_MAP = {
   'delivery staff': 'Delivery',
   'delivery boy': 'Delivery',
   'delivery driver': 'Delivery',
+  'delivery_driver': 'Delivery',
   'rider': 'Delivery',
   'receptionist': 'Receptionist',
   'reception': 'Receptionist',

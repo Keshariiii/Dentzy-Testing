@@ -10,6 +10,60 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
   });
 
   describe('POST /api/auth/google', () => {
+    it('returns 500 when GOOGLE_CLIENT_ID is not configured', async () => {
+      const mockEnv = {
+        DB: {
+          prepare: () => ({
+            bind: () => ({ first: async () => null, run: async () => ({ meta: { changes: 1 } }) }),
+          }),
+        },
+        JWT_SECRET: 'test-secret',
+      };
+
+      const res = await app.request('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: 'any-token' }),
+      }, mockEnv);
+
+      assert.equal(res.status, 500);
+    });
+
+    it('returns 401 when Google token aud mismatches GOOGLE_CLIENT_ID', async () => {
+      globalThis.fetch = async (url) => {
+        if (url.includes('googleapis.com/tokeninfo')) {
+          return {
+            ok: true,
+            json: async () => ({
+              email: 'doc@example.com',
+              email_verified: true,
+              name: 'Dr. Test',
+              aud: 'wrong-client-id',
+            }),
+          };
+        }
+        return { ok: false };
+      };
+
+      const mockEnv = {
+        DB: {
+          prepare: () => ({
+            bind: () => ({ first: async () => null, run: async () => ({ meta: { changes: 1 } }) }),
+          }),
+        },
+        JWT_SECRET: 'test-secret',
+        GOOGLE_CLIENT_ID: 'test-google-client-id',
+      };
+
+      const res = await app.request('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: 'valid-google-token' }),
+      }, mockEnv);
+
+      assert.equal(res.status, 401);
+    });
+
     it('returns 404 ACCOUNT_NOT_REGISTERED when user does not exist and mode is login (default)', async () => {
       globalThis.fetch = async (url) => {
         if (url.includes('googleapis.com/tokeninfo')) {
@@ -19,6 +73,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
               email: 'newdoc@example.com',
               email_verified: true,
               name: 'Dr. New',
+              aud: 'test-google-client-id',
             }),
           };
         }
@@ -46,6 +101,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
           }),
         },
         JWT_SECRET: 'test-secret',
+        GOOGLE_CLIENT_ID: 'test-google-client-id',
       };
 
       const res = await app.request('/api/auth/google', {
@@ -70,6 +126,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
               email: 'existingdoc@example.com',
               email_verified: true,
               name: 'Dr. Existing',
+              aud: 'test-google-client-id',
             }),
           };
         }
@@ -91,6 +148,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
           }),
         },
         JWT_SECRET: 'test-secret',
+        GOOGLE_CLIENT_ID: 'test-google-client-id',
       };
 
       const executionCtx = { waitUntil: (p) => Promise.resolve(p) };
@@ -115,6 +173,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
               email: 'registerdoc@example.com',
               email_verified: true,
               name: 'Dr. Register',
+              aud: 'test-google-client-id',
             }),
           };
         }
@@ -138,6 +197,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
           }),
         },
         JWT_SECRET: 'test-secret',
+        GOOGLE_CLIENT_ID: 'test-google-client-id',
       };
 
       const executionCtx = { waitUntil: (p) => Promise.resolve(p) };
@@ -162,6 +222,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
               email: 'approveddoc@example.com',
               email_verified: true,
               name: 'Dr. Approved',
+              aud: 'test-google-client-id',
             }),
           };
         }
@@ -184,6 +245,7 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
           }),
         },
         JWT_SECRET: 'test-secret',
+        GOOGLE_CLIENT_ID: 'test-google-client-id',
       };
 
       const res = await app.request('/api/auth/google', {
@@ -193,9 +255,12 @@ describe('Google Auth and reCAPTCHA Verification (auth.js)', () => {
       }, mockEnv);
 
       assert.equal(res.status, 200);
+      const setCookie = res.headers.get('set-cookie') || '';
+      assert.match(setCookie, /dentzy_jwt=/);
+      assert.match(setCookie, /HttpOnly/i);
       const data = await res.json();
       assert.equal(data.user.id, 'u-app');
-      assert.ok(data.token);
+      assert.equal(data.token, undefined);
     });
   });
 

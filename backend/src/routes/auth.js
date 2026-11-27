@@ -2,12 +2,12 @@ import { Hono } from 'hono';
 import { validate } from '../middleware/validate.js';
 import { verifyUser } from '../middleware/auth.js';
 import { registerSchema, loginSchema, googleAuthSchema, sendOtpSchema, verifyOtpSchema, resetPasswordWithOtpSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema, verifyRegisterOtpSchema, resendRegisterOtpSchema } from '../validators/auth.js';
-import { hashPassword, comparePassword, signJWT, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, generateSecureOtp } from '../utils/crypto.js';
+import { hashPassword, comparePassword, signJWT, passwordVersion, createOtpToken, verifyOtpToken, createResetToken, verifyResetToken, verifyJWTRaw, verifyJWT, generateSecureOtp } from '../utils/crypto.js';
 import { sendOtpEmail, sendNewUserAdminAlert, sendRegistrationPendingEmail, sendRegistrationOtpEmail } from '../utils/email.js';
 import { newId, now } from '../utils/id.js';
 import logger, { auditLog } from '../utils/logger.js';
-import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit } from '../utils/rateLimit.js';
-import { cookieHeader, clearCookieHeader } from '../utils/cookies.js';
+import { checkRateLimit, getClientIP, recordRateLimitAttempt, clearRateLimit, revokeToken } from '../utils/rateLimit.js';
+import { cookieHeader, clearCookieHeader, extractToken } from '../utils/cookies.js';
 
 const auth = new Hono();
 
@@ -18,8 +18,12 @@ const safeUserObj = (u) => ({
   createdAt: u.createdAt,
 });
 
-const verifyRecaptcha = async (secret, token) => {
-  if (!secret) return { success: true };
+const verifyRecaptcha = async (secret, token, env) => {
+  if (!secret) {
+    // ponytail: Fail closed in production so missing RECAPTCHA_SECRET_KEY never disables bot protection
+    if (env?.NODE_ENV === 'production') return { success: false, code: 'RECAPTCHA_CONFIG_ERROR' };
+    return { success: true };
+  }
   if (!token) return { success: false, code: 'RECAPTCHA_REQUIRED' };
   try {
     const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
@@ -45,8 +49,8 @@ const verifyRecaptcha = async (secret, token) => {
 auth.post('/register/send-otp', validate(registerSchema), async (c) => {
   const { name, email, recaptchaToken } = c.get('body');
 
-  // ponytail: verify reCAPTCHA v3 only when secret key is provided (graceful in tests/local dev)
-  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken);
+  // ponytail: verify reCAPTCHA v3 (fail-closed in production)
+  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken, c.env);
   if (!recaptcha.success) {
     if (recaptcha.code === 'RECAPTCHA_REQUIRED') {
       return c.json({ message: 'Security check failed. Please refresh and try again.' }, 400);
@@ -55,11 +59,16 @@ auth.post('/register/send-otp', validate(registerSchema), async (c) => {
   }
 
   try {
-    // Rate limit: 3 OTP sends per 10 min per email
-    const rl = await checkRateLimit(c.env.DB, `reg-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 });
-    if (!rl.allowed) {
-      c.header('Retry-After', String(rl.retryAfterSecs));
-      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    // Rate limit: 3 OTP sends per 10 min per email, 10 per 10 min per IP
+    const ip = getClientIP(c);
+    const [rlEmail, rlIp] = await Promise.all([
+      checkRateLimit(c.env.DB, `reg-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 }),
+      checkRateLimit(c.env.DB, `reg-otp-ip:${ip}`, { windowMs: 10 * 60 * 1000, max: 10 }),
+    ]);
+    if (!rlEmail.allowed || !rlIp.allowed) {
+      const retryAfterSecs = !rlEmail.allowed ? rlEmail.retryAfterSecs : rlIp.retryAfterSecs;
+      c.header('Retry-After', String(retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: retryAfterSecs }, 429);
     }
 
     const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
@@ -102,11 +111,16 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
   const { email } = c.get('body');
 
   try {
-    // Rate limit: shares the same bucket as register/send-otp
-    const rl = await checkRateLimit(c.env.DB, `reg-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 });
-    if (!rl.allowed) {
-      c.header('Retry-After', String(rl.retryAfterSecs));
-      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    // Rate limit: shares email bucket + IP bucket
+    const ip = getClientIP(c);
+    const [rlEmail, rlIp] = await Promise.all([
+      checkRateLimit(c.env.DB, `reg-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 }),
+      checkRateLimit(c.env.DB, `reg-otp-ip:${ip}`, { windowMs: 10 * 60 * 1000, max: 10 }),
+    ]);
+    if (!rlEmail.allowed || !rlIp.allowed) {
+      const retryAfterSecs = !rlEmail.allowed ? rlEmail.retryAfterSecs : rlIp.retryAfterSecs;
+      c.header('Retry-After', String(retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: retryAfterSecs }, 429);
     }
 
     const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
@@ -137,15 +151,20 @@ auth.post('/register/resend-otp', validate(resendRegisterOtpSchema), async (c) =
 auth.post('/register/verify-otp', validate(verifyRegisterOtpSchema), async (c) => {
   const { name, email, password, otp, otpToken, dciNumber } = c.get('body');
 
-  // Rate limit: 5 OTP verification attempts per 10 min per email
-  const rl = await checkRateLimit(c.env.DB, `verify-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 5 });
-  if (!rl.allowed) {
-    c.header('Retry-After', String(rl.retryAfterSecs));
-    return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: rl.retryAfterSecs }, 429);
+  // Rate limit: 5 OTP attempts per 10 min per email, 15 per 10 min per IP
+  const ip = getClientIP(c);
+  const [rlEmail, rlIp] = await Promise.all([
+    checkRateLimit(c.env.DB, `verify-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 5 }),
+    checkRateLimit(c.env.DB, `verify-otp-ip:${ip}`, { windowMs: 10 * 60 * 1000, max: 15 }),
+  ]);
+  if (!rlEmail.allowed || !rlIp.allowed) {
+    const retryAfterSecs = !rlEmail.allowed ? rlEmail.retryAfterSecs : rlIp.retryAfterSecs;
+    c.header('Retry-After', String(retryAfterSecs));
+    return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: retryAfterSecs }, 429);
   }
 
-  // Verify the OTP
-  const otpResult = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
+  // Verify the OTP (single-use in D1)
+  const otpResult = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET, c.env.DB);
   if (!otpResult.valid)
     return c.json({ message: otpResult.message }, 400);
 
@@ -220,7 +239,7 @@ auth.post('/login', validate(loginSchema), async (c) => {
     // Reset failed counter upon successful login
     await clearRateLimit(c.env.DB, rlKey);
 
-    const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
+    const token = await signJWT({ id: user.id, pv: passwordVersion(user.password) }, c.env.JWT_SECRET, '30d');
 
     auditLog('USER_LOGIN', { userId: user.id });
 
@@ -236,6 +255,12 @@ auth.post('/login', validate(loginSchema), async (c) => {
 auth.post('/google', validate(googleAuthSchema), async (c) => {
   const { credential, mode = 'login' } = c.get('body');
 
+  const expectedClientId = c.env.GOOGLE_CLIENT_ID;
+  if (!expectedClientId) {
+    logger.error('GOOGLE_CLIENT_ID is not configured');
+    return c.json({ message: 'Google authentication is not configured.' }, 500);
+  }
+
   try {
     const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
     if (!googleRes.ok) {
@@ -249,8 +274,7 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
       return c.json({ message: 'Google account email is not verified.' }, 400);
     }
 
-    const expectedClientId = c.env.GOOGLE_CLIENT_ID;
-    if (expectedClientId && payload.aud !== expectedClientId) {
+    if (payload.aud !== expectedClientId) {
       logger.warn('Google aud mismatch', { aud: payload.aud, expected: expectedClientId });
       return c.json({ message: 'Google authentication failed: audience mismatch.' }, 401);
     }
@@ -271,10 +295,10 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
         return c.json({ message: 'Your registration request was not approved. Please contact support.', status: 'rejected' }, 403);
       }
 
-      const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
+      const token = await signJWT({ id: user.id, pv: passwordVersion(user.password) }, c.env.JWT_SECRET, '30d');
       auditLog('USER_LOGIN_GOOGLE', { userId: user.id, email: user.email });
       c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
-      return c.json({ user: safeUserObj(user), token });
+      return c.json({ user: safeUserObj(user) });
     }
 
     if (mode === 'login') {
@@ -328,16 +352,24 @@ auth.post('/google', validate(googleAuthSchema), async (c) => {
 // GET /api/auth/me
 auth.get('/me', verifyUser(), async (c) => {
   const user = c.get('user');
-  
+  const pv = c.get('userPv');
+
   // Sliding Session: Issue a fresh 30-day token on every /me fetch
-  const token = await signJWT({ id: user.id }, c.env.JWT_SECRET, '30d');
+  const token = await signJWT({ id: user.id, ...(pv ? { pv } : {}) }, c.env.JWT_SECRET, '30d');
   c.header('Set-Cookie', cookieHeader('dentzy_jwt', token, 30 * 24 * 60 * 60 * 1000, c.env));
-  
+
   return c.json({ user });
 });
 
 // POST /api/auth/logout
-auth.post('/logout', (c) => {
+auth.post('/logout', async (c) => {
+  const token = extractToken(c, 'dentzy_jwt');
+  if (token && c.env.JWT_SECRET) {
+    try {
+      const payload = await verifyJWT(token, c.env.JWT_SECRET);
+      await revokeToken(c.env.DB, payload.jti, 30 * 24 * 60 * 60 * 1000);
+    } catch {}
+  }
   c.header('Set-Cookie', clearCookieHeader('dentzy_jwt', c.env));
   return c.json({ message: 'Logged out successfully.' });
 });
@@ -346,40 +378,38 @@ auth.post('/logout', (c) => {
 auth.post('/forgot-password/send-otp', validate(sendOtpSchema), async (c) => {
   const { email, recaptchaToken } = c.get('body');
 
-  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken);
+  const recaptcha = await verifyRecaptcha(c.env.RECAPTCHA_SECRET_KEY, recaptchaToken, c.env);
   if (!recaptcha.success) {
     if (recaptcha.code === 'RECAPTCHA_REQUIRED') {
       return c.json({ error: 'RECAPTCHA_REQUIRED', message: 'Please complete the Google reCAPTCHA verification.' }, 400);
     }
-    if (recaptcha.code === 'RECAPTCHA_FAILED') {
+    if (recaptcha.code === 'RECAPTCHA_FAILED' || recaptcha.code === 'RECAPTCHA_CONFIG_ERROR') {
       return c.json({ error: 'RECAPTCHA_FAILED', message: 'Google reCAPTCHA verification failed. Please try again.' }, 403);
     }
   }
 
   try {
-    // Rate limit: 3 OTP sends per 10 min per email
-    const rl = await checkRateLimit(c.env.DB, `forgot-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 });
-    if (!rl.allowed) {
-      c.header('Retry-After', String(rl.retryAfterSecs));
-      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: rl.retryAfterSecs }, 429);
+    // Rate limit: 3 OTP sends per 10 min per email, 10 per 10 min per IP
+    const ip = getClientIP(c);
+    const [rlEmail, rlIp] = await Promise.all([
+      checkRateLimit(c.env.DB, `forgot-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 3 }),
+      checkRateLimit(c.env.DB, `forgot-otp-ip:${ip}`, { windowMs: 10 * 60 * 1000, max: 10 }),
+    ]);
+    if (!rlEmail.allowed || !rlIp.allowed) {
+      const retryAfterSecs = !rlEmail.allowed ? rlEmail.retryAfterSecs : rlIp.retryAfterSecs;
+      c.header('Retry-After', String(retryAfterSecs));
+      return c.json({ message: 'Too many verification code requests. Please wait before trying again.', retryAfter: retryAfterSecs }, 429);
     }
 
     const user = await c.env.DB.prepare('SELECT id, name, email, status FROM users WHERE email = ?').bind(email).first();
-    
-    // If no user exists, return generic success to prevent email enumeration
-    if (!user) {
+
+    // ponytail: Return generic success for missing, pending, or rejected accounts to prevent status enumeration
+    if (!user || user.status !== 'approved') {
       return c.json({
         success: true,
-        message: 'If an account exists with this email, a 6-digit verification code has been sent.',
+        message: 'If an approved account exists with this email, a 6-digit verification code has been sent.',
         expiresIn: 300,
       });
-    }
-
-    if (user.status === 'pending') {
-      return c.json({ message: 'Your account is still awaiting admin approval.' }, 403);
-    }
-    if (user.status === 'rejected') {
-      return c.json({ message: 'Your account was not approved. Please contact support.' }, 403);
     }
 
     // Generate random 6-digit numeric OTP
@@ -418,14 +448,19 @@ auth.post('/forgot-password/verify-otp', validate(verifyOtpSchema), async (c) =>
   const { email, otp, otpToken } = c.get('body');
 
   try {
-    // Rate limit: 5 OTP verification attempts per 10 min per email
-    const rl = await checkRateLimit(c.env.DB, `verify-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 5 });
-    if (!rl.allowed) {
-      c.header('Retry-After', String(rl.retryAfterSecs));
-      return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: rl.retryAfterSecs }, 429);
+    // Rate limit: 5 OTP attempts per 10 min per email, 15 per 10 min per IP
+    const ip = getClientIP(c);
+    const [rlEmail, rlIp] = await Promise.all([
+      checkRateLimit(c.env.DB, `verify-otp:${(email || "").trim().toLowerCase()}`, { windowMs: 10 * 60 * 1000, max: 5 }),
+      checkRateLimit(c.env.DB, `verify-otp-ip:${ip}`, { windowMs: 10 * 60 * 1000, max: 15 }),
+    ]);
+    if (!rlEmail.allowed || !rlIp.allowed) {
+      const retryAfterSecs = !rlEmail.allowed ? rlEmail.retryAfterSecs : rlIp.retryAfterSecs;
+      c.header('Retry-After', String(retryAfterSecs));
+      return c.json({ message: 'Too many incorrect attempts. Please request a new verification code.', retryAfter: retryAfterSecs }, 429);
     }
 
-    const check = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET);
+    const check = await verifyOtpToken(otpToken, email, otp, c.env.JWT_SECRET, c.env.DB);
     if (!check.valid) {
       return c.json({ message: check.message }, 400);
     }
