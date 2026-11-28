@@ -148,12 +148,7 @@
 
 /* ── Slide-in animation for form fields on role switch ─────────── */
 .auth-form {
-  animation: form-fade-in 0.2s ease;
-}
-
-@keyframes form-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  animation: fadeInDown 0.2s ease;
 }
 
 /* ── Role title below selector ────────────────────────────────── */

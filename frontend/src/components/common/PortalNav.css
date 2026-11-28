@@ -40,7 +40,7 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1.5px solid #e4ebe7;
+  border: 1.5px solid var(--dz-color-border-mint);
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
@@ -94,7 +94,7 @@
 .dz-portal-title {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   white-space: nowrap;
 }
 
@@ -102,7 +102,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   background: #e0ece5;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   padding: 2px 8px;
   border-radius: 12px;
   white-space: nowrap;
@@ -160,13 +160,13 @@
 .dz-portal-user-name {
   font-size: 0.86rem;
   font-weight: 700;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   line-height: 1.2;
   white-space: nowrap;
 }
 
 .dz-portal-designation-badge {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #ffffff;
   font-size: 0.68rem;
   font-weight: 800;
@@ -180,7 +180,7 @@
 
 .dz-portal-user-role {
   font-size: 0.7rem;
-  color: #708c80;
+  color: var(--dz-color-sage);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   font-weight: 600;
@@ -196,20 +196,15 @@
   height: 6px;
   border-radius: 50%;
   background: #10b981;
-  animation: dz-portal-pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 2s ease-in-out infinite;
   flex-shrink: 0;
-}
-
-@keyframes dz-portal-pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
 }
 
 .dz-portal-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, var(--dz-color-primary-accent), #3a8062);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -245,7 +240,7 @@
 .dz-portal-sidebar {
   width: 210px;
   min-width: 210px;
-  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
+  background: linear-gradient(180deg, var(--dz-color-primary-accent) 0%, #174430 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -306,7 +301,7 @@
   height: 34px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   font-size: 0.8rem;
   font-weight: 800;
   display: flex;
@@ -399,7 +394,7 @@
 
 .dz-portal-nav-item.active {
   background: rgba(255, 255, 255, 0.95);
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -431,7 +426,7 @@
 }
 
 .dz-portal-nav-item.active .dz-portal-nav-badge {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #ffffff;
 }
 

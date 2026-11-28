@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8faf9;
+  background: var(--dz-color-surface-subtle);
   border: 1px solid #e0e8e4;
   border-radius: 9px;
   padding: 6px 12px;
@@ -14,7 +14,7 @@
 
 .dz-search-bar:focus-within {
   background: #ffffff;
-  border-color: #708c80;
+  border-color: var(--dz-color-sage);
   outline: none !important;
   box-shadow: none !important;
 }
@@ -35,7 +35,7 @@
   box-shadow: none !important;
   background: transparent !important;
   font-size: 0.84rem;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   padding: 2px 0;
   font-family: inherit;
 }
@@ -72,5 +72,5 @@
 }
 
 .dz-search-clear:hover {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }

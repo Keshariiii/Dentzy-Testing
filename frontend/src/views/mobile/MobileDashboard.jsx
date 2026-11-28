@@ -25,13 +25,16 @@ import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
-import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
+import { openInvoiceWindow } from '../../utils/appleCompat';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
+import BalanceCreditCard from '../../components/common/BalanceCreditCard';
+import LabSupportBar from '../../components/common/LabSupportBar';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
 import DentistProfileView from '../../components/dashboard/DentistProfileView';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
-import { StatusBadge } from '../../components/ui/status-badge';
+import { DentzyKpiRow, DentzyStatusPill } from '../../components/common/DentzyCard';
+import DentzySearchBar from '../../components/common/DentzySearchBar';
 
 /* ============================================================
    ICONS — shared across desktop & mobile dashboards
@@ -67,12 +70,11 @@ const Ticker = () => (
 /* ============================================================
    STATUS PILL
 ============================================================ */
-const StatusPill = ({ status }) => <StatusBadge status={status} size="sm" />;
+const StatusPill = ({ status }) => <DentzyStatusPill type="workflow" status={status} />;
 
-const PriorityBadge = ({ priority }) => {
-  const cls = priority?.toLowerCase() === 'rush' ? 'm-priority--rush' : 'm-priority--standard';
-  return <span className={`m-priority-badge ${cls}`}>{priority || 'Standard'}</span>;
-};
+const PriorityBadge = ({ priority }) => (
+  <DentzyStatusPill type="priority" status={priority || 'Normal'} label={priority || 'Standard'} />
+);
 
 /* ============================================================
    TABS CONFIG — feeds TwentyFirstBottomNav
@@ -232,7 +234,7 @@ const MobileDashboard = () => {
         {noticeData.enabled && noticeData.messages.length > 0 && (
           <TwentyFirstNoticeBar
             messages={noticeData.messages}
-            label={noticeData.isBirthday ? '🎂 Birthday' : 'Notice'}
+            label={noticeData.isBirthday ? 'Birthday' : 'Notice'}
             className="mb-4"
           />
         )}
@@ -268,45 +270,39 @@ const MobileDashboard = () => {
             />
           </div>
         ) : stats ? (
-          <div className="m-stats-row">
-            <div
-              className="m-stat-card m-stat--primary m-stat-card--clickable"
-              onClick={() => setActiveTab('orders')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('orders'); } }}
-            >
-              <div className="m-stat-top">
-                <span className="m-stat-num">{stats.orders.total}</span>
-                <span className="m-stat-icon">{Icons.orders(22)}</span>
-              </div>
-              <span className="m-stat-label">Total Orders</span>
-              <div className="m-stat-tags">
-                <span className="m-tag m-tag--amber">{stats.orders.pending} Pending</span>
-                <span className="m-tag m-tag--blue">{stats.orders.inProgress} Active</span>
-              </div>
-            </div>
-            <div
-              className="m-stat-card m-stat--success m-stat-card--clickable"
-              onClick={() => setActiveTab('completed-orders')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('completed-orders'); } }}
-            >
-              <div className="m-stat-top">
-                <span className="m-stat-num">{stats.orders.completed}</span>
-                <span className="m-stat-icon">{Icons.checkCircle(22)}</span>
-              </div>
-              <span className="m-stat-label">Completed</span>
-              <div className="m-stat-tags">
-                <span className="m-tag m-tag--green">{stats.orders.completed} Delivered</span>
-              </div>
-            </div>
-          </div>
+          <DentzyKpiRow
+            className="m-stats-row"
+            items={[
+              {
+                key: 'total',
+                label: 'Total Orders',
+                value: stats.orders.total,
+                icon: Icons.orders(22),
+                title: 'Total lab orders submitted — click to view all orders',
+                onClick: () => setActiveTab('orders'),
+                tags: [
+                  { type: 'payment', status: 'pending', label: `${stats.orders.pending} Pending` },
+                  { type: 'workflow', status: 'in-progress', label: `${stats.orders.inProgress} Active` },
+                ],
+              },
+              {
+                key: 'completed',
+                label: 'Completed',
+                value: stats.orders.completed,
+                tone: 'success',
+                icon: Icons.checkCircle(22),
+                title: 'Cases that have passed QC and been dispatched — click to view completed cases',
+                onClick: () => setActiveTab('completed-orders'),
+                tags: [
+                  { type: 'workflow', status: 'completed', label: `${stats.orders.completed} Delivered` },
+                ],
+              },
+            ]}
+          />
         ) : (
           <SkeletonGroup>
             <div className="m-stats-row">
-              <div className="m-stat-card" style={{ padding: '16px' }}>
+              <div className="dz-kpi-card" style={{ padding: '16px' }}>
                 <Skeleton width="50%" height="28px" style={{ marginBottom: '10px' }} />
                 <Skeleton width="70%" height="12px" style={{ marginBottom: '8px' }} />
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -314,7 +310,7 @@ const MobileDashboard = () => {
                   <Skeleton width="60px" height="20px" borderRadius="20px" />
                 </div>
               </div>
-              <div className="m-stat-card" style={{ padding: '16px' }}>
+              <div className="dz-kpi-card" style={{ padding: '16px' }}>
                 <Skeleton width="40%" height="28px" style={{ marginBottom: '10px' }} />
                 <Skeleton width="60%" height="12px" style={{ marginBottom: '8px' }} />
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -352,10 +348,7 @@ const MobileDashboard = () => {
             }}
             role="alert"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
+            {Icons.warn(20, 2)}
             <div>
               <strong>Credit limit reached:</strong> Your outstanding balance has crossed the {formatINR(200000)} credit limit. New orders may be held until dues are cleared.{' '}
               <a href="tel:+919503668112" style={{ color: '#7f1d1d', fontWeight: 700, textDecoration: 'underline' }}>Contact lab support</a>
@@ -380,7 +373,7 @@ const MobileDashboard = () => {
                   <div style={{ flex: 1 }}>
                     <div className="m-recent-row-top">
                       <span className="m-case-mono">{order.caseId}</span>
-                      <StatusBadge status={order.status} size="sm" />
+                      <DentzyStatusPill type="workflow" status={order.status} />
                     </div>
                     <div className="m-recent-row-bottom" style={{ marginTop: '4px' }}>
                       <span className="m-recent-name">{order.patientName}</span>
@@ -388,45 +381,24 @@ const MobileDashboard = () => {
                     </div>
                   </div>
                   <span style={{ color: '#78937E', marginLeft: '12px', flexShrink: 0 }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
+                    {Icons.chevronRight(15, 2)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ padding: '20px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da', margin: '8px 0' }}>
-              <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
-              <button
-                type="button"
-                onClick={() => setActiveTab('orders')}
-                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                + Place First Order
-              </button>
-            </div>
+            <EmptyState
+              compact
+              variant="orders"
+              message="No lab orders submitted yet. Start your first case with Dentzy!"
+              action="+ Place First Order"
+              onAction={() => setActiveTab('orders')}
+            />
           )}
         </div>
 
         {/* Support Bar */}
-        <div className="m-support-bar" id="m-support-bar">
-          <div className="m-support-label">
-            {Icons.phone(13)}
-            <span><strong>Lab Support</strong> &mdash; Mon to Sat, 9 AM &ndash; 6 PM IST</span>
-          </div>
-          <div className="m-support-actions">
-            <a href="tel:+919503668112" className="m-support-link">
-              {Icons.phone(13)} Call
-            </a>
-            <a href="mailto:support@dentzy.in" className="m-support-link">
-              {Icons.mail(13)} Email
-            </a>
-            <a href="https://wa.me/919503668112" target="_blank" rel="noreferrer" className="m-support-link m-support-link--wa">
-              WhatsApp
-            </a>
-          </div>
-        </div>
+        <LabSupportBar variant="mobile" id="m-support-bar" />
 
         <div className="m-bottom-spacer" />
       </div>
@@ -440,26 +412,14 @@ const MobileDashboard = () => {
     <div className="m-tab-content">
       <div className="m-tab-header">
         <h2 className="m-tab-title">Lab Orders</h2>
-        <div className="m-search-bar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            className="m-search-input"
-            placeholder="Search patient or case ID..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchOrders()}
-          />
-          {search && (
-            <button className="m-search-clear" onClick={() => { setSearch(''); fetchOrders(); }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          )}
-        </div>
+        <DentzySearchBar
+          placeholder="Search patient or case ID..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          onKeyDown={e => e.key === 'Enter' && fetchOrders()}
+          style={{ minHeight: '44px' }}
+        />
       </div>
 
       {error && (
@@ -500,7 +460,7 @@ const MobileDashboard = () => {
                 <div className="m-compact-card__top">
                   <span className="m-order-id">{o.caseId}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <StatusBadge status={o.paymentStatus || 'Pending'} size="sm" />
+                    <DentzyStatusPill type="payment" status={o.paymentStatus || 'Pending'} />
                     {o.batchId && (
                       <button
                         type="button"
@@ -557,7 +517,6 @@ const MobileDashboard = () => {
     const totalUnpaid = stats?.payments?.totalUnpaid || 0;
     const unpaidCount = (stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0);
     const creditLimit = 200000;
-    const creditUsedPct = Math.min(100, Math.round((totalUnpaid / creditLimit) * 100));
 
     // Batch groups
     const batchMap = new Map();
@@ -580,11 +539,7 @@ const MobileDashboard = () => {
     });
     const batchGroups = Array.from(batchMap.values());
 
-    const modeBadge = (mode) => {
-      const colors = { Cash: { bg: '#dcfce7', fg: '#166534' }, Cheque: { bg: '#dbeafe', fg: '#1d4ed8' }, UPI: { bg: '#fae8ff', fg: '#7e22ce' } };
-      const c = colors[mode] || { bg: '#f0f0f0', fg: '#666' };
-      return <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.68rem', fontWeight: 600, background: c.bg, color: c.fg }}>{mode}</span>;
-    };
+    const modeBadge = (mode) => <DentzyStatusPill type="mode" status={mode} />;
 
     return (
       <div className="m-tab-content">
@@ -594,136 +549,18 @@ const MobileDashboard = () => {
         {!statsLoaded ? (
           <BalanceCardSkeleton variant="mobile" />
         ) : (
-          <div style={{
-            background: '#ffffff',
-            border: '1px solid #e2ece6',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '14px',
-            boxShadow: '0 2px 8px rgba(30, 80, 56, 0.05)',
-          }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#708c80' }}>
-              Outstanding Balance to Pay
-            </div>
-            <div style={{ fontSize: '1.65rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '2px' }}>
-              ₹{totalUnpaid.toLocaleString('en-IN')}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#555', marginTop: '2px', marginBottom: '12px' }}>
-              Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
-            </div>
-
-            {/* Credit Limit Usage Bar */}
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
-                <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
-                <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
-              </div>
-              <div style={{ height: '7px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
-                <div
-                  style={{
-                    width: `${creditUsedPct}%`,
-                    height: '100%',
-                    background: creditUsedPct >= 100 ? '#dc2626' : creditUsedPct >= 80 ? '#f59e0b' : '#1e5038',
-                    borderRadius: '4px',
-                    transition: 'width 0.3s ease',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Month Filter & Download Button */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="month"
-                  value={unpaidMonthFilter}
-                  placeholder="Select Month"
-                  data-empty={!unpaidMonthFilter}
-                  onClick={safeShowPicker}
-                  onChange={(e) => setUnpaidMonthFilter(e.target.value)}
-                  style={{
-                    flex: 1,
-                    border: '1px solid #c2dcd0',
-                    borderRadius: '8px',
-                    padding: '7px 10px',
-                    fontSize: '0.82rem',
-                    color: '#1a3028',
-                    background: '#fff',
-                    cursor: 'pointer',
-                    minHeight: '40px',
-                  }}
-                  title="Filter unpaid statement by month"
-                />
-                {unpaidMonthFilter ? (
-                  <button
-                    type="button"
-                    onClick={() => setUnpaidMonthFilter('')}
-                    style={{
-                      background: '#f0f4f2',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
-                      fontSize: '0.75rem',
-                      color: '#4a7060',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      minHeight: '40px',
-                    }}
-                  >
-                    All Unpaid
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setUnpaidMonthFilter(currentMonthISO)}
-                    style={{
-                      background: '#e8f5ee',
-                      border: '1px solid rgba(30, 80, 56, 0.2)',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
-                      fontSize: '0.75rem',
-                      color: '#1e5038',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      minHeight: '40px',
-                    }}
-                  >
-                    This Month
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const url = unpaidMonthFilter ? `/invoice?unpaid=true&month=${encodeURIComponent(unpaidMonthFilter)}` : '/invoice?unpaid=true';
-                  openInvoiceWindow(url);
-                }}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '10px 12px',
-                  background: '#1e5038',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  minHeight: '42px',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download Pending Bill {unpaidMonthFilter ? `(${unpaidMonthFilter})` : ''}
-              </button>
-            </div>
-          </div>
+          <BalanceCreditCard
+            totalUnpaid={totalUnpaid}
+            unpaidCount={unpaidCount}
+            creditLimit={creditLimit}
+            monthFilter={unpaidMonthFilter}
+            onMonthChange={setUnpaidMonthFilter}
+            onDownloadPendingBill={(month) => {
+              const url = month ? `/invoice?unpaid=true&month=${encodeURIComponent(month)}` : '/invoice?unpaid=true';
+              openInvoiceWindow(url);
+            }}
+            variant="mobile"
+          />
         )}
 
         {/* Consolidated Monthly Batch Receipts */}
@@ -785,13 +622,7 @@ const MobileDashboard = () => {
                       gap: '5px',
                     }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10 9 9 9 8 9"/>
-                    </svg>
+                    {Icons.orders(13, 2.2)}
                     Download Batch Invoice
                   </button>
                 </div>
@@ -840,7 +671,7 @@ const MobileDashboard = () => {
                     <span className="m-order-id">{p.caseId}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {p.paymentMode && modeBadge(p.paymentMode)}
-                      <StatusBadge status={p.paymentStatus || 'Pending'} size="sm" />
+                      <DentzyStatusPill type="payment" status={p.paymentStatus || 'Pending'} />
                       {p.batchId && (
                         <button
                           type="button"
@@ -941,31 +772,19 @@ const MobileDashboard = () => {
           setProfileResetTick((t) => t + 1);
         }}
       >
-        <div className="m-header-search-bar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            className="m-header-search-input"
-            placeholder="Search patient or case ID..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                setActiveTab('orders');
-                fetchOrders();
-              }
-            }}
-          />
-          {search && (
-            <button className="m-header-search-clear" onClick={() => { setSearch(''); fetchOrders(); }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          )}
-        </div>
+        <DentzySearchBar
+          className="m-header-search-bar"
+          placeholder="Search patient or case ID..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              setActiveTab('orders');
+              fetchOrders();
+            }
+          }}
+        />
       </MobileHeader>
 
       <main className="m-dash-main">

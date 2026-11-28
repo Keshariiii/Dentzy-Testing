@@ -32,7 +32,7 @@
 
 /* ── Submit button: darker green to signal restricted access ──────────────── */
 .al-submit-btn {
-  background-color: #1e5038 !important;
+  background-color: var(--dz-color-primary-accent) !important;
   color: #fff !important;
 }
 
@@ -44,12 +44,12 @@
 
 /* ── Back link in the card footer ─────────────────────────────────────────── */
 .al-back-link {
-  color: #708c80;
+  color: var(--dz-color-sage);
   text-decoration: none;
   font-size: 0.82rem;
   transition: color 0.2s;
 }
 
 .al-back-link:hover {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }

@@ -73,7 +73,7 @@ const MobileHeader = ({ title = null, showBack = false, transparent = false, sho
         {rightElement ? (
           rightElement
         ) : user ? (
-          <button className="m-header__avatar" onClick={handleAvatarClick} aria-label="Profile" title="Profile">
+          <button className="dz-avatar dz-avatar--sm" onClick={handleAvatarClick} aria-label="Profile" title="Profile" style={{ cursor: 'pointer' }}>
             {initials}
           </button>
         ) : showLogin ? (

@@ -224,7 +224,7 @@
     .nav a:not(.btn-sm) {
         font-size: 1.15rem;
         font-weight: 600;
-        color: #1e5038 !important;
+        color: var(--dz-color-primary-accent) !important;
         min-height: 44px;
         display: inline-flex;
         align-items: center;

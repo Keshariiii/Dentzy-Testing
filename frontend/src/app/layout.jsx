@@ -9,9 +9,12 @@ import '../responsive.css';
 import '../styles/apple-webkit.css';
 import Providers from './Providers';
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://dentzy-testing.pages.dev').replace(/\/$/, '');
+const ALLOW_INDEXING = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
+
 export const metadata = {
-  metadataBase: new URL('https://dentzy-testing.pages.dev'),
-  title: 'Denty lab | official site | Get started',
+  metadataBase: new URL(SITE_URL),
+  title: 'Dentzy Lab | Official Site | Get Started',
   description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
   applicationName: 'Dentzy',
   appleWebApp: {
@@ -26,19 +29,21 @@ export const metadata = {
     address: false,
   },
   manifest: '/manifest.json',
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'none',
-      'max-snippet': -1,
-    },
-  },
+  robots: ALLOW_INDEXING
+    ? { index: true, follow: true }
+    : {
+        index: false,
+        follow: false,
+        nocache: true,
+        googleBot: {
+          index: false,
+          follow: false,
+          noimageindex: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'none',
+          'max-snippet': -1,
+        },
+      },
   icons: {
     icon: [
       { url: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
@@ -54,9 +59,9 @@ export const metadata = {
     ],
   },
   openGraph: {
-    title: 'Denty lab | official site | Get started',
+    title: 'Dentzy Lab | Official Site | Get Started',
     description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
-    url: 'https://dentzy-testing.pages.dev',
+    url: SITE_URL,
     siteName: 'Dentzy',
     images: [
       {
@@ -71,7 +76,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Denty lab | official site | Get started',
+    title: 'Dentzy Lab | Official Site | Get Started',
     description: 'Dentzy Clinical Lab Portal — Manage dental lab orders, track cases, and streamline your practice.',
     images: ['/dentzy-icon.png'],
   },
@@ -86,7 +91,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -94,8 +99,12 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap"
         />
-        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
-        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
+        {!ALLOW_INDEXING && (
+          <>
+            <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+            <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
+          </>
+        )}
       </head>
       <body>{process.env.NODE_ENV === 'development' ? <ReticleDev /> : null}
         <noscript>

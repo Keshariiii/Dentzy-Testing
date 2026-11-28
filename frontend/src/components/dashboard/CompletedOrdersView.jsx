@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { Skeleton } from '../Skeleton';
 import { CompletedOrdersSkeleton } from '../SkeletonBlocks';
 import { Icons } from '../common/DashboardIcons';
-import { StatusBadge } from '../ui/status-badge';
+import { DentzyStatusPill, DentzyCaseChip } from '../common/DentzyCard';
+import { DentzyDataTable } from '../common/DentzyChartTable';
 import EmptyState from '../common/EmptyState';
 import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
 import { formatDate } from '../../utils/format';
@@ -108,49 +109,27 @@ export default function CompletedOrdersView({
         <>
           {/* Desktop Table View */}
           <div className="cov-table-card">
-            <table className="cov-table">
-              <thead>
-                <tr>
-                  <th>Case ID</th>
-                  <th>Patient Name</th>
-                  <th>Service Type</th>
-                  <th>Completion Date</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((o) => (
-                  <tr
-                    key={o._id}
-                    className="cov-row"
-                    onClick={() => onSelectOrder?.(o)}
-                    tabIndex={0}
-                    role="button"
-                    onKeyDown={(e) => e.key === 'Enter' && onSelectOrder?.(o)}
-                  >
-                    <td>
-                      <code className="cov-case-code">{o.caseId}</code>
-                    </td>
-                    <td>
-                      <span className="cov-patient-name">{o.patientName}</span>
-                    </td>
-                    <td>
-                      <span className="cov-service-label">{o.serviceType || 'Standard'}</span>
-                    </td>
-                    <td>{formatDate(o.completedDate || o.dueDate || o.updatedAt)}</td>
-                    <td>
-                      <StatusBadge status="completed" size="sm" />
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <span className="cov-action-cta">
-                        View Details {Icons.chevronRight(13)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DentzyDataTable
+              data={filteredOrders}
+              onRowClick={(o) => onSelectOrder?.(o)}
+              columns={[
+                { key: 'caseId', header: 'Case ID', render: (o) => <DentzyCaseChip caseId={o.caseId} /> },
+                { key: 'patientName', header: 'Patient Name', render: (o) => <span className="cov-patient-name">{o.patientName}</span> },
+                { key: 'serviceType', header: 'Service Type', render: (o) => <span className="cov-service-label">{o.serviceType || 'Standard'}</span> },
+                { key: 'completedDate', header: 'Completion Date', render: (o) => formatDate(o.completedDate || o.dueDate || o.updatedAt) },
+                { key: 'status', header: 'Status', render: () => <DentzyStatusPill type="workflow" status="completed" label="Completed" /> },
+                {
+                  key: 'action',
+                  header: 'Action',
+                  align: 'right',
+                  render: () => (
+                    <span className="cov-action-cta">
+                      View Details {Icons.chevronRight(13)}
+                    </span>
+                  ),
+                },
+              ]}
+            />
           </div>
 
           {/* Mobile Cards View */}
@@ -165,8 +144,8 @@ export default function CompletedOrdersView({
                 onKeyDown={(e) => e.key === 'Enter' && onSelectOrder?.(o)}
               >
                 <div className="cov-card-top">
-                  <span className="cov-case-code">{o.caseId}</span>
-                  <StatusBadge status="completed" size="sm" />
+                  <DentzyCaseChip caseId={o.caseId} />
+                  <DentzyStatusPill type="workflow" status="completed" label="Completed" />
                 </div>
                 <div className="cov-card-main">
                   <div className="cov-card-info">

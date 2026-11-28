@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ChevronRight, Headphones } from 'lucide-react';
 import { NotificationIcon, CopiedIcon } from './animated-state-icons';
 import { cn } from '../../lib/utils';
-import { TwentyFirstBadge } from './twentyfirst-badge';
+import { DentzyStatusPill } from '../common/DentzyCard';
 import BaseModal from './BaseModal';
 
 /**
@@ -89,13 +89,13 @@ export function TwentyFirstNoticeBar({
       >
         {/* Notice Badge */}
         <div className="relative z-10 flex-shrink-0 mr-3">
-          <TwentyFirstBadge
-            variant="approved"
+          <DentzyStatusPill
+            type="notice"
             pulse={pulse}
-            className="bg-primary-dark text-white font-bold tracking-wider uppercase text-[10px] px-2.5 py-1 shadow-xs"
+            className="px-2.5 py-1 shadow-xs"
           >
             {label}
-          </TwentyFirstBadge>
+          </DentzyStatusPill>
         </div>
 
         {/* Marquee Viewport */}
@@ -168,13 +168,13 @@ export function TwentyFirstNoticeBar({
         title="Announcements & Notices"
         subtitle="Important updates, clinical advisories, and laboratory schedules from Dentzy."
         badge={
-          <TwentyFirstBadge
-            variant="approved"
+          <DentzyStatusPill
+            type="notice"
             pulse={true}
-            className="bg-primary-dark text-white font-bold text-[10px] px-2 py-0.5"
+            className="px-2 py-0.5"
           >
             {cleanMessages.length} Active
-          </TwentyFirstBadge>
+          </DentzyStatusPill>
         }
         maxWidth="max-w-xl"
         id="notices-modal"

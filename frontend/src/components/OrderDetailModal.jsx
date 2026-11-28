@@ -3,7 +3,9 @@ import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { openInvoiceWindow } from '../utils/appleCompat';
-import { StatusBadge } from './ui/status-badge';
+import { DentzyStatusPill } from './common/DentzyCard';
+import { DentzyPipelineChart } from './common/DentzyChartTable';
+import InlineAmountEditor from './common/InlineAmountEditor';
 import './OrderDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
 import { PIPELINE_STAGES } from './dashboard/shared/constants';
@@ -58,23 +60,17 @@ export default function OrderDetailModal({
   // Amount inline edit state
   const [currentAmount, setCurrentAmount] = useState(displayOrder?.amount || 0);
   const [isEditingAmount, setIsEditingAmount] = useState(false);
-  const [amountInput, setAmountInput] = useState('');
-  const [savingAmount, setSavingAmount] = useState(false);
-  const [amountError, setAmountError] = useState('');
 
   useEffect(() => {
     if (order) {
       setCurrentAmount(order.amount || 0);
       setIsEditingAmount(false);
-      setAmountError('');
     }
   }, [order]);
 
   if (!displayOrder && !order) return null;
 
   const orderId = displayOrder._id || displayOrder.id;
-  const currentStage = (displayOrder.stage || 'received').toLowerCase();
-  const stageIdx = STAGES.indexOf(currentStage);
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
@@ -87,27 +83,6 @@ export default function OrderDetailModal({
       console.error('Delete order error:', err);
     } finally {
       setDeleting(false);
-    }
-  };
-
-  const handleSaveAmount = async () => {
-    const val = Number(amountInput);
-    if (isNaN(val) || val < 0) {
-      setAmountError('Please enter a valid positive amount.');
-      return;
-    }
-    setSavingAmount(true);
-    setAmountError('');
-    try {
-      if (onUpdateAmount) {
-        await onUpdateAmount(displayOrder, val);
-      }
-      setCurrentAmount(val);
-      setIsEditingAmount(false);
-    } catch (err) {
-      setAmountError(err.message || 'Failed to update amount.');
-    } finally {
-      setSavingAmount(false);
     }
   };
 
@@ -131,7 +106,7 @@ export default function OrderDetailModal({
           <div className="odm-header">
             <div className="odm-case-badge-wrap">
               <span className="odm-case-badge">{displayOrder.caseId || 'Order Details'}</span>
-              <StatusBadge status={displayOrder.status || 'Pending'} size="sm" />
+              <DentzyStatusPill type="workflow" status={displayOrder.status || 'Pending'} />
             </div>
             <button className="odm-close-btn" onClick={onClose} aria-label="Close modal">
               {Ico.x(16)}
@@ -152,19 +127,11 @@ export default function OrderDetailModal({
           {/* Pipeline Progress Track */}
           <div className="odm-pipeline-card">
             <div className="odm-pipeline-title">Production Stage</div>
-            <div className="odm-pipeline">
-              {STAGES.map((s, idx) => (
-                <React.Fragment key={s}>
-                  <div className={`odm-pipeline-step ${idx <= stageIdx ? 'odm-pipeline-step--done' : ''} ${idx === stageIdx ? 'odm-pipeline-step--current' : ''}`}>
-                    <div className="odm-pipeline-dot" />
-                    <span className="odm-pipeline-label">{STAGE_LABELS[s]}</span>
-                  </div>
-                  {idx < STAGES.length - 1 && (
-                    <div className={`odm-pipeline-line ${idx < stageIdx ? 'odm-pipeline-line--done' : ''}`} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+            <DentzyPipelineChart
+              stage={displayOrder.stage}
+              completed={displayOrder.status === 'Completed'}
+              stages={STAGES.map((s) => ({ key: s, label: STAGE_LABELS[s] }))}
+            />
           </div>
 
           {/* Key Details Grid */}
@@ -176,12 +143,13 @@ export default function OrderDetailModal({
             <div className="odm-grid-item">
               <span className="odm-grid-label">Priority</span>
               <span className="odm-grid-value">
-                <span className={`odm-priority-pill odm-priority--${(displayOrder.priority || 'normal').toLowerCase()}`}>
-                  {(displayOrder.priority || 'normal').toLowerCase() === 'high' || (displayOrder.priority || 'normal').toLowerCase() === 'rush' || (displayOrder.priority || 'normal').toLowerCase() === 'urgent'
-                    ? <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    : <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'3px',verticalAlign:'middle'}}><circle cx="12" cy="12" r="6"/></svg>}
-                  {displayOrder.priority || 'Normal'}
-                </span>
+                <DentzyStatusPill
+                  type="priority"
+                  status={displayOrder.priority || 'Normal'}
+                  icon={(displayOrder.priority || 'normal').toLowerCase() === 'high' || (displayOrder.priority || 'normal').toLowerCase() === 'rush' || (displayOrder.priority || 'normal').toLowerCase() === 'urgent'
+                    ? Ico.bolt(12)
+                    : Ico.dot(10)}
+                />
               </span>
             </div>
             <div className="odm-grid-item">
@@ -206,64 +174,24 @@ export default function OrderDetailModal({
           <div className="odm-payment-card">
             <div className="odm-payment-header">
               <span className="odm-payment-title">Payment Information</span>
-              <span className={`odm-pay-pill odm-pay--${(displayOrder.paymentStatus || 'pending').toLowerCase()}`}>
-                {displayOrder.paymentStatus || 'Pending'}
-              </span>
+              <DentzyStatusPill type="payment" status={displayOrder.paymentStatus || 'Pending'} />
             </div>
             <div className="odm-payment-body">
               <div className="odm-pay-row odm-pay-row--amount">
                 <span>Billed Amount:</span>
-                {isEditingAmount ? (
-                  <div className="odm-amount-edit-wrap">
-                    <span className="odm-currency-prefix">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={amountInput}
-                      onChange={e => { setAmountInput(e.target.value); setAmountError(''); }}
-                      placeholder="e.g. 5000"
-                      className="odm-amount-input"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveAmount}
-                      disabled={savingAmount || amountInput === ''}
-                      className="odm-amount-btn-save"
-                    >
-                      {savingAmount ? '…' : 'Save'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setIsEditingAmount(false); setAmountError(''); }}
-                      disabled={savingAmount}
-                      className="odm-amount-btn-cancel"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="odm-amount-display-row">
-                    <strong>{formatINR(currentAmount > 0 ? currentAmount : getFallbackAmount(displayOrder))}</strong>
-                    {isAdmin && onUpdateAmount && (
-                      <button
-                        type="button"
-                        className="odm-amount-edit-trigger odm-amount-trigger--edit"
-                        onClick={() => {
-                          const eff = currentAmount > 0 ? currentAmount : getFallbackAmount(displayOrder);
-                          setAmountInput(String(eff));
-                          setIsEditingAmount(true);
-                        }}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                )}
+                <InlineAmountEditor
+                  amount={currentAmount}
+                  displayAmount={currentAmount > 0 ? currentAmount : getFallbackAmount(displayOrder)}
+                  canEdit={Boolean(isAdmin && onUpdateAmount)}
+                  onSave={async (val) => {
+                    if (onUpdateAmount) await onUpdateAmount(displayOrder, val);
+                    setCurrentAmount(val);
+                  }}
+                  variant="compact"
+                  editLabel="Edit"
+                  onEditingChange={setIsEditingAmount}
+                />
               </div>
-              {amountError && (
-                <div className="odm-amount-error-msg">{amountError}</div>
-              )}
               {displayOrder.paymentStatus === 'Paid' && (
                 <>
                   <div className="odm-pay-row">
@@ -304,11 +232,7 @@ export default function OrderDetailModal({
                             gap: '4px',
                           }}
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
+                          {Ico.download(12)}
                           Download Batch Invoice
                         </button>
                       </div>

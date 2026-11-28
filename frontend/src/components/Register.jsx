@@ -3,12 +3,14 @@ import Link from 'next/link';
 import GoogleSignInButton from './ui/GoogleSignInButton';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthUrl } from '../api/client';
 import PasswordStrength from './ui/password-strength';
 import { EyeToggleIcon } from './ui/animated-state-icons';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
+import TwentyFirstOtpBox from './ui/twentyfirst-otp-box';
+import { DentzyPipelineChart } from './common/DentzyChartTable';
 import { Icons as Ico } from './common/DashboardIcons';
 import { PASSWORD_RULES } from '../utils/validation';
 import { useCountdown } from '../hooks/useCountdown';
@@ -43,7 +45,6 @@ const Register = () => {
   const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]             = useState('');
   const { seconds: resendCooldown, start: startResendCooldown } = useCountdown(0);
-  const otpInputsRef                        = useRef([]);
   const [pending, setPending]               = useState(null);
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
@@ -148,40 +149,12 @@ const Register = () => {
         startResendCooldown(60);
         setOtp(['', '', '', '', '', '']);
         setError('');
-        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
       }
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ── OTP input handlers (same pattern as ForgotPassword) ─────────────
-  const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    setError('');
-    if (value && index < 5) {
-      otpInputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pasteData)) {
-      setOtp(pasteData.split(''));
-      otpInputsRef.current[5]?.focus();
     }
   };
 
@@ -237,18 +210,15 @@ const Register = () => {
             <img src={dentzyLogo} alt="Dentzy Logo" />
           </div>
           <div className="auth-card pending-card">
-            <div className="pending-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#708c80" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
+            <div className="pending-icon" style={{ color: '#708c80' }}>
+              {Ico.clock(40, 1.5)}
             </div>
             <h2 className="auth-card-title">Awaiting Approval</h2>
             <p className="pending-msg">
               Hi <strong>{pending?.name || form.name}</strong>, your registration request has been submitted successfully!
             </p>
             <p className="pending-sub">
-              Our admin will review your account and approve it shortly. You'll be able to log in once approved.
+              Our admin will review your account and approve it shortly. You&apos;ll be able to log in once approved.
             </p>
             <div className="pending-email-tag">{pending?.email || form.email}</div>
             <Link href="/login" id="go-to-login-pending" className="auth-btn" style={{ textDecoration: 'none', display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
@@ -287,21 +257,16 @@ const Register = () => {
 
             <form className="auth-form" onSubmit={handleVerifyOtp}>
               {/* 6-box OTP Input */}
-              <div className="otp-input-group" style={{ margin: '20px 0' }} onPaste={handleOtpPaste}>
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => (otpInputsRef.current[idx] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className={`otp-digit${digit ? ' otp-digit--filled' : ''}`}
-                  />
-                ))}
-              </div>
+              <TwentyFirstOtpBox
+                value={otp.join('')}
+                onChange={(val) => {
+                  setOtp(val.split('').concat(['', '', '', '', '', '']).slice(0, 6));
+                  setError('');
+                }}
+                hasError={Boolean(error)}
+                disabled={loading}
+                className="my-5"
+              />
 
               {error && (
                 <div className="auth-error">
@@ -338,7 +303,6 @@ const Register = () => {
                         setOtpToken(result.otpToken);
                         startResendCooldown(60);
                         setOtp(['', '', '', '', '', '']);
-                        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
                       }
                     } catch (err) {
                       setError(err.message || 'Failed to resend. Please go back and try again.');
@@ -378,7 +342,7 @@ const Register = () => {
           <h1 className="auth-welcome">
             <span>WELCOME</span>
             <span>TO</span>
-            <span>DEN<em className="auth-accent">T</em>ZY</span>
+            <span>DEN<em className="dentzy-t" style={{ fontStyle: 'normal' }}>T</em>ZY</span>
           </h1>
         </div>
       </div>
@@ -393,37 +357,23 @@ const Register = () => {
           <h2 className="auth-card-title">Sign up</h2>
 
           {/* #32 — Registration progress indicator */}
-          <div className="auth-progress">
-            {[
-              { num: 1, label: 'Create Account' },
-              { num: 2, label: 'Verify Email' },
-              { num: 3, label: 'Approval' },
-            ].map((s, i) => (
-              <React.Fragment key={s.num}>
-                <div className={`auth-progress-step ${step >= s.num ? 'auth-progress-step--active' : ''} ${step === s.num ? 'auth-progress-step--current' : ''}`}>
-                  <div className="auth-progress-dot">
-                    {step > s.num ? (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    ) : s.num}
-                  </div>
-                  <span className="auth-progress-label">{s.label}</span>
-                </div>
-                {i < 2 && <div className={`auth-progress-line ${step > s.num ? 'auth-progress-line--done' : ''}`} />}
-              </React.Fragment>
-            ))}
-          </div>
+          <DentzyPipelineChart
+            stage={step === 1 ? 'account' : step === 2 ? 'verify' : 'approval'}
+            stages={[
+              { key: 'account', label: 'Create Account' },
+              { key: 'verify', label: 'Verify Email' },
+              { key: 'approval', label: 'Approval' },
+            ]}
+            numbered
+            className="mb-5"
+          />
 
           <form className="auth-form" onSubmit={handleSendOtp} noValidate>
             {/* Name */}
             <div className="auth-input-group">
               <label htmlFor="register-name" className="sr-only">Full name</label>
               <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
+                {Ico.user(16, 2)}
               </span>
               <input
                 id="register-name"
@@ -443,10 +393,7 @@ const Register = () => {
             <div className="auth-input-group">
               <label htmlFor="register-email" className="sr-only">Email address</label>
               <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
+                {Ico.mail(16, 2)}
               </span>
               <input
                 id="register-email"
@@ -466,10 +413,7 @@ const Register = () => {
             <div className="auth-input-group">
               <label htmlFor="register-password" className="sr-only">Password</label>
               <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
+                {Ico.lock(16, 2)}
               </span>
               <input
                 id="register-password"
@@ -535,11 +479,8 @@ const Register = () => {
                 <span className="auth-spinner" />
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                    <polyline points="22,6 12,13 2,6"/>
-                  </svg>
-                  Verify Email & Sign Up
+                  {Ico.mail(16, 2)}
+                  {' '}Verify Email & Sign Up
                 </>
               )}
             </button>

@@ -75,42 +75,14 @@
   letter-spacing: 0.08em;
 }
 
-.m-hero__accent { color: var(--color-primary, var(--dz-color-primary)); }
-
-.m-hero__line2 {
-  font-size: 0.85rem;
-  font-weight: 400;
-  letter-spacing: 0.2em;
-  opacity: 0.75;
-  text-transform: uppercase;
-}
-
-.m-hero__cta {
-  margin-top: 20px;
-  padding: 10px 28px;
-  border: none;
-  border-radius: 24px;
-  background: var(--color-primary, var(--dz-color-primary));
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(112, 140, 128, 0.4);
-  transition: transform 0.15s;
-}
-
-.m-hero__cta:active { transform: scale(0.95); }
-
-/* ── Section Title (shared) ────────────────── */
 .m-section-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-charcoal, var(--dz-color-charcoal));
+  color: var(--dz-color-charcoal);
   margin: 0 0 12px;
 }
 
-.m-accent { color: var(--color-primary, var(--dz-color-primary)); }
-.m-accent-inline { color: var(--color-primary, var(--dz-color-primary)); font-weight: 800; }
+.m-accent-inline { color: var(--dz-color-primary); font-weight: 800; }
 
 /* ── Quick Actions ──────────────────────────── */
 .m-quick-actions { padding: 20px 16px 8px; }

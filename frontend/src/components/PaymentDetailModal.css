@@ -13,12 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
-  animation: pdmFadeIn 0.2s ease-out;
-}
-
-@keyframes pdmFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  animation: fadeIn 0.2s ease-out;
 }
 
 .pdm-modal-wrap {
@@ -53,12 +48,7 @@
   padding: 24px;
   gap: 16px;
   position: relative;
-  animation: pdmScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes pdmScaleUp {
-  from { transform: scale(0.96); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  animation: scaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Header ─────────────────────────────────── */
@@ -69,7 +59,7 @@
   gap: 12px;
   flex-shrink: 0;
   padding: 16px 20px;
-  border-bottom: 1px solid #eef2f0;
+  border-bottom: 1px solid var(--dz-color-border-mint);
   background: #ffffff;
 }
 
@@ -144,8 +134,8 @@
 
 /* ── Amount Card ────────────────────────────── */
 .pdm-amount-card {
-  background: #f8faf9;
-  border: 1px solid #e2ece6;
+  background: var(--dz-color-surface-subtle);
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 14px;
   padding: 16px;
   display: flex;
@@ -165,176 +155,6 @@
   color: var(--dz-color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.pdm-status-pill {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 12px;
-}
-
-.pdm-status--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.pdm-status--pending { background: #fef9c3; color: #854d0e; }
-
-.pdm-amount-val {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: var(--dz-color-charcoal);
-}
-
-.pdm-amount-display-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pdm-amount-edit-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: 1px solid transparent;
-}
-
-.pdm-amount-trigger--edit {
-  background: #ffffff;
-  color: #2a5a44;
-  border-color: #d1e2d9;
-}
-
-.pdm-amount-trigger--edit:hover {
-  background: #eef5f1;
-  border-color: #b8d4c5;
-}
-
-.pdm-amount-trigger--add {
-  background: var(--dz-color-primary-accent);
-  color: #ffffff;
-}
-
-.pdm-amount-trigger--add:hover {
-  background: #16402c;
-}
-
-/* Amount Inline Edit Wrap */
-.pdm-amount-edit-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid #e2ece6;
-}
-
-.pdm-amount-input-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #4a7060;
-}
-
-.pdm-amount-input-box {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #c9ded3;
-  border-radius: 10px;
-  padding: 2px 10px;
-  transition: border-color 0.15s ease;
-}
-
-.pdm-amount-input-box:focus-within {
-  border-color: var(--dz-color-primary-accent);
-  outline: none;
-}
-
-.pdm-currency-prefix {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--dz-color-primary);
-  margin-right: 6px;
-  user-select: none;
-}
-
-.pdm-amount-input {
-  border: none;
-  background: transparent;
-  width: 100%;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--dz-color-charcoal);
-  padding: 8px 0;
-  outline: none !important;
-}
-
-.pdm-amount-input:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.pdm-amount-error-msg {
-  font-size: 0.75rem;
-  color: #dc2626;
-  font-weight: 500;
-}
-
-.pdm-amount-success-msg {
-  font-size: 0.75rem;
-  color: #16a34a;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-.pdm-amount-edit-btns {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.pdm-amount-btn-cancel {
-  background: #f1f5f9;
-  border: none;
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--dz-color-text-muted);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.pdm-amount-btn-cancel:hover {
-  background: var(--dz-color-border);
-  color: #334155;
-}
-
-.pdm-amount-btn-save {
-  background: var(--dz-color-primary-accent);
-  border: none;
-  padding: 7px 16px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.pdm-amount-btn-save:hover {
-  background: #16402c;
-}
-
-.pdm-amount-btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* ── Patient Section ────────────────────────── */
@@ -366,7 +186,7 @@
 
 .pdm-grid-item {
   background: #fff;
-  border: 1px solid #e2ece6;
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 12px;
   padding: 10px 14px;
   display: flex;
@@ -401,17 +221,7 @@
   font-weight: normal;
 }
 
-.pdm-mode-pill {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-  display: inline-block;
-}
-
-.pdm-mode--cash { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.pdm-mode--cheque { background: #dbeafe; color: #1e40af; }
-.pdm-mode--upi { background: #f3e8ff; color: #7e22ce; }
+/* payment mode pills consolidated onto DentzyStatusPill (.dz-pill--mode-*) */
 
 /* ── Notes Box ──────────────────────────────── */
 .pdm-notes-box {
@@ -520,13 +330,16 @@
     border-radius: 20px 20px 0 0;
     max-height: 85vh;
     padding: 20px;
-    animation: pdmSlideUp 0.25s ease-out;
-  }
-  @keyframes pdmSlideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    animation: slideUpSheet 0.25s ease-out;
   }
   .pdm-grid {
     grid-template-columns: 1fr;
+  }
+  .pdm-close-btn,
+  .pdm-delete-btn,
+  .pdm-record-btn,
+  .pdm-invoice-btn,
+  .pdm-close-footer-btn {
+    min-height: 44px;
   }
 }

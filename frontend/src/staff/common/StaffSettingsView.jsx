@@ -6,7 +6,9 @@ import { useStaffAuth } from '../StaffAuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import TwentyFirstNavCard from '../../components/ui/twentyfirst-nav-card';
-import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import { DentzyCard, DentzyStatusPill } from '../../components/common/DentzyCard';
+import SubViewHeader from '../../components/common/SubViewHeader';
+import ChangePasswordCard from '../../components/common/ChangePasswordCard';
 import { safeShowPicker } from '../../utils/appleCompat';
 import '../StaffDashboard.css';
 
@@ -107,22 +109,26 @@ export default function StaffSettingsView({ resetTick = 0 }) {
   };
 
   // ── Password Change Handler ───────────────────────────────────────────────
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
+  const handlePasswordChange = async (submittedForm, e) => {
+    e?.preventDefault?.();
+    const targetForm =
+      submittedForm && typeof submittedForm === 'object' && 'currentPassword' in submittedForm
+        ? submittedForm
+        : pwForm;
 
-    if (!pwForm.currentPassword) {
+    if (!targetForm.currentPassword) {
       showToast('Current password is required.', 'error');
       return;
     }
-    if (!pwForm.newPassword) {
+    if (!targetForm.newPassword) {
       showToast('New password is required.', 'error');
       return;
     }
-    if (pwForm.newPassword.length < 6) {
+    if (targetForm.newPassword.length < 6) {
       showToast('New password must be at least 6 characters.', 'error');
       return;
     }
-    if (pwForm.newPassword !== pwForm.confirmPassword) {
+    if (targetForm.newPassword !== targetForm.confirmPassword) {
       showToast('New passwords do not match.', 'error');
       return;
     }
@@ -132,8 +138,8 @@ export default function StaffSettingsView({ resetTick = 0 }) {
       const res = await authFetch(`${apiBase}/change-password`, {
         method: 'PUT',
         body: JSON.stringify({
-          currentPassword: pwForm.currentPassword,
-          newPassword: pwForm.newPassword,
+          currentPassword: targetForm.currentPassword,
+          newPassword: targetForm.newPassword,
         }),
       });
       const data = await res.json();
@@ -162,24 +168,6 @@ export default function StaffSettingsView({ resetTick = 0 }) {
     }
   };
 
-  const renderSubViewHeader = (title, subtitle) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <TwentyFirstIconButton
-        icon={Ico.arrowLeft(18)}
-        title="Back to Profile"
-        ariaLabel="Back to Profile"
-        onClick={() => setSubView(null)}
-        size="lg"
-        variant="soft"
-        rounded="md"
-      />
-      <div>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>{title}</h2>
-        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '2px 0 0' }}>{subtitle}</p>
-      </div>
-    </div>
-  );
-
   return (
     <div className="sd-settings-wrapper" style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '32px' }}>
 
@@ -187,26 +175,11 @@ export default function StaffSettingsView({ resetTick = 0 }) {
       {subView === null && (
         <>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>My Profile</h2>
-          <div className="sd-settings-card" style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', border: '1px solid #eef2f0' }}>
+          <DentzyCard className="sd-settings-card">
         
         {/* Header with Avatar & Details */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid #f0f5f2' }}>
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #1e5038 0%, #2a7b55 100%)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '1.15rem',
-              letterSpacing: '0.02em',
-              flexShrink: 0,
-            }}
-          >
+          <div className="dz-avatar dz-avatar--lg">
             {initials}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -264,19 +237,7 @@ export default function StaffSettingsView({ resetTick = 0 }) {
                 <span>Designation</span>
               </div>
               <div style={{ marginTop: '4px' }}>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    background: '#eef6f2',
-                    color: '#1e5038',
-                    padding: '2px 9px',
-                    borderRadius: '6px',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {staff?.designation || '—'}
-                </span>
+                <DentzyStatusPill type="orders" label={staff?.designation || '—'} />
               </div>
             </div>
           </div>
@@ -399,7 +360,7 @@ export default function StaffSettingsView({ resetTick = 0 }) {
             </button>
           </div>
         </form>
-      </div>
+      </DentzyCard>
 
           <TwentyFirstNavCard
             label="Settings"
@@ -439,175 +400,27 @@ export default function StaffSettingsView({ resetTick = 0 }) {
       {/* ── SUB-VIEW 2: Settings (Security & Password) ───────────────────── */}
       {subView === 'settings' && (
         <>
-          {renderSubViewHeader('Settings', 'My Profile / Security & Password')}
-          <div className="sd-settings-card" style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', border: '1px solid #eef2f0' }}>
-        <div style={{ marginBottom: '18px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>
-            Security & Password
-          </h3>
-          <p style={{ fontSize: '0.83rem', color: '#64748b', margin: '4px 0 0 0' }}>
-            Update your account password. Must be at least 6 characters.
-          </p>
-        </div>
-
-        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Current Password */}
-          <div className="sd-field" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#2d3748' }}>Current Password</label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input
-                type={showPw.current ? 'text' : 'password'}
-                value={pwForm.currentPassword}
-                onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
-                placeholder="Enter current password"
-                autoComplete="current-password"
-                required
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  borderRadius: '10px',
-                  border: '1px solid #d2ded7',
-                  padding: '0 42px 0 12px',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                  background: '#fff',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((p) => ({ ...p, current: !p.current }))}
-                aria-label={showPw.current ? 'Hide password' : 'Show password'}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#708c80',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {Ico.eye(16, showPw.current)}
-              </button>
-            </div>
-          </div>
-
-          {/* New Password & Confirm Password Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-            {/* New Password */}
-            <div className="sd-field" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#2d3748' }}>New Password</label>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  type={showPw.new ? 'text' : 'password'}
-                  value={pwForm.newPassword}
-                  onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
-                  placeholder="At least 6 characters"
-                  autoComplete="new-password"
-                  required
-                  style={{
-                    width: '100%',
-                    height: '42px',
-                    borderRadius: '10px',
-                    border: '1px solid #d2ded7',
-                    padding: '0 42px 0 12px',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    background: '#fff',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((p) => ({ ...p, new: !p.new }))}
-                  aria-label={showPw.new ? 'Hide password' : 'Show password'}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#708c80',
-                    padding: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  {Ico.eye(16, showPw.new)}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div className="sd-field" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#2d3748' }}>Confirm New Password</label>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  type={showPw.confirm ? 'text' : 'password'}
-                  value={pwForm.confirmPassword}
-                  onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-                  placeholder="Repeat new password"
-                  autoComplete="new-password"
-                  required
-                  style={{
-                    width: '100%',
-                    height: '42px',
-                    borderRadius: '10px',
-                    border: '1px solid #d2ded7',
-                    padding: '0 42px 0 12px',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    background: '#fff',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((p) => ({ ...p, confirm: !p.confirm }))}
-                  aria-label={showPw.confirm ? 'Hide password' : 'Show password'}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#708c80',
-                    padding: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  {Ico.eye(16, showPw.confirm)}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
-            <button
-              type="submit"
-              disabled={pwSaving}
-              style={{
-                background: '#1e5038',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '10px 22px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: pwSaving ? 'not-allowed' : 'pointer',
-                opacity: pwSaving ? 0.7 : 1,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'background 0.2s',
-              }}
-            >
-              {pwSaving ? 'Updating Password...' : 'Update Password'}
-            </button>
-          </div>
-        </form>
-      </div>
+          <SubViewHeader
+            title="Settings"
+            subtitle="My Profile / Security & Password"
+            onBack={() => setSubView(null)}
+            backLabel="Back to Profile"
+            style={{ marginBottom: 0 }}
+          />
+          <ChangePasswordCard
+            className="sd-settings-card"
+            title="Security & Password"
+            subtitle="Update your account password. Must be at least 6 characters."
+            pwForm={pwForm}
+            onFormChange={(field, value) => setPwForm((p) => ({ ...p, [field]: value }))}
+            showPwState={showPw}
+            onToggleShowPw={(key) => setShowPw((p) => ({ ...p, [key]: !p[key] }))}
+            onSubmit={handlePasswordChange}
+            saving={pwSaving}
+            minLength={6}
+            submitLabel="Update Password"
+            idPrefix="staff-pw"
+          />
         </>
       )}
 

@@ -1,6 +1,7 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import './ProductsIntro.css';
+import { HERO_MEDIA } from '../data/landingContent';
 
 const ProductsIntro = () => {
     const videoRef = useRef(null);
@@ -38,11 +39,11 @@ const ProductsIntro = () => {
                 playsInline
                 preload="none"
             >
-                {isVisible && <source src="/products-bg.mp4" type="video/mp4" />}
+                {isVisible && <source src={HERO_MEDIA.productsVideoSrc} type="video/mp4" />}
             </video>
             <div className="products-intro-overlay"></div>
             <div className="container products-intro-content animate-on-scroll">
-                <h2 className="products-title">Our PRODUC<span>T</span>S</h2>
+                <h2 className="products-title">Our PRODUC<span className="dentzy-t">T</span>S</h2>
                 <p className="products-subtitle">Precision You Can Rely On</p>
             </div>
         </section>

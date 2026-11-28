@@ -5,10 +5,11 @@
 import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { getAuthUrl } from '../../api/client';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import TwentyFirstOtpBox from '../../components/ui/twentyfirst-otp-box';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import './MobileLogin.css';
 import PasswordStrength from '../../components/ui/password-strength';
@@ -37,7 +38,6 @@ const MobileForgotPassword = () => {
   const [infoMsg, setInfoMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const otpInputsRef = useRef([]);
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const getRecaptchaToken = useCallback(async () => {
@@ -86,40 +86,11 @@ const MobileForgotPassword = () => {
         startResendCooldown(60);
         setInfoMsg(`Code sent to ${cleanEmail}`);
         setOtp(['', '', '', '', '', '']);
-        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
       }
     } catch {
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ── OTP input change & paste ───────────────────────────────────────────────
-  const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    setError('');
-
-    if (value && index < 5) {
-      otpInputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pasteData)) {
-      setOtp(pasteData.split(''));
-      otpInputsRef.current[5]?.focus();
     }
   };
 
@@ -219,10 +190,7 @@ const MobileForgotPassword = () => {
       )}
       {/* Back Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/login')} aria-label="Back" title="Back">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
+        {Ico.arrowLeft(20, 2.2)}
       </button>
 
       <div className="m-auth-logo">
@@ -234,9 +202,7 @@ const MobileForgotPassword = () => {
         {step === 4 ? (
           <div style={{ textAlign: 'center', padding: '10px 0' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              {Ico.check(28, 2.5)}
             </div>
             <h1 className="m-auth-title">Password Updated!</h1>
             <p className="m-auth-subtitle" style={{ marginTop: '8px' }}>
@@ -293,32 +259,16 @@ const MobileForgotPassword = () => {
             {error && <div className="m-auth-error">{error}</div>}
 
             <form onSubmit={handleVerifyOtp}>
-              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', margin: '16px 0' }} onPaste={handleOtpPaste}>
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => (otpInputsRef.current[idx] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    style={{
-                      width: '42px',
-                      height: '50px',
-                      fontSize: '1.3rem',
-                      fontWeight: '700',
-                      textAlign: 'center',
-                      borderRadius: '8px',
-                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
-                      background: '#fff',
-                      color: '#1e2824',
-                      outline: 'none',
-                    }}
-                  />
-                ))}
-              </div>
+              <TwentyFirstOtpBox
+                value={otp.join('')}
+                onChange={(val) => {
+                  setOtp(val.split('').concat(['', '', '', '', '', '']).slice(0, 6));
+                  setError('');
+                }}
+                hasError={Boolean(error)}
+                disabled={loading}
+                className="my-4"
+              />
 
               <button type="submit" className="m-auth-submit" disabled={loading || otp.join('').length !== 6}>
                 {loading ? 'Verifying…' : 'Verify Code →'}

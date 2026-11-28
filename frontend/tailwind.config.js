@@ -17,7 +17,7 @@ module.exports = {
         dark: 'var(--dz-color-dark, #2a3d35)',
         surface: 'var(--dz-color-bg-surface, #ffffff)',
         'surface-alt': 'var(--dz-color-bg-surface-alt, #f8faf9)',
-        page: 'var(--dz-color-bg-page, #f4f7f5)',
+        page: 'var(--dz-color-bg-page, #f0f5f2)',
         border: 'var(--dz-color-border, #e2e8f0)',
         'border-light': 'var(--dz-color-border-light, #f0f2f1)',
         /* Semantic status colors */

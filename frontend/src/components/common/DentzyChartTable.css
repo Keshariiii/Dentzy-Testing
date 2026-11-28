@@ -65,6 +65,20 @@
   align-items: center;
   gap: 4px;
   position: relative;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  font-family: inherit;
+}
+
+.dz-stage-node--clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.dz-stage-node--clickable:hover {
+  background: rgba(30, 80, 56, 0.06);
 }
 
 .dz-stage-dot {
@@ -75,12 +89,28 @@
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
+.dz-stage-dot--numbered {
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b8a7a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dz-stage-node--done .dz-stage-dot--numbered,
+.dz-stage-node--current .dz-stage-dot--numbered {
+  color: #ffffff;
+}
+
 .dz-stage-node--done .dz-stage-dot {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
 }
 
 .dz-stage-node--current .dz-stage-dot {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   box-shadow: 0 0 0 3px rgba(30, 80, 56, 0.16);
 }
 
@@ -93,18 +123,18 @@
 
 .dz-stage-node--done .dz-stage-label,
 .dz-stage-node--current .dz-stage-label {
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   font-weight: 700;
 }
 
 .dz-stage-line {
   flex: 1;
   height: 2px;
-  background: #e2ece6;
+  background: var(--dz-color-border-mint);
   margin: 0 6px 14px;
   transition: background 0.15s ease;
 }
 
 .dz-stage-line--done {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
 }

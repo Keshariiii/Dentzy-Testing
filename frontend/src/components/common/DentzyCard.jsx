@@ -15,12 +15,22 @@ export function DentzyCaseChip({ caseId, children, className = '', style }) {
 
 /**
  * DentzyStatusPill — Separates Clinical Workflow Status from Financial Payment Status
- * @param {'workflow'|'payment'|'account'|'meta'} [type='workflow']
+ * @param {'workflow'|'payment'|'account'|'priority'|'mode'|'clinic'|'orders'|'notice'} [type='workflow']
  */
-export function DentzyStatusPill({ status, label, type = 'workflow', className = '', style }) {
-  const raw = (status || '').toString().trim();
+export function DentzyStatusPill({
+  status,
+  label,
+  type = 'workflow',
+  pulse = false,
+  icon = null,
+  size = 'sm',
+  className = '',
+  style,
+  children,
+}) {
+  const raw = (status || (typeof children === 'string' ? children : '')).toString().trim();
   const s = raw.toLowerCase();
-  const display = label || raw || 'Pending';
+  const display = label || children || raw || 'Pending';
 
   let variantClass = 'dz-pill--wf-pending';
 
@@ -31,24 +41,40 @@ export function DentzyStatusPill({ status, label, type = 'workflow', className =
     else if (s === 'rejected') variantClass = 'dz-pill--wf-cancelled';
     else if (s === 'archived' || s === 'inactive') variantClass = 'dz-pill--wf-pending';
     else variantClass = 'dz-pill--pay-pending';
+  } else if (type === 'priority') {
+    if (s === 'rush' || s === 'urgent') variantClass = 'dz-pill--priority-urgent';
+    else if (s === 'high') variantClass = 'dz-pill--priority-high';
+    else variantClass = 'dz-pill--priority-normal';
+  } else if (type === 'mode') {
+    if (s === 'cash') variantClass = 'dz-pill--mode-cash';
+    else if (s === 'cheque') variantClass = 'dz-pill--mode-cheque';
+    else variantClass = 'dz-pill--mode-upi';
+  } else if (type === 'notice') {
+    variantClass = 'dz-pill--notice';
   } else if (type === 'clinic') {
     variantClass = 'dz-pill--clinic';
   } else if (type === 'orders') {
     variantClass = 'dz-pill--orders';
   } else {
     // workflow
-    if (s === 'completed' || s === 'delivered' || s === 'qc') variantClass = 'dz-pill--wf-completed';
-    else if (s === 'in progress' || s === 'in-progress' || s === 'design' || s === 'production' || s === 'dispatched') {
+    if (s === 'completed' || s === 'delivered' || s === 'qc' || s === 'success' || s === 'approved' || s === 'active') {
+      variantClass = 'dz-pill--wf-completed';
+    } else if (['in progress', 'in-progress', 'design', 'production', 'dispatched', 'processing', 'manufacturing', 'packaging'].includes(s)) {
       variantClass = 'dz-pill--wf-in-progress';
-    } else if (s === 'cancelled' || s === 'rejected') {
+    } else if (s === 'cancelled' || s === 'rejected' || s === 'failed' || s === 'overdue' || s === 'blocked') {
       variantClass = 'dz-pill--wf-cancelled';
     } else {
       variantClass = 'dz-pill--wf-pending';
     }
   }
 
+  const shouldPulse = pulse || (type === 'workflow' && variantClass === 'dz-pill--wf-in-progress');
+  const sizeClass = size === 'md' || size === 'lg' ? 'dz-pill--md' : '';
+
   return (
-    <span className={`dz-pill ${variantClass} ${className}`.trim()} style={style}>
+    <span className={`dz-pill ${variantClass} ${sizeClass} ${className}`.trim()} style={style}>
+      {shouldPulse && <span className="dz-pulse-dot" aria-hidden="true" style={{ width: 6, height: 6, background: 'currentColor' }} />}
+      {icon}
       {display}
     </span>
   );
@@ -137,21 +163,60 @@ export function DentzyRowCard({
 }
 
 /**
- * DentzyKpiRow — 3-Metric Summary Header Strip for Drill-Downs & Overviews
- * @param {Array<{label: string, value: React.ReactNode, valueColor?: string}>} items
+ * DentzyKpiRow — Shared Metric Summary & Dashboard Stat Card Strip
+ * Supports plain KPI drill-downs as well as interactive dashboard stat cards (with icons, tones, tags).
  */
-export function DentzyKpiRow({ items = [], className = '' }) {
+export function DentzyKpiRow({ items = [], className = '', style }) {
   if (!items || items.length === 0) return null;
   return (
-    <div className={`dz-kpi-row ${className}`.trim()}>
-      {items.map((item, idx) => (
-        <div key={item.label || idx} className="dz-kpi-card">
-          <span className="dz-kpi-card__label">{item.label}</span>
-          <span className="dz-kpi-card__value" style={item.valueColor ? { color: item.valueColor } : undefined}>
-            {item.value}
-          </span>
-        </div>
-      ))}
+    <div className={`dz-kpi-row ${className}`.trim()} style={style}>
+      {items.map((item, idx) => {
+        const interactive = Boolean(item.onClick);
+        const toneClass = item.tone ? `dz-kpi-card--${item.tone}` : '';
+        return (
+          <div
+            key={item.key || item.label || idx}
+            className={`dz-kpi-card ${interactive ? 'dz-kpi-card--clickable' : ''} ${toneClass}`.trim()}
+            onClick={item.onClick}
+            title={item.title}
+            role={interactive ? 'button' : undefined}
+            tabIndex={interactive ? 0 : undefined}
+            onKeyDown={
+              interactive
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      item.onClick(e);
+                    }
+                  }
+                : undefined
+            }
+          >
+            <div className="dz-kpi-card__top">
+              <div className="dz-kpi-card__main">
+                <span className="dz-kpi-card__label">{item.label}</span>
+                <span className="dz-kpi-card__value" style={item.valueColor ? { color: item.valueColor } : undefined}>
+                  {item.value}
+                </span>
+                {item.hint && <span className="dz-kpi-card__hint">{item.hint}</span>}
+              </div>
+              {item.icon && <div className="dz-kpi-card__icon">{item.icon}</div>}
+            </div>
+            {Array.isArray(item.tags) && item.tags.length > 0 && (
+              <div className="dz-kpi-card__tags">
+                {item.tags.map((t, tIdx) => (
+                  <DentzyStatusPill
+                    key={t.label || tIdx}
+                    type={t.type || 'workflow'}
+                    status={t.status || t.label}
+                    label={t.label}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

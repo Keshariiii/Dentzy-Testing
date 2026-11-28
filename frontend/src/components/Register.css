@@ -60,12 +60,6 @@
   font-size: clamp(2.6rem, 5vw, 4.4rem);
 }
 
-.auth-accent {
-  color: var(--color-primary, var(--dz-color-primary));
-  text-transform: inherit;
-  font-style: normal;
-}
-
 /* ---- Right Panel ---- */
 .auth-right {
   width: 45%;
@@ -120,7 +114,7 @@
 }
 
 .auth-header-logo:focus-visible {
-  outline: 2px solid #1e5038;
+  outline: 2px solid var(--dz-color-primary-accent);
   outline-offset: 4px;
   border-radius: 4px;
 }
@@ -141,21 +135,11 @@
   max-width: 360px;
   box-shadow: 0 8px 40px rgba(30, 80, 56, 0.06), 0 0 0 1px rgba(112, 140, 128, 0.08);
   border: 1px solid rgba(112, 140, 128, 0.12);
-  animation: auth-card-enter 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-@keyframes auth-card-enter {
-  from { opacity: 0; transform: translateY(18px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  animation: scaleIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .auth-left-content {
-  animation: auth-left-enter 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.05s both;
-}
-
-@keyframes auth-left-enter {
-  from { opacity: 0; transform: translateX(-24px); }
-  to   { opacity: 1; transform: translateX(0); }
+  animation: slideRight 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.05s both;
 }
 
 .auth-card-title {
@@ -172,83 +156,6 @@
   text-align: center;
   margin: 0 0 20px;
   line-height: 1.5;
-}
-
-/* #32 — Registration Progress Indicator */
-.auth-progress {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin-bottom: 20px;
-  padding: 0 8px;
-}
-
-.auth-progress-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.auth-progress-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.auth-progress-step--active .auth-progress-dot {
-  background: var(--dz-color-primary, #708c80);
-  color: #fff;
-  border-color: var(--dz-color-primary, #708c80);
-}
-
-.auth-progress-step--current .auth-progress-dot {
-  box-shadow: 0 0 0 4px rgba(112, 140, 128, 0.2);
-  animation: auth-progress-pulse 2s ease-in-out infinite;
-}
-
-@keyframes auth-progress-pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(112, 140, 128, 0.2); }
-  50% { box-shadow: 0 0 0 8px rgba(112, 140, 128, 0.1); }
-}
-
-.auth-progress-label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.auth-progress-step--active .auth-progress-label {
-  color: var(--dz-color-primary-dark, #4a6a5a);
-}
-
-.auth-progress-line {
-  flex: 1;
-  height: 2px;
-  background: #e2e8f0;
-  min-width: 24px;
-  max-width: 48px;
-  margin: 0 4px;
-  margin-bottom: 20px;
-  transition: background 0.3s ease;
-}
-
-.auth-progress-line--done {
-  background: var(--dz-color-primary, #708c80);
 }
 
 /* ---- Form ---- */
@@ -385,11 +292,6 @@
   padding: 12px 14px 10px;
   margin-top: -4px;
   animation: fadeInDown 0.2s ease;
-}
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Strength bar track */
@@ -545,12 +447,8 @@
   border: 2px solid rgba(42, 61, 53, 0.3);
   border-top-color: #2a3d35;
   border-radius: 50%;
-  animation: auth-spin 0.7s linear infinite;
+  animation: spin 0.7s linear infinite;
   display: inline-block;
-}
-
-@keyframes auth-spin {
-  to { transform: rotate(360deg); }
 }
 
 /* ---- Switch link ---- */
@@ -620,7 +518,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #eef6f2;
+  background: var(--dz-color-surface-tint);
   margin: 0 auto 16px;
 }
 
@@ -640,9 +538,9 @@
 
 .pending-email-tag {
   display: inline-block;
-  background: #eef6f2;
+  background: var(--dz-color-surface-tint);
   color: var(--dz-color-primary-accent);
-  border: 1px solid #c5ddd3;
+  border: 1px solid var(--dz-color-border-strong);
   border-radius: 99px;
   padding: 5px 16px;
   font-size: 0.8rem;
@@ -664,7 +562,7 @@
 }
 
 .fp-hint strong {
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
 }
 
 /* Success state wrapper */
@@ -683,7 +581,7 @@
   height: 72px;
   border-radius: 50%;
   background: #eef7f2;
-  border: 2px solid #c5ddd3;
+  border: 2px solid var(--dz-color-border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -722,48 +620,12 @@
 
 .fp-dev-link:hover { color: #14532d; }
 
-
-
-/* =====================================================
-   OTP INPUT STYLES (verification step)
-   ===================================================== */
-.otp-input-group {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.otp-digit {
-  width: 45px;
-  height: 52px;
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-align: center;
-  border-radius: 10px;
-  border: 1.5px solid var(--dz-color-border, #cbd5e1);
-  background: var(--dz-color-bg-surface, #fff);
-  color: var(--dz-color-text-primary, var(--dz-color-charcoal));
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.otp-digit--filled {
-  border-color: var(--dz-color-primary-dark, var(--dz-color-primary-accent));
-  border-width: 2px;
-}
-
-.otp-digit:focus {
-  border-color: var(--dz-color-primary, var(--dz-color-primary));
-  box-shadow: 0 0 0 3px rgba(112, 140, 128, 0.2);
-}
-
 /* ── Auth Divider ────────────────────────────────────────────── */
 .auth-divider {
   display: flex;
   align-items: center;
   margin: 18px 0;
-  color: #708c80;
+  color: var(--dz-color-sage);
   font-size: 0.78rem;
   font-weight: 600;
   text-transform: uppercase;

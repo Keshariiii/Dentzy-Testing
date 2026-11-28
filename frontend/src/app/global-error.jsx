@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-html-link-for-pages -- Root layout crash fallback intentionally uses full-page hard navigation */
 
 /**
  * global-error.jsx -- Root layout crash fallback.

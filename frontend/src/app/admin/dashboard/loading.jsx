@@ -1,10 +1,11 @@
 'use client';
 
-import { SkeletonGroup, StatCardSkeleton, TableRowSkeleton } from '../../../components/Skeleton';
+import { SkeletonGroup, StatCardSkeleton } from '../../../components/Skeleton';
+import { DataTableSkeleton } from '../../../components/SkeletonBlocks';
 
 /**
  * Route-level loading state for the admin dashboard.
- * Uses the existing Skeleton components for a polished loading experience.
+ * Uses shared Skeleton components for a consistent loading experience.
  */
 export default function AdminDashboardLoading() {
   return (
@@ -18,7 +19,10 @@ export default function AdminDashboardLoading() {
         <div style={{ marginBottom: '24px' }}>
           <StatCardSkeleton count={4} />
         </div>
-        <TableRowSkeleton columns={5} rows={8} />
+        <DataTableSkeleton
+          headers={['Case ID', 'Patient', 'Dentist', 'Status', 'Payment']}
+          rows={8}
+        />
       </div>
     </SkeletonGroup>
   );

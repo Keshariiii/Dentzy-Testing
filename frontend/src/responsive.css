@@ -451,7 +451,6 @@
   .ud-search-inline { width: 100%; max-width: 280px; }
   .ud-greeting { font-size: clamp(1.2rem, 2vw, 1.5rem); }
   .ud-greet-sub { font-size: var(--dz-fluid-sm, 0.84rem); }
-  .ud-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
 /* Tablet landscape */
@@ -491,11 +490,6 @@
   .ud-greeting { font-size: 1.3rem; }
   .ud-greet-sub { font-size: 0.82rem; }
   .ud-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .ud-stat-card { padding: 14px 12px; }
-
-  .ud-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .ud-table { min-width: 600px; font-size: 0.78rem; }
-  .ud-table th, .ud-table td { padding: 8px 10px; }
 
   .ud-settings-card { padding: 16px; }
   .ud-settings-card-head { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -527,14 +521,9 @@
   .ad-content-inner {
     padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
   }
-  .ad-stat-cards {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--dz-fluid-grid-gap, 14px);
-  }
   .ad-controls { flex-wrap: wrap; }
   .ad-tabs { flex-wrap: wrap; }
   .ad-greeting { font-size: clamp(1.2rem, 2vw, 1.5rem); }
-  .ad-user-card { flex-wrap: wrap; gap: 12px; }
 }
 
 /* Tablet landscape */
@@ -543,10 +532,6 @@
     padding: clamp(1.5rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
     max-width: 1100px;
   }
-  .ad-stat-cards {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--dz-fluid-grid-gap, 16px);
-  }
 }
 
 /* Standard desktop: 4 columns */
@@ -554,9 +539,6 @@
   .ad-content-inner {
     max-width: 1200px;
     padding: 28px 36px;
-  }
-  .ad-stat-cards {
-    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -570,10 +552,7 @@
 
   .ad-content-inner { padding: 20px 14px; }
   .ad-greeting { font-size: 1.3rem; }
-  .ad-stat-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .ad-stat-card { padding: 14px 12px; }
 
-  .ad-user-card { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
   .ad-actions { width: 100%; }
   .ad-actions button { flex: 1; }
   .ad-badge { align-self: flex-start; }
@@ -587,7 +566,6 @@
   .ad-header-user-details { display: none; }
 
   .ad-greeting { font-size: 1.1rem; }
-  .ad-stat-cards { grid-template-columns: 1fr; }
   .ad-sidebar { width: 200px; left: -200px; min-width: 200px; }
   .ad-sidebar--open { left: 0; }
 

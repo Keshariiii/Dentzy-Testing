@@ -17,46 +17,28 @@ import MobileHeader from '../../components/mobile/MobileHeader';
 import Footer from '../../components/Footer';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileHome.css';
+import { Ico } from '../../components/common/DashboardIcons';
+import {
+  HERO_MEDIA,
+  SERVICES_DATA,
+  PRODUCTS_DATA,
+  PROCESS_STEPS,
+  PROCESS_COPY,
+  WHY_CHOOSE_DATA,
+  ABOUT_DATA,
+  PERFECT_SMILE_DATA,
+  FUTURE_SERVICES,
+} from '../../data/landingContent';
 
 /* ============================================================
-   DATA
+   ICON MAPPING FOR SHARED DATA
 ============================================================ */
-const SERVICES = [
-  { key: 'denture',  title: 'Denture',  image: '/images/denture.webp',
-    desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly." },
-  { key: 'zirconia', title: 'Zirconia', image: '/images/zirconia.webp',
-    desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material.' },
-  { key: 'pfm',      title: 'PFM',      image: '/images/pfm.webp',
-    desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry.' },
-  { key: 'metal',    title: 'Metal',    image: '/images/metal.webp',
-    desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth.' },
-];
-
-const PRODUCTS = [
-  { key: 'denture',   title: 'Complete Denture (single arch)', image: '/images/denture.webp',
-    desc: "Tooth loss can significantly affect a person's appearance, confidence, and ability to chew and speak properly. A complete denture (single arch) is a reliable and time-tested solution for patients who have lost all teeth in either the upper (maxillary) or lower (mandibular) arch." },
-  { key: 'flexible',  title: 'Flexible Denture', image: '/images/flexible-denture.webp',
-    desc: 'Flexible dentures are removable dental prostheses made from advanced thermoplastic materials rather than conventional acrylic or metal frameworks. Their flexible nature allows the denture to adapt comfortably to the natural contours of the gums, offering a secure and natural fit.' },
-  { key: 'rpd',       title: 'Removable Partial Denture', image: '/images/rpd.webp',
-    desc: 'Missing one or more teeth can affect chewing, speech, and overall confidence. A Removable Partial Denture (RPD) is a practical and effective tooth replacement option that restores function and aesthetics while preserving remaining natural teeth.' },
-  { key: 'metal-cb',  title: 'Metal Crowns and Bridges', image: '/images/metal.webp',
-    desc: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth. A metal bridge replaces one or more missing teeth by anchoring artificial teeth to metal crowns placed on adjacent natural teeth.' },
-  { key: 'pfm-prod',  title: 'PFM', image: '/images/pfm.webp',
-    desc: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry. Known for combining the strength of metal with the natural appearance of porcelain, PFM crowns offer a reliable and cost-effective solution for restoring damaged or weakened teeth.' },
-  { key: 'zirconia-p', title: 'Zirconia', image: '/images/zirconia.webp',
-    desc: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material. It can be fabricated as monolithic zirconia (single solid structure) or layered zirconia (zirconia core with ceramic layering for enhanced aesthetics). Zirconia crowns are designed using advanced CAD/CAM technology, ensuring exceptional precision and consistency.' },
-];
-
-const WHY_ITEMS = [
-  { title: 'Quality Guarantee', desc: '5-10 years warranty on all restorations',
-    Icon: ShieldCheck },
-  { title: 'Fast Turnaround', desc: '5-7 days standard, 2-3 days rush',
-    Icon: Clock },
-  { title: 'Digital Workflow', desc: 'STL uploads for digital impressions',
-    Icon: Layers },
-  { title: 'Dedicated Support', desc: 'Mon-Sat, 9 AM - 6 PM IST',
-    Icon: Headphones },
-];
+const WHY_ICONS = {
+  quality: ShieldCheck,
+  turnaround: Clock,
+  digital: Layers,
+  support: Headphones,
+};
 
 /* ============================================================
    COMPONENT
@@ -137,13 +119,13 @@ const MobileHome = () => {
         {/* 1. Hero Banner */}
         <section className="m-hero" id="home">
           <video className="m-hero__video" autoPlay loop muted playsInline>
-            <source src="/hero-bg.mp4" type="video/mp4" />
+            <source src={HERO_MEDIA.videoSrc} type="video/mp4" />
           </video>
           <div className="m-hero__overlay" />
           <div className="m-hero__text">
             <h1>
-              <span className="m-hero__line1">CRAF<span className="m-hero__accent">T</span>ED WITH CARE</span>
-              <span className="m-hero__line2">FOR PATIENTS WELFARE</span>
+              <span className="m-hero__line1">CRAF<span className="dentzy-t">T</span>ED WITH CARE</span>
+              <span className="m-hero__line2">{HERO_MEDIA.line2}</span>
             </h1>
           </div>
         </section>
@@ -154,7 +136,7 @@ const MobileHome = () => {
             <span className="m-intro-highlight">Your Partner In Modern Dentistry</span>
           </h2>
           <p className="m-intro-text">
-            At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we don't just take orders; we provide solutions. Our dedicated technical support team
+            At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we don&apos;t just take orders; we provide solutions. Our dedicated technical support team
             is available for real-time case consultations, ensuring every restoration fits perfectly the first time.
           </p>
         </section>
@@ -163,14 +145,14 @@ const MobileHome = () => {
         <section className="m-services-section" id="services">
           <h2 className="m-section-title">Our Signature Services</h2>
           <div className="m-services-scroll">
-            {SERVICES.map((s) => (
+            {SERVICES_DATA.map((s) => (
               <div key={s.key} className="m-service-card">
                 <div className="m-service-card__img">
                   <img src={s.image} alt={s.title} loading="lazy" />
                 </div>
                 <div className="m-service-card__body">
                   <h3>{s.title}</h3>
-                  <p>{s.desc}</p>
+                  <p>{s.description}</p>
                 </div>
               </div>
             ))}
@@ -180,30 +162,28 @@ const MobileHome = () => {
         {/* 5. Process */}
         <section className="m-process-section">
           <h2 className="m-section-title" style={{ color: 'var(--dz-color-text-primary, #333)' }}>
-            The DEN<span className="m-accent">T</span>ZY Process
+            The <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span> Process
           </h2>
           <div className="m-process-steps">
-            {['Receive', 'Revive', 'Restore'].map((step, i) => (
-              <React.Fragment key={step}>
+            {PROCESS_STEPS.map((item, i) => (
+              <React.Fragment key={item.key}>
                 <div className="m-process-step">
-                  <div className="m-process-step__num">{i + 1}</div>
-                  <span className="m-process-step__label">{step}</span>
+                  <div className="m-process-step__num">{item.step}</div>
+                  <span className="m-process-step__label">{item.label}</span>
                 </div>
-                {i < 2 && <div className="m-process-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                  </svg>
+                {i < PROCESS_STEPS.length - 1 && <div className="m-process-arrow">
+                  {Ico.arrowRight(16, 2.5)}
                 </div>}
               </React.Fragment>
             ))}
           </div>
           <div className="m-cuz-card">
             <div className="m-cuz-content">
-              <h3>BE A DEN<span className="m-accent">T</span>ZY CUZ...</h3>
-              <p>If "Dentzy" were a person, they would be a tech-savvy craftsman.</p>
+              <h3>BE A <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span> CUZ...</h3>
+              <p>{PROCESS_COPY.cuzSubtitle}</p>
             </div>
             <div className="m-cuz-image">
-              <img src="/images/dentzy-cuz.webp" alt="Tech-savvy craftsman" loading="lazy" />
+              <img src={PROCESS_COPY.cuzImage} alt={PROCESS_COPY.cuzAlt} loading="lazy" />
             </div>
           </div>
         </section>
@@ -219,21 +199,21 @@ const MobileHome = () => {
         {/* 7. About Dentzy */}
         <section className="m-about-section" id="about">
           <video className="m-about-video" autoPlay loop muted playsInline preload="none">
-            <source src="/images/about-bg.mp4" type="video/mp4" />
+            <source src={HERO_MEDIA.aboutVideoSrc} type="video/mp4" />
           </video>
           <div className="m-about-overlay" />
           <div className="m-about-content">
-            <h2>About DEN<span className="m-accent">T</span>ZY</h2>
-            <p>WE ARE HERE TO WIN YOUR HEART AND EARN YOUR SMILE.</p>
+            <h2>About <span className="dentzy-brand--light">DEN<span className="dentzy-t">T</span>ZY</span></h2>
+            <p>{ABOUT_DATA.bannerSubtitle}</p>
           </div>
         </section>
 
         {/* 8. About Details */}
         <section className="m-details-section">
-          <h2 className="m-section-title">Excellence Behind Every Smile</h2>
+          <h2 className="m-section-title">{ABOUT_DATA.detailsTitle}</h2>
           <div className="m-details-intro">
             <p>
-              At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are dedicated to delivering the restorations that meet the needs of today's dentistry.
+              At <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>, we are dedicated to delivering the restorations that meet the needs of today&apos;s dentistry.
               We ensure consistent quality, accuracy, and aesthetics in every case we handle.
               Our focus is simple - to support dentists with reliable solutions that help create
               confident, natural-looking smiles.
@@ -262,15 +242,15 @@ const MobileHome = () => {
         {/* 9. Perfect Smile */}
         <section className="m-smile-section">
           <div className="m-smile-content">
-            <h2>EVERYONE DESERVES A PERFECT SMILE,</h2>
-            <p className="m-smile-sub">and we're here to help you achieve yours</p>
+            <h2>{PERFECT_SMILE_DATA.headlineLines.join(' ')}</h2>
+            <p className="m-smile-sub">{PERFECT_SMILE_DATA.subtitle}</p>
             <div className="m-smile-brand">
               <span>DEN<span className="m-accent">T</span>ZY</span>
             </div>
-            <p className="m-smile-footer">Crafted With Care, For Patients Welfare.</p>
+            <p className="m-smile-footer">{PERFECT_SMILE_DATA.footerLines.join(' ')}</p>
           </div>
           <div className="m-smile-img">
-            <img src="/images/perfect-smile.webp" alt="Hands holding dental mold" loading="lazy" />
+            <img src={PERFECT_SMILE_DATA.image} alt={PERFECT_SMILE_DATA.imageAlt} loading="lazy" />
           </div>
         </section>
 
@@ -289,7 +269,7 @@ const MobileHome = () => {
         {/* 11. Products Intro */}
         <section className="m-products-intro" id="products">
           <video className="m-products-video" autoPlay loop muted playsInline preload="none">
-            <source src="/products-bg.mp4" type="video/mp4" />
+            <source src={HERO_MEDIA.productsVideoSrc} type="video/mp4" />
           </video>
           <div className="m-products-overlay" />
           <div className="m-products-content">
@@ -302,7 +282,7 @@ const MobileHome = () => {
         <section className="m-catalog-section">
           <h2 className="m-section-title">This Is What Makes Us <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span></h2>
           <div className="m-catalog-list">
-            {PRODUCTS.map((p) => (
+            {PRODUCTS_DATA.map((p) => (
               <div key={p.key} className="m-catalog-card">
                 <div className="m-catalog-img">
                   <img src={p.image} alt={p.title} loading="lazy" />
@@ -320,24 +300,27 @@ const MobileHome = () => {
         <section className="m-why-section" id="why-choose">
           <h2 className="m-section-title">Why Choose <span className="dentzy-brand">DEN<span className="dentzy-t">T</span>ZY</span>?</h2>
           <div className="m-why-cards">
-            {WHY_ITEMS.map((w, i) => (
-              <div key={i} className="m-why-card">
-                <span className="m-why-icon">
-                  <w.Icon size={18} />
-                </span>
-                <div className="m-why-text">
-                  <h4>{w.title}</h4>
-                  <p>{w.desc}</p>
+            {WHY_CHOOSE_DATA.map((w) => {
+              const Icon = WHY_ICONS[w.key];
+              return (
+                <div key={w.key} className="m-why-card">
+                  <span className="m-why-icon">
+                    {Icon && <Icon size={18} />}
+                  </span>
+                  <div className="m-why-text">
+                    <h4>{w.title}</h4>
+                    <p>{w.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* 14. Future Services */}
         <section className="m-future-section">
           <p className="m-future-text">
-            We will continue to expand our offerings with new services in the future.
+            {FUTURE_SERVICES.text}
           </p>
         </section>
 

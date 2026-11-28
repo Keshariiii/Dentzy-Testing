@@ -6,12 +6,13 @@ import Link from 'next/link';
 import GoogleSignInButton from '../../components/ui/GoogleSignInButton';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAuthUrl } from '../../api/client';
 import PasswordStrength from '../../components/ui/password-strength';
 import { EyeToggleIcon } from '../../components/ui/animated-state-icons';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
+import TwentyFirstOtpBox from '../../components/ui/twentyfirst-otp-box';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import { PASSWORD_RULES } from '../../utils/validation';
 import { useCountdown } from '../../hooks/useCountdown';
@@ -35,7 +36,6 @@ const MobileRegister = () => {
   const [otp, setOtp]                       = useState(['', '', '', '', '', '']);
   const [otpToken, setOtpToken]             = useState('');
   const { seconds: resendCooldown, start: startResendCooldown } = useCountdown(0);
-  const otpInputsRef                        = useRef([]);
   const [pending, setPending]               = useState(null);
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
@@ -102,37 +102,11 @@ const MobileRegister = () => {
         startResendCooldown(60);
         setOtp(['', '', '', '', '', '']);
         setError('');
-        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
       }
     } catch (err) {
       setError(err.message);
       setErrorAction(err.action || null);
     } finally { setLoading(false); }
-  };
-
-  // ── OTP handlers ────────────────────────────────────────────────────
-  const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    setError('');
-    if (value && index < 5) otpInputsRef.current[index + 1]?.focus();
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pasteData)) {
-      setOtp(pasteData.split(''));
-      otpInputsRef.current[5]?.focus();
-    }
   };
 
   // ── Step 2: Verify OTP → Create Account ─────────────────────────────
@@ -181,17 +155,14 @@ const MobileRegister = () => {
             margin: '0 auto 16px',
             color: '#1e5038'
           }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
+            {Ico.clock(32, 1.75)}
           </div>
           <h1 className="m-auth-title">Awaiting Approval</h1>
           <p className="m-auth-subtitle">
             Hi <strong>{pending?.name || form.name}</strong>, your registration is submitted!
           </p>
           <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '12px 0 20px' }}>
-            Our admin will review your account and approve it shortly. You'll be notified by email.
+            Our admin will review your account and approve it shortly. You&apos;ll be notified by email.
           </p>
           <div style={{ background: '#f0f7f3', borderRadius: '10px', padding: '10px', fontSize: '0.85rem', color: '#1e5038', fontWeight: 600, marginBottom: '20px' }}>
             {pending?.email || form.email}
@@ -209,10 +180,7 @@ const MobileRegister = () => {
     return (
       <div className="m-auth-page">
         <button className="m-auth-back-btn" onClick={() => { setStep(1); setError(''); }} aria-label="Back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
+          {Ico.arrowLeft(20, 2.2)}
         </button>
 
         <div className="m-auth-logo">
@@ -228,32 +196,16 @@ const MobileRegister = () => {
           {error && <div className="m-auth-error">{error}</div>}
 
           <form onSubmit={handleVerifyOtp}>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
-              {otp.map((digit, idx) => (
-                <input
-                  key={idx}
-                  ref={(el) => (otpInputsRef.current[idx] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(idx, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                  style={{
-                    width: '42px',
-                    height: '50px',
-                    fontSize: '1.3rem',
-                    fontWeight: '700',
-                    textAlign: 'center',
-                    borderRadius: '10px',
-                    border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
-                    background: '#fff',
-                    color: '#1e2824',
-                    outline: 'none',
-                  }}
-                />
-              ))}
-            </div>
+            <TwentyFirstOtpBox
+              value={otp.join('')}
+              onChange={(val) => {
+                setOtp(val.split('').concat(['', '', '', '', '', '']).slice(0, 6));
+                setError('');
+              }}
+              hasError={Boolean(error)}
+              disabled={loading}
+              className="my-5"
+            />
 
             <button type="submit" className="m-auth-submit" disabled={loading || otp.join('').length !== 6}>
               {loading ? 'Verifying…' : 'Verify & Create Account'}
@@ -280,7 +232,6 @@ const MobileRegister = () => {
                       setOtpToken(result.otpToken);
                       startResendCooldown(60);
                       setOtp(['', '', '', '', '', '']);
-                      setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
                     }
                   } catch (err) {
                     setError(err.message || 'Failed to resend. Please go back and try again.');
@@ -314,10 +265,7 @@ const MobileRegister = () => {
       )}
       {/* Back Arrow Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/')} aria-label="Back" title="Back">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
+        {Ico.arrowLeft(20, 2.2)}
       </button>
 
       <div className="m-auth-logo">

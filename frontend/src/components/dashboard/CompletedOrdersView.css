@@ -13,12 +13,7 @@
   gap: 1.5rem;
   width: 100%;
   margin: 0 auto;
-  animation: covFadeIn 0.2s ease-out;
-}
-
-@keyframes covFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  animation: fadeUp 0.2s ease-out;
 }
 
 /* Header Banner */
@@ -68,8 +63,8 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #e8f5ee;
-  color: #1e5038;
+  background: var(--dz-color-surface-tint);
+  color: var(--dz-color-primary-accent);
 }
 
 .cov-subtitle {
@@ -112,7 +107,7 @@
 
 .cov-search-input:focus,
 .cov-search-input:focus-visible {
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   outline: none !important;
   box-shadow: none !important;
   background: #ffffff;
@@ -139,47 +134,9 @@
   background: #f3f4f6;
 }
 
-/* Table Card (Desktop) */
+/* Desktop Table Wrapper (.dz-data-table styles inside DentzyChartTable.css) */
 .cov-table-card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-.cov-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 0.875rem;
-}
-
-.cov-table th {
-  padding: 0.875rem 1.25rem;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6b7280;
-  background: #fcfdfd;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.cov-table td {
-  padding: 1rem 1.25rem;
-  vertical-align: middle;
-  border-bottom: 1px solid #f8faf9;
-  color: #374151;
-  transition: background-color 0.15s ease;
-}
-
-.cov-row {
-  cursor: pointer;
-}
-
-.cov-row:hover td {
-  background-color: #f7faf8;
+  border-radius: 14px;
 }
 
 .cov-case-code {
@@ -188,8 +145,8 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1e5038;
-  background: #e8f5ee;
+  color: var(--dz-color-primary-accent);
+  background: var(--dz-color-surface-tint);
   border-radius: 6px;
 }
 
@@ -210,15 +167,15 @@
   gap: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  background: #f0f7f3;
+  background: var(--dz-color-surface-tint);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .cov-row:hover .cov-action-cta {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #ffffff;
 }
 
@@ -254,7 +211,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding-bottom: 6px;
-  border-bottom: 1px solid #f8faf9;
+  border-bottom: 1px solid var(--dz-color-surface-subtle);
 }
 
 .cov-card-main {
@@ -292,8 +249,8 @@
 
 .cov-card-service {
   font-weight: 600;
-  color: #1e5038;
-  background: #f0f7f3;
+  color: var(--dz-color-primary-accent);
+  background: var(--dz-color-surface-tint);
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 0.72rem;
@@ -317,7 +274,7 @@
 }
 
 .cov-card:hover .cov-card-arrow {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   transform: translateX(2px);
 }
 
@@ -336,13 +293,8 @@
   height: 48px;
   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
-  animation: covShimmer 1.5s infinite;
+  animation: shimmer 1.5s infinite;
   border-radius: 8px;
-}
-
-@keyframes covShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 
 /* Safe bottom spacing for mobile floating nav */

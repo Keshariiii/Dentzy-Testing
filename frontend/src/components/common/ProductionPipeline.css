@@ -35,7 +35,7 @@
 .pp-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   margin: 0 0 3px;
   letter-spacing: -0.2px;
 }
@@ -58,7 +58,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #eef6f2;
+  background: var(--dz-color-surface-tint);
   color: var(--dz-color-primary-accent, #1e5038);
   font-size: 0.71rem;
   font-weight: 700;
@@ -73,18 +73,13 @@
   background: var(--dz-color-primary-accent, #1e5038);
   flex-shrink: 0;
   display: inline-block;
-  animation: pp-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pp-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(0.7); }
+  animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
 /* ── Toggle button ────────────────────────────────────────────────── */
 .pp-toggle-btn {
   background: none;
-  border: 1.5px solid #c5ddd3;
+  border: 1.5px solid var(--dz-color-border-strong);
   border-radius: 8px;
   color: var(--dz-color-primary-accent, #1e5038);
   font-size: 0.74rem;
@@ -95,7 +90,7 @@
   transition: background 0.2s, border-color 0.2s;
 }
 .pp-toggle-btn:hover {
-  background: #eef6f2;
+  background: var(--dz-color-surface-tint);
   border-color: var(--dz-color-primary-accent, #1e5038);
 }
 
@@ -127,8 +122,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #e4ebe7;
-  background: #f0f5f2;
+  border: 2px solid var(--dz-color-border-mint);
+  background: var(--dz-color-bg-page);
   color: #c5d8ce;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -146,12 +141,7 @@
   border-color: var(--dz-color-primary-accent, #1e5038);
   color: #fff;
   box-shadow: 0 0 0 5px rgba(30,80,56,0.14);
-  animation: pp-icon-glow 2s ease-in-out infinite;
-}
-
-@keyframes pp-icon-glow {
-  0%, 100% { box-shadow: 0 0 0 5px rgba(30,80,56,0.14); }
-  50%      { box-shadow: 0 0 0 9px rgba(30,80,56,0.05); }
+  animation: pulse-ring 2s ease-in-out infinite;
 }
 
 /* ── Step label ───────────────────────────────────────────────────── */
@@ -166,13 +156,13 @@
 }
 
 .pp-step--past .pp-step-label    { color: var(--dz-color-primary, #708c80); }
-.pp-step--current .pp-step-label { color: #1a3028; font-weight: 700; }
+.pp-step--current .pp-step-label { color: var(--dz-color-text-forest); font-weight: 700; }
 
 /* ── Connector ────────────────────────────────────────────────────── */
 .pp-connector {
   flex: 1;
   height: 2px;
-  background: #e4ebe7;
+  background: var(--dz-color-border-mint);
   min-width: 18px;
   margin-bottom: 30px;
   border-radius: 99px;

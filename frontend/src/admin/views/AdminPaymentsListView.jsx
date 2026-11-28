@@ -3,11 +3,13 @@ import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
-import { StatusBadge } from '../../components/ui/status-badge';
+import { DentzyCard, DentzyCaseChip, DentzyKpiRow, DentzyStatusPill } from '../../components/common/DentzyCard';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
-import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
+import { openInvoiceWindow } from '../../utils/appleCompat';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import SubViewHeader from '../../components/common/SubViewHeader';
+import MonthFilterBar from '../../components/common/MonthFilterBar';
 
 const PAY_STATUS_TABS = ['all', 'Paid', 'Pending'];
 const PAY_MODE_TABS = ['all', 'Cash', 'Cheque', 'UPI'];
@@ -35,139 +37,80 @@ export default function AdminPaymentsListView({
 }) {
   return (
     <div className="admin-payments-view-root">
-      {/* Mobile Back to Landing */}
-      {isMobile && onBack && !drillDentistPayments && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              color: 'var(--dz-color-primary-dark)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
-        </div>
-      )}
-
-      {/* Drill-down Header if single dentist */}
       {drillDentistPayments ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'transparent', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <SubViewHeader
+          title={formatDoctorName(drillDentistPayments.name, 'Dentist')}
+          subtitle={drillDentistPayments.clinicName || undefined}
+          onBack={() => {
+            setDrillDentistPayments(null);
+            setPayFilterStatus('all');
+            setPayFilterMode('all');
+            setPaySearch('');
+          }}
+          backLabel="Back to all payments"
+          rightAction={
             <button
+              type="button"
               onClick={() => {
-                setDrillDentistPayments(null);
-                setPayFilterStatus('all');
-                setPayFilterMode('all');
-                setPaySearch('');
+                const dId = drillDentistPayments.id || drillDentistPayments._id;
+                const mQuery = payFilterMonth && payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : '';
+                openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`);
               }}
-              aria-label="Back to all payments"
-              title="Back to all payments"
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                border: '1px solid #e2ece6',
-                background: '#ffffff',
-                color: '#1e5038',
+                gap: '6px',
+                padding: '8px 14px',
+                minHeight: isMobile ? '44px' : undefined,
+                background: '#1e5038',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
+              {Ico.download(14)}
+              Download Pending Bill
             </button>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{formatDoctorName(drillDentistPayments.name, 'Dentist')}</div>
-              {drillDentistPayments.clinicName && (
-                <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              const dId = drillDentistPayments.id || drillDentistPayments._id;
-              const mQuery = payFilterMonth && payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : '';
-              openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(dId)}${mQuery}`);
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              background: '#1e5038',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download Pending Bill
-          </button>
-        </div>
+          }
+          style={{ padding: isMobile ? '12px 16px 0' : '0 0 4px 0', marginBottom: '12px' }}
+        />
       ) : (
         <>
-          <div style={{ padding: isMobile ? '0 16px' : '0 0 12px 0', marginBottom: '8px' }}>
-            <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Payments & Billing
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--dz-color-primary-muted)', color: 'var(--dz-color-primary-dark)', padding: '2px 8px', borderRadius: '12px' }}>
-                {payments.length}
-              </span>
-            </h2>
-          </div>
+          <SubViewHeader
+            title="Payments & Billing"
+            count={payments.length}
+            onBack={isMobile && onBack ? onBack : undefined}
+            backLabel="Back"
+            style={{ padding: isMobile ? '12px 16px 0' : 0, marginBottom: '12px' }}
+          />
 
           {/* Revenue Stat Cards */}
-          <div
-            className={isMobile ? 'ma-pay-summary-grid' : 'ad-pay-stats'}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(3, 1fr)',
-              gap: '12px',
-              marginBottom: '16px',
-              padding: isMobile ? '0 16px' : '0',
-            }}
-          >
-            <div className="ad-stat-card" style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--dz-color-border-light)' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--dz-color-text-muted)' }}>Total Billed</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', marginTop: '4px' }}>
-                {formatINR(summary.totalRevenue || 0)}
-              </div>
-            </div>
-            <div className="ad-stat-card" style={{ background: '#f0fdf4', padding: '14px 16px', borderRadius: '14px', border: '1px solid #bbf7d0' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#166534' }}>Collected</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#15803d', marginTop: '4px' }}>
-                {formatINR(summary.collectedRevenue || 0)}
-              </div>
-            </div>
-            <div className="ad-stat-card" style={{ background: '#fffbeb', padding: '14px 16px', borderRadius: '14px', border: '1px solid #fde68a' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e' }}>Pending</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
-                {formatINR(summary.pendingRevenue || 0)}
-              </div>
-            </div>
+          <div style={{ padding: isMobile ? '0 16px' : '0', marginBottom: '16px' }}>
+            <DentzyKpiRow
+              style={{ marginBottom: 0 }}
+              items={[
+                {
+                  key: 'totalBilled',
+                  label: 'Total Billed',
+                  value: formatINR(summary.totalRevenue || 0),
+                },
+                {
+                  key: 'collected',
+                  label: 'Collected',
+                  value: formatINR(summary.collectedRevenue || 0),
+                  tone: 'success',
+                },
+                {
+                  key: 'pending',
+                  label: 'Pending',
+                  value: formatINR(summary.pendingRevenue || 0),
+                  tone: 'warning',
+                },
+              ]}
+            />
           </div>
         </>
       )}
@@ -219,37 +162,14 @@ export default function AdminPaymentsListView({
         </div>
 
         {setPayFilterMonth && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="month"
-              value={payFilterMonth === 'all' ? '' : payFilterMonth}
-              placeholder="Select Month"
-              data-empty={payFilterMonth === 'all' || !payFilterMonth}
-              onClick={safeShowPicker}
-              onChange={(e) => setPayFilterMonth(e.target.value || 'all')}
-              className={isMobile ? 'ma-sort-select' : 'ad-sort-select'}
-              style={{ fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}
-              aria-label="Filter by month"
-            />
-            {payFilterMonth !== 'all' && (
-              <button
-                type="button"
-                onClick={() => setPayFilterMonth('all')}
-                style={{
-                  background: '#f0f4f2',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  color: '#4a7060',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
-              >
-                All Months
-              </button>
-            )}
-          </div>
+          <MonthFilterBar
+            id="apv-month-picker"
+            value={payFilterMonth}
+            onChange={setPayFilterMonth}
+            clearValue="all"
+            label=""
+            isMobile={isMobile}
+          />
         )}
       </div>
 
@@ -268,7 +188,7 @@ export default function AdminPaymentsListView({
             subtext="Payment records will appear here as orders are placed and processed."
           />
         ) : (
-          <div className={isMobile ? 'ma-pay-list' : 'ad-payments-list'}>
+          <div className={isMobile ? 'ma-pay-list' : 'ad-user-list'} style={!isMobile ? { gap: '12px' } : undefined}>
             {payments.map((p) => {
               const isPaid = (p.paymentStatus || p.status) === 'Paid';
               const pId = p._id || p.id || p.caseId;
@@ -276,19 +196,27 @@ export default function AdminPaymentsListView({
               const clinicName = p.owner?.clinicName || p.clinicName || '';
 
               return (
-                <div
+                <DentzyCard
                   key={pId}
-                  className={isMobile ? 'ma-card' : 'ad-payment-card'}
+                  interactive
                   onClick={() => onSelectPayment(p)}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    ...(isMobile ? { padding: '12px 14px' } : {}),
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
                 >
-                  <div className={isMobile ? 'ma-card-top' : 'ad-payment-header'}>
+                  <div
+                    className={isMobile ? 'ma-card-top' : undefined}
+                    style={!isMobile ? { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' } : undefined}
+                  >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--dz-color-charcoal)' }}>
                           {p.patientName || 'Unnamed Patient'}
                         </span>
-                        <StatusBadge status={isPaid ? 'Paid' : 'Pending'} size="sm" />
+                        <DentzyStatusPill type="payment" status={isPaid ? 'Paid' : 'Pending'} />
                       </div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--dz-color-text-muted)', marginTop: '2px' }}>
                         {dentistName} {clinicName && `· ${clinicName}`}
@@ -305,15 +233,11 @@ export default function AdminPaymentsListView({
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--dz-color-border-light)', paddingTop: '10px' }}>
+                  <div style={{ marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--dz-color-border-light)', paddingTop: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span className="pdm-case-badge" style={{ fontWeight: 700, fontSize: '0.8rem' }}>
-                        {p.caseId}
-                      </span>
+                      <DentzyCaseChip caseId={p.caseId} />
                       {p.paymentMode && (
-                        <span className={`pdm-mode-pill pdm-mode--${p.paymentMode.toLowerCase()}`}>
-                          {p.paymentMode}
-                        </span>
+                        <DentzyStatusPill type="mode" status={p.paymentMode} />
                       )}
                       {p.referenceNumber && (
                         <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--dz-color-text-muted)' }}>
@@ -332,32 +256,26 @@ export default function AdminPaymentsListView({
                             e.stopPropagation();
                             onRecordPayment(p);
                           }}
-                          size="sm"
+                          size={isMobile ? 'lg' : 'sm'}
                           variant="success"
                         />
                       )}
                       {onDeletePayment && (
-                        <button
-                          type="button"
+                        <TwentyFirstIconButton
+                          icon={Ico.trash(14)}
+                          title="Delete Payment"
+                          ariaLabel="Delete Payment"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeletePayment(pId);
                           }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#94a3b8',
-                            cursor: 'pointer',
-                            padding: '4px',
-                          }}
-                          title="Delete Payment"
-                        >
-                          {Ico.trash(14)}
-                        </button>
+                          size={isMobile ? 'lg' : 'sm'}
+                          variant="danger"
+                        />
                       )}
                     </div>
                   </div>
-                </div>
+                </DentzyCard>
               );
             })}
           </div>

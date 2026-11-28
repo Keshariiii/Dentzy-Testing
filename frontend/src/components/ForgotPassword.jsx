@@ -2,12 +2,13 @@
 import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { getAuthUrl } from '../api/client';
 import PasswordStrength from './ui/password-strength';
 import { EyeToggleIcon } from './ui/animated-state-icons';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
+import TwentyFirstOtpBox from './ui/twentyfirst-otp-box';
 import { Icons as Ico } from './common/DashboardIcons';
 import { PASSWORD_RULES } from '../utils/validation';
 import { useCountdown } from '../hooks/useCountdown';
@@ -35,7 +36,6 @@ const ForgotPassword = () => {
   const [error, setError]     = useState('');
   const [infoMsg, setInfoMsg] = useState('');
 
-  const otpInputsRef = useRef([]);
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const getRecaptchaToken = useCallback(async () => {
@@ -100,41 +100,11 @@ const ForgotPassword = () => {
         startResendCooldown(60);
         setInfoMsg(`Verification code sent to ${cleanEmail}`);
         setOtp(['', '', '', '', '', '']);
-        setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
       }
     } catch {
       setError('Network error. Please check your connection.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ── OTP input change & paste handlers ──────────────────────────────────────
-  const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return; // numbers only
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    setError('');
-
-    if (value && index < 5) {
-      otpInputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pasteData)) {
-      const digits = pasteData.split('');
-      setOtp(digits);
-      otpInputsRef.current[5]?.focus();
     }
   };
 
@@ -239,11 +209,8 @@ const ForgotPassword = () => {
             <img src={dentzyLogo} alt="Dentzy Logo" />
           </div>
           <div className="auth-card pending-card">
-            <div className="pending-icon">
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="1.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
+            <div className="pending-icon" style={{ color: '#27ae60' }}>
+              {Ico.checkCircle(44, 1.5)}
             </div>
             <h2 className="auth-card-title">All Done!</h2>
             <p className="pending-msg">
@@ -301,10 +268,7 @@ const ForgotPassword = () => {
               <div className="auth-input-group">
                 <label htmlFor="fp-email" className="sr-only">Email address</label>
                 <span className="auth-input-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                    <polyline points="22,6 12,13 2,6"/>
-                  </svg>
+                  {Ico.mail(16, 2)}
                 </span>
                 <input
                   id="fp-email"
@@ -374,33 +338,16 @@ const ForgotPassword = () => {
 
             <form className="auth-form" onSubmit={handleVerifyOtp}>
               {/* 6-box OTP Input */}
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }} onPaste={handleOtpPaste}>
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => (otpInputsRef.current[idx] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    style={{
-                      width: '45px',
-                      height: '52px',
-                      fontSize: '1.4rem',
-                      fontWeight: '700',
-                      textAlign: 'center',
-                      borderRadius: '10px',
-                      border: digit ? '2px solid #1e5038' : '1.5px solid #cbd5e1',
-                      background: '#fff',
-                      color: '#1e2824',
-                      outline: 'none',
-                      transition: 'all 0.15s ease',
-                    }}
-                  />
-                ))}
-              </div>
+              <TwentyFirstOtpBox
+                value={otp.join('')}
+                onChange={(val) => {
+                  setOtp(val.split('').concat(['', '', '', '', '', '']).slice(0, 6));
+                  setError('');
+                }}
+                hasError={Boolean(error)}
+                disabled={loading}
+                className="my-5"
+              />
 
               {error && <div className="auth-error">{error}</div>}
 
@@ -470,10 +417,7 @@ const ForgotPassword = () => {
             <div className="auth-input-group">
               <label htmlFor="fp-password" className="sr-only">New password</label>
               <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
+                {Ico.lock(16, 2)}
               </span>
               <input
                 id="fp-password"
@@ -504,9 +448,7 @@ const ForgotPassword = () => {
             <div className="auth-input-group">
               <label htmlFor="fp-confirm" className="sr-only">Confirm new password</label>
               <span className="auth-input-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+                {Ico.shield(16, 2)}
               </span>
               <input
                 id="fp-confirm"

@@ -14,13 +14,19 @@ import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import { StatusBadge } from '../components/ui/status-badge';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { getOrderPrice } from '../utils/pricing';
-import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
+import { openInvoiceWindow } from '../utils/appleCompat';
 import PrintableInvoice from '../components/common/PrintableInvoice';
-import { DentzyCaseChip } from '../components/common/DentzyCard';
-import { DentzyPipelineChart } from '../components/common/DentzyChartTable';
+import { DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
+import { DentzyDataTable, DentzyPipelineChart } from '../components/common/DentzyChartTable';
+import EmptyState from '../components/common/EmptyState';
+import MonthFilterBar from '../components/common/MonthFilterBar';
+import {
+  BatchFloatingBar,
+  BatchPaymentModal,
+  validateBatchPaymentForm,
+} from '../components/common/BatchSettlementFlow';
 import { DentistDetailSkeleton } from '../components/SkeletonBlocks';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
@@ -30,13 +36,7 @@ const STAGE_LABELS = {
   qc: 'QC', dispatched: 'Dispatched', completed: 'Completed',
 };
 
-
-const STATUS_CLS   = { pending: 'ddm-s-pending', approved: 'ddm-s-approved', rejected: 'ddm-s-rejected' };
-
 const fmt = (d) => formatDate(d);
-
-/* ─── Pipeline Progress Bar ──────────────────────────────────────────────── */
-const PipelineBar = ({ stage }) => <DentzyPipelineChart stage={stage} />;
 
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelectDentist }) => {
@@ -123,15 +123,10 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
 
   const handleBatchRecordPayment = async () => {
     setBatchPayError('');
-    if (batchPayForm.status === 'Paid') {
-      if (batchPayForm.mode === 'Cheque' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 3)) {
-        setBatchPayError('Cheque number is required (min 3 characters).');
-        return;
-      }
-      if ((batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 4)) {
-        setBatchPayError('Transaction / UTR number is required (min 4 characters).');
-        return;
-      }
+    const validationError = validateBatchPaymentForm(batchPayForm);
+    if (validationError) {
+      setBatchPayError(validationError);
+      return;
     }
     setBatchPaySaving(true);
     try {
@@ -347,14 +342,14 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
             <>
               {/* ── Profile ─────────────────────────────────────────────── */}
               <div className="ddm-profile">
-                <div className="ddm-profile-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
+                <div className="dz-avatar dz-avatar--lg">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
                 <div className="ddm-profile-info">
                   <div className="ddm-profile-name-row">
                     <h2 className="ddm-profile-name">{formatDoctorName(user?.name, 'Dentist')}</h2>
-                    <StatusBadge
+                    <DentzyStatusPill
+                      type="account"
                       status={(user?.isArchived || user?.status === 'archived') ? 'archived' : user?.status}
                       label={(user?.isArchived || user?.status === 'archived') ? (user?.archiveReason || 'Archived') : undefined}
-                      size="sm"
                     />
                   </div>
                   <div className="ddm-profile-meta">
@@ -428,12 +423,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             cursor: 'pointer',
                           }}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                          </svg>
+                          {Ico.orders(13, 2.2)}
                           Unpaid Bill
                         </button>
                       )}
@@ -461,10 +451,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
 
                   {/* Orders list */}
                   {orders.length === 0 ? (
-                    <div className="ddm-orders-empty">
-                      {Ico.package(32)}
-                      <p>No lab orders yet.</p>
-                    </div>
+                    <EmptyState compact variant="orders" message="No lab orders yet." />
                   ) : (
                     <div className="ddm-orders-list">
                       {orders.map(order => {
@@ -480,7 +467,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             <div className="ddm-order-id-row">
                               <DentzyCaseChip caseId={order.caseId} />
                               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                                <span className={`ddm-priority-badge ddm-p-${order.priority?.toLowerCase()}`}>{order.priority}</span>
+                                <DentzyStatusPill type="priority" status={order.priority || 'Normal'} />
                                 {order.paymentStatus === 'Paid' ? (
                                   <span title="Paid order cannot be deleted. Revert payment to Pending first." style={{ fontSize: '0.72rem', color: '#708c80', background: '#edf5f0', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
                                     Paid
@@ -530,7 +517,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                             </div>
                           </div>
 
-                          <PipelineBar stage={order.stage} />
+                          <DentzyPipelineChart stage={order.stage} />
 
                           <div className="ddm-order-stage-row" onClick={e => e.stopPropagation()}>
                             <label className="ddm-stage-label">Update Stage:</label>
@@ -553,227 +540,166 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 </div>
               ) : (
                 /* ── Payments section ── */
-                <div className="ddm-section">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px' }}>
-                    <label htmlFor="ddm-month-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
-                      Month:
-                    </label>
-                    <input
-                      id="ddm-month-filter"
-                      type="month"
-                      placeholder="Select Month"
-                      data-empty={payMonth === 'all' || !payMonth}
-                      onClick={safeShowPicker}
-                      value={payMonth === 'all' ? '' : payMonth}
-                      onChange={e => setPayMonth(e.target.value || 'all')}
-                      style={{
-                        border: '1px solid #c2dcd0',
-                        borderRadius: '6px',
-                        padding: '4px 8px',
-                        fontSize: '0.8rem',
-                        background: '#fff',
-                        cursor: 'pointer',
-                      }}
-                    />
-                    {payMonth !== 'all' && (
-                      <button
-                        type="button"
-                        onClick={() => setPayMonth('all')}
-                        style={{
-                          background: '#f0f4f2',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '5px 10px',
-                          fontSize: '0.75rem',
-                          color: '#4a7060',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        All Months
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleSelectAllPending}
-                      style={{
-                        background: '#fef3c7',
-                        border: '1px solid #f59e0b',
-                        borderRadius: '6px',
-                        padding: '5px 12px',
-                        fontSize: '0.75rem',
-                        color: '#92400e',
-                        cursor: 'pointer',
-                        fontWeight: 700,
-                      }}
-                      title="Select all pending orders for batch payment"
-                    >
-                      Select All Pending ({orders.filter(o => o.paymentStatus !== 'Paid').length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const mParam = payMonth !== 'all' ? `&month=${encodeURIComponent(payMonth)}` : '';
-                        openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}${mParam}`);
-                      }}
-                      style={{
-                        background: '#1e5038',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '5px 12px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                      }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      Download Pending Bill
-                    </button>
-                  </div>
+                (() => {
+                  const totalSelectedAmount = orders
+                    .filter((o) => selectedPaymentIds.includes(o.paymentId || o._id || o.id))
+                    .reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0);
 
-                  {filteredOrdersForMonth.length === 0 ? (
-                    <div className="ddm-orders-empty">
-                      {Ico.wallet ? Ico.wallet(32) : Ico.package(32)}
-                      <p>No payment records for this period.</p>
-                    </div>
-                  ) : (
-                    <div className="ddm-orders-list">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', fontSize: '0.78rem', color: '#4a7060', fontWeight: 600 }}>
-                        <input
-                          type="checkbox"
-                          checked={filteredOrdersForMonth.length > 0 && filteredOrdersForMonth.every(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id))}
-                          onChange={toggleSelectAllPayments}
-                          style={{ cursor: 'pointer', accentColor: '#1e5038', width: '15px', height: '15px' }}
-                        />
-                        <span>Select All ({filteredOrdersForMonth.length})</span>
-                      </div>
-                      {filteredOrdersForMonth.map(order => {
-                        const pId = order.paymentId || order._id || order.id;
-                        const isSelected = selectedPaymentIds.includes(pId);
-                        const isPaid = order.paymentStatus === 'Paid';
-                        return (
-                          <div
-                            key={pId}
-                            className="ddm-order-card"
-                            style={{
-                              background: isSelected ? '#edf5f0' : '#fff',
-                              border: isSelected ? '1px solid #78937E' : '1px solid #eef2f0',
-                              padding: '12px 14px',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleSelectPayment(pId)}
-                                  style={{ cursor: 'pointer', accentColor: '#1e5038', width: '16px', height: '16px' }}
-                                />
+                  return (
+                    <div className="ddm-section">
+                      <MonthFilterBar
+                        id="ddm-month-filter"
+                        value={payMonth}
+                        clearValue="all"
+                        onChange={setPayMonth}
+                        style={{ marginBottom: '10px' }}
+                        extraActions={
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleSelectAllPending}
+                              style={{
+                                background: '#fef3c7',
+                                border: '1px solid #f59e0b',
+                                borderRadius: '8px',
+                                padding: '6px 12px',
+                                fontSize: '0.75rem',
+                                color: '#92400e',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                minHeight: '36px',
+                              }}
+                              title="Select all pending orders for batch payment"
+                            >
+                              Select All Pending ({orders.filter((o) => o.paymentStatus !== 'Paid').length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const mParam = payMonth !== 'all' ? `&month=${encodeURIComponent(payMonth)}` : '';
+                                openInvoiceWindow(`/invoice?unpaid=true&dentistId=${encodeURIComponent(user.id || user._id)}${mParam}`);
+                              }}
+                              style={{
+                                background: '#1e5038',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '6px 12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                minHeight: '36px',
+                              }}
+                            >
+                              {Ico.download(12)}
+                              Download Pending Bill
+                            </button>
+                          </>
+                        }
+                      />
+
+                      {filteredOrdersForMonth.length === 0 ? (
+                        <EmptyState compact variant="payments" message="No payment records for this period." />
+                      ) : (
+                        <DentzyDataTable
+                          selectable
+                          selectedIds={selectedPaymentIds}
+                          onToggleSelect={toggleSelectPayment}
+                          onToggleSelectAll={toggleSelectAllPayments}
+                          rowKey={(o) => o.paymentId || o._id || o.id}
+                          data={filteredOrdersForMonth}
+                          onRowClick={(o) => setSelectedOrder(o)}
+                          columns={[
+                            {
+                              key: 'caseId',
+                              header: 'Case ID',
+                              render: (o) => <DentzyCaseChip caseId={o.caseId} />,
+                            },
+                            {
+                              key: 'patientName',
+                              header: 'Patient',
+                              render: (o) => (
                                 <div>
-                                  <span className="ddm-order-caseid">{order.caseId}</span>
-                                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a3028', marginLeft: '8px' }}>
-                                    {order.patientName}
-                                  </span>
+                                  <div style={{ fontWeight: 700, color: '#1a3028' }}>{o.patientName || '—'}</div>
+                                  <div style={{ fontSize: '0.73rem', color: '#708c80' }}>
+                                    {o.serviceType || 'Standard'} · {fmt(o.createdAt)}
+                                  </div>
                                 </div>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <strong style={{ fontSize: '0.95rem', color: isPaid ? '#15803d' : '#b45309' }}>
-                                  {formatINR(getOrderPrice(order))}
+                              ),
+                            },
+                            {
+                              key: 'amount',
+                              header: 'Amount',
+                              align: 'right',
+                              render: (o) => (
+                                <strong style={{ color: o.paymentStatus === 'Paid' ? '#15803d' : '#b45309' }}>
+                                  {formatINR(getOrderPrice(o))}
                                 </strong>
-                                <StatusBadge status={order.paymentStatus || 'Pending'} size="sm" />
-                              </div>
-                            </div>
+                              ),
+                            },
+                            {
+                              key: 'paymentStatus',
+                              header: 'Status',
+                              render: (o) => <DentzyStatusPill type="payment" status={o.paymentStatus || 'Pending'} />,
+                            },
+                            {
+                              key: 'modeBatch',
+                              header: 'Mode & Batch',
+                              render: (o) => (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  {o.paymentMode ? (
+                                    <DentzyStatusPill type="mode" status={o.paymentMode} />
+                                  ) : (
+                                    <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>—</span>
+                                  )}
+                                  {o.referenceNumber && (
+                                    <span style={{ fontSize: '0.72rem', color: '#708c80' }}>#{o.referenceNumber}</span>
+                                  )}
+                                  {o.batchId && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(o.batchId)}`);
+                                      }}
+                                      style={{
+                                        background: '#e8f5ee',
+                                        color: '#1e5038',
+                                        border: '1px solid #c2dcd0',
+                                        borderRadius: '6px',
+                                        padding: '2px 8px',
+                                        fontSize: '0.72rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                      }}
+                                    >
+                                      Batch Invoice
+                                    </button>
+                                  )}
+                                </div>
+                              ),
+                            },
+                          ]}
+                        />
+                      )}
 
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f0f4f2', fontSize: '0.75rem', color: '#708c80', flexWrap: 'wrap', gap: '6px' }}>
-                              <span>{order.serviceType || 'Standard'} · {fmt(order.createdAt)}</span>
-                              {order.paymentMode && (
-                                <span>Mode: {order.paymentMode} {order.referenceNumber ? `(#${order.referenceNumber})` : ''}</span>
-                              )}
-                              {order.batchId && (
-                                <button
-                                  type="button"
-                                  onClick={() => openInvoiceWindow(`/invoice?batchId=${encodeURIComponent(order.batchId)}`)}
-                                  style={{
-                                    background: '#1e5038',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    padding: '2px 8px',
-                                    fontSize: '0.72rem',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                  }}
-                                >
-                                  Batch Invoice
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                      <BatchFloatingBar
+                        count={selectedPaymentIds.length}
+                        totalAmount={totalSelectedAmount}
+                        onDeselect={() => setSelectedPaymentIds([])}
+                        onSettle={() => {
+                          setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+                          setBatchPayError('');
+                          setBatchPayModalOpen(true);
+                        }}
+                        variant="sticky"
+                      />
                     </div>
-                  )}
-
-                  {/* Floating Batch Settlement Bar */}
-                  {selectedPaymentIds.length > 0 && (
-                    <div style={{
-                      position: 'sticky',
-                      bottom: '8px',
-                      zIndex: 20,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 16px',
-                      borderRadius: '12px',
-                      background: '#1a3028',
-                      color: '#fff',
-                      boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
-                      marginTop: '14px',
-                      gap: '10px',
-                      flexWrap: 'wrap',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ background: '#25503b', color: '#a3bfb1', padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
-                          {selectedPaymentIds.length} selected
-                        </span>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                          Total: <strong>{formatINR(orders.filter(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id)).reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0))}</strong>
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPaymentIds([])}
-                          style={{ background: 'transparent', border: '1px solid #4a6a5a', color: '#c2d6cc', padding: '6px 10px', borderRadius: '8px', fontSize: '0.78rem', cursor: 'pointer' }}
-                        >
-                          Deselect
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
-                            setBatchPayError('');
-                            setBatchPayModalOpen(true);
-                          }}
-                          style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          Settle {selectedPaymentIds.length} Orders
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  );
+                })()
               )}
 
               {/* ── Delete Dentist Account (hidden if already archived) ── */}
@@ -889,169 +815,23 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
       />
 
       {/* Record Batch Payment Modal */}
-      <BaseModal
+      <BatchPaymentModal
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
-        title={`Batch Settle ${selectedPaymentIds.length} Orders`}
-        subtitle={user ? `${formatDoctorName(user.name)}${user?.clinicName ? ` · ${user.clinicName}` : ''}` : ''}
-        footer={
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
-            <button
-              type="button"
-              onClick={() => setBatchPayModalOpen(false)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                background: '#fff',
-                color: '#4a7060',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleBatchRecordPayment}
-              disabled={batchPaySaving}
-              style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#1e5038',
-                color: '#fff',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: batchPaySaving ? 'wait' : 'pointer',
-              }}
-            >
-              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
-            </button>
-          </div>
-        }
-        maxWidth="max-w-md"
+        selectedCount={selectedPaymentIds.length}
+        totalAmount={orders
+          .filter((o) => selectedPaymentIds.includes(o.paymentId || o._id || o.id))
+          .reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0)}
+        dentistName={user?.name || ''}
+        clinicName={user?.clinicName || ''}
+        form={batchPayForm}
+        onFormChange={setBatchPayForm}
+        onConfirm={handleBatchRecordPayment}
+        saving={batchPaySaving}
+        error={batchPayError}
+        onClearError={() => setBatchPayError('')}
         id="ddm-batch-pay-modal"
-      >
-        <div style={{ padding: '4px 0' }}>
-          <div style={{ background: '#f8faf9', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span>Dentist:</span>
-              <strong>{formatDoctorName(user?.name)} {user?.clinicName ? `· ${user?.clinicName}` : ''}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Total Batch Amount:</span>
-              <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
-                {formatINR(orders.filter(o => selectedPaymentIds.includes(o.paymentId || o._id || o.id)).reduce((s, o) => s + (Number(o.paymentAmount ?? o.amount) || 0), 0))}
-              </strong>
-            </div>
-          </div>
-
-          {/* Status selector */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            {['Paid', 'Pending'].map(st => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setBatchPayForm(f => ({ ...f, status: st }))}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  borderRadius: '8px',
-                  border: '1px solid #c2dcd0',
-                  background: batchPayForm.status === st ? '#1e5038' : '#fff',
-                  color: batchPayForm.status === st ? '#fff' : '#4a7060',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-
-          {batchPayForm.status === 'Paid' && (
-            <>
-              {/* Payment Mode Selector */}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '6px' }}>
-                  Payment Mode
-                </label>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}
-                      style={{
-                        flex: 1,
-                        padding: '6px 4px',
-                        borderRadius: '6px',
-                        border: '1px solid #c2dcd0',
-                        background: batchPayForm.mode === m ? '#e8f5ee' : '#fff',
-                        color: batchPayForm.mode === m ? '#1e5038' : '#4a7060',
-                        fontWeight: batchPayForm.mode === m ? 700 : 500,
-                        fontSize: '0.76rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {batchPayForm.mode !== 'Cash' && (
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
-                    {batchPayForm.mode === 'Cheque' ? 'Cheque Number *' : (batchPayForm.mode === 'UPI' ? 'UPI UTR / Txn ID *' : 'Transaction Ref *')}
-                  </label>
-                  <input
-                    type="text"
-                    value={batchPayForm.referenceNumber}
-                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))}
-                    placeholder={batchPayForm.mode === 'Cheque' ? 'e.g. CHQ-650124' : 'e.g. 428190382910'}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      border: '1px solid #c2dcd0',
-                      fontSize: '0.82rem',
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4a7060', display: 'block', marginBottom: '4px' }}>
-              Notes / Remarks
-            </label>
-            <input
-              type="text"
-              value={batchPayForm.notes}
-              onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="e.g. Batch settlement clearance"
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                border: '1px solid #c2dcd0',
-                fontSize: '0.82rem',
-              }}
-            />
-          </div>
-
-          {batchPayError && (
-            <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', marginBottom: '14px' }}>
-              {batchPayError}
-            </div>
-          )}
-        </div>
-      </BaseModal>
+      />
 
       {/* Batch Statement Printable Invoice Modal */}
       {batchStatementModal && (

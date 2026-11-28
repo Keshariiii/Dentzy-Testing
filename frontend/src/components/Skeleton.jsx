@@ -2,7 +2,7 @@
  * Skeleton — Reusable skeleton loader components with shimmer wave animation.
  *
  * Usage:
- *   import { Skeleton, CardSkeleton, OrderSkeleton, TableRowSkeleton } from '../components/Skeleton';
+ *   import { Skeleton, CardSkeleton, OrderSkeleton } from '../components/Skeleton';
  *   {loading ? <OrderSkeleton count={3} /> : <OrderList ... />}
  */
 import React from 'react';
@@ -78,31 +78,6 @@ export const OrderSkeleton = ({ count = 3 }) => (
           <Skeleton width="80px" height="12px" />
           <Skeleton width="100px" height="12px" />
         </div>
-      </div>
-    ))}
-  </div>
-);
-
-// ── Table Row Skeleton ────────────────────────────────────────────────────────
-
-export const TableRowSkeleton = ({ columns = 5, rows = 5 }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-    {Array.from({ length: rows }).map((_, i) => (
-      <div key={i} style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: '12px',
-        padding: '14px 16px',
-        background: i === 0 ? '#f8fafc' : '#fff',
-        borderRadius: i === 0 ? '10px 10px 0 0' : i === rows - 1 ? '0 0 10px 10px' : '0',
-      }}>
-        {Array.from({ length: columns }).map((_, j) => (
-          <Skeleton
-            key={j}
-            width={j === 0 ? '80%' : '60%'}
-            height="14px"
-          />
-        ))}
       </div>
     ))}
   </div>

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { getStaffUrl } from '../api/client';
 import { Icons as Ico } from '../components/common/DashboardIcons';
+import { DentzyCard, DentzyStatusPill } from '../components/common/DentzyCard';
+import { safeShowPicker } from '../utils/appleCompat';
 
 export default function ExecutiveAccountView({
   admin,
@@ -92,23 +94,16 @@ export default function ExecutiveAccountView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
       {/* Profile Card */}
-      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+      <DentzyCard style={{ padding: '24px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #eef3f0', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', color: '#1a3028' }}>Executive Profile</h3>
-              <span style={{
-                background: '#1e5038',
-                color: '#fff',
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                padding: '2px 10px',
-                borderRadius: '9999px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}>
-                {designation}
-              </span>
+              <DentzyStatusPill
+                type="notice"
+                label={designation}
+                style={{ fontSize: '0.72rem', fontWeight: 800, padding: '2px 10px' }}
+              />
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#6b8a7a' }}>
               Staff member credentials and personal account details.
@@ -214,6 +209,7 @@ export default function ExecutiveAccountView({
               <input
                 type="date"
                 value={form.dob}
+                onClick={safeShowPicker}
                 onChange={e => setForm(f => ({ ...f, dob: e.target.value }))}
                 max={new Date().toISOString().split('T')[0]}
                 style={{
@@ -258,10 +254,10 @@ export default function ExecutiveAccountView({
             )}
           </div>
         </form>
-      </div>
+      </DentzyCard>
 
       {/* Account Session Card */}
-      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+      <DentzyCard style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Account Session</div>
           <div style={{ fontSize: '0.85rem', color: '#6b8a7a', marginTop: '4px' }}>
@@ -301,7 +297,7 @@ export default function ExecutiveAccountView({
         >
           {Ico.logout(16)} Logout
         </button>
-      </div>
+      </DentzyCard>
     </div>
   );
 }

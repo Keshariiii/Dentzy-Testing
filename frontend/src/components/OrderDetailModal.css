@@ -13,12 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
-  animation: odmFadeIn 0.2s ease-out;
-}
-
-@keyframes odmFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  animation: fadeIn 0.2s ease-out;
 }
 
 .odm-modal-wrap {
@@ -53,12 +48,7 @@
   padding: 24px;
   gap: 16px;
   position: relative;
-  animation: odmScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes odmScaleUp {
-  from { transform: scale(0.96); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  animation: scaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Header ─────────────────────────────────── */
@@ -69,7 +59,7 @@
   gap: 12px;
   flex-shrink: 0;
   padding: 16px 20px;
-  border-bottom: 1px solid #eef2f0;
+  border-bottom: 1px solid var(--dz-color-border-mint);
   background: #ffffff;
 }
 
@@ -117,19 +107,6 @@
   border-radius: 8px;
   border: 1px solid var(--dz-color-border);
 }
-
-.odm-status-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: capitalize;
-}
-
-.odm-status--completed { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.odm-status--in-progress { background: #dbeafe; color: #1e40af; }
-.odm-status--pending { background: #fef9c3; color: #854d0e; }
-.odm-status--cancelled { background: var(--dz-color-error-bg); color: var(--dz-color-error-text); }
 
 .odm-close-btn {
   width: 32px;
@@ -180,8 +157,8 @@
 
 /* ── Pipeline Progress Bar ──────────────────── */
 .odm-pipeline-card {
-  background: #f8faf9;
-  border: 1px solid #e2ece6;
+  background: var(--dz-color-surface-subtle);
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 14px;
   padding: 14px;
 }
@@ -195,63 +172,7 @@
   margin-bottom: 12px;
 }
 
-.odm-pipeline {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  overflow-x: auto;
-  padding: 4px 0 8px;
-}
-
-.odm-pipeline-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-}
-
-.odm-pipeline-dot {
-  width: 16px;  /* #41 — Increased from 12px for visibility */
-  height: 16px;
-  border-radius: 50%;
-  background: #cbd5e1;
-  transition: all 0.2s ease;
-}
-
-.odm-pipeline-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--dz-color-text-light);
-  white-space: nowrap;
-}
-
-.odm-pipeline-line {
-  flex: 1;
-  height: 2px;
-  background: var(--dz-color-border);
-  margin: 0 4px 15px;
-  min-width: 12px;
-}
-
-.odm-pipeline-step--done .odm-pipeline-dot {
-  background: #16a34a;
-}
-
-.odm-pipeline-step--current .odm-pipeline-dot {
-  background: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-}
-
-.odm-pipeline-step--done .odm-pipeline-label,
-.odm-pipeline-step--current .odm-pipeline-label {
-  color: #1e293b;
-  font-weight: 700;
-}
-
-.odm-pipeline-line--done {
-  background: #16a34a;
-}
+/* Pipeline track styles consolidated onto DentzyChartTable.css (.dz-stage-*) */
 
 /* ── Key Details Grid ───────────────────────── */
 .odm-grid {
@@ -262,7 +183,7 @@
 
 .odm-grid-item {
   background: #fff;
-  border: 1px solid #e2ece6;
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 12px;
   padding: 10px 14px;
   display: flex;
@@ -283,19 +204,7 @@
   color: var(--dz-color-charcoal);
 }
 
-.odm-priority-pill {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-  display: inline-block;
-}
-
-.odm-priority--rush,
-.odm-priority--urgent { background: var(--dz-color-error-bg); color: #dc2626; }
-.odm-priority--high { background: #ffedd5; color: #ea580c; }
-.odm-priority--normal,
-.odm-priority--low { background: #f1f5f9; color: #475569; }
+/* priority pills consolidated onto DentzyStatusPill (.dz-pill) */
 
 /* ── Notes Box ──────────────────────────────── */
 .odm-notes-box {
@@ -325,7 +234,7 @@
 /* ── Payment Summary Card ───────────────────── */
 .odm-payment-card {
   background: #fff;
-  border: 1px solid #e2ece6;
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 14px;
   padding: 14px;
   display: flex;
@@ -346,16 +255,6 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-.odm-pay-pill {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 8px;
-}
-
-.odm-pay--paid { background: var(--dz-color-success-bg); color: var(--dz-color-success-text); }
-.odm-pay--pending { background: #fef9c3; color: #854d0e; }
 
 .odm-payment-body {
   display: flex;
@@ -391,100 +290,9 @@
   font-weight: 600;
 }
 
-/* ── Amount Inline Editor ──────────────────── */
+/* ── Amount Inline Editor (InlineAmountEditor.jsx) ──── */
 .odm-pay-row--amount {
   align-items: center;
-}
-
-.odm-amount-edit-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.odm-currency-prefix {
-  font-weight: 700;
-  color: var(--dz-color-primary-dark);
-}
-
-.odm-amount-input {
-  width: 90px;
-  padding: 4px 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border: 1px solid var(--dz-color-primary-accent);
-  border-radius: 6px;
-  outline: none;
-}
-
-.odm-amount-btn-save {
-  background: var(--dz-color-primary-accent);
-  color: #fff;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.odm-amount-btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.odm-amount-btn-cancel {
-  background: #f1f5f9;
-  color: var(--dz-color-text-muted);
-  border: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.odm-amount-display-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.odm-amount-edit-trigger {
-  font-size: 0.72rem;
-  padding: 2px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
-}
-
-.odm-amount-trigger--edit {
-  border-color: #d1e2d9;
-  background: #f8faf9;
-  color: #2a5a44;
-}
-
-.odm-amount-trigger--edit:hover {
-  background: #eef5f1;
-  border-color: #b8d4c5;
-}
-
-.odm-amount-trigger--add {
-  border-color: var(--dz-color-primary-accent);
-  background: #f0fdf4;
-  color: var(--dz-color-primary-accent);
-}
-
-.odm-amount-trigger--add:hover {
-  background: var(--dz-color-success-bg);
-}
-
-.odm-amount-error-msg {
-  font-size: 0.75rem;
-  color: #dc2626;
-  margin-top: 2px;
 }
 
 /* #45 — Payment Pending Banner */
@@ -557,13 +365,14 @@
     border-radius: 20px 20px 0 0;
     max-height: 85vh;
     padding: 20px;
-    animation: odmSlideUp 0.25s ease-out;
-  }
-  @keyframes odmSlideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    animation: slideUpSheet 0.25s ease-out;
   }
   .odm-grid {
     grid-template-columns: repeat(2, 1fr); /* #43 — Keep 2-col on mobile, content is small */
+  }
+  .odm-close-btn,
+  .odm-delete-btn,
+  .odm-close-footer-btn {
+    min-height: 44px;
   }
 }

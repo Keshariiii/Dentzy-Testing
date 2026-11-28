@@ -15,26 +15,37 @@ import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import './AdminDashboard.css';
 import { formatINR, formatOrderDateTime, formatDoctorName } from '../utils/format';
-import { safeShowPicker, openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
-import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
+import { openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
-import TwentyFirstNoticeList from '../components/ui/twentyfirst-notice-list';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import { DentzyRowCard, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
+import { DentzyCard, DentzyRowCard, DentzyKpiRow, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
 import { DentzyDataTable } from '../components/common/DentzyChartTable';
 import DentzySearchBar from '../components/common/DentzySearchBar';
+import EmptyState from '../components/common/EmptyState';
 import PortalNavbar from '../components/common/PortalNavbar';
 import PortalSidebar from '../components/common/PortalSidebar';
+import NoticeEditorCard, { STAFF_TICKER_MESSAGES } from '../components/common/NoticeEditorCard';
+import SubViewHeader from '../components/common/SubViewHeader';
+import MonthFilterBar from '../components/common/MonthFilterBar';
+import { BatchFloatingBar, BatchPaymentModal, PaymentModeToggle, validateBatchPaymentForm } from '../components/common/BatchSettlementFlow';
 import { Skeleton } from '../components/Skeleton';
 import {
   DataTableSkeleton,
   SettingsTilesSkeleton,
-  NoticeEditorSkeleton,
 } from '../components/SkeletonBlocks';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { useToast } from '../context/ToastContext';
+
+const SETTINGS_SUBVIEW_TITLES = {
+  notice: 'Dentist Portal Notice Bar',
+  'staff-notice': 'Staff Portal Notice Bar',
+  payments: 'Payment & Revenue Overview',
+  users: 'User Accounts Overview',
+  maintenance: 'Maintenance Mode Controller',
+  account: 'Administrator Account',
+};
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -536,12 +547,9 @@ const AdminDashboard = () => {
 
   const handleRecordPayment = async () => {
     setPayFormError('');
-    if (payForm.mode === 'Cheque' && (!payForm.referenceNumber || payForm.referenceNumber.trim().length < 3)) {
-      setPayFormError('Cheque number is required (min 3 characters).');
-      return;
-    }
-    if (payForm.mode === 'UPI' && (!payForm.referenceNumber || payForm.referenceNumber.trim().length < 4)) {
-      setPayFormError('UPI transaction / UTR number is required (min 4 characters).');
+    const validationError = validateBatchPaymentForm(payForm);
+    if (validationError) {
+      setPayFormError(validationError);
       return;
     }
     setPayFormSaving(true);
@@ -610,15 +618,10 @@ const AdminDashboard = () => {
 
   const handleBatchRecordPayment = async () => {
     setBatchPayError('');
-    if (batchPayForm.status === 'Paid') {
-      if (batchPayForm.mode === 'Cheque' && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 3)) {
-        setBatchPayError('Cheque number is required (min 3 characters).');
-        return;
-      }
-      if ((batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (!batchPayForm.referenceNumber || batchPayForm.referenceNumber.trim().length < 4)) {
-        setBatchPayError('Transaction / UTR number is required (min 4 characters).');
-        return;
-      }
+    const validationError = validateBatchPaymentForm(batchPayForm);
+    if (validationError) {
+      setBatchPayError(validationError);
+      return;
     }
     setBatchPaySaving(true);
     try {
@@ -981,32 +984,22 @@ const AdminDashboard = () => {
             {adminView === 'dentists' && dentistSubView === 'payments' ? (
               /* ── Payments View ────────────────────────────────────────── */
               <div>
-                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => {
-                        if (drillDentistPayments) {
-                          setDrillDentistPayments(null);
-                          setPayFilterStatus('all');
-                          setPayFilterMode('all');
-                          setPayFilterMonth('all');
-                        } else {
-                          setDentistSubView('users');
-                        }
-                      }}
-                      title={drillDentistPayments ? "Back to All Payments" : "Back to Dentists"}
-                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
-                    </button>
-                    <p className="ad-section-title" style={{ margin: 0 }}>
-                      {drillDentistPayments ? (
-                        `${formatDoctorName(drillDentistPayments.name)}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}`
-                      ) : 'Payments & Billing'}
-                    </p>
-
-                    {/* Dentist Filter Dropdown */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '12px' }}>
+                <SubViewHeader
+                  title={drillDentistPayments ? formatDoctorName(drillDentistPayments.name) : 'Payments & Billing'}
+                  subtitle={drillDentistPayments?.clinicName || undefined}
+                  onBack={() => {
+                    if (drillDentistPayments) {
+                      setDrillDentistPayments(null);
+                      setPayFilterStatus('all');
+                      setPayFilterMode('all');
+                      setPayFilterMonth('all');
+                    } else {
+                      setDentistSubView('users');
+                    }
+                  }}
+                  backLabel={drillDentistPayments ? 'Back to All Payments' : 'Back to Dentists'}
+                  rightAction={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <label htmlFor="ad-pay-dentist-filter" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
                         Dentist:
                       </label>
@@ -1041,8 +1034,8 @@ const AdminDashboard = () => {
                         ))}
                       </select>
                     </div>
-                  </div>
-                </div>
+                  }
+                />
 
                 {drillDentistPayments && (
                   <div className="ad-pay-filters" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
@@ -1054,117 +1047,84 @@ const AdminDashboard = () => {
                       ))}
                     </div>
 
-                    {/* Native Month Selector Filter (Ponytail & Impeccable) */}
-                    <div className="ad-pay-month-filter" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <label htmlFor="ad-month-picker" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a7060' }}>
-                        Month:
-                      </label>
-                      <input
-                        id="ad-month-picker"
-                        type="month"
-                        placeholder="Select Month"
-                        data-empty={payFilterMonth === 'all' || !payFilterMonth}
-                        onClick={safeShowPicker}
-                        value={payFilterMonth === 'all' ? '' : payFilterMonth}
-                        onChange={e => setPayFilterMonth(e.target.value || 'all')}
-                        className="ad-month-input"
-                        style={{
-                          border: '1px solid #c2dcd0',
-                          borderRadius: '8px',
-                          padding: '4px 8px',
-                          fontSize: '0.82rem',
-                          color: '#1a3028',
-                          background: '#fff',
-                          cursor: 'pointer',
-                        }}
-                      />
-                      {payFilterMonth !== 'all' && (
+                    <MonthFilterBar
+                      id="ad-month-picker"
+                      value={payFilterMonth}
+                      onChange={setPayFilterMonth}
+                      clearValue="all"
+                      isMobile={false}
+                      extraActions={
                         <>
+                          {payFilterMonth !== 'all' && (
+                            <button
+                              type="button"
+                              onClick={handleSelectMonthOrders}
+                              style={{
+                                background: '#e8f2ec',
+                                border: '1px solid #78937E',
+                                borderRadius: '6px',
+                                padding: '4px 10px',
+                                fontSize: '0.78rem',
+                                color: '#1e5038',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                minHeight: '36px',
+                              }}
+                              title="Add all orders from this month to payment selection"
+                            >
+                              + Select {payFilterMonth} Orders ({filteredPaymentsForDrill.length})
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => setPayFilterMonth('all')}
-                            style={{
-                              background: '#f0f4f2',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '4px 8px',
-                              fontSize: '0.75rem',
-                              color: '#4a7060',
-                              cursor: 'pointer',
-                              fontWeight: 600,
+                            onClick={() => {
+                              const pendingIds = filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').map(p => p._id);
+                              setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
                             }}
-                          >
-                            All Months
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleSelectMonthOrders}
                             style={{
-                              background: '#e8f2ec',
-                              border: '1px solid #78937E',
+                              background: '#fef3c7',
+                              border: '1px solid #f59e0b',
                               borderRadius: '6px',
                               padding: '4px 10px',
                               fontSize: '0.78rem',
-                              color: '#1e5038',
+                              color: '#92400e',
                               cursor: 'pointer',
                               fontWeight: 700,
+                              minHeight: '36px',
                             }}
-                            title="Add all orders from this month to payment selection"
+                            title="Select all pending orders for batch payment"
                           >
-                            + Select {payFilterMonth} Orders ({filteredPaymentsForDrill.length})
+                            Select All Pending ({filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const dentistId = drillDentistPayments._id || drillDentistPayments.id;
+                              const url = `/invoice?unpaid=true&dentistId=${encodeURIComponent(dentistId)}${payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : ''}`;
+                              openInvoiceWindow(url);
+                            }}
+                            style={{
+                              background: '#1e5038',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              minHeight: '36px',
+                            }}
+                            title="Download official statement of outstanding dues"
+                          >
+                            {Ico.download(13)}
+                            Download Pending Bill
                           </button>
                         </>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const pendingIds = filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').map(p => p._id);
-                          setSelectedPaymentIds(prev => Array.from(new Set([...prev, ...pendingIds])));
-                        }}
-                        style={{
-                          background: '#fef3c7',
-                          border: '1px solid #f59e0b',
-                          borderRadius: '6px',
-                          padding: '4px 10px',
-                          fontSize: '0.78rem',
-                          color: '#92400e',
-                          cursor: 'pointer',
-                          fontWeight: 700,
-                        }}
-                        title="Select all pending orders for batch payment"
-                      >
-                        Select All Pending ({filteredPaymentsForDrill.filter(p => p.paymentStatus !== 'Paid').length})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const dentistId = drillDentistPayments._id || drillDentistPayments.id;
-                          const url = `/invoice?unpaid=true&dentistId=${encodeURIComponent(dentistId)}${payFilterMonth !== 'all' ? `&month=${encodeURIComponent(payFilterMonth)}` : ''}`;
-                          openInvoiceWindow(url);
-                        }}
-                        style={{
-                          background: '#1e5038',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '4px 10px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                        }}
-                        title="Download official statement of outstanding dues"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="7 10 12 15 17 10"/>
-                          <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Download Pending Bill
-                      </button>
-                    </div>
+                      }
+                    />
 
                     {selectedPaymentIds.length > 0 && (
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1206,7 +1166,7 @@ const AdminDashboard = () => {
                   ) : drillDentistPayments ? (
                     /* Drill-down: single dentist's payment table */
                     filteredPaymentsForDrill.length === 0 ? (
-                      <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                      <EmptyState variant="payments" message="No payment records found." />
                     ) : (
                       <div>
                         <DentzyDataTable
@@ -1231,9 +1191,9 @@ const AdminDashboard = () => {
                               header: 'Mode & Ref',
                               render: (p) =>
                                 p.paymentStatus === 'Paid' && p.paymentMode ? (
-                                  <span style={{ fontSize: '0.78rem' }}>
-                                    <span className={`ad-pay-mode-tag ad-pay-mode--${(p.paymentMode || '').toLowerCase()}`}>{p.paymentMode}</span>
-                                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                                  <span style={{ fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <DentzyStatusPill type="mode" status={p.paymentMode} />
+                                    {p.referenceNumber && <span style={{ color: '#708c80' }}>Ref: {p.referenceNumber}</span>}
                                   </span>
                                 ) : (
                                   <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>
@@ -1280,47 +1240,22 @@ const AdminDashboard = () => {
                             },
                           ]}
                           footer={
-                            selectedPaymentIds.length > 0 && (
-                              <div style={{
-                                position: 'sticky', bottom: '16px', zIndex: 10,
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '12px 20px', borderRadius: '14px',
-                                background: '#1a3028', color: '#fff',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-                                margin: '16px', gap: '12px', flexWrap: 'wrap'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <span style={{ background: '#25503b', color: '#a3bfb1', padding: '4px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
-                                    {selectedPaymentIds.length} {selectedPaymentIds.length === 1 ? 'order' : 'orders'} selected
-                                  </span>
-                                  <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#e2ece6' }}>
-                                    Total: <strong style={{ color: '#fff', fontSize: '1.05rem' }}>
-                                      {formatINR(paymentData.payments.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
-                                    </strong>
-                                  </span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedPaymentIds([])}
-                                    style={{ background: 'transparent', border: '1px solid #4a6a5a', color: '#c2d6cc', padding: '8px 14px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
-                                  >
-                                    Deselect
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
-                                      setBatchPayError('');
-                                      setBatchPayModalOpen(true);
-                                    }}
-                                    style={{ background: '#1e5038', border: '1px solid #708c80', color: '#fff', padding: '8px 18px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                  >
-                                    {Ico.creditCard(15)} Settle Payment for {selectedPaymentIds.length} Orders
-                                  </button>
-                                </div>
-                              </div>
-                            )
+                            <BatchFloatingBar
+                              count={selectedPaymentIds.length}
+                              totalAmount={paymentData.payments
+                                .filter((p) => selectedPaymentIds.includes(p._id))
+                                .reduce((s, p) => s + (Number(p.amount) || 0), 0)}
+                              onDeselect={() => setSelectedPaymentIds([])}
+                              onSettle={() => {
+                                setBatchPayForm({ mode: 'Cash', referenceNumber: '', notes: '', status: 'Paid' });
+                                setBatchPayError('');
+                                setBatchPayModalOpen(true);
+                              }}
+                              settleLabel={`Settle Payment for ${selectedPaymentIds.length} ${selectedPaymentIds.length === 1 ? 'Order' : 'Orders'}`}
+                              variant="sticky"
+                              isMobile={false}
+                              style={{ margin: '16px' }}
+                            />
                           }
                         />
                       </div>
@@ -1328,7 +1263,7 @@ const AdminDashboard = () => {
                   ) : (
                     /* Dentist cards overview for payments */
                     dentistPaymentGroups.length === 0 ? (
-                      <div className="ad-empty">{Ico.wallet(48)}<p>No payment records found.</p></div>
+                      <EmptyState variant="payments" message="No payment records found." />
                     ) : (
                       <div className="ad-user-list">
                         {dentistPaymentGroups.map(d => {
@@ -1341,8 +1276,8 @@ const AdminDashboard = () => {
                               onClick={() => setDrillDentistPayments(d)}
                               rightPills={
                                 <>
-                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#f0fdf4', color: '#16a34a' }}>Billed {formatINR(d.totalBilled)}</span>
-                                  <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>Collected {formatINR(d.totalCollected)}</span>
+                                  <DentzyStatusPill type="clinic" label={`Billed ${formatINR(d.totalBilled)}`} />
+                                  <DentzyStatusPill status="Paid" label={`Collected ${formatINR(d.totalCollected)}`} type="payment" />
                                   {d.totalPending > 0 && <DentzyStatusPill status="Pending" label={`Pending ${formatINR(d.totalPending)}`} type="payment" />}
                                   {unpaid > 0 && <DentzyStatusPill status="Cancelled" label={`${unpaid} Unpaid`} type="workflow" />}
                                   <DentzyStatusPill label={`${d.payments.length} Cases ›`} type="orders" />
@@ -1359,28 +1294,18 @@ const AdminDashboard = () => {
             ) : adminView === 'dentists' && dentistSubView === 'orders' ? (
               /* ── Lab Orders View ───────────────────────────────────────── */
               <div>
-                <div className="ad-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button
-                      onClick={() => {
-                        if (drillDentistOrders) {
-                          setDrillDentistOrders(null);
-                        } else {
-                          setDentistSubView('users');
-                        }
-                      }}
-                      title={drillDentistOrders ? "Back to All Lab Orders" : "Back to Dentists"}
-                      style={{ background: '#e2ece6', borderRadius: '8px', width: '34px', height: '34px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      {Ico.arrowLeft ? Ico.arrowLeft(18) : '←'}
-                    </button>
-                    <p className="ad-section-title" style={{ margin: 0 }}>
-                      {drillDentistOrders ? (
-                        `${formatDoctorName(drillDentistOrders.name)}${drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}`
-                      ) : 'Lab Orders'}
-                    </p>
-                  </div>
-                </div>
+                <SubViewHeader
+                  title={drillDentistOrders ? formatDoctorName(drillDentistOrders.name) : 'Lab Orders'}
+                  subtitle={drillDentistOrders?.clinicName || undefined}
+                  onBack={() => {
+                    if (drillDentistOrders) {
+                      setDrillDentistOrders(null);
+                    } else {
+                      setDentistSubView('users');
+                    }
+                  }}
+                  backLabel={drillDentistOrders ? 'Back to All Lab Orders' : 'Back to Dentists'}
+                />
                 <div className="ad-content">
                   {loadingOrders ? (
                     drillDentistOrders ? (
@@ -1395,7 +1320,7 @@ const AdminDashboard = () => {
                   ) : drillDentistOrders ? (
                     /* Drill-down: single dentist's orders table */
                     filteredOrdersForDrill.length === 0 ? (
-                      <div className="ad-empty">{Ico.chart(48)}<p>No orders for this dentist.</p></div>
+                      <EmptyState variant="orders" message="No orders for this dentist." />
                     ) : (
                       <DentzyDataTable
                         kpiItems={[
@@ -1427,7 +1352,7 @@ const AdminDashboard = () => {
                   ) : (
                     /* Dentist cards overview */
                     dentistOrderGroups.length === 0 ? (
-                      <div className="ad-empty">{Ico.chart(48)}<p>No lab orders found.</p></div>
+                      <EmptyState variant="orders" message="No lab orders found." />
                     ) : (
                       <div className="ad-user-list">
                         {dentistOrderGroups.map((d) => {
@@ -1504,10 +1429,10 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ) : filteredUsers.length === 0 ? (
-                    <div className="ad-empty">
-                      {Ico.users(48)}
-                      <p>No {activeTab === 'all' ? '' : activeTab + ' '}users found.</p>
-                    </div>
+                    <EmptyState
+                      variant="dentists"
+                      message={`No ${activeTab === 'all' ? '' : activeTab + ' '}users found.`}
+                    />
                   ) : (
                     <div className="ad-user-list">
                       {filteredUsers.map((user) => {
@@ -1607,36 +1532,13 @@ const AdminDashboard = () => {
                 {/* Sub-view Landing Grid (when settingsSubView === null) */}
                 {!settingsSubView ? (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setAdminView(prevAdminViewRef.current || 'dentists')}
-                        title="Back to Dashboard"
-                        aria-label="Back to Dashboard"
-                        style={{
-                          background: '#e2ece6',
-                          borderRadius: '10px',
-                          width: '38px',
-                          height: '38px',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#1e5038',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#d0e4d7'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = '#e2ece6'; }}
-                      >
-                        {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
-                      </button>
-                      <div className="ad-section-header" style={{ marginBottom: 0 }}>
-                        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>Settings & Analytics</h2>
-                        <p style={{ color: '#6b8a7a', fontSize: '0.85rem', margin: '4px 0 0' }}>Select a portal management card below to configure options or view analytics.</p>
-                      </div>
-                    </div>
+                    <SubViewHeader
+                      title="Settings & Analytics"
+                      subtitle="Select a portal management card below to configure options or view analytics."
+                      onBack={() => setAdminView(prevAdminViewRef.current || 'dentists')}
+                      backLabel="Back to Dashboard"
+                      style={{ marginBottom: '24px' }}
+                    />
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '16px' }}>
                       <TwentyFirstNavCard
@@ -1683,269 +1585,85 @@ const AdminDashboard = () => {
                   /* Sub-Page Content Views */
                   <div>
                     {/* Common Sub-Page Header with Back Button */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setSettingsSubView(null)}
-                        title="Back to Settings"
-                        aria-label="Back to Settings"
-                        style={{ background: '#e2ece6', borderRadius: '10px', width: '38px', height: '38px', border: 'none', cursor: 'pointer', color: '#1e5038', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s ease' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = '#d0e4d7'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = '#e2ece6'; }}
-                      >
-                        {Ico.arrowLeft ? Ico.arrowLeft(20) : '←'}
-                      </button>
-                      <div>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>
-                          {settingsSubView === 'notice' && 'Dentist Portal Notice Bar'}
-                          {settingsSubView === 'payments' && 'Payment & Revenue Overview'}
-                          {settingsSubView === 'users' && 'User Accounts Overview'}
-                          {settingsSubView === 'account' && 'Administrator Account'}
-                          {settingsSubView === 'maintenance' && 'Maintenance Mode Controller'}
-                          {settingsSubView === 'staff-notice' && 'Staff Portal Notice Bar'}
-                        </h2>
-                        <p style={{ color: '#6b8a7a', fontSize: '0.82rem', margin: '2px 0 0' }}>Settings & Analytics / Sub-view</p>
-                      </div>
-                    </div>
+                    <SubViewHeader
+                      title={SETTINGS_SUBVIEW_TITLES[settingsSubView] || ''}
+                      subtitle="Settings & Analytics / Sub-view"
+                      onBack={() => setSettingsSubView(null)}
+                      backLabel="Back to Settings"
+                      style={{ marginBottom: '24px' }}
+                    />
 
                     {/* Sub-Page 1: Notice Bar Manager */}
                     {settingsSubView === 'notice' && (
-                      !noticeLoaded ? (
-                        <NoticeEditorSkeleton />
-                      ) : (
-                        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                          {/* Master Toggle */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px' }}>
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Show Notice Bar to Dentists</div>
-                              <div style={{ fontSize: '0.8rem', color: '#6b8a7a', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all dentist dashboards</div>
-                            </div>
-                            <button
-                              onClick={() => setNoticeEnabled(v => !v)}
-                              style={{
-                                width: '52px', height: '28px', borderRadius: '14px', border: 'none', cursor: 'pointer', position: 'relative',
-                                background: noticeEnabled ? '#22c55e' : '#d1d5db', transition: 'background 0.2s',
-                              }}
-                              aria-label="Toggle notice bar"
-                            >
-                              <span style={{
-                                position: 'absolute', top: '3px', left: noticeEnabled ? '27px' : '3px',
-                                width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
-                              }} />
-                            </button>
-                          </div>
-
-                          {/* Live Preview */}
-                          {(Array.isArray(noticeMessages) && noticeMessages.length > 0) && (
-                            <div style={{ marginBottom: '24px' }}>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
-                              <div style={{ opacity: noticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: noticeEnabled ? 'auto' : 'none' }}>
-                                <TwentyFirstNoticeBar messages={noticeMessages || []} />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Add New Message */}
-                          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                            <input
-                              type="text"
-                              value={noticeNewMsg}
-                              onChange={e => setNoticeNewMsg(e.target.value)}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter' && noticeNewMsg.trim()) {
-                                  setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]);
-                                  setNoticeNewMsg('');
-                                }
-                              }}
-                              placeholder="Type a new announcement message..."
-                              maxLength={250}
-                              style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
-                            />
-                            <TwentyFirstIconButton
-                              icon={Ico.plus(18)}
-                              title="Add Message"
-                              ariaLabel="Add Message"
-                              disabled={!noticeNewMsg.trim()}
-                              onClick={() => { setNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), noticeNewMsg.trim()]); setNoticeNewMsg(''); }}
-                              variant="primary"
-                              size="lg"
-                            />
-                          </div>
-
-                          {/* Draggable Reorderable List (21st.dev) */}
-                          <div style={{ marginBottom: '24px' }}>
-                            <TwentyFirstNoticeList
-                              messages={noticeMessages || []}
-                              onChange={setNoticeMessages}
-                            />
-                          </div>
-
-                          {/* Action Footer */}
-                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #edf2ef' }}>
-                            <button
-                              onClick={() => {
-                                setNoticeMessages([
-                                  'Welcome to Dentzy Clinical Lab Portal',
-                                  'Standard turnaround: 5-7 working days  |  Rush: 2-3 working days',
-                                  'New: Zirconia monolithic crowns with multi-shade gradients now available',
-                                  'Submit STL files for faster digital impression processing',
-                                  'Invoices are generated upon case dispatch — check the Payments tab',
-                                  'All cases backed by the Dentzy 5-10 Years Quality Guarantee',
-                                  'Lab support: Mon-Sat, 9 AM to 6 PM IST',
-                                ]);
-                                setNoticeEnabled(true);
-                              }}
-                              style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                            >
-                              Reset to Defaults
-                            </button>
-                            <button
-                              onClick={handleNoticeSave}
-                              disabled={noticeSaving || !noticeLoaded}
-                              style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: (noticeSaving || !noticeLoaded) ? 'default' : 'pointer', opacity: (noticeSaving || !noticeLoaded) ? 0.7 : 1 }}
-                            >
-                              {noticeSaving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                          </div>
-                        </div>
-                      )
+                      <NoticeEditorCard
+                        toggleLabel="Show Notice Bar to Dentists"
+                        toggleDescription="When disabled, the announcement ticker is hidden across all dentist dashboards"
+                        enabled={noticeEnabled}
+                        onToggle={setNoticeEnabled}
+                        messages={noticeMessages}
+                        onChange={setNoticeMessages}
+                        newMessage={noticeNewMsg}
+                        onNewMessageChange={setNoticeNewMsg}
+                        onSave={handleNoticeSave}
+                        saving={noticeSaving}
+                        loaded={noticeLoaded}
+                        placeholder="Type a new announcement message..."
+                      />
                     )}
 
-                    {/* Sub-Page 2: Payments & Revenue Analytics */}
                     {/* Sub-Page: Staff Notice Alert Broadcast */}
                     {settingsSubView === 'staff-notice' && (
-                      !staffNoticeLoaded ? (
-                        <NoticeEditorSkeleton />
-                      ) : (
-                        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                          {/* Master Toggle */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px' }}>
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1a3028' }}>Show Notice Bar to Staff</div>
-                              <div style={{ fontSize: '0.8rem', color: '#6b8a7a', marginTop: '2px' }}>When disabled, the announcement ticker is hidden across all staff dashboards</div>
-                            </div>
-                            <button
-                              onClick={() => setStaffNoticeEnabled(v => !v)}
-                              style={{
-                                width: '52px', height: '28px', borderRadius: '14px', border: 'none', cursor: 'pointer', position: 'relative',
-                                background: staffNoticeEnabled ? '#22c55e' : '#d1d5db', transition: 'background 0.2s',
-                              }}
-                              aria-label="Toggle staff notice bar"
-                            >
-                              <span style={{
-                                position: 'absolute', top: '3px', left: staffNoticeEnabled ? '27px' : '3px',
-                                width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
-                              }} />
-                            </button>
-                          </div>
-
-                          {/* Live Preview */}
-                          {(Array.isArray(staffNoticeMessages) && staffNoticeMessages.length > 0) && (
-                            <div style={{ marginBottom: '24px' }}>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '10px' }}>Live Preview</div>
-                              <div style={{ opacity: staffNoticeEnabled ? 1 : 0.4, transition: 'opacity 0.2s', pointerEvents: staffNoticeEnabled ? 'auto' : 'none' }}>
-                                <TwentyFirstNoticeBar messages={staffNoticeMessages || []} />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Add New Message */}
-                          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                            <input
-                              type="text"
-                              value={staffNoticeNewMsg}
-                              onChange={e => setStaffNoticeNewMsg(e.target.value)}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter' && staffNoticeNewMsg.trim()) {
-                                  setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]);
-                                  setStaffNoticeNewMsg('');
-                                }
-                              }}
-                              placeholder="Type a new staff announcement message..."
-                              maxLength={250}
-                              style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #d4ddd8', fontSize: '0.88rem', outline: 'none' }}
-                            />
-                            <TwentyFirstIconButton
-                              icon={Ico.plus(18)}
-                              title="Add Message"
-                              ariaLabel="Add Message"
-                              disabled={!staffNoticeNewMsg.trim()}
-                              onClick={() => { setStaffNoticeMessages(prev => [...(Array.isArray(prev) ? prev : []), staffNoticeNewMsg.trim()]); setStaffNoticeNewMsg(''); }}
-                              variant="primary"
-                              size="lg"
-                            />
-                          </div>
-
-                          {/* Draggable Reorderable List (21st.dev) */}
-                          <div style={{ marginBottom: '24px' }}>
-                            <TwentyFirstNoticeList
-                              messages={staffNoticeMessages || []}
-                              onChange={setStaffNoticeMessages}
-                            />
-                          </div>
-
-                          {/* Action Footer */}
-                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #edf2ef' }}>
-                            <button
-                              onClick={() => {
-                                setStaffNoticeMessages([
-                                  'Welcome to Dentzy Lab Operations Portal',
-                                  'Ensure all case scans & QC checklists are logged before dispatch',
-                                  'Priority cases marked Urgent must be completed within 24 hours',
-                                  'Standard daily shift handover meeting at 6:00 PM',
-                                  'Lab Support & Rush Desk hotline: +91 9503668112',
-                                ]);
-                                setStaffNoticeEnabled(true);
-                              }}
-                              style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #d4ddd8', background: '#fff', color: '#6b8a7a', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                            >
-                              Reset to Defaults
-                            </button>
-                            <button
-                              onClick={handleStaffNoticeSave}
-                              disabled={staffNoticeSaving || !staffNoticeLoaded}
-                              style={{ padding: '10px 26px', borderRadius: '12px', border: 'none', background: '#1e5038', color: '#fff', fontWeight: 700, fontSize: '0.88rem', cursor: (staffNoticeSaving || !staffNoticeLoaded) ? 'default' : 'pointer', opacity: (staffNoticeSaving || !staffNoticeLoaded) ? 0.7 : 1 }}
-                            >
-                              {staffNoticeSaving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                          </div>
-                        </div>
-                      )
+                      <NoticeEditorCard
+                        toggleLabel="Show Notice Bar to Staff"
+                        toggleDescription="When disabled, the announcement ticker is hidden across all staff dashboards"
+                        enabled={staffNoticeEnabled}
+                        onToggle={setStaffNoticeEnabled}
+                        messages={staffNoticeMessages}
+                        onChange={setStaffNoticeMessages}
+                        newMessage={staffNoticeNewMsg}
+                        onNewMessageChange={setStaffNoticeNewMsg}
+                        onSave={handleStaffNoticeSave}
+                        saving={staffNoticeSaving}
+                        loaded={staffNoticeLoaded}
+                        defaultMessages={STAFF_TICKER_MESSAGES}
+                        placeholder="Type a new staff announcement message..."
+                      />
                     )}
                     {settingsSubView === 'payments' && (
                       loadingPayments ? (
                         <SettingsTilesSkeleton count={4} variant="pc" />
                       ) : (
-                        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Billed</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
-                                {formatINR(paymentData.summary?.totalBilled || 0)}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Collected</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
-                                {formatINR(paymentData.summary?.totalCollected || 0)}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
-                                {formatINR(paymentData.summary?.totalPending || 0)}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Records</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e5038', marginTop: '8px' }}>
-                                {paymentData.summary?.totalPayments || paymentData.payments?.length || 0}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <DentzyCard style={{ padding: '24px' }}>
+                          <DentzyKpiRow
+                            style={{ marginBottom: 0 }}
+                            items={[
+                              {
+                                key: 'totalBilled',
+                                label: 'Total Billed',
+                                value: formatINR(paymentData.summary?.totalBilled || 0),
+                              },
+                              {
+                                key: 'collected',
+                                label: 'Collected',
+                                value: formatINR(paymentData.summary?.totalCollected || 0),
+                                tone: 'success',
+                                valueColor: '#166534',
+                              },
+                              {
+                                key: 'pending',
+                                label: 'Pending',
+                                value: formatINR(paymentData.summary?.totalPending || 0),
+                                tone: 'warning',
+                              },
+                              {
+                                key: 'totalRecords',
+                                label: 'Total Records',
+                                value: paymentData.summary?.totalPayments || paymentData.payments?.length || 0,
+                                valueColor: '#1e5038',
+                              },
+                            ]}
+                          />
+                        </DentzyCard>
                       )
                     )}
 
@@ -1954,34 +1672,37 @@ const AdminDashboard = () => {
                       !statsLoaded ? (
                         <SettingsTilesSkeleton count={4} variant="pc" />
                       ) : (
-                        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b8a7a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Registered</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a3028', marginTop: '8px' }}>
-                                {stats.total || 0}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Approved Accounts</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#166534', marginTop: '8px' }}>
-                                {stats.approved || 0}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Approval</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#b45309', marginTop: '8px' }}>
-                                {stats.pending || 0}
-                              </div>
-                            </div>
-                            <div style={{ background: '#f8faf9', border: '1px solid #e2ece6', borderRadius: '14px', padding: '20px' }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejected</div>
-                              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#dc2626', marginTop: '8px' }}>
-                                {stats.rejected || 0}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <DentzyCard style={{ padding: '24px' }}>
+                          <DentzyKpiRow
+                            style={{ marginBottom: 0 }}
+                            items={[
+                              {
+                                key: 'totalRegistered',
+                                label: 'Total Registered',
+                                value: stats.total || 0,
+                              },
+                              {
+                                key: 'approvedAccounts',
+                                label: 'Approved Accounts',
+                                value: stats.approved || 0,
+                                tone: 'success',
+                                valueColor: '#166534',
+                              },
+                              {
+                                key: 'pendingApproval',
+                                label: 'Pending Approval',
+                                value: stats.pending || 0,
+                                tone: 'warning',
+                              },
+                              {
+                                key: 'rejectedAccounts',
+                                label: 'Rejected',
+                                value: stats.rejected || 0,
+                                tone: 'danger',
+                              },
+                            ]}
+                          />
+                        </DentzyCard>
                       )
                     )}
 
@@ -2010,7 +1731,7 @@ const AdminDashboard = () => {
                           setAdmin={setAdmin}
                         />
                       ) : (
-                      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2ece6', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+                      <DentzyCard style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
                         <div>
                           <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1a3028' }}>Administrator Account</div>
                           <div style={{ fontSize: '0.85rem', color: '#6b8a7a', marginTop: '4px' }}>Logged in as <strong style={{ color: '#1e5038' }}>{admin?.username || 'admin'}</strong></div>
@@ -2052,7 +1773,7 @@ const AdminDashboard = () => {
                         >
                           {Ico.logout(16)} Logout
                         </button>
-                      </div>
+                      </DentzyCard>
                       )
                     )}
 
@@ -2140,14 +1861,14 @@ const AdminDashboard = () => {
             </div>
 
             {/* Mode toggle */}
-            <div className="ad-pay-mode-toggle">
-              {['Cash', 'Cheque', 'UPI'].map(m => (
-                <button key={m} className={`ad-pay-mode-btn ${payForm.mode === m ? 'active' : ''}`}
-                  onClick={() => { setPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setPayFormError(''); }}>
-                  {m}
-                </button>
-              ))}
-            </div>
+            <PaymentModeToggle
+              value={payForm.mode}
+              modes={['Cash', 'Cheque', 'UPI']}
+              onChange={(m) => {
+                setPayForm(f => ({ ...f, mode: m, referenceNumber: '' }));
+                setPayFormError('');
+              }}
+            />
 
             {/* Amount */}
             <div className="ad-pay-form-group">
@@ -2185,97 +1906,23 @@ const AdminDashboard = () => {
       </BaseModal>
 
       {/* ── Record Batch Payment Modal ─────────────────────────────────── */}
-      <BaseModal
+      <BatchPaymentModal
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
-        title={`Update Payment Details (${selectedPaymentIds.length} Orders)`}
-        subtitle={drillDentistPayments ? `${formatDoctorName(drillDentistPayments.name)}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
-        footer={
-          <div className="ad-pay-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
-            <button className="ad-pay-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
-            <button className="ad-pay-btn-confirm" onClick={handleBatchRecordPayment} disabled={batchPaySaving}>
-              {batchPaySaving ? 'Saving…' : `Confirm for ${selectedPaymentIds.length} Cases`}
-            </button>
-          </div>
-        }
-        maxWidth="max-w-md"
+        selectedCount={selectedPaymentIds.length}
+        totalAmount={paymentData.payments
+          .filter((p) => selectedPaymentIds.includes(p._id))
+          .reduce((s, p) => s + (Number(p.amount) || 0), 0)}
+        dentistName={drillDentistPayments?.name || ''}
+        clinicName={drillDentistPayments?.clinicName || ''}
+        form={batchPayForm}
+        onFormChange={setBatchPayForm}
+        onConfirm={handleBatchRecordPayment}
+        saving={batchPaySaving}
+        error={batchPayError}
+        onClearError={() => setBatchPayError('')}
         id="ad-batch-pay-modal"
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '4px 0' }}>
-          <div className="ad-pay-modal-meta" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
-              <span><strong>Total Amount:</strong> <strong style={{ color: '#1e5038', fontSize: '1rem' }}>
-                {formatINR(paymentData.payments.filter(p => selectedPaymentIds.includes(p._id)).reduce((s, p) => s + (Number(p.amount) || 0), 0))}
-              </strong></span>
-            </div>
-            {drillDentistPayments && (
-              <span><strong>Dentist:</strong> {formatDoctorName(drillDentistPayments.name)} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</span>
-            )}
-          </div>
-
-          {/* Payment status toggle: Paid vs Pending */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', background: '#f0f7f3', padding: '4px', borderRadius: '10px' }}>
-            {[
-              { key: 'Paid', label: 'Mark as Paid' },
-              { key: 'Pending', label: 'Mark as Pending' },
-            ].map(st => (
-              <button
-                key={st.key}
-                type="button"
-                onClick={() => setBatchPayForm(f => ({ ...f, status: st.key }))}
-                style={{
-                  flex: 1, padding: '7px 12px', border: 'none', borderRadius: '8px',
-                  fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-                  background: batchPayForm.status === st.key ? '#1e5038' : 'transparent',
-                  color: batchPayForm.status === st.key ? '#fff' : '#4a7060',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {st.label}
-              </button>
-            ))}
-          </div>
-
-          {batchPayForm.status === 'Paid' && (
-            <>
-              {/* Mode toggle */}
-              <div className="ad-pay-mode-toggle">
-                {['Cash', 'Cheque', 'UPI', 'Net Banking'].map(m => (
-                  <button key={m} className={`ad-pay-mode-btn ${batchPayForm.mode === m ? 'active' : ''}`}
-                    onClick={() => { setBatchPayForm(f => ({ ...f, mode: m, referenceNumber: '' })); setBatchPayError(''); }}>
-                    {m}
-                  </button>
-                ))}
-              </div>
-
-              {/* Conditional reference field */}
-              {batchPayForm.mode === 'Cheque' && (
-                <div className="ad-pay-form-group">
-                  <label>Cheque Number *</label>
-                  <input type="text" placeholder="e.g. CHQ-650124" value={batchPayForm.referenceNumber}
-                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
-                </div>
-              )}
-              {(batchPayForm.mode === 'UPI' || batchPayForm.mode === 'Net Banking') && (
-                <div className="ad-pay-form-group">
-                  <label>{batchPayForm.mode === 'UPI' ? 'UPI Transaction ID / UTR *' : 'IMPS / NEFT Reference *'}</label>
-                  <input type="text" placeholder="e.g. 428190382910" value={batchPayForm.referenceNumber}
-                    onChange={e => setBatchPayForm(f => ({ ...f, referenceNumber: e.target.value }))} />
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="ad-pay-form-group">
-            <label>Notes / Settlement Reference (optional)</label>
-            <input type="text" placeholder="e.g. October batch settlement" value={batchPayForm.notes}
-              onChange={e => setBatchPayForm(f => ({ ...f, notes: e.target.value }))} />
-          </div>
-
-          {batchPayError && <div className="ad-pay-form-error">{batchPayError}</div>}
-        </div>
-      </BaseModal>
+      />
 
       {/* Consolidated Batch Invoice Statement Modal */}
       {batchStatementModal && (

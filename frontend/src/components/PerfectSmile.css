@@ -41,12 +41,7 @@
     font-size: clamp(2.5rem, 3vw + 0.5rem, 4rem);
     font-weight: 900;
     letter-spacing: 4px;
-    color: var(--dz-color-charcoal, var(--dz-color-charcoal));
-}
-
-.smile-logo .highlight {
-    color: var(--color-primary, var(--dz-color-primary));
-    /* Sage Green match */
+    color: var(--dz-color-charcoal);
 }
 
 .smile-footer-text {

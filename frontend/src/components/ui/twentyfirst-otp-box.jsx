@@ -26,7 +26,8 @@ export function TwentyFirstOtpBox({
 }) {
   const inputRefs = useRef([]);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const digits = value.split('').concat(Array(length).fill('')).slice(0, length);
+  const safeValue = String(value ?? '').replace(/\D/g, '').slice(0, length);
+  const digits = safeValue.split('').concat(Array(length).fill('')).slice(0, length);
 
   const focusInput = useCallback((index) => {
     if (index >= 0 && index < length && inputRefs.current[index]) {
@@ -51,19 +52,53 @@ export function TwentyFirstOtpBox({
   }, [onChange, onComplete, length]);
 
   const handleChange = useCallback((e, index) => {
-    const char = e.target.value.slice(-1);
-    if (!/^\d$/.test(char) && char !== '') return;
+    if (disabled) return;
+    const raw = e.target.value;
+    if (raw === '') {
+      const newDigits = [...digits];
+      newDigits[index] = '';
+      updateValue(newDigits);
+      return;
+    }
+
+    const cleaned = raw.replace(/\D/g, '');
+    if (!cleaned) return;
+
+    // Handle multi-digit input (e.g. SMS one-time-code autofill or replacing an existing digit)
+    if (cleaned.length > 1) {
+      if (digits[index] && cleaned.length === 2) {
+        const char = cleaned.slice(-1);
+        const newDigits = [...digits];
+        newDigits[index] = char;
+        updateValue(newDigits);
+        if (index < length - 1) {
+          focusInput(index + 1);
+        }
+      } else {
+        const startIdx = cleaned.length >= length ? 0 : index;
+        const newDigits = [...digits];
+        for (let i = 0; i < cleaned.length && startIdx + i < length; i++) {
+          newDigits[startIdx + i] = cleaned[i];
+        }
+        updateValue(newDigits);
+        focusInput(Math.min(newDigits.join('').length, length - 1));
+      }
+      return;
+    }
 
     const newDigits = [...digits];
-    newDigits[index] = char;
+    newDigits[index] = cleaned;
     updateValue(newDigits);
 
-    if (char && index < length - 1) {
+    if (index > safeValue.length) {
+      focusInput(Math.min(newDigits.join('').length, length - 1));
+    } else if (index < length - 1) {
       focusInput(index + 1);
     }
-  }, [digits, length, focusInput, updateValue]);
+  }, [disabled, digits, safeValue.length, length, focusInput, updateValue]);
 
   const handleKeyDown = useCallback((e, index) => {
+    if (disabled) return;
     if (e.key === 'Backspace') {
       e.preventDefault();
       const newDigits = [...digits];
@@ -82,9 +117,10 @@ export function TwentyFirstOtpBox({
       e.preventDefault();
       focusInput(index + 1);
     }
-  }, [digits, length, focusInput, updateValue]);
+  }, [disabled, digits, length, focusInput, updateValue]);
 
   const handlePaste = useCallback((e) => {
+    if (disabled) return;
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
     if (!pasted) return;
@@ -95,13 +131,13 @@ export function TwentyFirstOtpBox({
     }
     updateValue(newDigits);
     focusInput(Math.min(pasted.length, length - 1));
-  }, [length, focusInput, updateValue]);
+  }, [disabled, length, focusInput, updateValue]);
 
   return (
     <motion.div
-      className={cn('flex items-center gap-2 sm:gap-3', className)}
-      animate={hasError ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : {}}
-      transition={hasError ? { duration: 0.4, ease: 'easeInOut' } : {}}
+      className={cn('flex items-center justify-center gap-1.5 sm:gap-2', className)}
+      animate={hasError ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : { x: 0 }}
+      transition={hasError ? { duration: 0.4, ease: 'easeInOut' } : { duration: 0.15 }}
     >
       {Array.from({ length }).map((_, i) => {
         const isFocused = focusedIndex === i;
@@ -132,7 +168,7 @@ export function TwentyFirstOtpBox({
               autoComplete="one-time-code"
               aria-label={`Digit ${i + 1} of ${length}`}
               className={cn(
-                'w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl',
+                'w-11 h-[52px] p-0 text-center text-xl font-bold leading-none rounded-xl',
                 'border-2 bg-white outline-none transition-all duration-200',
                 'text-[#1e2824] placeholder:text-gray-300',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -144,14 +180,14 @@ export function TwentyFirstOtpBox({
                       ? 'border-[#708c80]/60'
                       : 'border-gray-200 hover:border-gray-300',
               )}
-              style={{ caretColor: '#1e5038' }}
+              style={{ caretColor: hasDigit ? '#1e5038' : 'transparent' }}
             />
             {/* Caret blink when focused and empty */}
             {isFocused && !hasDigit && (
               <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[2px] h-6 bg-[#1e5038] rounded-full"
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'steps(2)' }}
+                className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[2px] h-6 bg-[#1e5038] rounded-full"
+                animate={{ opacity: [1, 1, 0, 0] }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear', times: [0, 0.49, 0.5, 0.99] }}
               />
             )}
           </motion.div>

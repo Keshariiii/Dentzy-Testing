@@ -116,31 +116,65 @@ export function DentzyDataTable({
 }
 
 /**
- * DentzyPipelineChart — Shared Horizontal Stage Progress Chart
+ * DentzyPipelineChart — Shared Horizontal Stage Progress Chart (static or interactive)
  */
-export function DentzyPipelineChart({ stage, stages = DEFAULT_STAGES }) {
-  const idx = stages.findIndex((s) => s.key === stage);
+export function DentzyPipelineChart({
+  stage,
+  stages = DEFAULT_STAGES,
+  completed = false,
+  onStepClick,
+  disabled = false,
+  numbered = false,
+  className = '',
+}) {
+  const idx = completed ? stages.length - 1 : stages.findIndex((s) => s.key === stage);
+  const clickable = typeof onStepClick === 'function' && !disabled;
+
   return (
-    <div className="dz-stage-chart">
-      {stages.map((s, i) => (
-        <React.Fragment key={s.key}>
-          <div
-            className={[
-              'dz-stage-node',
-              i <= idx ? 'dz-stage-node--done' : '',
-              i === idx ? 'dz-stage-node--current' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <div className="dz-stage-dot" />
+    <div className={`dz-stage-chart ${className}`.trim()}>
+      {stages.map((s, i) => {
+        const isDone = completed || (idx !== -1 && i <= idx);
+        const isCurrent = !completed && i === idx;
+        const cls = [
+          'dz-stage-node',
+          isDone ? 'dz-stage-node--done' : '',
+          isCurrent ? 'dz-stage-node--current' : '',
+          clickable ? 'dz-stage-node--clickable' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        const dotStyle = isDone && s.color ? { background: s.color } : undefined;
+        const inner = (
+          <>
+            <div className={`dz-stage-dot ${numbered ? 'dz-stage-dot--numbered' : ''}`.trim()} style={dotStyle}>
+              {numbered ? (i < idx || completed ? '✓' : i + 1) : null}
+            </div>
             <span className="dz-stage-label">{s.label}</span>
-          </div>
-          {i < stages.length - 1 && (
-            <div className={`dz-stage-line ${i < idx ? 'dz-stage-line--done' : ''}`.trim()} />
-          )}
-        </React.Fragment>
-      ))}
+          </>
+        );
+
+        return (
+          <React.Fragment key={s.key}>
+            {typeof onStepClick === 'function' ? (
+              <button
+                type="button"
+                className={cls}
+                disabled={disabled}
+                onClick={() => onStepClick(s.key)}
+                title={`Set stage to ${s.label}`}
+              >
+                {inner}
+              </button>
+            ) : (
+              <div className={cls}>{inner}</div>
+            )}
+            {i < stages.length - 1 && (
+              <div className={`dz-stage-line ${(completed || i < idx) ? 'dz-stage-line--done' : ''}`.trim()} />
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }

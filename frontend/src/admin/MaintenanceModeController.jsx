@@ -4,61 +4,27 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BaseModal from '../components/ui/BaseModal';
 import { Ico } from '../components/common/DashboardIcons';
 import { MaintenanceControllerSkeleton } from '../components/SkeletonBlocks';
-
-const DentistRoleIcon = ({ size = 20, color = '#1e5038' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-const StaffRoleIcon = ({ size = 20, color = '#1e5038' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="2" />
-    <line x1="9" y1="10" x2="15" y2="10" />
-    <line x1="9" y1="14" x2="13" y2="14" />
-  </svg>
-);
-
-const BothRoleIcon = ({ size = 20, color = '#1e5038' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-
-const AlertTriangleIcon = ({ size = 24, color = '#dc2626' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-  </svg>
-);
-
-const SpinnerIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'dzSpin 0.9s linear infinite' }}>
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
+import { DentzyCard } from '../components/common/DentzyCard';
+import ToggleSwitch from '../components/common/ToggleSwitch';
 
 const TARGET_OPTIONS = [
   {
     id: 'dentists',
     title: 'Dentists Only',
     desc: 'Dentists see the Under Maintenance page and cannot log in or submit cases. Staff and Admins work normally.',
-    icon: DentistRoleIcon,
+    renderIcon: () => Ico.user(18),
   },
   {
     id: 'staff',
     title: 'Staff Only',
     desc: 'Lab Staff see the Under Maintenance page and cannot alter stages or orders. Dentists and Admins work normally.',
-    icon: StaffRoleIcon,
+    renderIcon: () => Ico.orders(18),
   },
   {
     id: 'both',
     title: 'Both (Dentists & Staff)',
     desc: 'Both Dentists and Staff are locked out. Only Admin can access the platform.',
-    icon: BothRoleIcon,
+    renderIcon: () => Ico.lock(18),
   },
 ];
 
@@ -211,22 +177,10 @@ export default function MaintenanceModeController({
   }
 
   return (
-    <div style={{
-      background: '#ffffff',
-      borderRadius: '16px',
-      border: '1px solid #e2ece6',
+    <DentzyCard style={{
       padding: '28px',
-      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontFamily: 'var(--dz-font-family)',
     }}>
-      <style>{`
-        @keyframes dzSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes dzPulseDot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(0.85); }
-        }
-      `}</style>
-
       {/* ── Section Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -255,7 +209,7 @@ export default function MaintenanceModeController({
             height: '8px',
             borderRadius: '50%',
             background: config.enabled ? '#dc2626' : '#16a34a',
-            animation: config.enabled ? 'dzPulseDot 1.5s infinite ease-in-out' : 'none',
+            animation: config.enabled ? 'pulse-dot 1.5s infinite ease-in-out' : 'none',
           }} />
           <span>{config.enabled ? 'Maintenance Mode Active' : 'Live (Normal Operation)'}</span>
         </div>
@@ -284,35 +238,14 @@ export default function MaintenanceModeController({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleToggleClick}
+        <ToggleSwitch
+          checked={config.enabled}
+          onChange={handleToggleClick}
           disabled={saving}
-          aria-label="Toggle maintenance mode"
-          style={{
-            width: '56px',
-            height: '30px',
-            borderRadius: '15px',
-            border: 'none',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            position: 'relative',
-            background: config.enabled ? '#dc2626' : '#d1d5db',
-            transition: 'background 0.2s',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{
-            position: 'absolute',
-            top: '3px',
-            left: config.enabled ? '29px' : '3px',
-            width: '24px',
-            height: '24px',
-            borderRadius: '50%',
-            background: '#ffffff',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-            transition: 'left 0.2s',
-          }} />
-        </button>
+          ariaLabel="Toggle maintenance mode"
+          variant="danger"
+          size="lg"
+        />
       </div>
 
       {/* ── Target Selector (3-Card Radio Group) ── */}
@@ -327,19 +260,16 @@ export default function MaintenanceModeController({
         }}>
           {TARGET_OPTIONS.map((opt) => {
             const isSelected = config.target === opt.id;
-            const IconComponent = opt.icon;
             return (
-              <div
+              <DentzyCard
                 key={opt.id}
+                interactive
                 onClick={() => setConfig(prev => ({ ...prev, target: opt.id }))}
                 style={{
                   background: isSelected ? '#f0f7f3' : '#ffffff',
                   border: `2px solid ${isSelected ? '#1e5038' : '#e5ebe7'}`,
                   borderRadius: '12px',
                   padding: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
@@ -352,11 +282,12 @@ export default function MaintenanceModeController({
                       height: '32px',
                       borderRadius: '8px',
                       background: isSelected ? '#e8f5ee' : '#f4f6f5',
+                      color: isSelected ? '#1e5038' : '#708c80',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <IconComponent size={18} color={isSelected ? '#1e5038' : '#708c80'} />
+                      {opt.renderIcon()}
                     </div>
                     <span style={{ fontWeight: 700, fontSize: '0.9rem', color: isSelected ? '#1e5038' : '#111827' }}>
                       {opt.title}
@@ -381,7 +312,7 @@ export default function MaintenanceModeController({
                 <div style={{ fontSize: '0.78rem', color: '#4b5563', lineHeight: 1.45 }}>
                   {opt.desc}
                 </div>
-              </div>
+              </DentzyCard>
             );
           })}
         </div>
@@ -504,34 +435,13 @@ export default function MaintenanceModeController({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setConfig(prev => ({ ...prev, showEmergencyContact: !prev.showEmergencyContact }))}
-          aria-label="Toggle emergency contact"
-          style={{
-            width: '48px',
-            height: '26px',
-            borderRadius: '13px',
-            border: 'none',
-            cursor: 'pointer',
-            position: 'relative',
-            background: config.showEmergencyContact ? '#1e5038' : '#d1d5db',
-            transition: 'background 0.2s',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{
-            position: 'absolute',
-            top: '3px',
-            left: config.showEmergencyContact ? '25px' : '3px',
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            background: '#ffffff',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-            transition: 'left 0.2s',
-          }} />
-        </button>
+        <ToggleSwitch
+          checked={config.showEmergencyContact}
+          onChange={(checked) => setConfig(prev => ({ ...prev, showEmergencyContact: checked }))}
+          ariaLabel="Toggle emergency contact"
+          variant="primary"
+          size="md"
+        />
       </div>
 
       {/* ── Audit Metadata Footer & Save Action ── */}
@@ -577,7 +487,7 @@ export default function MaintenanceModeController({
         >
           {saving ? (
             <>
-              <SpinnerIcon size={16} />
+              <span className="dz-spinner dz-spinner--sm dz-spinner--light" />
               <span>Saving Changes...</span>
             </>
           ) : (
@@ -635,7 +545,7 @@ export default function MaintenanceModeController({
                 boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)',
               }}
             >
-              {saving ? <SpinnerIcon size={16} /> : null}
+              {saving ? <span className="dz-spinner dz-spinner--sm dz-spinner--light" /> : null}
               <span>Confirm & Activate</span>
             </button>
           </div>
@@ -649,12 +559,13 @@ export default function MaintenanceModeController({
             height: '48px',
             borderRadius: '12px',
             background: '#fee2e2',
+            color: '#dc2626',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '16px',
           }}>
-            <AlertTriangleIcon size={26} color="#dc2626" />
+            {Ico.warn(26)}
           </div>
 
           <p style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5, margin: '0 0 16px 0' }}>
@@ -676,6 +587,6 @@ export default function MaintenanceModeController({
           </div>
         </div>
       </BaseModal>
-    </div>
+    </DentzyCard>
   );
 }

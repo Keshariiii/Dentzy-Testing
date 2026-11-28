@@ -6,7 +6,7 @@ const ConnectWithUs = () => {
         <section className="connect-with-us" id="contact">
             <div className="container">
                 <h2 className="connect-title">
-                    CONNEC<span>T</span>
+                    CONNEC<span className="dentzy-t">T</span>
                 </h2>
                 <p className="connect-subtitle">WITH US</p>
             </div>

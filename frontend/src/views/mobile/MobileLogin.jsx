@@ -12,6 +12,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useAdminAuth } from '../../admin/AdminAuthContext';
 import { useStaffAuth } from '../../staff/StaffAuthContext';
 import { useMaintenance } from '../../context/MaintenanceContext';
+import { Ico } from '../../components/common/DashboardIcons';
+import PortalMaintenanceBanner from '../../components/common/PortalMaintenanceBanner';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './MobileLogin.css';
 
@@ -102,10 +104,7 @@ const MobileLogin = () => {
     <div className="m-auth-page">
       {/* Back Arrow Button */}
       <button className="m-auth-back-btn" onClick={() => router.push('/')} aria-label="Back" title="Back">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
+        {Ico.arrowLeft(20, 2.2)}
       </button>
 
       {/* Logo */}
@@ -125,30 +124,21 @@ const MobileLogin = () => {
             className={`m-role-tab ${activeRole === 'dentist' ? 'm-role-tab--active' : ''}`}
             onClick={() => handleRoleSwitch('dentist')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            {Ico.user(14, 2)}
             {' '}Dentist
           </button>
           <button
             className={`m-role-tab ${activeRole === 'admin' ? 'm-role-tab--active' : ''}`}
             onClick={() => handleRoleSwitch('admin')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
+            {Ico.shield(14, 2)}
             {' '}Admin
           </button>
           <button
             className={`m-role-tab ${activeRole === 'staff' ? 'm-role-tab--active' : ''}`}
             onClick={() => handleRoleSwitch('staff')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2"/>
-              <line x1="9" y1="10" x2="15" y2="10"/>
-              <line x1="9" y1="14" x2="13" y2="14"/>
-            </svg>
+            {Ico.labOrder(14, 2)}
             {' '}Staff
           </button>
         </div>
@@ -161,85 +151,27 @@ const MobileLogin = () => {
         </p>
 
         {isDentist && isDentistBlocked && (
-          <div style={{
-            background: '#f0f7f3',
-            border: '1px solid #d8e6df',
-            borderRadius: '12px',
-            padding: '14px',
-            margin: '12px 0 16px',
-            textAlign: 'left',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
-              Scheduled Clinical Portal Maintenance
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
-              {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
-            </div>
-            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
-              {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
-            </div>
-            <div style={{ marginTop: '10px' }}>
-              <button
-                type="button"
-                onClick={checkStatus}
-                disabled={checking}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  background: '#1e5038',
-                  color: '#fff',
-                  border: 'none',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: checking ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {checking ? 'Checking...' : 'Check If Live'}
-              </button>
-            </div>
-          </div>
+          <PortalMaintenanceBanner
+            title="Scheduled Clinical Portal Maintenance"
+            message={maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
+            expectedBack={maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+            onRetry={checkStatus}
+            checking={checking}
+            showEmergencyContact={maintenance.showEmergencyContact !== false}
+            variant="mobile"
+          />
         )}
 
         {isStaff && isStaffBlocked && (
-          <div style={{
-            background: '#f0f7f3',
-            border: '1px solid #d8e6df',
-            borderRadius: '12px',
-            padding: '14px',
-            margin: '12px 0 16px',
-            textAlign: 'left',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.84rem' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
-              Lab Operations Portal Maintenance
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
-              {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
-            </div>
-            <div style={{ fontSize: '0.76rem', color: '#1e5038', fontWeight: 700, marginTop: '6px' }}>
-              {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
-            </div>
-            <div style={{ marginTop: '10px' }}>
-              <button
-                type="button"
-                onClick={checkStatus}
-                disabled={checking}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  background: '#1e5038',
-                  color: '#fff',
-                  border: 'none',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: checking ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {checking ? 'Checking...' : 'Check If Live'}
-              </button>
-            </div>
-          </div>
+          <PortalMaintenanceBanner
+            title="Lab Operations Portal Maintenance"
+            message={maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
+            expectedBack={maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+            onRetry={checkStatus}
+            checking={checking}
+            showEmergencyContact={false}
+            variant="mobile"
+          />
         )}
 
         {error && (
@@ -285,17 +217,7 @@ const MobileLogin = () => {
                     onClick={(e) => { e.preventDefault(); setShowPassword(v => !v); }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    )}
+                    {Ico.eye(18, showPassword)}
                   </button>
                 </div>
               </div>
@@ -329,17 +251,7 @@ const MobileLogin = () => {
                     onClick={(e) => { e.preventDefault(); setShowPassword(v => !v); }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    )}
+                    {Ico.eye(18, showPassword)}
                   </button>
                 </div>
               </div>
@@ -373,17 +285,7 @@ const MobileLogin = () => {
                     onClick={(e) => { e.preventDefault(); setShowPassword(v => !v); }}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
-                      </svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    )}
+                    {Ico.eye(18, showPassword)}
                   </button>
                 </div>
               </div>

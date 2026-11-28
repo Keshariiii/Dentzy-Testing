@@ -10,6 +10,7 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
+import { CONTACT_INFO } from '../data/landingContent';
 
 const CONTACT_API = () => getContactUrl();
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -118,25 +119,25 @@ export default function ContactForm() {
           {
             icon: Mail,
             label: 'Email',
-            value: 'support@dentzy.in',
-            href: 'mailto:support@dentzy.in',
+            value: CONTACT_INFO.email,
+            href: CONTACT_INFO.emailHref,
           },
           {
             icon: Phone,
             label: 'Phone / WhatsApp',
-            value: '+91 95036 68112',
-            href: 'tel:+919503668112',
+            value: CONTACT_INFO.phone,
+            href: CONTACT_INFO.phoneHref,
           },
           {
             icon: MapPin,
             label: 'Address',
-            value: 'Dindayal Nagar, Vasai West - 401202, Maharashtra, India',
+            value: CONTACT_INFO.fullAddress,
             className: 'sm:col-span-2',
           },
           {
             icon: Clock,
             label: 'Working Hours',
-            value: 'Mon-Sat, 9 AM - 6 PM IST',
+            value: CONTACT_INFO.hours,
             className: 'sm:col-span-2',
           },
         ]}

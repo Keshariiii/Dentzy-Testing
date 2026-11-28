@@ -40,7 +40,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   background: #ecfdf5;
   border: 1px solid #d1fae5;
   padding: 2px 8px;
@@ -63,7 +63,7 @@
 }
 
 .com-dentist-name {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }
 
 .com-close-btn {
@@ -163,7 +163,7 @@
 .com-input:focus,
 .com-select:focus,
 .com-textarea:focus {
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   box-shadow: 0 0 0 3px rgba(30, 80, 56, 0.12);
 }
 
@@ -185,7 +185,7 @@
   left: 12px;
   font-weight: 700;
   font-size: 0.95rem;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   pointer-events: none;
 }
 
@@ -218,9 +218,9 @@
 }
 
 .com-cat-tab--active {
-  background: #1e5038 !important;
+  background: var(--dz-color-primary-accent) !important;
   color: #ffffff !important;
-  border-color: #1e5038 !important;
+  border-color: var(--dz-color-primary-accent) !important;
   box-shadow: 0 1px 3px rgba(30, 80, 56, 0.25);
 }
 
@@ -248,7 +248,7 @@
 
 .com-arch-btn:hover {
   background: #f8fafc;
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
 }
 
 .com-arch-btn--active {
@@ -335,7 +335,7 @@
 .com-price-input {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
 }
 
 .com-price-hint {
@@ -350,7 +350,7 @@
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid #f1f5f9;
-  background: #f8faf9;
+  background: var(--dz-color-surface-subtle);
   flex-shrink: 0;
 }
 
@@ -376,7 +376,7 @@
   font-size: 0.85rem;
   font-weight: 700;
   color: #ffffff;
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -402,9 +402,5 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #ffffff;
   border-radius: 50%;
-  animation: com-spin 0.6s linear infinite;
-}
-
-@keyframes com-spin {
-  to { transform: rotate(360deg); }
+  animation: spin 0.6s linear infinite;
 }

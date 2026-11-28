@@ -23,7 +23,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   background: #ecfdf5;
   border: 1px solid #d1fae5;
   padding: 2px 8px;
@@ -119,15 +119,15 @@
 }
 
 .tc-tooth-btn:hover {
-  border-color: #1e5038;
-  color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
+  color: var(--dz-color-primary-accent);
   background: #f0fdf4;
 }
 
 .tc-tooth-btn--active {
-  background: #1e5038 !important;
+  background: var(--dz-color-primary-accent) !important;
   color: #ffffff !important;
-  border-color: #1e5038 !important;
+  border-color: var(--dz-color-primary-accent) !important;
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(30, 80, 56, 0.25);
 }
@@ -168,7 +168,7 @@
 
 .tc-quick-btn:hover {
   background: #ecfdf5;
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   border-color: #a7f3d0;
 }
 

@@ -4,7 +4,9 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
-import { StatusBadge } from '../../components/ui/status-badge';
+import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
+import SubViewHeader from '../../components/common/SubViewHeader';
+import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 
 const ORDER_STAGES = [
   'received',
@@ -36,76 +38,26 @@ export default function AdminOrdersListView({
 }) {
   return (
     <div className="admin-orders-view-root">
-      {/* Mobile Back to Landing */}
-      {isMobile && onBack && !drillDentistOrders && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              color: 'var(--dz-color-primary-dark)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
-        </div>
-      )}
-
-      {/* Drill-down Header if single dentist */}
       {drillDentistOrders ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent' }}>
-          <button
-            onClick={() => {
-              setDrillDentistOrders(null);
-              setOrderFilter('all');
-              setOrderSearch('');
-            }}
-            aria-label="Back to all orders"
-            title="Back to all orders"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              border: '1px solid #e2ece6',
-              background: '#ffffff',
-              color: '#1e5038',
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{formatDoctorName(drillDentistOrders.name, 'Dentist')}</div>
-            {drillDentistOrders.clinicName && (
-              <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>
-            )}
-          </div>
-        </div>
+        <SubViewHeader
+          title={formatDoctorName(drillDentistOrders.name, 'Dentist')}
+          subtitle={drillDentistOrders.clinicName || undefined}
+          onBack={() => {
+            setDrillDentistOrders(null);
+            setOrderFilter('all');
+            setOrderSearch('');
+          }}
+          backLabel="Back to all orders"
+          style={{ padding: isMobile ? '12px 16px 0' : '0 0 4px 0', marginBottom: '12px' }}
+        />
       ) : (
-        <div style={{ padding: isMobile ? '0 16px' : '0 0 12px 0', marginBottom: '8px' }}>
-          <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Lab Orders
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--dz-color-primary-muted)', color: 'var(--dz-color-primary-dark)', padding: '2px 8px', borderRadius: '12px' }}>
-              {filteredOrders.length}
-            </span>
-          </h2>
-        </div>
+        <SubViewHeader
+          title="Lab Orders"
+          count={filteredOrders.length}
+          onBack={isMobile && onBack ? onBack : undefined}
+          backLabel="Back"
+          style={{ padding: isMobile ? '12px 16px 0' : 0, marginBottom: '12px' }}
+        />
       )}
 
       {/* Filter Status Selector */}
@@ -142,29 +94,33 @@ export default function AdminOrdersListView({
             subtext="Orders will appear here once submitted by dentists or staff."
           />
         ) : (
-          <div className={isMobile ? 'ma-order-list' : 'ad-orders-list'}>
+          <div className={isMobile ? 'ma-order-list' : 'ad-user-list'} style={!isMobile ? { gap: '12px' } : undefined}>
             {filteredOrders.map((order) => {
               const oId = order._id || order.id || order.caseId;
               const dentistName = formatDoctorName(order.owner?.name || order.dentistName, '—');
               const clinicName = order.owner?.clinicName || order.clinicName || '';
 
               return (
-                <div
+                <DentzyCard
                   key={oId}
-                  className={isMobile ? 'ma-card' : 'ad-order-card'}
+                  interactive
                   onClick={() => onSelectOrder(order)}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    ...(isMobile ? { padding: '12px 14px' } : {}),
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
                 >
-                  <div className={isMobile ? 'ma-card-top' : 'ad-order-header'}>
+                  <div
+                    className={isMobile ? 'ma-card-top' : undefined}
+                    style={!isMobile ? { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' } : undefined}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span className="odm-case-badge" style={{ fontWeight: 700, fontSize: '0.85rem' }}>
-                        {order.caseId || 'Order'}
-                      </span>
-                      <StatusBadge status={order.status || 'Pending'} size="sm" />
+                      <DentzyCaseChip caseId={order.caseId || 'Order'} />
+                      <DentzyStatusPill type="workflow" status={order.status || 'Pending'} />
                       {order.priority && order.priority !== 'Normal' && (
-                        <span className={`odm-priority-pill odm-priority--${order.priority.toLowerCase()}`}>
-                          {order.priority}
-                        </span>
+                        <DentzyStatusPill type="priority" status={order.priority} />
                       )}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--dz-color-text-muted)' }}>
@@ -172,7 +128,7 @@ export default function AdminOrdersListView({
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--dz-color-text-primary)' }}>
                       {order.patientName || 'Unnamed Patient'}
                     </div>
@@ -182,7 +138,7 @@ export default function AdminOrdersListView({
                   </div>
 
                   {/* Stage & Details Row */}
-                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--dz-color-border-light)', paddingTop: '10px' }}>
+                  <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--dz-color-border-light)', paddingTop: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--dz-color-text-muted)' }}>Stage:</span>
                       <select
@@ -195,6 +151,7 @@ export default function AdminOrdersListView({
                           padding: '3px 8px',
                           border: '1px solid var(--dz-color-border)',
                           background: '#fff',
+                          minHeight: isMobile ? '44px' : undefined,
                         }}
                       >
                         {ORDER_STAGES.map((stg) => (
@@ -210,27 +167,21 @@ export default function AdminOrdersListView({
                         {formatINR(getOrderPrice(order))}
                       </span>
                       {onDeleteOrder && (
-                        <button
-                          type="button"
+                        <TwentyFirstIconButton
+                          icon={Ico.trash(14)}
+                          title="Delete Order"
+                          ariaLabel="Delete Order"
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeleteOrder(oId);
                           }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#94a3b8',
-                            cursor: 'pointer',
-                            padding: '4px',
-                          }}
-                          title="Delete Order"
-                        >
-                          {Ico.trash(14)}
-                        </button>
+                          size={isMobile ? 'lg' : 'sm'}
+                          variant="danger"
+                        />
                       )}
                     </div>
                   </div>
-                </div>
+                </DentzyCard>
               );
             })}
           </div>

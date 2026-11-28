@@ -6,12 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import './DentistDashboard.css';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { getOrderPrice } from '../utils/pricing';
-import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
+import { openInvoiceWindow } from '../utils/appleCompat';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import EmptyState from './common/EmptyState';
 import ProductionPipeline from './common/ProductionPipeline';
+import BalanceCreditCard from './common/BalanceCreditCard';
+import LabSupportBar from './common/LabSupportBar';
 import CompletedOrdersView from './dashboard/CompletedOrdersView';
 import DentistProfileView from './dashboard/DentistProfileView';
 const dentzyLogo = '/dentzy-logo-v2.png';
@@ -25,7 +27,7 @@ import TwentyFirstNoticeBar from './ui/twentyfirst-notice-bar';
 import DentistWelcomeBanner from './common/DentistWelcomeBanner';
 import TwentyFirstIconButton from './ui/twentyfirst-icon-button';
 import { triggerBirthdayConfettiOnce } from '../utils/birthdayConfetti';
-import { DentzyCaseChip, DentzyStatusPill } from './common/DentzyCard';
+import { DentzyCaseChip, DentzyStatusPill, DentzyKpiRow } from './common/DentzyCard';
 import { DentzyDataTable } from './common/DentzyChartTable';
 import DentzySearchBar from './common/DentzySearchBar';
 import PortalNavbar from './common/PortalNavbar';
@@ -55,12 +57,7 @@ const NAV_ITEMS = [
 const TickerBanner = () => (
   <div className="ud-ticker-wrap" aria-label="Lab announcements">
     <span className="ud-ticker-label">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+      {Icons.info(11, 2.5)}
       Notice
     </span>
     <div className="ud-ticker-viewport">
@@ -76,8 +73,6 @@ const TickerBanner = () => (
 );
 
 /* Pipeline component now imported from common/ProductionPipeline */
-
-import { StatusBadge } from './ui/status-badge';
 
 
 
@@ -231,7 +226,7 @@ const DentistDashboard = () => {
         {noticeData.enabled && noticeData.messages.length > 0 && (
           <TwentyFirstNoticeBar
             messages={noticeData.messages}
-            label={noticeData.isBirthday ? '🎂 Birthday' : 'Notice'}
+            label={noticeData.isBirthday ? 'Birthday' : 'Notice'}
           />
         )}
 
@@ -248,48 +243,39 @@ const DentistDashboard = () => {
         <div className="ud-dash-top">
           <div>
             <h2 className="ud-greeting">Hello, {formatDoctorName(userName)}</h2>
-            <p className="ud-greet-sub">Here's your clinical practice overview.</p>
+            <p className="ud-greet-sub">Here&apos;s your clinical practice overview.</p>
           </div>
           <span className="ud-date-pill">{today}</span>
         </div>
 
         {/* Stat Cards */}
         {stats ? (
-          <div className="ud-stats-grid">
-            <div
-              className="ud-stat-card ud-stat-card--green ud-stat-card--clickable"
-              title="Total lab orders submitted — click to view all orders"
-              onClick={() => setActiveTab('orders')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('orders'); } }}
-            >
-              <div className="ud-stat-icon-wrap ud-icon-blue">{Icons.orders(22)}</div>
-              <div className="ud-stat-info">
-                <span className="ud-stat-num">{stats.orders.total}</span>
-                <span className="ud-stat-lbl">Total Orders</span>
-              </div>
-              <div className="ud-stat-breakdown">
-                <span className="tag-pending">{stats.orders.pending} Pending</span>
-                <span className="tag-progress">{stats.orders.inProgress} Active</span>
-              </div>
-            </div>
-
-            <div
-              className="ud-stat-card ud-stat-card--emerald ud-stat-card--clickable"
-              title="Cases that have passed QC and been dispatched — click to view completed cases"
-              onClick={() => setActiveTab('completed-orders')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('completed-orders'); } }}
-            >
-              <div className="ud-stat-icon-wrap ud-icon-green">{Icons.checkCircle(22)}</div>
-              <div className="ud-stat-info">
-                <span className="ud-stat-num">{stats.orders.completed}</span>
-                <span className="ud-stat-lbl">Completed</span>
-              </div>
-            </div>
-          </div>
+          <DentzyKpiRow
+            className="ud-stats-grid"
+            items={[
+              {
+                key: 'total',
+                label: 'Total Orders',
+                value: stats.orders.total,
+                icon: Icons.orders(22),
+                title: 'Total lab orders submitted — click to view all orders',
+                onClick: () => setActiveTab('orders'),
+                tags: [
+                  { type: 'payment', status: 'pending', label: `${stats.orders.pending} Pending` },
+                  { type: 'workflow', status: 'in-progress', label: `${stats.orders.inProgress} Active` },
+                ],
+              },
+              {
+                key: 'completed',
+                label: 'Completed',
+                value: stats.orders.completed,
+                tone: 'success',
+                icon: Icons.checkCircle(22),
+                title: 'Cases that have passed QC and been dispatched — click to view completed cases',
+                onClick: () => setActiveTab('completed-orders'),
+              },
+            ]}
+          />
         ) : (
           <div className="ud-stats-skeleton">
             {[1, 2].map(i => <div key={i} className="ud-skeleton-card" />)}
@@ -306,11 +292,7 @@ const DentistDashboard = () => {
         {/* Credit Limit Warning */}
         {stats?.payments?.totalUnpaid >= 200000 && (
           <div className="ud-credit-warning" role="alert" style={{ marginTop: '24px', marginBottom: '28px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
+            {Icons.warn(20, 2)}
             <div>
               <strong>Credit limit reached:</strong> Your outstanding balance has crossed the {formatINR(200000)} credit limit.
               New orders may be held until dues are cleared.{' '}
@@ -341,56 +323,25 @@ const DentistDashboard = () => {
                   </div>
                   <div className="ud-recent-case-right">
                     <span className="ud-case-tag">{order.serviceType}{order.toothNumber ? ` #${order.toothNumber}` : ''}</span>
-                    <StatusBadge status={order.status} size="sm" />
+                    <DentzyStatusPill type="workflow" status={order.status} />
                     <span className="ud-recent-case-chevron">→</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="ud-recent-empty" style={{ padding: '24px 16px', textAlign: 'center', background: '#f8faf9', borderRadius: '12px', border: '1px dashed #d5e2da' }}>
-              <p style={{ margin: '0 0 12px', fontSize: '0.88rem', color: '#6b8a7a' }}>No lab orders submitted yet. Start your first case with Dentzy!</p>
-              <button
-                type="button"
-                onClick={() => setActiveTab('orders')}
-                style={{ background: '#1e5038', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                + Place First Order
-              </button>
-            </div>
+            <EmptyState
+              compact
+              variant="orders"
+              message="No lab orders submitted yet. Start your first case with Dentzy!"
+              action="+ Place First Order"
+              onAction={() => setActiveTab('orders')}
+            />
           )}
         </div>
 
         {/* Support Bar */}
-        <div className="ud-support-bar">
-          <div className="ud-support-left">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-            </svg>
-            <span><strong>Lab Support</strong> &mdash; Mon to Sat, 9 AM &ndash; 6 PM IST</span>
-          </div>
-          <div className="ud-support-links">
-            <a href="tel:+919503668112" className="ud-support-link">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-              </svg>
-              Call
-            </a>
-            <a href="mailto:support@dentzy.in" className="ud-support-link">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22 6 12 13 2 6"/>
-              </svg>
-              Email
-            </a>
-            <a href="https://wa.me/919503668112" target="_blank" rel="noreferrer" className="ud-support-link ud-support-wa">
-              WhatsApp
-            </a>
-          </div>
-        </div>
+        <LabSupportBar variant="pc" />
 
       </div>
     );
@@ -592,7 +543,6 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
   const totalUnpaid = stats?.payments?.totalUnpaid || 0;
   const unpaidCount = (stats?.payments?.pending || 0) + (stats?.payments?.overdue || 0);
   const creditLimit = 200000;
-  const creditUsedPct = Math.min(Math.round((totalUnpaid / creditLimit) * 100), 100);
 
   // Group batch receipts
   const batchStatements = React.useMemo(() => {
@@ -617,8 +567,8 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
     return Array.from(map.values());
   }, [payments]);
 
-  const handleDownloadUnpaid = () => {
-    const query = statementMonth ? `&month=${encodeURIComponent(statementMonth)}` : '';
+  const handleDownloadUnpaid = (month = statementMonth) => {
+    const query = month ? `&month=${encodeURIComponent(month)}` : '';
     openInvoiceWindow(`/invoice?unpaid=true${query}`);
   };
 
@@ -634,130 +584,15 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
       {!statsLoaded ? (
         <BalanceCardSkeleton variant="pc" />
       ) : (
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid #e2ece6',
-          borderRadius: '12px',
-          padding: '20px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 10px rgba(30, 80, 56, 0.05)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#708c80', letterSpacing: '0.05em' }}>
-                Outstanding Balance / Amount to Pay
-              </span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalUnpaid > 0 ? '#b45309' : '#1e5038', marginTop: '4px' }}>
-                ₹{totalUnpaid.toLocaleString('en-IN')}
-              </div>
-              <div style={{ fontSize: '0.82rem', color: '#555', marginTop: '2px' }}>
-                Across {unpaidCount} unpaid {unpaidCount === 1 ? 'order' : 'orders'} pending lab clearance
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <input
-                type="month"
-                value={statementMonth}
-                placeholder="Select Month"
-                data-empty={!statementMonth}
-                onClick={safeShowPicker}
-                onChange={(e) => setStatementMonth(e.target.value)}
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #d0ded6',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: '#1a3028',
-                  background: '#f8faf9',
-                  cursor: 'pointer',
-                }}
-                aria-label="Select Statement Month"
-              />
-              {statementMonth ? (
-                <button
-                  type="button"
-                  onClick={() => setStatementMonth('')}
-                  style={{
-                    background: '#f0f4f2',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '0.78rem',
-                    color: '#4a7060',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                  }}
-                >
-                  All Unpaid
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setStatementMonth(currentMonthISO)}
-                  style={{
-                    background: '#e8f5ee',
-                    border: '1px solid rgba(30, 80, 56, 0.2)',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '0.78rem',
-                    color: '#1e5038',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                  }}
-                >
-                  This Month
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleDownloadUnpaid}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  background: '#1e5038',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'background 0.2s',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download Pending Bill
-              </button>
-            </div>
-          </div>
-
-          {/* Credit Limit Usage Bar */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, color: '#4a7060', marginBottom: '6px' }}>
-              <span>Lab Credit Limit Usage ({creditUsedPct}%)</span>
-              <span>₹{totalUnpaid.toLocaleString('en-IN')} / ₹{creditLimit.toLocaleString('en-IN')}</span>
-            </div>
-            <div style={{ height: '8px', background: '#e8f5ee', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%',
-                width: `${creditUsedPct}%`,
-                background: creditUsedPct > 80 ? '#dc2626' : creditUsedPct > 50 ? '#f59e0b' : '#1e5038',
-                borderRadius: '4px',
-                transition: 'width 0.3s ease',
-              }} />
-            </div>
-          </div>
-        </div>
+        <BalanceCreditCard
+          totalUnpaid={totalUnpaid}
+          unpaidCount={unpaidCount}
+          creditLimit={creditLimit}
+          monthFilter={statementMonth}
+          onMonthChange={setStatementMonth}
+          onDownloadPendingBill={handleDownloadUnpaid}
+          variant="pc"
+        />
       )}
 
       {/* Consolidated Batch Receipts Section */}
@@ -806,12 +641,7 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
                     cursor: 'pointer',
                   }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                  </svg>
+                  {Icons.orders(13, 2.2)}
                   Download Batch Invoice
                 </button>
               </div>
@@ -850,20 +680,9 @@ const PaymentsTab = ({ payments, loading, title, onSelectPayment, stats, statsLo
               header: 'Mode & Ref',
               render: (p) =>
                 p.paymentStatus === 'Paid' && p.paymentMode ? (
-                  <span style={{ fontSize: '0.78rem' }}>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '10px',
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        background: p.paymentMode === 'Cash' ? '#dcfce7' : p.paymentMode === 'UPI' ? '#fae8ff' : '#dbeafe',
-                        color: p.paymentMode === 'Cash' ? '#166534' : p.paymentMode === 'UPI' ? '#7e22ce' : '#1d4ed8',
-                      }}
-                    >
-                      {p.paymentMode}
-                    </span>
-                    {p.referenceNumber && <span style={{ color: '#708c80', marginLeft: '6px' }}>Ref: {p.referenceNumber}</span>}
+                  <span style={{ fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <DentzyStatusPill type="mode" status={p.paymentMode} />
+                    {p.referenceNumber && <span style={{ color: '#708c80' }}>Ref: {p.referenceNumber}</span>}
                   </span>
                 ) : (
                   <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>—</span>

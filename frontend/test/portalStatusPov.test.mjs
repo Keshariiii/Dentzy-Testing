@@ -1,5 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import {
   resolvePortalContext,
@@ -171,13 +176,17 @@ describe('buildInvoiceStatusConfig', () => {
     const labCfg = buildInvoiceStatusConfig({ error: { status: 401 }, portal: labGuest });
     assert.equal(labCfg.title, 'Lab Session Required');
     assert.equal(labCfg.primaryAction.href, '/login?role=admin');
+    assert.equal(labCfg.primaryAction.label, 'Admin / CEO Sign In');
     assert.equal(labCfg.secondaryAction.href, '/login?role=staff');
+    assert.equal(labCfg.secondaryAction.label, 'Staff Sign In');
 
     const guest = resolvePortalContext({ pathname: '/invoice', search: '?batchId=B1' });
     const guestCfg = buildInvoiceStatusConfig({ error: { status: 401 }, portal: guest });
     assert.equal(guestCfg.title, 'Sign In to View Invoice');
     assert.equal(guestCfg.primaryAction.href, '/login');
+    assert.equal(guestCfg.primaryAction.label, 'Dentist Sign In');
     assert.equal(guestCfg.secondaryAction.href, '/login?role=staff');
+    assert.equal(guestCfg.secondaryAction.label, 'Lab Staff / Admin Sign In');
   });
 
   it('handles 403 separately for Dentist vs Lab Staff', () => {
@@ -234,5 +243,13 @@ describe('not-found, root error, footer links, and lab hint helper', () => {
       appendLabPortalHint('/invoice?batchId=B1', '/dashboard'),
       '/invoice?batchId=B1'
     );
+  });
+
+  it('uses consistent Title Case Sign In copy in PortalStatusPage navbar CTA', () => {
+    const src = readFileSync(
+      join(__dirname, '../src/components/common/PortalStatusPage.jsx'),
+      'utf8'
+    );
+    assert.match(src, /'Lab Sign In'\s*:\s*'Sign In'/);
   });
 });

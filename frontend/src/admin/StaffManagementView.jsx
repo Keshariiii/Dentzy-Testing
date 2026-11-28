@@ -8,12 +8,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { TwentyFirstSegmentedTabs } from '../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import { Trash2 } from 'lucide-react';
 import { CANONICAL_STAFF_DESIGNATIONS } from '../utils/roles';
 import { safeShowPicker } from '../utils/appleCompat';
 import { AttendanceRowsSkeleton, StaffRowSkeleton } from '../components/SkeletonBlocks';
 import BaseModal from '../components/ui/BaseModal';
 import DentzySearchBar from '../components/common/DentzySearchBar';
+import EmptyState from '../components/common/EmptyState';
+import { DentzyCard, DentzyRowCard, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
 
 const DESIGNATIONS = CANONICAL_STAFF_DESIGNATIONS;
 
@@ -354,22 +355,6 @@ const StaffManagementView = ({
   }, [statusFilteredStaff]);
 
   /* ── Shared Styles ─────────────────────────────────────────────────────── */
-  const cardStyle = {
-    background: '#ffffff',
-    borderRadius: '14px',
-    padding: '15px 20px',
-    border: '1px solid rgba(112, 140, 128, 0.14)',
-    boxShadow: '0 1px 3px rgba(26, 48, 40, 0.04)',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
-  };
-  const btnPrimary = {
-    padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    background: '#1e5038', color: '#fff', fontWeight: 600, fontSize: '0.82rem',
-  };
-  const btnSecondary = {
-    padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    background: '#e8f5ee', color: '#1e5038', fontWeight: 600, fontSize: '0.78rem',
-  };
   const inputStyle = {
     padding: '8px 12px', borderRadius: '8px', border: '1px solid #d4ddd8',
     background: '#ffffff', color: '#1a3028', fontSize: '0.82rem', outline: 'none',
@@ -450,10 +435,7 @@ const StaffManagementView = ({
               (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
               (s.designation || '').toLowerCase().includes((staffSearch || '').toLowerCase())
             ).length === 0 ? (
-              <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
-                <p style={{ marginTop: '16px', color: '#708c80' }}>No archived staff accounts found.</p>
-              </div>
+              <EmptyState compact variant="generic" message="No archived staff accounts found." />
             ) : (
               <div style={{ display: 'grid', gap: '12px' }}>
                 {statusFilteredStaff.filter(s =>
@@ -461,86 +443,68 @@ const StaffManagementView = ({
                   (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
                   (s.designation || '').toLowerCase().includes((staffSearch || '').toLowerCase())
                 ).map(s => (
-                  <div key={s.id} className="ad-staff-card" style={cardStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
-                      <div style={{
-                        width: '42px', height: '42px', borderRadius: '50%', background: '#f1f5f9',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, color: '#475569', fontSize: '0.92rem', flexShrink: 0,
-                      }}>
-                        {(s.displayName || 'S').charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span>{s.displayName}</span>
-                          {s.employeeId && (
-                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
-                              #{s.employeeId}
-                            </span>
-                          )}
-                          {s.designation && (
-                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e5038', background: '#e8f5ee', padding: '2px 8px', borderRadius: '8px' }}>
-                              {s.designation}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '0.78rem', color: '#708c80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          @{s.username}{s.email ? ` | ${s.email}` : ''}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <span style={{
-                        padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                        background: '#f1f5f9', color: '#475569', marginRight: '4px',
-                      }}>Archived</span>
-                      <TwentyFirstIconButton
-                        icon={Ico.history(14)}
-                        title="View Attendance History"
-                        ariaLabel={`Attendance history for ${s.displayName}`}
-                        onClick={() => { setSelectedStaffForHistory(s); setSubView('attendance'); }}
-                        size="sm"
-                        variant="secondary"
-                      />
-                      <TwentyFirstIconButton
-                        icon={Ico.pencil(14)}
-                        title="Edit / Reset Password"
-                        ariaLabel={`Edit ${s.displayName}`}
-                        onClick={() => openEditModal(s)}
-                        size="sm"
-                        variant="soft"
-                      />
-                      <TwentyFirstIconButton
-                        icon={Ico.power(14)}
-                        title="Reactivate Staff"
-                        ariaLabel={`Reactivate ${s.displayName}`}
-                        onClick={() => handleToggleStatus(s)}
-                        size="sm"
-                        variant="success"
-                      />
-                    </div>
-                  </div>
+                  <DentzyRowCard
+                    key={s.id}
+                    avatarText={s.displayName || 'S'}
+                    avatarMuted={true}
+                    title={s.displayName}
+                    badge={
+                      <>
+                        {s.employeeId && <DentzyCaseChip caseId={`#${s.employeeId}`} />}
+                        {s.designation && <DentzyStatusPill type="orders" label={s.designation} />}
+                      </>
+                    }
+                    subtitle={`@${s.username}${s.email ? ` | ${s.email}` : ''}`}
+                    rightPills={<DentzyStatusPill type="account" status="archived" label="Archived" />}
+                    actions={
+                      <>
+                        <TwentyFirstIconButton
+                          icon={Ico.history(14)}
+                          title="View Attendance History"
+                          ariaLabel={`Attendance history for ${s.displayName}`}
+                          onClick={() => { setSelectedStaffForHistory(s); setSubView('attendance'); }}
+                          size="sm"
+                          variant="secondary"
+                        />
+                        <TwentyFirstIconButton
+                          icon={Ico.pencil(14)}
+                          title="Edit / Reset Password"
+                          ariaLabel={`Edit ${s.displayName}`}
+                          onClick={() => openEditModal(s)}
+                          size="sm"
+                          variant="soft"
+                        />
+                        <TwentyFirstIconButton
+                          icon={Ico.power(14)}
+                          title="Reactivate Staff"
+                          ariaLabel={`Reactivate ${s.displayName}`}
+                          onClick={() => handleToggleStatus(s)}
+                          size="sm"
+                          variant="success"
+                        />
+                      </>
+                    }
+                  />
                 ))}
               </div>
             )
           ) : !activeDesignation ? (
             /* ── Designation Cards Grid (Strictly Active Staff Only) ── */
             Object.keys(designationGroups).length === 0 ? (
-              <div className="ad-empty" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                {Ico.usersS ? Ico.usersS(48) : Ico.grid(48)}
-                <p style={{ marginTop: '16px', color: '#708c80' }}>No active staff members found. Click "+ Add Staff" to create accounts.</p>
-              </div>
+              <EmptyState
+                compact
+                variant="generic"
+                message="No active staff members found."
+                subtext='Click "+ Add Staff" to create accounts.'
+              />
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
                 {Object.entries(designationGroups).map(([designation, members]) => (
-                  <div key={designation}
+                  <DentzyCard
+                    key={designation}
+                    interactive
                     onClick={() => setActiveDesignation(designation)}
-                    style={{
-                      ...cardStyle, cursor: 'pointer', textAlign: 'center', padding: '24px 16px',
-                      transition: 'box-shadow 0.25s, transform 0.25s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 6px rgba(30, 80, 56, 0.05)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(26, 48, 40, 0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    style={{ textAlign: 'center', padding: '24px 16px' }}
                   >
                     <div style={{
                       width: '52px', height: '52px', borderRadius: '50%', background: '#e8f5ee',
@@ -551,7 +515,7 @@ const StaffManagementView = ({
                     <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '4px' }}>
                       {members.length} active member{members.length !== 1 ? 's' : ''}
                     </div>
-                  </div>
+                  </DentzyCard>
                 ))}
               </div>
             )
@@ -566,60 +530,42 @@ const StaffManagementView = ({
                   (s.displayName || '').toLowerCase().includes((staffSearch || '').toLowerCase()) ||
                   (s.username || '').toLowerCase().includes((staffSearch || '').toLowerCase())
                 ).map(s => (
-                  <div key={s.id} className="ad-staff-card" style={cardStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
-                      <div style={{
-                        width: '42px', height: '42px', borderRadius: '50%', background: '#e8f5ee',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, color: '#1e5038', fontSize: '0.92rem', flexShrink: 0,
-                      }}>
-                        {(s.displayName || 'S').charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {s.displayName}
-                          {s.employeeId && (
-                            <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 600, color: '#708c80', background: '#f0f7f3', padding: '2px 8px', borderRadius: '8px' }}>
-                              #{s.employeeId}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '0.78rem', color: '#708c80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          @{s.username}{s.email ? ` | ${s.email}` : ''}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ad-staff-card-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <span style={{
-                        padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600,
-                        background: '#dcfce7', color: '#16a34a', marginRight: '4px',
-                      }}>active</span>
-                      <TwentyFirstIconButton
-                        icon={Ico.pencil(14)}
-                        title="Edit Staff"
-                        ariaLabel={`Edit ${s.displayName}`}
-                        onClick={() => openEditModal(s)}
-                        size="sm"
-                        variant="soft"
-                      />
-                      <TwentyFirstIconButton
-                        icon={Ico.power(14)}
-                        title="Deactivate Staff"
-                        ariaLabel="Deactivate"
-                        onClick={() => handleToggleStatus(s)}
-                        size="sm"
-                        variant="secondary"
-                      />
-                      <TwentyFirstIconButton
-                        icon={Ico.trash(14)}
-                        title="Archive / Deactivate Staff"
-                        ariaLabel={`Delete ${s.displayName}`}
-                        onClick={() => handleDeleteStaff(s)}
-                        size="sm"
-                        variant="danger"
-                      />
-                    </div>
-                  </div>
+                  <DentzyRowCard
+                    key={s.id}
+                    avatarText={s.displayName || 'S'}
+                    title={s.displayName}
+                    badge={s.employeeId && <DentzyCaseChip caseId={`#${s.employeeId}`} />}
+                    subtitle={`@${s.username}${s.email ? ` | ${s.email}` : ''}`}
+                    rightPills={<DentzyStatusPill type="account" status="active" label="active" />}
+                    actions={
+                      <>
+                        <TwentyFirstIconButton
+                          icon={Ico.pencil(14)}
+                          title="Edit Staff"
+                          ariaLabel={`Edit ${s.displayName}`}
+                          onClick={() => openEditModal(s)}
+                          size="sm"
+                          variant="soft"
+                        />
+                        <TwentyFirstIconButton
+                          icon={Ico.power(14)}
+                          title="Deactivate Staff"
+                          ariaLabel="Deactivate"
+                          onClick={() => handleToggleStatus(s)}
+                          size="sm"
+                          variant="secondary"
+                        />
+                        <TwentyFirstIconButton
+                          icon={Ico.trash(14)}
+                          title="Archive / Deactivate Staff"
+                          ariaLabel={`Delete ${s.displayName}`}
+                          onClick={() => handleDeleteStaff(s)}
+                          size="sm"
+                          variant="danger"
+                        />
+                      </>
+                    }
+                  />
                 ))}
               </div>
             </div>
@@ -653,20 +599,20 @@ const StaffManagementView = ({
               {attendanceLoading ? (
                 <AttendanceRowsSkeleton count={6} />
               ) : attendanceHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#708c80' }}>No records for this month.</div>
+                <EmptyState compact variant="generic" message="No records for this month." />
               ) : (
                 <div style={{ display: 'grid', gap: '8px' }}>
                   {attendanceHistory.map(a => (
-                    <div key={a.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px' }}>
+                    <DentzyCard key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px' }}>
                       <span style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a3028' }}>
                         {new Date(a.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}
                       </span>
-                      <span style={{
-                        padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-                        background: a.status === 'Present' ? '#dcfce7' : a.status === 'Half-day' ? '#fef9c3' : '#fee2e2',
-                        color: a.status === 'Present' ? '#16a34a' : a.status === 'Half-day' ? '#92400e' : '#dc2626',
-                      }}>{a.status}</span>
-                    </div>
+                      <DentzyStatusPill
+                        type={a.status === 'Present' ? 'payment' : a.status === 'Half-day' ? 'priority' : 'workflow'}
+                        status={a.status === 'Present' ? 'Paid' : a.status === 'Half-day' ? 'High' : 'Cancelled'}
+                        label={a.status}
+                      />
+                    </DentzyCard>
                   ))}
                 </div>
               )}
@@ -678,37 +624,32 @@ const StaffManagementView = ({
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
               {(staffList || []).filter(s => s.status === 'active').map(s => (
-                <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '40px', height: '40px', borderRadius: '50%', background: '#e8f5ee',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, color: '#1e5038', fontSize: '0.88rem',
-                    }}>{(s.displayName || 'S').charAt(0).toUpperCase()}</div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>{s.displayName}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#708c80' }}>@{s.username}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <TwentyFirstIconButton
-                      icon={Ico.calendar(14)}
-                      title="Mark Attendance"
-                      ariaLabel="Mark Attendance"
-                      onClick={() => { setAttendanceStaff(s); setAttendanceDate(new Date().toISOString().slice(0, 10)); setAttendanceStatus('Present'); }}
-                      variant="primary"
-                      size="sm"
-                    />
-                    <TwentyFirstIconButton
-                      icon={Ico.history(14)}
-                      title="View Attendance History"
-                      ariaLabel="View Attendance History"
-                      onClick={() => setSelectedStaffForHistory(s)}
-                      variant="secondary"
-                      size="sm"
-                    />
-                  </div>
-                </div>
+                <DentzyRowCard
+                  key={s.id}
+                  avatarText={s.displayName || 'S'}
+                  title={s.displayName}
+                  subtitle={`@${s.username}`}
+                  actions={
+                    <>
+                      <TwentyFirstIconButton
+                        icon={Ico.calendar(14)}
+                        title="Mark Attendance"
+                        ariaLabel="Mark Attendance"
+                        onClick={() => { setAttendanceStaff(s); setAttendanceDate(new Date().toISOString().slice(0, 10)); setAttendanceStatus('Present'); }}
+                        variant="primary"
+                        size="sm"
+                      />
+                      <TwentyFirstIconButton
+                        icon={Ico.history(14)}
+                        title="View Attendance History"
+                        ariaLabel="View Attendance History"
+                        onClick={() => setSelectedStaffForHistory(s)}
+                        variant="secondary"
+                        size="sm"
+                      />
+                    </>
+                  }
+                />
               ))}
             </div>
           )}
@@ -735,13 +676,16 @@ const StaffManagementView = ({
           {loadingInventory ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
           ) : inventory.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#708c80' }}>
-              <p>No inventory items yet. Click "+ Add Item" to track materials.</p>
-            </div>
+            <EmptyState
+              compact
+              variant="generic"
+              message="No inventory items yet."
+              subtext='Click "+ Add Item" to track materials.'
+            />
           ) : (
             <div style={{ display: 'grid', gap: '10px' }}>
               {inventory.map(item => (
-                <div key={item.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <DentzyCard key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>{item.item_name}</div>
                     <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '2px' }}>
@@ -780,7 +724,7 @@ const StaffManagementView = ({
                       size="sm"
                     />
                   </div>
-                </div>
+                </DentzyCard>
               ))}
             </div>
           )}
@@ -799,11 +743,11 @@ const StaffManagementView = ({
           {loadingMetrics ? (
             <div className="ad-loading"><div className="ad-skeleton-list">{[1,2,3].map(i => <div key={i} className="ad-skeleton-card"/>)}</div></div>
           ) : !metrics?.leaderboard?.length ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#708c80' }}>No data for this month.</div>
+            <EmptyState compact variant="generic" message="No data for this month." />
           ) : (
             <div style={{ display: 'grid', gap: '12px' }}>
               {metrics.leaderboard.filter(s => s.status === 'active').map((s, i) => (
-                <div key={s.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <DentzyCard key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', flexWrap: 'wrap', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '50%',
@@ -812,12 +756,10 @@ const StaffManagementView = ({
                       fontWeight: 800, color: i === 0 ? '#92400e' : '#1e5038', fontSize: '0.88rem',
                     }}>#{i + 1}</div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a' }}>
-                        {s.displayName}
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span>{s.displayName}</span>
                         {i === 0 && s.casesProcessed > 0 && (
-                          <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontWeight: 700, color: '#92400e', background: '#fef9c3', padding: '2px 8px', borderRadius: '10px' }}>
-                            Staff of the Month
-                          </span>
+                          <DentzyStatusPill type="priority" status="High" label="Staff of the Month" />
                         )}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#708c80', marginTop: '2px' }}>
@@ -825,25 +767,17 @@ const StaffManagementView = ({
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dbeafe', color: '#1d4ed8' }}>
-                      {s.casesProcessed} cases
-                    </span>
-                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#dcfce7', color: '#16a34a' }}>
-                      {s.presentDays}d present
-                    </span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <DentzyStatusPill type="orders" label={`${s.casesProcessed} cases`} />
+                    <DentzyStatusPill type="payment" status="Paid" label={`${s.presentDays}d present`} />
                     {s.halfDays > 0 && (
-                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fef9c3', color: '#92400e' }}>
-                        {s.halfDays} half
-                      </span>
+                      <DentzyStatusPill type="priority" status="High" label={`${s.halfDays} half`} />
                     )}
                     {s.absentDays > 0 && (
-                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, background: '#fee2e2', color: '#dc2626' }}>
-                        {s.absentDays} absent
-                      </span>
+                      <DentzyStatusPill type="workflow" status="Cancelled" label={`${s.absentDays} absent`} />
                     )}
                   </div>
-                </div>
+                </DentzyCard>
               ))}
             </div>
           )}

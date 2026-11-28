@@ -9,6 +9,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { PIPELINE_STEPS, PIPELINE_STAGES } from '../dashboard/shared/constants';
+import { Ico } from './DashboardIcons';
 import './ProductionPipeline.css';
 
 /* ── Single Pipeline Row (step icons + connectors) ─────────────────────────── */
@@ -28,10 +29,7 @@ export const PipelineSteps = ({ order }) => {
             <div className={`pp-step ${cls}`}>
               <div className="pp-step-icon">
                 {isPast ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  Ico.check(15, 3)
                 ) : (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -220,7 +220,7 @@ export default function PortalStatusPage({
                 padding: '0 var(--dz-space-3, 12px)',
               }}
             >
-              {resolved.pov === 'lab' ? 'Lab Sign in' : 'Sign in'}
+              {resolved.pov === 'lab' ? 'Lab Sign In' : 'Sign In'}
             </Link>
           ) : null
         }

@@ -11,7 +11,7 @@ const DentzyMakesUs = () => {
                     <div className="makes-us-text">
                         <h3>Complete Denture (single arch)</h3>
                         <p>
-                            Tooth loss can significantly affect a person's appearance, confidence, and ability to
+                            Tooth loss can significantly affect a person&apos;s appearance, confidence, and ability to
                             chew and speak properly. A complete denture (single arch) is a reliable and time-tested
                             solution for patients who have lost all teeth in either the upper (maxillary) or
                             lower (mandibular) arch.

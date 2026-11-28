@@ -20,7 +20,7 @@
   min-height: 100dvh;
   overflow: hidden;
   font-family: var(--dz-font-family, 'Inter', system-ui, sans-serif);
-  background: #f0f5f2;
+  background: var(--dz-color-bg-page);
   color: var(--dz-color-text-primary, #1e2824);
 }
 
@@ -59,7 +59,7 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1.5px solid #e4ebe7;
+  border: 1.5px solid var(--dz-color-border-mint);
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
@@ -148,7 +148,7 @@
 .ad-header-admin-name {
   font-size: 0.86rem;
   font-weight: 700;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   line-height: 1.2;
 }
 
@@ -170,20 +170,15 @@
   height: 6px;
   border-radius: 50%;
   background: #10b981;
-  animation: ad-pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 2s ease-in-out infinite;
   flex-shrink: 0;
-}
-
-@keyframes ad-pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
 }
 
 .ad-header-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, var(--dz-color-primary-accent), #3a8062);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -200,7 +195,7 @@
 .ad-sidebar {
   width: 210px;
   min-width: 210px;
-  background: linear-gradient(180deg, #1e5038 0%, #174430 100%);
+  background: linear-gradient(180deg, var(--dz-color-primary-accent) 0%, #174430 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -257,7 +252,7 @@
 
 .ad-nav-item.active {
   background: rgba(255,255,255,0.95);
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(30, 77, 59, 0.04);
 }
@@ -362,7 +357,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: #f4f6f5;
+  background: var(--dz-color-bg-page, #f0f5f2);
 }
 
 .ad-content-inner {
@@ -370,19 +365,14 @@
   max-width: var(--dz-content-max-wide, 1440px);
   margin: 0 auto;
   width: 100%;
-  animation: ad-fadeInUp 0.26s ease;
-}
-
-@keyframes ad-fadeInUp {
-  from { transform: translateY(12px); }
-  to   { transform: translateY(0); }
+  animation: fadeUp 0.26s ease;
 }
 
 /* Greeting — mirrors .ud-greeting / .ud-greet-sub */
 .ad-greeting {
   font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.55rem);
   font-weight: 800;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   margin-bottom: 4px;
   letter-spacing: -0.3px;
   display: flex;
@@ -426,7 +416,7 @@
   padding: 6px 16px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #708c80;
+  color: var(--dz-color-sage);
   white-space: nowrap;
   letter-spacing: 0.2px;
   margin-top: 4px;
@@ -437,7 +427,7 @@
   align-items: center;
   gap: 7px;
   background: #fff;
-  border: 1px solid #e4ebe7;
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 0.82rem;
@@ -450,80 +440,7 @@
 .ad-total-badge span {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #1e5038;
-}
-
-/* ---------------------------------------------------------------------------
-   STAT CARDS  — mirrors .ud-stats-grid / .ud-stat-card
---------------------------------------------------------------------------- */
-.ad-stat-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: var(--dz-fluid-grid-gap, 16px);
-  margin-bottom: clamp(1.25rem, 2vw, 1.875rem);
-}
-
-.ad-stat-card {
-  background: #fff;
-  border-radius: var(--dz-card-radius, 16px);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02));
-  border: var(--dz-card-border, 1px solid var(--border, #e5e7eb));
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  position: relative;
-  overflow: hidden;
-  backface-visibility: hidden;
-}
-
-.ad-stat-card:hover {
-  transform: var(--dz-card-lift, none);
-  box-shadow: var(--dz-card-shadow-hover, 0 6px 16px -2px rgba(30, 80, 56, 0.08));
-  border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
-}
-
-/* Colored top accent removed for minimalism */
-
-/* Icon wrap — mirrors .ud-stat-icon-wrap */
-.ad-sc-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--dz-card-icon-radius, 12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.ad-sc--total    .ad-sc-icon-wrap { background: #f0f5f2; color: #708c80; }
-.ad-sc--pending  .ad-sc-icon-wrap { background: #fff7ed; color: #f59e0b; }
-.ad-sc--approved .ad-sc-icon-wrap { background: #ecfdf5; color: #10b981; }
-.ad-sc--rejected .ad-sc-icon-wrap { background: #fef2f2; color: #ef4444; }
-
-.ad-sc-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Stat number — mirrors .ud-stat-num */
-.ad-sc-num {
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #1a3028;
-  line-height: 1;
-  letter-spacing: -0.5px;
-}
-
-/* Stat label — mirrors .ud-stat-lbl */
-.ad-sc-lbl {
-  font-size: 0.75rem;
-  color: #8aa59d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
+  color: var(--dz-color-primary-accent);
 }
 
 /* ---------------------------------------------------------------------------
@@ -565,7 +482,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #6a8a7c;
+  color: var(--dz-color-sage-muted);
   font-size: 0.82rem;
   font-weight: 600;
   font-family: inherit;
@@ -573,14 +490,14 @@
   transition: background 0.2s, color 0.2s;
 }
 
-.ad-tab:hover { background: #e8f0ed; color: #1e5038; }
+.ad-tab:hover { background: #e8f0ed; color: var(--dz-color-primary-accent); }
 
 .ad-tab-active {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #fff;
 }
 
-.ad-tab-active:hover { background: #1e5038; color: #fff; }
+.ad-tab-active:hover { background: var(--dz-color-primary-accent); color: #fff; }
 
 .ad-tab-count {
   display: inline-flex;
@@ -596,7 +513,7 @@
 }
 
 .ad-tab:not(.ad-tab-active) .ad-tab-count {
-  background: #e4ebe7;
+  background: var(--dz-color-border-mint);
   color: #5a7a6d;
 }
 
@@ -646,7 +563,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.78rem;
-  color: #6a8a7c;
+  color: var(--dz-color-sage-muted);
   font-weight: 600;
 }
 
@@ -669,7 +586,7 @@
 /* Divider */
 .ad-divider {
   height: 1px;
-  background: #e4ebe7;
+  background: var(--dz-color-border-mint);
   margin-bottom: 16px;
 }
 
@@ -683,35 +600,12 @@
   gap: 8px;
 }
 
-/* User card — mirrors .ud-table tr hover style but as cards */
-.ad-user-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #fff;
-  border: var(--dz-card-border, 1px solid var(--border, #e5e7eb));
-  border-radius: var(--dz-card-radius, 16px);
-  padding: 16px 20px;
-  box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03));
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  position: relative;
-  backface-visibility: hidden;
-}
-
-/* User card colored side accents removed per strict minimalist rule */
-
-.ad-user-card:hover {
-  transform: var(--dz-card-lift, none);
-  box-shadow: var(--dz-card-shadow-hover, 0 2px 6px rgba(30, 80, 56, 0.05));
-  border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
-}
-
 /* Avatar — mirrors .ud-user-avatar / .ud-settings-avatar */
 .ad-avatar {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e5038, #3a8062);
+  background: linear-gradient(135deg, var(--dz-color-primary-accent), #3a8062);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -727,13 +621,13 @@
 .ad-user-name {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
   margin-bottom: 2px;
 }
 
 .ad-user-email {
   font-size: 0.8rem;
-  color: #6a8a7c;
+  color: var(--dz-color-sage-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -783,7 +677,7 @@
 }
 
 .ad-pw-toggle:hover {
-  color: #1e5038;
+  color: var(--dz-color-primary-accent);
   background: #e8f0ed;
 }
 
@@ -816,43 +710,13 @@
 
 .ad-skeleton-card {
   height: 82px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #f0f4f2 25%, #e6ede9 50%, #f0f4f2 75%);
+  border-radius: var(--dz-card-radius, 14px);
+  background: linear-gradient(90deg, var(--dz-color-surface-tint, #f0f4f2) 25%, #e6ede9 50%, var(--dz-color-surface-tint, #f0f4f2) 75%);
   background-size: 200% 100%;
-  animation: ad-shimmer 1.6s infinite;
+  animation: shimmer 1.6s infinite;
 }
 
-@keyframes ad-shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ---------------------------------------------------------------------------
-   EMPTY STATE  — mirrors .ud-empty
---------------------------------------------------------------------------- */
-.ad-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 70px 30px;
-  color: #8aa59d;
-  text-align: center;
-}
-
-.ad-empty p {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #6a8a7c;
-}
-
-/* ---------------------------------------------------------------------------
-   SPIN ANIMATION
---------------------------------------------------------------------------- */
-@keyframes ad-spin { to { transform: rotate(360deg); } }
-
-
+/* Spinners use canonical @keyframes spin from global-animations.css */
 
 /* ---------------------------------------------------------------------------
    LIVE NOTIFICATION BANNERS
@@ -869,15 +733,10 @@
   align-items: center;
   gap: 14px;
   background: #fff;
-  border: 1px solid #eef2f0;
+  border: 1px solid var(--dz-color-border-mint);
   border-radius: 10px;
   padding: 12px 16px;
-  animation: ad-notif-slide 0.3s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-@keyframes ad-notif-slide {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
+  animation: slideRight 0.3s cubic-bezier(0.16,1,0.3,1) both;
 }
 
 .ad-live-notif-icon {
@@ -897,12 +756,12 @@
 .ad-live-notif-body strong {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #1a3028;
+  color: var(--dz-color-text-forest);
 }
 
 .ad-live-notif-body span {
   font-size: 0.76rem;
-  color: #6a8a7c;
+  color: var(--dz-color-sage-muted);
 }
 
 .ad-live-notif-close {
@@ -937,16 +796,10 @@
 /* ---------------------------------------------------------------------------
    RESPONSIVE
 --------------------------------------------------------------------------- */
-@media (max-width: 960px) {
-  .ad-stat-cards { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 768px) {
   .ad-top-header { padding: 0 16px; }
 
   .ad-content-inner { padding: 20px 16px; }
-
-  .ad-stat-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
 
   .ad-controls { flex-direction: column; align-items: flex-start; }
   .ad-search-input { width: 100%; }
@@ -1003,60 +856,10 @@
 .ad-action-delete:hover { background: #EF4444; color: #fff; }
 
 /* =============================================================================
-   PAYMENTS VIEW — Metrics, Filters, Mode Tags, Record Payment Modal
+   PAYMENTS VIEW — Filters, Record Payment Modal
 ============================================================================= */
 
-/* Metrics row */
-.ad-pay-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 18px;
-}
-.ad-pay-metric {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px 18px;
-  border: 1px solid #e4ebe7;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.ad-pay-metric-label {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #708c80;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.ad-pay-metric-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1a3028;
-}
-.ad-pay-metric--collected .ad-pay-metric-value { color: #16a34a; }
-.ad-pay-metric--pending .ad-pay-metric-value { color: #92400e; }
-
-.ad-pay-mode-split {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-/* Mode tags */
-.ad-pay-mode-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.ad-pay-mode--cash { background: #dcfce7; color: #166534; }
-.ad-pay-mode--cheque { background: #dbeafe; color: #1d4ed8; }
-.ad-pay-mode--upi { background: #fae8ff; color: #7e22ce; }
+/* payment mode tags consolidated onto DentzyStatusPill (.dz-pill--mode-*) */
 
 /* Filters */
 .ad-pay-filters {
@@ -1070,104 +873,26 @@
   display: flex;
   gap: 4px;
 }
-.ad-pay-filter-btn, .ad-pay-filter-pill {
+.ad-pay-filter-btn {
   padding: 5px 12px;
   border-radius: 8px;
-  border: 1px solid #e4ebe7;
+  border: 1px solid var(--dz-color-border-mint);
   background: #fff;
-  color: #708c80;
+  color: var(--dz-color-sage);
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
 }
-.ad-pay-filter-btn:hover, .ad-pay-filter-pill:hover {
-  border-color: #1e5038;
-  color: #1e5038;
+.ad-pay-filter-btn:hover {
+  border-color: var(--dz-color-primary-accent);
+  color: var(--dz-color-primary-accent);
 }
 .ad-pay-filter-btn.active {
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #fff;
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
 }
-.ad-pay-filter-pill.active {
-  background: #eef6f2;
-  color: #1e5038;
-  border-color: #1e5038;
-}
-.ad-pay-search {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff;
-  border: 1px solid #e4ebe7;
-  border-radius: 8px;
-  padding: 0 10px;
-  flex: 1;
-  min-width: 200px;
-  max-width: 320px;
-}
-.ad-pay-search input,
-.ad-pay-search input:focus,
-.ad-pay-search input:focus-visible {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background: none;
-  font-size: 0.82rem;
-  padding: 7px 0;
-  width: 100%;
-  font-family: inherit;
-}
-
-/* Record Payment Modal */
-.ad-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
-  animation: adFadeIn 0.15s;
-}
-@keyframes adFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.ad-pay-modal {
-  background: #fff;
-  border-radius: 14px;
-  width: 100%;
-  max-width: 440px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  overflow: hidden;
-  animation: adSlideUp 0.2s;
-}
-@keyframes adSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.ad-pay-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px 12px;
-  border-bottom: 1px solid #eef6f2;
-}
-.ad-pay-modal-header h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1a3028;
-  margin: 0;
-}
-.ad-pay-modal-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #708c80;
-  padding: 4px;
-  border-radius: 6px;
-  transition: background 0.15s;
-}
-.ad-pay-modal-close:hover { background: #f0f7f3; }
 
 .ad-pay-modal-meta {
   padding: 10px 22px;
@@ -1176,35 +901,8 @@
   gap: 8px 16px;
   font-size: 0.8rem;
   color: #4a7060;
-  background: #f8faf9;
-  border-bottom: 1px solid #eef6f2;
-}
-
-/* Mode toggle */
-.ad-pay-mode-toggle {
-  display: flex;
-  gap: 0;
-  margin: 16px 22px 0;
-  border: 1px solid #e4ebe7;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.ad-pay-mode-btn {
-  flex: 1;
-  padding: 9px 0;
-  border: none;
-  background: #fff;
-  color: #708c80;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.ad-pay-mode-btn:not(:last-child) { border-right: 1px solid #e4ebe7; }
-.ad-pay-mode-btn:hover { background: #f0f7f3; }
-.ad-pay-mode-btn.active {
-  background: #1e5038;
-  color: #fff;
+  background: var(--dz-color-surface-subtle);
+  border-bottom: 1px solid var(--dz-color-surface-tint);
 }
 
 /* Form */
@@ -1257,7 +955,7 @@
 .ad-pay-form-group input:focus,
 .ad-pay-form-group select:focus {
   outline: none;
-  border-color: #1e5038;
+  border-color: var(--dz-color-primary-accent);
   box-shadow: 0 0 0 2px rgba(30,80,56,0.08);
 }
 .ad-pay-form-group input::placeholder {
@@ -1278,24 +976,24 @@
   gap: 10px;
   justify-content: flex-end;
   padding: 16px 22px;
-  border-top: 1px solid #eef6f2;
+  border-top: 1px solid var(--dz-color-surface-tint);
   margin-top: 16px;
 }
 .ad-pay-btn-cancel {
   padding: 8px 16px;
-  border: 1px solid #e4ebe7;
+  border: 1px solid var(--dz-color-border-mint);
   background: #fff;
   border-radius: 8px;
-  color: #708c80;
+  color: var(--dz-color-sage);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
 }
-.ad-pay-btn-cancel:hover { background: #f4f6f5; }
+.ad-pay-btn-cancel:hover { background: var(--dz-color-bg-page); }
 .ad-pay-btn-confirm {
   padding: 8px 20px;
   border: none;
-  background: #1e5038;
+  background: var(--dz-color-primary-accent);
   color: #fff;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -1306,34 +1004,11 @@
 .ad-pay-btn-confirm:hover { background: #174230; }
 .ad-pay-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.ad-staff-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.ad-staff-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .ad-pay-metrics {
-    grid-template-columns: 1fr 1fr;
-  }
   .ad-pay-filters {
     flex-direction: column;
     align-items: stretch;
-  }
-  .ad-pay-search {
-    max-width: none;
-  }
-  .ad-pay-modal {
-    max-width: none;
-    margin: 12px;
-    border-radius: 12px;
-    box-sizing: border-box;
   }
   .ad-pay-form-group input,
   .ad-pay-form-group select {
@@ -1351,21 +1026,5 @@
   }
   .ad-pay-form-row > div + div {
     margin-top: 14px;
-  }
-  .ad-staff-card {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 12px;
-  }
-  .ad-staff-card-actions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    margin-top: 8px;
-  }
-}
-@media (max-width: 480px) {
-  .ad-pay-metrics {
-    grid-template-columns: 1fr;
   }
 }

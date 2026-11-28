@@ -83,28 +83,6 @@
   text-align: center;
 }
 
-.m-header__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, var(--color-primary, var(--dz-color-primary)), var(--color-primary-dark, var(--dz-color-primary-dark)));
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(112, 140, 128, 0.3);
-  transition: transform 0.15s;
-}
-
-.m-header__avatar:active {
-  transform: scale(0.92);
-}
-
 .m-header__login-btn {
   display: flex;
   align-items: center;

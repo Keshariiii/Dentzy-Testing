@@ -8,65 +8,16 @@ import { useAdminAuth } from '../admin/AdminAuthContext';
 import { useStaffAuth } from '../staff/StaffAuthContext';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { EyeToggleIcon } from './ui/animated-state-icons';
+import { Ico } from './common/DashboardIcons';
+import PortalMaintenanceBanner from './common/PortalMaintenanceBanner';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import './Login.css';
 
 // ─── SVG Icons ───────────────────────────────────────────────────────────────
 
-const DentistIcon = () => (
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
-    {/* Tooth shape */}
-    <path
-      d="M22 8C17 8 12 13 12 20c0 4 1.5 7.5 2.5 11C16 37 17 42 17 46c0 3 1 6 4 6s4-3 5-6l1.5-5c.5-2 1.5-3 4.5-3s4 1 4.5 3L38 46c1 3 2 6 5 6s4-3 4-6c0-4 1-9 2.5-15C50.5 27.5 52 24 52 20c0-7-5-12-10-12-3 0-6 1.5-10 1.5S25 8 22 8z"
-      fill="currentColor"
-      fillOpacity="0.15"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    {/* Shine lines */}
-    <path d="M24 15 Q26 12 28 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-    <path d="M29 13 Q30.5 10.5 32 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-  </svg>
-);
-
-const AdminIcon = () => (
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
-    {/* Shield */}
-    <path
-      d="M32 6L12 14v14c0 13 9 25 20 28 11-3 20-15 20-28V14L32 6z"
-      fill="currentColor"
-      fillOpacity="0.15"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    {/* Checkmark */}
-    <path
-      d="M22 32l7 7 13-13"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const StaffIcon = () => (
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="role-icon-svg">
-    {/* Clipboard */}
-    <rect x="16" y="8" width="32" height="48" rx="4" fill="currentColor" fillOpacity="0.15"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    <rect x="24" y="4" width="16" height="10" rx="3" fill="currentColor" fillOpacity="0.15"
-      stroke="currentColor" strokeWidth="2.5" />
-    {/* Lines */}
-    <line x1="24" y1="26" x2="40" y2="26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-    <line x1="24" y1="34" x2="36" y2="34" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-    <line x1="24" y1="42" x2="38" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-  </svg>
-);
+const DentistIcon = () => Ico.dentistRole('role-icon-svg');
+const AdminIcon = () => Ico.adminRole('role-icon-svg');
+const StaffIcon = () => Ico.staffRole('role-icon-svg');
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -221,10 +172,7 @@ const Login = ({ defaultRole }) => {
       {/* ── Right Panel ───────────────────────────── */}
       <div className="auth-right">
         <button className="auth-back-to-home-btn" onClick={() => router.push('/')} aria-label="Back" title="Back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
+          {Ico.arrowLeft(20, 2.2)}
         </button>
 
         <Link
@@ -291,105 +239,29 @@ const Login = ({ defaultRole }) => {
             {isDentist ? 'Dentist Login' : isAdmin ? 'Admin Login' : 'Staff Login'}
           </h2>
 
-{/* ── Role Maintenance Banner ── */}
+          {/* ── Role Maintenance Banner ── */}
           {isDentist && isDentistBlocked && (
-            <div style={{
-              background: '#f0f7f3',
-              border: '1px solid #d8e6df',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '18px',
-              boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
-                Scheduled Clinical Portal Maintenance
-              </div>
-              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
-                {maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
-                {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
-              </div>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={checkStatus}
-                  disabled={checking}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    background: '#1e5038',
-                    color: '#fff',
-                    border: 'none',
-                    fontSize: '0.76rem',
-                    fontWeight: 700,
-                    cursor: checking ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {checking ? 'Checking...' : 'Check If Live'}
-                </button>
-                {maintenance.showEmergencyContact !== false && (
-                  <a
-                    href="tel:+919503668112"
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      background: '#e8f5ee',
-                      color: '#1e5038',
-                      fontSize: '0.76rem',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    Emergency: +91 95036 68112
-                  </a>
-                )}
-              </div>
-            </div>
+            <PortalMaintenanceBanner
+              title="Scheduled Clinical Portal Maintenance"
+              message={maintenance.customMessage || 'We are upgrading our ceramic CAD/CAM milling server to serve your clinic faster.'}
+              expectedBack={maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+              onRetry={checkStatus}
+              checking={checking}
+              showEmergencyContact={maintenance.showEmergencyContact !== false}
+              variant="inline"
+            />
           )}
 
           {isStaff && isStaffBlocked && (
-            <div style={{
-              background: '#f0f7f3',
-              border: '1px solid #d8e6df',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '18px',
-              boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e5038', fontWeight: 700, fontSize: '0.86rem' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
-                Lab Operations Portal Maintenance
-              </div>
-              <div style={{ fontSize: '0.82rem', color: '#374151', marginTop: '6px', lineHeight: 1.45 }}>
-                {maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#1e5038', fontWeight: 700, marginTop: '8px' }}>
-                {maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
-              </div>
-              <div style={{ marginTop: '12px' }}>
-                <button
-                  type="button"
-                  onClick={checkStatus}
-                  disabled={checking}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    background: '#1e5038',
-                    color: '#fff',
-                    border: 'none',
-                    fontSize: '0.76rem',
-                    fontWeight: 700,
-                    cursor: checking ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {checking ? 'Checking...' : 'Check If Live'}
-                </button>
-              </div>
-            </div>
+            <PortalMaintenanceBanner
+              title="Lab Operations Portal Maintenance"
+              message={maintenance.customMessage || 'Lab operations system is undergoing maintenance.'}
+              expectedBack={maintenance.estimatedTime || 'Expected back online: Today at 6:00 PM IST'}
+              onRetry={checkStatus}
+              checking={checking}
+              showEmergencyContact={false}
+              variant="inline"
+            />
           )}
           {/* ── Login Form ────────────────────────── */}
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -401,10 +273,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="login-email" className="sr-only">Email address</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
+                    {Ico.user(16, 2)}
                   </span>
                   <input
                     id="login-email"
@@ -424,10 +293,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="login-password" className="sr-only">Password</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+                    {Ico.lock(16, 2)}
                   </span>
                   <input
                     id="login-password"
@@ -474,10 +340,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="admin-username" className="sr-only">Username or Admin ID</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
+                    {Ico.user(16, 2)}
                   </span>
                   <input
                     id="admin-username"
@@ -497,10 +360,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="admin-password" className="sr-only">Admin Password</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+                    {Ico.lock(16, 2)}
                   </span>
                   <input
                     id="admin-password"
@@ -525,11 +385,7 @@ const Login = ({ defaultRole }) => {
 
                 {/* Admin restricted note */}
                 <p className="login-admin-note">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
+                  {Ico.info(13, 2.2)}
                   Restricted access -- authorised personnel only.
                 </p>
               </>
@@ -540,10 +396,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="staff-username" className="sr-only">Staff Username</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
+                    {Ico.user(16, 2)}
                   </span>
                   <input
                     id="staff-username"
@@ -563,10 +416,7 @@ const Login = ({ defaultRole }) => {
                 <div className="auth-input-group">
                   <label htmlFor="staff-password" className="sr-only">Staff Password</label>
                   <span className="auth-input-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
+                    {Ico.lock(16, 2)}
                   </span>
                   <input
                     id="staff-password"
@@ -591,11 +441,7 @@ const Login = ({ defaultRole }) => {
 
                 {/* Staff access note */}
                 <p className="login-admin-note">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
+                  {Ico.info(13, 2.2)}
                   Lab staff access -- credentials provided by admin.
                 </p>
               </>
@@ -622,12 +468,8 @@ const Login = ({ defaultRole }) => {
                 <span className="auth-spinner" />
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
-                  </svg>
-                  {isDentist ? 'Login' : isAdmin ? 'Access Dashboard' : 'Staff Login'}
+                  {Ico.logIn(16, 2)}
+                  {' '}{isDentist ? 'Login' : isAdmin ? 'Access Dashboard' : 'Staff Login'}
                 </>
               )}
             </button>
@@ -654,12 +496,12 @@ const Login = ({ defaultRole }) => {
           {/* ── Footer links ──────────────────────── */}
           {isDentist ? (
             <p className="auth-switch">
-              Don't Have An Account?{' '}
+              Don&apos;t Have An Account?{' '}
               <Link href="/register" id="go-to-register">Sign Up</Link>
             </p>
           ) : (
             <p className="auth-switch">
-              <a href="/" className="al-back-link">Back to main site</a>
+              <Link href="/" className="al-back-link">Back to main site</Link>
             </p>
           )}
         </div>

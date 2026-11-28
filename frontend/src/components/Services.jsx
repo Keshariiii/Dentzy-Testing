@@ -1,28 +1,6 @@
 import React from 'react';
 import './Services.css';
-
-const services = [
-    {
-        displayTitle: 'Denture', // Fixed capitalization
-        image: '/images/denture.webp',
-        description: 'Tooth loss can significantly affect a person\'s appearance, confidence, and ability to chew and speak properly.'
-    },
-    {
-        displayTitle: 'Zirconia',
-        image: '/images/zirconia.webp',
-        description: 'A zirconia crown is a full-coverage dental restoration made from zirconium dioxide, a high-strength ceramic material.'
-    },
-    {
-        displayTitle: 'PFM',
-        image: '/images/pfm.webp',
-        description: 'A PFM crown (Porcelain-Fused-to-Metal crown) has long been one of the most trusted restorations in dentistry.'
-    },
-    {
-        displayTitle: 'Metal',
-        image: '/images/metal.webp',
-        description: 'A dental metal crown is a full-coverage restoration that protects and strengthens a damaged or heavily restored tooth.'
-    }
-];
+import { SERVICES_DATA } from '../data/landingContent';
 
 const Services = () => {
     return (
@@ -31,8 +9,8 @@ const Services = () => {
                 <h2 className="section-title text-center reveal from-bottom">Our Signature Services</h2>
                 <p className="section-subtitle text-center">Precision-crafted restorations for every clinical need</p>
                 <div className="services-grid reveal-stagger">
-                    {services.map((service, index) => (
-                        <div className={`service-card animate-on-scroll delay-${(index + 1) * 100}`} key={index}>
+                    {SERVICES_DATA.map((service, index) => (
+                        <div className={`service-card animate-on-scroll delay-${(index + 1) * 100}`} key={service.key || index}>
                             <div className="service-image">
                                 <img src={service.image} alt={service.displayTitle} loading="lazy" decoding="async" />
                             </div>

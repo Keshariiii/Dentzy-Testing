@@ -41,10 +41,10 @@
     letter-spacing: 4px;
     /* Increased letter spacing */
     line-height: 1;
-    color: var(--color-white);
+    color: var(--dz-color-white, #ffffff);
     display: inline-block;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: fadeUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     cursor: default;
     transition: transform 0.3s ease;
 }
@@ -54,20 +54,6 @@
     /* Interactive hover */
 }
 
-.connect-title span {
-    color: var(--color-primary, var(--dz-color-primary));
-    /* Sage Green */
-    display: inline-block;
-    transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.connect-title:hover span {
-    color: var(--color-primary-light, #a3bfb1);
-    /* Lighter sage on hover */
-    transform: rotate(5deg);
-    /* Playful tilt */
-}
-
 .connect-subtitle {
     font-size: 1.8rem;
     font-weight: 300;
@@ -75,22 +61,9 @@
     /* Wider spacing */
     margin-top: 10px;
     text-transform: uppercase;
-    animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s both;
+    animation: fadeUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s both;
     /* Delayed animation */
     opacity: 0.9;
-}
-
-/* Animations */
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 @media (max-width: 768px) {

@@ -1,12 +1,13 @@
 import React from 'react';
 import './FutureServices.css';
+import { FUTURE_SERVICES } from '../data/landingContent';
 
 const FutureServices = () => {
     return (
         <section className="future-services">
             <div className="container">
                 <p className="future-services-text">
-                    We will continue to expand our offerings with new services in the future.
+                    {FUTURE_SERVICES.text}
                 </p>
             </div>
         </section>

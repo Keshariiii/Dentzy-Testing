@@ -170,7 +170,7 @@
   min-width: 44px;
   min-height: 44px;
   border-radius: 0.5rem;
-  background: #f8faf9;
+  background: var(--dz-color-surface-subtle);
   border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -178,7 +178,7 @@
 }
 
 .dz-modal-close-btn:hover {
-  background: #eef2f0;
+  background: var(--dz-color-border-mint);
   border-color: #cbd5e1;
   transform: scale(1.05);
 }

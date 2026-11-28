@@ -10,6 +10,7 @@ import StaffSettingsView from './StaffSettingsView';
 import { Skeleton } from '../../components/Skeleton';
 import { TaskCardSkeleton } from '../../components/SkeletonBlocks';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
+import { DentzyPipelineChart } from '../../components/common/DentzyChartTable';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
 import PortalNavbar from '../../components/common/PortalNavbar';
 import PortalSidebar from '../../components/common/PortalSidebar';
@@ -19,8 +20,8 @@ import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
   { key: 'received', label: 'Received', color: '#64748b' },
-  { key: 'design', label: 'Design', color: '#7c3aed' },
-  { key: 'production', label: 'Production', color: '#2563eb' },
+  { key: 'design', label: 'Design', color: '#2d5a45' },
+  { key: 'production', label: 'Production', color: '#1d4ed8' },
   { key: 'qc', label: 'QC', color: '#16a34a' },
 ];
 
@@ -251,56 +252,13 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         </div>
 
         {/* 4-step Stepper */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-          {TECHNICIAN_STAGES.map((s, idx) => {
-            const isDone = isDoneBeyond || (currentIdx !== -1 && idx <= currentIdx);
-            const isCurrent = currentIdx === idx;
-
-            return (
-              <button
-                key={s.key}
-                type="button"
-                disabled={isUpdating}
-                onClick={() => handleStageUpdate(orderId, s.key)}
-                title={`Set stage to ${s.label}`}
-                style={{
-                  background: isCurrent ? '#f0f7f3' : 'transparent',
-                  border: isCurrent ? '1px solid #c5ddd3' : '1px solid transparent',
-                  borderRadius: '8px',
-                  padding: '6px 2px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: isUpdating ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.2s',
-                }}
-              >
-                <div
-                  style={{
-                    width: isCurrent ? '12px' : '10px',
-                    height: isCurrent ? '12px' : '10px',
-                    borderRadius: '50%',
-                    background: isDone ? s.color : '#e2ece6',
-                    boxShadow: isCurrent ? `0 0 0 3px rgba(30, 80, 56, 0.2)` : 'none',
-                    transition: 'all 0.2s',
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: '0.64rem',
-                    fontWeight: isCurrent ? 700 : 600,
-                    color: isCurrent ? '#1e5038' : isDone ? '#4a7060' : '#94a3b8',
-                    lineHeight: 1.1,
-                    textAlign: 'center',
-                  }}
-                >
-                  {s.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <DentzyPipelineChart
+          stage={order.stage}
+          completed={isDoneBeyond}
+          stages={TECHNICIAN_STAGES}
+          onStepClick={(stageKey) => handleStageUpdate(orderId, stageKey)}
+          disabled={isUpdating}
+        />
       </div>
     );
   };
@@ -457,12 +415,12 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         {order.notes && (
           <div
             style={{
-              background: '#fbfcfb',
-              borderLeft: '3px solid #1e5038',
+              background: 'var(--dz-color-surface-subtle)',
+              border: '1px solid var(--dz-color-border-mint)',
               padding: '8px 12px',
-              borderRadius: '0 8px 8px 0',
+              borderRadius: '8px',
               fontSize: '0.8rem',
-              color: '#334155',
+              color: 'var(--dz-color-text-secondary)',
               lineHeight: 1.4,
               marginTop: '2px',
             }}

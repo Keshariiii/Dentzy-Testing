@@ -82,13 +82,31 @@ const illustrations = {
   ),
 };
 
-export default function EmptyState({ variant = 'generic', message = 'Nothing here yet', subtext, action, onAction }) {
+export default function EmptyState({
+  variant = 'generic',
+  message = 'Nothing here yet',
+  subtext,
+  action,
+  onAction,
+  compact = false,
+  className = '',
+  style,
+}) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-3">
-      <div className="mb-1 animate-[float_4s_ease-in-out_infinite]">
-        {illustrations[variant] || illustrations.generic}
-      </div>
-      <p className="text-sm font-bold text-[#1e2824] m-0">
+    <div
+      className={`flex flex-col items-center justify-center text-center ${
+        compact
+          ? 'py-6 px-4 gap-2 rounded-xl bg-[var(--dz-color-surface-subtle,#f8faf9)] border border-dashed border-[var(--dz-color-border-strong,#c2dcd0)]'
+          : 'py-10 px-4 gap-3'
+      } ${className}`.trim()}
+      style={style}
+    >
+      {!compact && (
+        <div className="mb-1 animate-[float_4s_ease-in-out_infinite]">
+          {illustrations[variant] || illustrations.generic}
+        </div>
+      )}
+      <p className={`${compact ? 'text-xs' : 'text-sm'} font-bold text-[#1e2824] m-0`}>
         {message}
       </p>
       {subtext && (
@@ -98,6 +116,7 @@ export default function EmptyState({ variant = 'generic', message = 'Nothing her
       )}
       {action && onAction && (
         <button
+          type="button"
           onClick={onAction}
           className="mt-1 px-5 py-2 bg-[#1e5038] text-white border-none rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95"
           style={{ fontFamily: 'inherit' }}

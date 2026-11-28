@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { Ico } from '../common/DashboardIcons';
 
 /**
  * TwentyFirstNavCard -- 21st.dev
@@ -70,20 +71,9 @@ export function TwentyFirstNavCard({
         )}
       </div>
 
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#aab"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="ml-auto shrink-0 transition-colors duration-150 group-hover:stroke-[#1e5038]"
-        aria-hidden="true"
-      >
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
+      <span className="ml-auto shrink-0 text-[#aab] transition-colors duration-150 group-hover:text-[#1e5038]" aria-hidden="true">
+        {Ico.chevronRight(16, 2)}
+      </span>
     </button>
   );
 }

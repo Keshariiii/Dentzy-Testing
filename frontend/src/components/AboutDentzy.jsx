@@ -1,6 +1,7 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import './AboutDentzy.css';
+import { ABOUT_DATA, HERO_MEDIA } from '../data/landingContent';
 
 const AboutDentzy = () => {
     const videoRef = useRef(null);
@@ -38,13 +39,13 @@ const AboutDentzy = () => {
                 playsInline
                 preload="none"
             >
-                {isVisible && <source src="/images/about-bg.mp4" type="video/mp4" />}
+                {isVisible && <source src={HERO_MEDIA.aboutVideoSrc} type="video/mp4" />}
                 Your browser does not support the video tag.
             </video>
             <div className="about-overlay"></div>
             <div className="container about-content animate-on-scroll">
-                <h2 className="about-title">About DEN<span>T</span>ZY</h2>
-                <p className="about-subtitle">WE ARE HERE TO WIN YOUR HEART AND EARN YOUR SMILE.</p>
+                <h2 className="about-title">About <span className="dentzy-brand--light">DEN<span className="dentzy-t">T</span>ZY</span></h2>
+                <p className="about-subtitle">{ABOUT_DATA.bannerSubtitle}</p>
 
 
             </div>

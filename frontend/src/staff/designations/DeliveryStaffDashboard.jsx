@@ -385,53 +385,17 @@ export default function DeliveryStaffDashboard() {
 
                         {/* Badges */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {isUrgent ? (
-                            <span
-                              style={{
-                                fontSize: '0.72rem',
-                                fontWeight: 800,
-                                background: '#fee2e2',
-                                color: '#b91c1c',
-                                padding: '3px 9px',
-                                borderRadius: '8px',
-                                letterSpacing: '0.02em',
-                              }}
-                            >
-                              URGENT
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                background: '#f1f5f9',
-                                color: '#475569',
-                                padding: '3px 8px',
-                                borderRadius: '8px',
-                              }}
-                            >
-                              Standard
-                            </span>
-                          )}
-
-                          <span
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              background: '#e6f4ea',
-                              color: '#137333',
-                              padding: '3px 9px',
-                              borderRadius: '8px',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                            QC Passed
-                          </span>
+                          <DentzyStatusPill
+                            type="priority"
+                            status={isUrgent ? 'urgent' : 'normal'}
+                            label={isUrgent ? 'URGENT' : 'Standard'}
+                          />
+                          <DentzyStatusPill
+                            type="workflow"
+                            status="qc"
+                            label="QC Passed"
+                            icon={Ico.check(12, 2.5)}
+                          />
                         </div>
                       </div>
 
@@ -571,12 +535,7 @@ export default function DeliveryStaffDashboard() {
                                 transition: 'background 0.15s ease',
                               }}
                             >
-                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="1" y="3" width="15" height="13" />
-                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                                <circle cx="5.5" cy="18.5" r="2.5" />
-                                <circle cx="18.5" cy="18.5" r="2.5" />
-                              </svg>
+                              {Ico.truck(15)}
                               <span>{isUpdating ? 'Dispatching...' : 'Start Delivery / Mark Dispatched'}</span>
                             </button>
                           )}
@@ -602,10 +561,7 @@ export default function DeliveryStaffDashboard() {
                                 transition: 'background 0.15s ease',
                               }}
                             >
-                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                              </svg>
+                              {Ico.checkCircle(15, 2.5)}
                               <span>{isUpdating ? 'Marking Delivered...' : 'Mark as Delivered'}</span>
                             </button>
                           )}

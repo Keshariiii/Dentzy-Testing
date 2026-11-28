@@ -89,9 +89,9 @@ export const PipelineCardSkeleton = () => (
         <h3 className="pp-title">
           <Skeleton width="140px" height="18px" borderRadius="4px" />
         </h3>
-        <p className="pp-sub" style={{ marginTop: '4px' }}>
+        <div className="pp-sub" style={{ marginTop: '4px' }}>
           <Skeleton width="220px" height="13px" borderRadius="4px" />
-        </p>
+        </div>
       </div>
       <div className="pp-hdr-right">
         <Skeleton width="96px" height="24px" borderRadius="99px" />
@@ -586,17 +586,19 @@ export const PipelineListSkeleton = () => (
 
 export const PipelinePageSkeleton = () => (
   <div className="plp-viewport" aria-hidden="true" style={{ pointerEvents: 'none' }}>
-    <header className="plp-top-header">
-      <div className="plp-top-header-left">
+    <header className="dz-portal-navbar">
+      <div className="dz-portal-navbar-left">
         <Skeleton width="90px" height="26px" borderRadius="4px" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '16px' }}>
+      </div>
+      <div className="dz-portal-navbar-center">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Skeleton width="60px" height="14px" borderRadius="4px" />
           <span style={{ color: '#c5d8ce' }}>/</span>
           <Skeleton width="110px" height="14px" borderRadius="4px" />
         </div>
       </div>
-      <div className="plp-top-header-right">
-        <div className="plp-header-user">
+      <div className="dz-portal-navbar-right">
+        <div className="dz-portal-user">
           <Skeleton width="90px" height="14px" borderRadius="4px" />
           <Skeleton width="34px" height="34px" borderRadius="50%" />
         </div>

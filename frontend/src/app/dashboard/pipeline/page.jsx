@@ -17,15 +17,16 @@ import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
 import { useMaintenance } from '../../../context/MaintenanceContext';
 import MaintenanceScreen from '../../../components/MaintenanceScreen';
+import PortalNavbar from '../../../components/common/PortalNavbar';
 import { PipelineSteps } from '../../../components/common/ProductionPipeline';
+import { DentzyStatusPill } from '../../../components/common/DentzyCard';
 import OrderDetailModal from '../../../components/OrderDetailModal';
 import { PipelinePageSkeleton, PipelineListSkeleton } from '../../../components/SkeletonBlocks';
 import { formatDate, formatDoctorName } from '../../../utils/format';
 import { PIPELINE_STAGES } from '../../../components/dashboard/shared/constants';
+import { Ico } from '../../../components/common/DashboardIcons';
 import useDashboardUrlState from '../../../hooks/useDashboardUrlState';
 import './PipelinePage.css';
-
-const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* ── Stage label for the badge ─────────────────────────────────────── */
 const STAGE_DISPLAY = {
@@ -122,36 +123,31 @@ export default function PipelinePage() {
 
   return (
     <div className="plp-viewport">
-      {/* ── Dentzy Top Header (matches clinical dashboard) ───────── */}
-      <header className="plp-top-header">
-        <div className="plp-top-header-left">
-          <Link href="/dashboard" className="plp-header-logo">
-            <img src={dentzyLogo} alt="Dentzy" className="plp-logo-img" />
-          </Link>
+      {/* ── Dentzy Top Header (canonical shared PortalNavbar) ─────── */}
+      <PortalNavbar
+        portalTitle="Production Pipelines"
+        logoHref="/dashboard"
+        centerContent={
           <nav className="plp-breadcrumbs" aria-label="Breadcrumb">
             <Link href="/dashboard" className="plp-breadcrumb-link">Dashboard</Link>
             <span className="plp-breadcrumb-sep">/</span>
             <span className="plp-breadcrumb-current">Production Pipelines</span>
           </nav>
-        </div>
-        <div className="plp-top-header-right">
-          <div className="plp-header-user" onClick={() => router.push('/dashboard?tab=profile')} role="button" tabIndex={0}>
-            <span className="plp-header-user-name">{formatDoctorName(userName)}</span>
-            <div className="plp-header-avatar">{initials}</div>
-          </div>
-        </div>
-      </header>
+        }
+        user={{
+          name: formatDoctorName(userName),
+          role: 'Dentist Portal',
+          avatar: initials,
+          onProfileClick: () => router.push('/dashboard?tab=profile'),
+        }}
+      />
 
       {/* ── Content container ───────────────────────────────────── */}
       <div className="plp-container">
         {/* Page header with title & active count */}
         <div className="plp-page-header">
           <Link href="/dashboard" className="plp-back-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
+            {Ico.arrowLeft(16, 2.5)}
             Back to Dashboard
           </Link>
           <div className="plp-title-row">
@@ -201,10 +197,7 @@ export default function PipelinePage() {
           /* Empty state */
           <div className="plp-empty">
             <div className="plp-empty-icon">
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 2h6l3 7H6L9 2zM5 9h14v13a2 2 0 01-2 2H7a2 2 0 01-2-2V9z" />
-              </svg>
+              {Ico.labOrder(44, 1.3)}
             </div>
             <p className="plp-empty-title">
               {filter === 'active' ? 'No active pipelines' : filter === 'completed' ? 'No completed orders yet' : 'No orders found'}
@@ -249,16 +242,14 @@ export default function PipelinePage() {
                       </div>
                     </div>
                     <div className="plp-card-actions">
-                      <span className={`plp-stage-badge plp-stage-badge--${stageKey}`}>
-                        {isComplete ? 'Completed' : isCancelled ? 'Cancelled' : stageLabel}
-                      </span>
+                      <DentzyStatusPill
+                        type="workflow"
+                        status={isComplete ? 'Completed' : isCancelled ? 'Cancelled' : stageKey}
+                        label={isComplete ? 'Completed' : isCancelled ? 'Cancelled' : stageLabel}
+                      />
                       <span className="plp-view-detail">
                         View Details
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                          <polyline points="12 5 19 12 12 19" />
-                        </svg>
+                        {Ico.arrowRight(12, 2.5)}
                       </span>
                     </div>
                   </div>

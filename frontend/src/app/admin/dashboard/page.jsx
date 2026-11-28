@@ -11,6 +11,7 @@ import ResponsiveLayout from '../../../layouts/ResponsiveLayout';
 import PCAdminDashboard from '../../../views/pc/PCAdminDashboard';
 import MobileAdminDashboard from '../../../views/mobile/MobileAdminDashboard';
 import DashboardErrorBoundary from '../../../components/common/DashboardErrorBoundary';
+import RouteSpinner from '../../../components/common/RouteSpinner';
 
 export default function AdminDashboardPage() {
   const { admin, loading } = useAdminAuth();
@@ -35,8 +36,8 @@ export default function AdminDashboardPage() {
 
   if (!admin) {
     return (
-      <div className="dz-min-vh" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f4f6f5', gap: '14px', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <p style={{ color: '#64748b', fontSize: '0.875rem', margin: 0 }}>Verifying admin access...</p>
+      <div className="dz-min-vh" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'var(--dz-color-bg-page, #f0f5f2)', gap: '14px', fontFamily: 'var(--dz-font-family)' }}>
+        <RouteSpinner label="Verifying admin access..." style={{ minHeight: 'auto', background: 'transparent' }} />
         <a href="/login?role=admin" style={{ color: '#1e5038', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'underline' }}>
           Click here to log in
         </a>

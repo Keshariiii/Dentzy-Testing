@@ -3,7 +3,8 @@ import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { openInvoiceWindow } from '../utils/appleCompat';
-import { StatusBadge } from './ui/status-badge';
+import { DentzyStatusPill } from './common/DentzyCard';
+import InlineAmountEditor from './common/InlineAmountEditor';
 import PrintableInvoice from './common/PrintableInvoice';
 import './PaymentDetailModal.css';
 import { Icons as Ico } from './common/DashboardIcons';
@@ -33,15 +34,11 @@ export default function PaymentDetailModal({
   // Amount inline editor state
   const [currentAmount, setCurrentAmount] = useState(displayPayment?.amount || 0);
   const [isEditingAmount, setIsEditingAmount] = useState(false);
-  const [amountInput, setAmountInput] = useState('');
-  const [savingAmount, setSavingAmount] = useState(false);
-  const [amountError, setAmountError] = useState('');
 
   useEffect(() => {
     if (payment) {
       setCurrentAmount(payment.amount || 0);
       setIsEditingAmount(false);
-      setAmountError('');
     }
   }, [payment]);
 
@@ -81,27 +78,6 @@ export default function PaymentDetailModal({
     setShowInvoice(true);
   };
 
-  const handleSaveAmount = async () => {
-    const val = Number(amountInput);
-    if (isNaN(val) || val < 0) {
-      setAmountError('Please enter a valid positive amount.');
-      return;
-    }
-    setSavingAmount(true);
-    setAmountError('');
-    try {
-      if (onUpdateAmount) {
-        await onUpdateAmount(displayPayment, val);
-      }
-      setCurrentAmount(val);
-      setIsEditingAmount(false);
-    } catch (err) {
-      setAmountError(err.message || 'Failed to update amount.');
-    } finally {
-      setSavingAmount(false);
-    }
-  };
-
   return (
     <>
       <BaseModal
@@ -132,81 +108,21 @@ export default function PaymentDetailModal({
           <div className="pdm-amount-card">
             <div className="pdm-amount-top">
               <span className="pdm-amount-lbl">Payment Amount</span>
-              <StatusBadge status={isPaid ? 'Paid' : 'Pending'} size="sm" />
+              <DentzyStatusPill type="payment" status={isPaid ? 'Paid' : 'Pending'} />
             </div>
 
-            {isEditingAmount ? (
-              <div className="pdm-amount-edit-wrap">
-                <label className="pdm-amount-input-label">Set Payment Amount</label>
-                <div className="pdm-amount-input-box">
-                  <span className="pdm-currency-prefix">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="e.g. 4500"
-                    value={amountInput}
-                    onChange={(e) => {
-                      setAmountInput(e.target.value);
-                      setAmountError('');
-                    }}
-                    className="pdm-amount-input"
-                    autoFocus
-                  />
-                </div>
-                {amountError && <div className="pdm-amount-error-msg">{amountError}</div>}
-                <div className="pdm-amount-edit-btns">
-                  <button
-                    type="button"
-                    className="pdm-amount-btn-cancel"
-                    onClick={() => {
-                      setIsEditingAmount(false);
-                      setAmountError('');
-                    }}
-                    disabled={savingAmount}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="pdm-amount-btn-save"
-                    onClick={handleSaveAmount}
-                    disabled={savingAmount || amountInput === ''}
-                  >
-                    {savingAmount ? 'Saving…' : 'Save Amount'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="pdm-amount-display-row">
-                <div className="pdm-amount-val">
-                  {currentAmount > 0 ? formatINR(currentAmount) : '₹0'}
-                </div>
-                {isAdmin && (
-                  <button
-                    type="button"
-                    className={`pdm-amount-edit-trigger ${currentAmount > 0 ? 'pdm-amount-trigger--edit' : 'pdm-amount-trigger--add'}`}
-                    onClick={() => {
-                      setAmountInput(currentAmount > 0 ? String(currentAmount) : '');
-                      setIsEditingAmount(true);
-                      setAmountError('');
-                    }}
-                  >
-                    {currentAmount > 0 ? (
-                      <>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        Edit Amount
-                      </>
-                    ) : (
-                      <>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Add Amount
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
+            <InlineAmountEditor
+              amount={currentAmount}
+              canEdit={Boolean(isAdmin)}
+              onSave={async (val) => {
+                if (onUpdateAmount) await onUpdateAmount(displayPayment, val);
+                setCurrentAmount(val);
+              }}
+              variant="card"
+              addLabel="Add Amount"
+              editLabel="Edit Amount"
+              onEditingChange={setIsEditingAmount}
+            />
           </div>
 
           {/* Patient & Clinic Details */}
@@ -224,9 +140,7 @@ export default function PaymentDetailModal({
               <span className="pdm-grid-label">Payment Mode</span>
               <span className="pdm-grid-value">
                 {displayPayment.paymentMode ? (
-                  <span className={`pdm-mode-pill pdm-mode--${displayPayment.paymentMode.toLowerCase()}`}>
-                    {displayPayment.paymentMode}
-                  </span>
+                  <DentzyStatusPill type="mode" status={displayPayment.paymentMode} />
                 ) : (
                   <span className="pdm-text-muted">Pending Mode</span>
                 )}
@@ -297,11 +211,7 @@ export default function PaymentDetailModal({
                   gap: '4px',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
+                {Ico.download(12)}
                 Download Batch Invoice
               </button>
             </div>
@@ -365,12 +275,7 @@ export default function PaymentDetailModal({
                   opacity: loadingInvoice ? 0.7 : 1,
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
+                {Ico.orders(14, 2.2)}
                 {loadingInvoice ? 'Loading Statement...' : (displayPayment?.batchId ? 'View Batch Statement' : 'View Invoice')}
               </button>
               {isAdmin && !isPaid && onRecordPayment && (

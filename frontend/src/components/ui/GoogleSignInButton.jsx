@@ -4,6 +4,9 @@ import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 
+let initializedGsiClientId = null;
+let activeCredentialCallback = null;
+
 /**
  * GoogleSignInButton
  * Clean, simple Google Sign-In button with official Google G icon and zero animation.
@@ -48,18 +51,26 @@ export default function GoogleSignInButton({ mode = 'signin', onPending, onError
     }
   }, [googleLogin, mode, onPending, onError, router]);
 
+  useEffect(() => {
+    activeCredentialCallback = handleCredentialResponse;
+  }, [handleCredentialResponse]);
+
   const renderGoogleButton = useCallback(() => {
     if (!clientId || typeof window === 'undefined' || !window.google?.accounts?.id || !btnContainerRef.current) {
       return;
     }
 
     try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
+      activeCredentialCallback = handleCredentialResponse;
+      if (initializedGsiClientId !== clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (resp) => activeCredentialCallback?.(resp),
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+        initializedGsiClientId = clientId;
+      }
 
       btnContainerRef.current.innerHTML = '';
 

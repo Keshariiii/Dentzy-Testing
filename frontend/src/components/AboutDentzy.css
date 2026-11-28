@@ -34,13 +34,8 @@
     font-weight: 800;
     margin-bottom: 1rem;
     text-transform: uppercase;
-    color: var(--color-white);
+    color: var(--dz-color-white, #ffffff);
     letter-spacing: 2px;
-}
-
-.about-title span {
-    color: var(--dz-color-primary);
-    /* Green T - Sage Green Match */
 }
 
 .about-subtitle {

@@ -2,12 +2,11 @@
 import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
-import { TwentyFirstBadge } from '../../components/ui/twentyfirst-badge';
-import { StatusBadge } from '../../components/ui/status-badge';
 import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmented-tabs';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyRowCard, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import SubViewHeader from '../../components/common/SubViewHeader';
 import { formatDoctorName } from '../../utils/format';
 
 const DENTIST_TABS = [
@@ -40,39 +39,13 @@ export default function AdminDentistsListView({
 }) {
   return (
     <div className="admin-subview-root">
-      {/* Mobile Back Header */}
-      {isMobile && onBack && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 4px' }}>
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              color: 'var(--dz-color-primary-dark)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--dz-color-charcoal)' }}>Back</span>
-        </div>
-      )}
-
-      {/* Section Heading */}
-      <div style={{ padding: isMobile ? '0 16px' : '0 0 12px 0', marginBottom: '8px' }}>
-        <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 800, color: 'var(--dz-color-charcoal)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          Registered Dentists
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--dz-color-primary-muted)', color: 'var(--dz-color-primary-dark)', padding: '2px 8px', borderRadius: '12px' }}>
-            {stats.total || users.length}
-          </span>
-        </h2>
-      </div>
+      <SubViewHeader
+        title="Registered Dentists"
+        count={stats.total || users.length}
+        onBack={isMobile && onBack ? onBack : undefined}
+        backLabel="Back"
+        style={{ padding: isMobile ? '12px 16px 0' : 0, marginBottom: '12px' }}
+      />
 
       {/* Search Bar */}
       <div style={{ marginBottom: '12px' }}>
