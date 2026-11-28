@@ -20,7 +20,7 @@ import MaintenanceScreen from '../../../components/MaintenanceScreen';
 import { PipelineSteps } from '../../../components/common/ProductionPipeline';
 import OrderDetailModal from '../../../components/OrderDetailModal';
 import { PipelinePageSkeleton, PipelineListSkeleton } from '../../../components/SkeletonBlocks';
-import { formatDate } from '../../../utils/format';
+import { formatDate, formatDoctorName } from '../../../utils/format';
 import { PIPELINE_STAGES } from '../../../components/dashboard/shared/constants';
 import useDashboardUrlState from '../../../hooks/useDashboardUrlState';
 import './PipelinePage.css';
@@ -135,8 +135,8 @@ export default function PipelinePage() {
           </nav>
         </div>
         <div className="plp-top-header-right">
-          <div className="plp-header-user" onClick={() => router.push('/dashboard')} role="button" tabIndex={0}>
-            <span className="plp-header-user-name">{userName}</span>
+          <div className="plp-header-user" onClick={() => router.push('/dashboard?tab=profile')} role="button" tabIndex={0}>
+            <span className="plp-header-user-name">{formatDoctorName(userName)}</span>
             <div className="plp-header-avatar">{initials}</div>
           </div>
         </div>

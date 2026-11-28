@@ -32,5 +32,5 @@ export const NAV_KEYS = {
   DASHBOARD: 'dashboard',
   ORDERS:    'orders',
   PAYMENTS:  'payments',
-  SETTINGS:  'settings',
+  PROFILE:   'profile',
 };

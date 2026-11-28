@@ -21,7 +21,7 @@ import {
   StaffOrderRowSkeleton,
   StaffPayRowSkeleton,
 } from '../../components/SkeletonBlocks';
-import { formatINR } from '../../utils/format';
+import { formatINR, formatDoctorName } from '../../utils/format';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { DentzyCard, DentzyCaseChip, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
@@ -48,18 +48,19 @@ const PAYMENT_STATUSES = [
 
 /**
  * ReceptionistStaffDashboard — Dedicated dashboard for Receptionist designation.
- * 3 Tabs: 'dentists' | 'payments' | 'settings'. Default: 'dentists'.
+ * 3 Tabs: 'dentists' | 'payments' | 'profile'. Default: 'dentists'.
  * Tab 1: Dentists (Sub-View A: Dentist Grid with CardSkeletons, Sub-View B: Selected Dentist Orders & New Order).
  * Tab 2: Payments (Sub-View A: Overview StatCards & Dentist Financial Badges, Sub-View B: Selected Dentist Statements & Batch Settlement).
- * Tab 3: Settings (<StaffSettingsView />).
- * Mobile: TwentyFirstBottomNav (Dentists, Payments, Settings).
+ * Tab 3: Profile (<StaffSettingsView />).
+ * Mobile: TwentyFirstBottomNav (Dentists, Payments, Profile).
  */
 export default function ReceptionistStaffDashboard() {
   const { authFetch, STAFF_API, staff, staffLogout } = useStaffAuth();
   const { showToast } = useToast();
   const apiBase = STAFF_API || '/api/staff';
 
-  const [activeTab, setActiveTab] = useState('dentists'); // 'dentists' | 'payments' | 'settings'
+  const [activeTab, setActiveTab] = useState('dentists'); // 'dentists' | 'payments' | 'profile'
+  const [profileResetTick, setProfileResetTick] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Dentists State ────────────────────────────────────────────────────────
@@ -418,9 +419,9 @@ export default function ReceptionistStaffDashboard() {
             : Ico.wallet(typeof active === 'number' ? active : (active ? 20 : 18)),
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: (active) => Ico.settings(typeof active === 'number' ? active : (active ? 20 : 18)),
+        key: 'profile',
+        label: 'Profile',
+        icon: (active) => Ico.user(typeof active === 'number' ? active : (active ? 20 : 18)),
       },
     ],
     []
@@ -447,10 +448,13 @@ export default function ReceptionistStaffDashboard() {
         },
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: (size) => Ico.settings(size || 16),
-        onClick: () => setActiveTab('settings'),
+        key: 'profile',
+        label: 'Profile',
+        icon: (size) => Ico.user(size || 16),
+        onClick: () => {
+          setActiveTab('profile');
+          setProfileResetTick((t) => t + 1);
+        },
       },
     ],
     []
@@ -460,8 +464,11 @@ export default function ReceptionistStaffDashboard() {
     name: staff?.displayName || 'Receptionist',
     role: 'Receptionist',
     avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'R',
-    onProfileClick: () => setActiveTab('settings'),
-    title: 'Staff Profile Settings',
+    onProfileClick: () => {
+      setActiveTab('profile');
+      setProfileResetTick((t) => t + 1);
+    },
+    title: 'My Profile',
   };
 
   return (
@@ -493,9 +500,9 @@ export default function ReceptionistStaffDashboard() {
       {/* ── Main Content Area ─────────────────────────────────────────────── */}
       <main className="sd-main" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '16px' }}>
         {/* =================================================================== */}
-        {/* TAB 3: SETTINGS VIEW                                                */}
+        {/* TAB 3: PROFILE VIEW                                                 */}
         {/* =================================================================== */}
-        {activeTab === 'settings' && <StaffSettingsView />}
+        {activeTab === 'profile' && <StaffSettingsView resetTick={profileResetTick} />}
 
         {/* =================================================================== */}
         {/* TAB 1: DENTISTS VIEW                                                */}
@@ -590,7 +597,7 @@ export default function ReceptionistStaffDashboard() {
                               </div>
                               <div>
                                 <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1e2924' }}>
-                                  Dr. {d.name || 'Unnamed Dentist'}
+                                  {formatDoctorName(d.name, 'Unnamed Dentist')}
                                 </div>
                                 <div style={{ fontSize: '0.8rem', color: '#527264', fontWeight: 600 }}>
                                   {d.clinicName || 'Clinic Name Not Provided'}
@@ -652,7 +659,7 @@ export default function ReceptionistStaffDashboard() {
                     />
                     <div>
                       <h2 className="sd-section-title" style={{ margin: 0 }}>
-                        Dr. {selectedDentist.name}
+                        {formatDoctorName(selectedDentist.name)}
                       </h2>
                       <div style={{ fontSize: '0.8rem', color: '#527264', marginTop: '2px' }}>
                         {selectedDentist.clinicName}
@@ -886,7 +893,7 @@ export default function ReceptionistStaffDashboard() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                               <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1e2924' }}>
-                                Dr. {d.name}
+                                {formatDoctorName(d.name)}
                               </div>
                               <div style={{ fontSize: '0.8rem', color: '#527264', fontWeight: 600 }}>
                                 {d.clinicName}
@@ -946,7 +953,7 @@ export default function ReceptionistStaffDashboard() {
                     />
                     <div>
                       <h2 className="sd-section-title" style={{ margin: 0 }}>
-                        Dr. {selectedPayDentist.name}
+                        {formatDoctorName(selectedPayDentist.name)}
                       </h2>
                       <div style={{ fontSize: '0.8rem', color: '#527264', marginTop: '2px' }}>
                         {selectedPayDentist.clinicName} · Statements & Ledger
@@ -1370,7 +1377,7 @@ export default function ReceptionistStaffDashboard() {
           </div>
           <div className="sd-modal-body">
             <div className="sd-modal-summary" style={{ background: '#f8faf9', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {selectedPayDentist && <span><strong>Dentist:</strong> Dr. {selectedPayDentist.name}</span>}
+              {selectedPayDentist && <span><strong>Dentist:</strong> {formatDoctorName(selectedPayDentist.name)}</span>}
               <span><strong>Selected Cases:</strong> {selectedPaymentIds.length}</span>
               <span><strong>Total Settlement Amount:</strong> {formatINR(totalSelectedAmount)}</span>
             </div>
@@ -1462,7 +1469,10 @@ export default function ReceptionistStaffDashboard() {
       <TwentyFirstBottomNav
         items={mobileNavItems}
         activeKey={activeTab}
-        onChange={setActiveTab}
+        onChange={(key) => {
+          setActiveTab(key);
+          if (key === 'profile') setProfileResetTick((t) => t + 1);
+        }}
         layoutId="receptionist-bottom-nav"
       />
     </div>

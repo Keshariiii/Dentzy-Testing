@@ -18,6 +18,7 @@ import TwentyFirstIconButton from '../ui/twentyfirst-icon-button';
 import { Icons as Ico } from './DashboardIcons';
 import './CreateOrderModal.css';
 import { inferDepartment } from '../../utils/roles';
+import { formatDoctorName } from '../../utils/format';
 import { safeShowPicker } from '../../utils/appleCompat';
 
 /**
@@ -227,7 +228,10 @@ export default function CreateOrderModal({
 
   if (!isOpen) return null;
 
-  const currentDentistName = dentist?.name || dentistList.find(d => (d._id || d.id) === selectedDentistId)?.name || 'Dentist';
+  const currentDentistName = formatDoctorName(
+    dentist?.name || dentistList.find(d => (d._id || d.id) === selectedDentistId)?.name,
+    'Dentist'
+  );
 
   return (
     <BaseModal
@@ -270,7 +274,7 @@ export default function CreateOrderModal({
                 <option value="">-- Choose Dentist --</option>
                 {dentistList.map(d => (
                   <option key={d._id || d.id} value={d._id || d.id}>
-                    {d.name} {d.clinicName ? `(${d.clinicName})` : ''}
+                    {formatDoctorName(d.name, 'Dentist')} {d.clinicName ? `(${d.clinicName})` : ''}
                   </option>
                 ))}
               </select>

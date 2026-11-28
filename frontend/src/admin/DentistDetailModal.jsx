@@ -15,7 +15,7 @@ import { useToast } from '../context/ToastContext';
 import CreateOrderModal from '../components/common/CreateOrderModal';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../components/ui/status-badge';
-import { formatINR, formatDate } from '../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { getOrderPrice } from '../utils/pricing';
 import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
 import PrintableInvoice from '../components/common/PrintableInvoice';
@@ -327,7 +327,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 >
                   {users.filter(u => u.status === 'approved' && !u.isArchived && !u.email?.includes('@dentzy.invalid')).map(u => (
                     <option key={u.id || u._id} value={u.id || u._id}>
-                      Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
+                      {formatDoctorName(u.name)} {u.clinicName ? `(${u.clinicName})` : ''}
                     </option>
                   ))}
                 </select>
@@ -350,7 +350,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
                 <div className="ddm-profile-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
                 <div className="ddm-profile-info">
                   <div className="ddm-profile-name-row">
-                    <h2 className="ddm-profile-name">{user?.name || 'Dentist'}</h2>
+                    <h2 className="ddm-profile-name">{formatDoctorName(user?.name, 'Dentist')}</h2>
                     <StatusBadge
                       status={(user?.isArchived || user?.status === 'archived') ? 'archived' : user?.status}
                       label={(user?.isArchived || user?.status === 'archived') ? (user?.archiveReason || 'Archived') : undefined}
@@ -863,7 +863,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
       <ConfirmDialog
         isOpen={Boolean(creditOverridePrompt)}
         title="Credit Limit Exceeded"
-        message={`Dr. ${user?.name || 'this dentist'} has ₹${Number(creditOverridePrompt?.totalUnpaid || 0).toLocaleString('en-IN')} in outstanding dues, exceeding the ₹2,00,000 credit limit. As an administrator, do you wish to override the credit limit and place this order?`}
+        message={`${formatDoctorName(user?.name, 'this dentist')} has ₹${Number(creditOverridePrompt?.totalUnpaid || 0).toLocaleString('en-IN')} in outstanding dues, exceeding the ₹2,00,000 credit limit. As an administrator, do you wish to override the credit limit and place this order?`}
         confirmText="Override & Create Order"
         cancelText="Cancel"
         type="warning"
@@ -879,7 +879,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
       <ConfirmDialog
         isOpen={showConfirmDelete}
         title="Delete Dentist Account?"
-        message={`Are you sure you want to permanently delete Dr. ${user?.name || 'this dentist'}? All associated lab orders and payments will be deleted. This cannot be undone.`}
+        message={`Are you sure you want to permanently delete ${formatDoctorName(user?.name, 'this dentist')}? All associated lab orders and payments will be deleted. This cannot be undone.`}
         confirmText="Delete Dentist"
         cancelText="Cancel"
         type="danger"
@@ -893,7 +893,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
         title={`Batch Settle ${selectedPaymentIds.length} Orders`}
-        subtitle={`Dr. ${user?.name || ''}${user?.clinicName ? ` · ${user.clinicName}` : ''}`}
+        subtitle={user ? `${formatDoctorName(user.name)}${user?.clinicName ? ` · ${user.clinicName}` : ''}` : ''}
         footer={
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button
@@ -938,7 +938,7 @@ const DentistDetailModal = ({ userId, onClose, onDeleteUser, users = [], onSelec
           <div style={{ background: '#f8faf9', padding: '12px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Dentist:</span>
-              <strong>Dr. {user?.name} {user?.clinicName ? `· ${user?.clinicName}` : ''}</strong>
+              <strong>{formatDoctorName(user?.name)} {user?.clinicName ? `· ${user?.clinicName}` : ''}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Total Batch Amount:</span>

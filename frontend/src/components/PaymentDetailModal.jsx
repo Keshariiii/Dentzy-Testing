@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
-import { formatINR, formatDate } from '../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { openInvoiceWindow } from '../utils/appleCompat';
 import { StatusBadge } from './ui/status-badge';
 import PrintableInvoice from './common/PrintableInvoice';
@@ -49,7 +49,7 @@ export default function PaymentDetailModal({
 
   const paymentId = displayPayment._id || displayPayment.id || displayPayment.caseId;
   const isPaid = (displayPayment.paymentStatus || displayPayment.status) === 'Paid';
-  const dentistName = displayPayment.owner?.name || displayPayment.dentistName || '—';
+  const dentistName = formatDoctorName(displayPayment.owner?.name || displayPayment.dentistName, '—');
   const clinicName = displayPayment.owner?.clinicName || displayPayment.clinicName || '';
 
   const handleDeleteConfirm = async () => {

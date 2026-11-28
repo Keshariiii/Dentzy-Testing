@@ -8,6 +8,7 @@ import { TwentyFirstIconButton } from './ui/twentyfirst-icon-button';
 import './Header.css';
 const dentzyLogo = '/dentzy-logo-v2.png';
 import { useAuth } from '../context/AuthContext';
+import { formatDoctorName } from '../utils/format';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -108,7 +109,7 @@ const Header = () => {
               <div className="nav-user-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <span className="nav-username" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <User size={14} />
-                  {user.name}
+                  {formatDoctorName(user.name)}
                 </span>
                 <TwentyFirstIconButton
                   id="logout-btn"

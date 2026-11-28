@@ -142,8 +142,8 @@ export default function PortalNavbar({
             type="button"
             className="dz-portal-user ud-header-user ad-header-user sd-header-user"
             onClick={user.onProfileClick}
-            title={user.title || user.name || 'Account Settings'}
-            aria-label={user.title || user.name || 'Account Settings'}
+            title={user.title || user.name || 'Profile'}
+            aria-label={user.title || user.name || 'Profile'}
             style={{
               background: 'none',
               border: 'none',

@@ -27,8 +27,13 @@ export const formatOrderDateTime = (isoDate) => {
   }).format(date);
 };
 
-export const formatDoctorName = (name) => {
-  if (!name || !name.trim() || /^doctor$/i.test(name.trim())) return 'Doctor';
-  const clean = name.trim().replace(/^(dr\s*\.?\s*)+/i, '');
-  return clean ? `Dr. ${clean.charAt(0).toUpperCase() + clean.slice(1)}` : 'Doctor';
+const DOCTOR_PLACEHOLDER_RE = /^(doctor|dentist|unknown|unnamed dentist|practitioner|practicing dentist|—|-)$/i;
+
+export const formatDoctorName = (name, fallback = 'Doctor') => {
+  const raw = typeof name === 'string' ? name.trim() : '';
+  if (!raw || DOCTOR_PLACEHOLDER_RE.test(raw)) return fallback;
+  const clean = raw.replace(/^(dr\s*\.?\s*)+/i, '');
+  return clean && !DOCTOR_PLACEHOLDER_RE.test(clean)
+    ? `Dr. ${clean.charAt(0).toUpperCase() + clean.slice(1)}`
+    : fallback;
 };

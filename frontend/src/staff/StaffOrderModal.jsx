@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import BaseModal from '../components/ui/BaseModal';
 import { Icons as Ico } from '../components/common/DashboardIcons';
 import { safeShowPicker } from '../utils/appleCompat';
+import { formatDoctorName } from '../utils/format';
 
 const STAGES = [
   { key: 'received', label: 'Received' },
@@ -39,7 +40,7 @@ export default function StaffOrderModal({ order, onClose, onSave, saving }) {
           {/* Order summary strip */}
           <div className="sd-modal-summary">
             <span><strong>Patient:</strong> {order.patientName || 'Unknown'}</span>
-            {order.owner?.name && <span><strong>Dentist:</strong> {order.owner.name}</span>}
+            {order.owner?.name && <span><strong>Dentist:</strong> {formatDoctorName(order.owner.name)}</span>}
           </div>
           <div className="sd-field-row">
             <div className="sd-field">

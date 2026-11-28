@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { formatINR, formatDate } from '../../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { useAuth } from '../../context/AuthContext';
 import { resolvePlaceOfDelivery } from '../../utils/placeOfDelivery';
 import { calculateGST } from '../../utils/gst';
@@ -253,7 +253,7 @@ export default function PrintableInvoice({
           style={{ textAlign: 'right', alignItems: 'flex-end', justifySelf: 'end', marginLeft: 'auto' }}
         >
           <div className="pi-section-label">Billed To (Doctor / Clinic) :</div>
-          <div className="pi-bold-name">Dr. {doctorName}</div>
+          <div className="pi-bold-name">{formatDoctorName(doctorName, 'Practitioner')}</div>
           {clinicName && <div className="pi-clinic-name">{clinicName}</div>}
           {clinicAddress ? (
             <div className="pi-dentist-address">{clinicAddress}</div>
@@ -411,7 +411,7 @@ export default function PrintableInvoice({
 
       {/* ── Official Fineprint / Footnote ─────────────────────────── */}
       <div className="pi-fineprint">
-        <div>Custom-Made Dental Medical Device (CDSCO MDR 2017 Rule 3(r)) — Fabricated exclusively against the written clinical prescription of Dr. {doctorName} for the named patient(s) above.</div>
+        <div>Custom-Made Dental Medical Device (CDSCO MDR 2017 Rule 3(r)) — Fabricated exclusively against the written clinical prescription of {formatDoctorName(doctorName, 'Practitioner')} for the named patient(s) above.</div>
         <div>{isUnpaid ? 'Please clear outstanding dues promptly to maintain uninterrupted laboratory milling service.' : 'Please note that this invoice is not a demand for payment.'}</div>
         <div>Regd. Office: Dentzy Dental Laboratory, Dindayal Nagar, Vasai West, Maharashtra - 401202</div>
         <div>Telephone: +91 9503668112 | Email: support@dentzy.in | Website: dentzy-testing.pages.dev</div>

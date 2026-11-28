@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from './ui/BaseModal';
 import ConfirmDialog from './ConfirmDialog';
-import { formatINR, formatDate } from '../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { openInvoiceWindow } from '../utils/appleCompat';
 import { StatusBadge } from './ui/status-badge';
 import './OrderDetailModal.css';
@@ -111,7 +111,7 @@ export default function OrderDetailModal({
     }
   };
 
-  const dentistName = displayOrder.owner?.name || displayOrder.dentistName || '—';
+  const dentistName = formatDoctorName(displayOrder.owner?.name || displayOrder.dentistName, '—');
   const clinicName = displayOrder.owner?.clinicName || displayOrder.clinicName || '';
   const dentistEmail = displayOrder.owner?.email || displayOrder.dentistEmail || '';
 

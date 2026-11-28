@@ -48,8 +48,8 @@ export default function PortalSidebar({
                 user.onProfileClick?.();
                 onClose?.();
               }}
-              title={user.title || user.name || 'Account Settings'}
-              aria-label={user.title || user.name || 'Account Settings'}
+              title={user.title || user.name || 'Profile'}
+              aria-label={user.title || user.name || 'Profile'}
               style={{ cursor: user.onProfileClick ? 'pointer' : 'default' }}
             >
               <div className="dz-portal-sidebar-avatar">

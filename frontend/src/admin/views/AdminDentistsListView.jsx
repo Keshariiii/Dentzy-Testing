@@ -8,6 +8,7 @@ import { TwentyFirstSegmentedTabs } from '../../components/ui/twentyfirst-segmen
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { DentzyRowCard, DentzyStatusPill } from '../../components/common/DentzyCard';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
+import { formatDoctorName } from '../../utils/format';
 
 const DENTIST_TABS = [
   { key: 'all', label: 'All' },
@@ -164,7 +165,7 @@ export default function AdminDentistsListView({
               return (
                 <DentzyRowCard
                   key={uId}
-                  title={user?.name || 'Unnamed Dentist'}
+                  title={formatDoctorName(user?.name, 'Unnamed Dentist')}
                   avatarMuted={isArchived}
                   badge={<DentzyStatusPill status={isArchived ? 'archived' : user.status} label={statusLabel} type="account" />}
                   subtitle={`${user?.email || '—'}${user?.phone ? ` · ${user.phone}` : ''}`}

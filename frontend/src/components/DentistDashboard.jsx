@@ -1,21 +1,19 @@
 'use client';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../api/client';
 import './DentistDashboard.css';
 import { formatINR, formatDate, formatDoctorName } from '../utils/format';
 import { getOrderPrice } from '../utils/pricing';
 import { safeShowPicker, openInvoiceWindow } from '../utils/appleCompat';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentDetailModal from './PaymentDetailModal';
-import BaseModal from './ui/BaseModal';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import EmptyState from './common/EmptyState';
 import ProductionPipeline from './common/ProductionPipeline';
 import CompletedOrdersView from './dashboard/CompletedOrdersView';
+import DentistProfileView from './dashboard/DentistProfileView';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 /* =============================================================================
@@ -44,9 +42,9 @@ import {
 ============================================================================= */
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard',  icon: Icons.dashboard },
-  { key: 'orders',    label: 'Lab Orders',  icon: Icons.labOrder },
-  { key: 'payments',  label: 'Payments',    icon: Icons.payments },
-  { key: 'settings',  label: 'Settings',    icon: Icons.settings },
+  { key: 'orders',    label: 'Lab Orders', icon: Icons.labOrder },
+  { key: 'payments',  label: 'Payments',   icon: Icons.payments },
+  { key: 'profile',   label: 'Profile',    icon: Icons.user },
 ];
 
 /* =============================================================================
@@ -88,7 +86,7 @@ import { StatusBadge } from './ui/status-badge';
 ============================================================================= */
 const DentistDashboard = () => {
   const router = useRouter();
-  const { user, logout, authFetch, updateUserState, API_URL, DASH_URL } = useAuth();
+  const { user, logout, authFetch, DASH_URL } = useAuth();
 
   const [activeTab, setActiveTab] = useDashboardUrlState('tab', 'dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -102,39 +100,8 @@ const DentistDashboard = () => {
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // Settings form state
-  const [profileForm, setProfileForm]     = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
-  const [profileMsg, setProfileMsg]       = useState({ type: '', text: '' });
-  const [profileSaving, setProfileSaving] = useState(false);
-
-  const [pwForm, setPwForm]   = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [pwMsg, setPwMsg]     = useState({ type: '', text: '' });
-  const [pwSaving, setPwSaving]   = useState(false);
-  const [showPw, setShowPw]   = useState({ current: false, new: false, confirm: false });
-
-  const [deleteConfirm, setDeleteConfirm]   = useState('');
-  const [deleteMsg, setDeleteMsg]           = useState({ type: '', text: '' });
-  const [deleting, setDeleting]             = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const [isEditingProfile, setIsEditingProfile]     = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
-
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
-
-  // Sync profile form when user changes
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        name:       user.name       || '',
-        dob:        user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
-        phone:      user.phone      || '',
-        clinicName: user.clinicName || '',
-        address:    user.address    || '',
-      });
-    }
-  }, [user]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -239,6 +206,7 @@ const DentistDashboard = () => {
 
       switch (e.key.toLowerCase()) {
         case 'n': setActiveTab('orders'); break;
+        case 'p': setActiveTab('profile'); break;
         case 's': setActiveTab('settings'); break;
         case '?': setShowShortcuts(prev => !prev); break;
         default: break;
@@ -271,7 +239,7 @@ const DentistDashboard = () => {
         {stats && stats.orders.total === 0 && (
           <DentistWelcomeBanner
             userName={userName}
-            onNavigateSettings={() => setActiveTab('settings')}
+            onNavigateProfile={() => setActiveTab('profile')}
             onNavigateOrders={() => setActiveTab('orders')}
           />
         )}
@@ -514,424 +482,9 @@ const DentistDashboard = () => {
   );
 
   /* ============================================================
-     SETTINGS HANDLERS
+     RENDER: Tab Router & Profile
   ============================================================ */
-  const handleProfileSave = async (e) => {
-    e.preventDefault();
-    if (profileForm.name.trim().length < 2) {
-      setProfileMsg({ type: 'error', text: 'Name must be at least 2 characters.' });
-      return;
-    }
-    if (profileForm.phone && profileForm.phone.trim().length > 0 && profileForm.phone.trim().length < 7) {
-      setProfileMsg({ type: 'error', text: 'Phone number is too short.' });
-      return;
-    }
-    setProfileSaving(true);
-    setProfileMsg({ type: '', text: '' });
-    try {
-      const data = await apiFetch(`${API_URL}/profile`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          name:       profileForm.name,
-          dob:        profileForm.dob || null,
-          phone:      profileForm.phone,
-          clinicName: profileForm.clinicName,
-          address:    profileForm.address,
-        }),
-      });
-      updateUserState(data.user);
-      setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
-      setIsEditingProfile(false);
-    } catch (err) {
-      setProfileMsg({ type: 'error', text: err.message || 'Failed to update profile.' });
-    } finally {
-      setProfileSaving(false);
-    }
-  };
-
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    setPwMsg({ type: '', text: '' });
-    if (pwForm.newPassword !== pwForm.confirmPassword) {
-      setPwMsg({ type: 'error', text: 'New passwords do not match.' });
-      return;
-    }
-    setPwSaving(true);
-    try {
-      const data = await apiFetch(`${API_URL}/change-password`, {
-        method: 'PUT',
-        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
-      });
-      setPwMsg({ type: 'success', text: data.message || 'Password changed successfully!' });
-      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setTimeout(() => { setShowChangePassword(false); setPwMsg({ type: '', text: '' }); }, 1800);
-    } catch (err) {
-      setPwMsg({ type: 'error', text: err.message || 'Failed to change password.' });
-    } finally {
-      setPwSaving(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleteMsg({ type: '', text: '' });
-    setDeleting(true);
-    try {
-      await apiFetch(`${API_URL}/profile`, {
-        method: 'DELETE',
-        body: JSON.stringify({ password: deleteConfirm }),
-      });
-      logout();
-      router.push('/login');
-    } catch (err) {
-      setDeleteMsg({ type: 'error', text: err.message || 'Failed to delete account.' });
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const EyeIcon = ({ show }) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {show ? (
-        <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
-      ) : (
-        <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
-      )}
-    </svg>
-  );
-
-  const formatDob = (dob) => {
-    if (!dob) return '—';
-    const d = new Date(dob);
-    if (isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-  };
-
-  /* ============================================================
-     RENDER: Settings
-  ============================================================ */
-  const renderSettings = () => (
-    <div className="ud-content-inner">
-      <h2 className="ud-settings-title">Account Settings</h2>
-
-      {/* Profile Card */}
-      <div className="ud-settings-card">
-        <div className="ud-settings-card-head">
-          <div className="ud-settings-avatar">{initials}</div>
-          <div className="ud-settings-card-head-info">
-            <span className="ud-settings-card-name">{user?.name}</span>
-            <span className="ud-settings-card-email">{user?.email}</span>
-          </div>
-          {!isEditingProfile && (
-            <TwentyFirstIconButton
-              id="edit-profile-btn"
-              icon={Icons.pencil(15)}
-              title="Edit Profile"
-              ariaLabel="Edit Profile"
-              onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
-              size="sm"
-              variant="soft"
-            />
-          )}
-        </div>
-
-        {!isEditingProfile && (
-          <div className="ud-settings-info-rows">
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">{Icons.user(12)} Full Name</span>
-              <span className="ud-settings-info-value">{user?.name || '—'}</span>
-            </div>
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                {' '}Date of Birth
-              </span>
-              <span className="ud-settings-info-value">{formatDob(user?.dob)}</span>
-            </div>
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">{Icons.mail(12)} Email</span>
-              <span className="ud-settings-info-value">
-                {user?.email}
-                <span className="ud-settings-verified-tag">Verified</span>
-              </span>
-            </div>
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-                {' '}Phone
-              </span>
-              <span className="ud-settings-info-value">{user?.phone || '—'}</span>
-            </div>
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                {' '}Clinic Name
-              </span>
-              <span className="ud-settings-info-value">{user?.clinicName || '—'}</span>
-            </div>
-            <div className="ud-settings-info-row">
-              <span className="ud-settings-info-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {' '}Address
-              </span>
-              <span className="ud-settings-info-value">{user?.address || '—'}</span>
-            </div>
-          </div>
-        )}
-
-        {isEditingProfile && (
-          <form className="ud-settings-edit-form" onSubmit={handleProfileSave} noValidate>
-            <div className="ud-settings-field">
-              <label htmlFor="settings-name">{Icons.user(12)} Full Name</label>
-              <input
-                id="settings-name"
-                type="text"
-                value={profileForm.name}
-                onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
-                placeholder="Your full name"
-                maxLength={60}
-                className="ud-settings-input"
-                autoFocus
-              />
-            </div>
-            <div className="ud-settings-field">
-              <label htmlFor="settings-dob">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                {' '}Date of Birth
-              </label>
-              <input
-                id="settings-dob"
-                type="date"
-                value={profileForm.dob}
-                placeholder="Select Date of Birth"
-                data-empty={!profileForm.dob}
-                onClick={safeShowPicker}
-                onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
-                max={new Date().toISOString().split('T')[0]}
-                className="ud-settings-input"
-              />
-            </div>
-            <div className="ud-settings-field">
-              <label htmlFor="settings-phone">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.12 12.71a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-                {' '}Phone
-              </label>
-              <input
-                id="settings-phone"
-                type="tel"
-                value={profileForm.phone}
-                onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
-                placeholder="Your phone number"
-                maxLength={20}
-                className="ud-settings-input"
-              />
-            </div>
-            <div className="ud-settings-field">
-              <label htmlFor="settings-clinic">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                {' '}Clinic Name
-              </label>
-              <input
-                id="settings-clinic"
-                type="text"
-                value={profileForm.clinicName}
-                onChange={e => setProfileForm(p => ({ ...p, clinicName: e.target.value }))}
-                placeholder="Your clinic or practice name"
-                maxLength={100}
-                className="ud-settings-input"
-              />
-            </div>
-            <div className="ud-settings-field">
-              <label htmlFor="settings-address">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {' '}Address
-              </label>
-              <textarea
-                id="settings-address"
-                value={profileForm.address}
-                onChange={e => setProfileForm(p => ({ ...p, address: e.target.value }))}
-                placeholder="Clinic address"
-                maxLength={300}
-                rows={2}
-                className="ud-settings-input ud-settings-textarea"
-              />
-            </div>
-            {profileMsg.text && (
-              <div className={`ud-settings-msg ${profileMsg.type === 'success' ? 'ud-settings-msg--success' : 'ud-settings-msg--error'}`}>
-                {profileMsg.text}
-              </div>
-            )}
-            <div className="ud-settings-edit-actions">
-              <button type="submit" className="ud-settings-save-btn" disabled={profileSaving}>
-                {profileSaving ? <span className="auth-spinner" /> : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                className="ud-settings-cancel-btn"
-                onClick={() => { setIsEditingProfile(false); setProfileMsg({ type: '', text: '' }); }}
-                disabled={profileSaving}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      {/* Security Card */}
-      <div className="ud-settings-card ud-settings-security-card">
-        <div className="ud-settings-action-row">
-          <div className="ud-settings-action-info">
-            <span className="ud-settings-action-label">{Icons.shield(14)} Change Password</span>
-            <span className="ud-settings-action-sub">Update your login password.</span>
-          </div>
-          <button
-            type="button"
-            id="toggle-change-password-btn"
-            className="ud-settings-edit-btn"
-            onClick={() => {
-              setShowChangePassword(v => !v);
-              setPwMsg({ type: '', text: '' });
-              setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-            }}
-          >
-            {showChangePassword ? 'Cancel' : 'Change'}
-          </button>
-        </div>
-
-        {showChangePassword && (
-          <form className="ud-settings-edit-form ud-settings-pw-form" onSubmit={handlePasswordChange} noValidate>
-            {[
-              { key: 'current', label: 'Current Password', field: 'currentPassword', autoComplete: 'current-password' },
-              { key: 'new',     label: 'New Password',     field: 'newPassword',     autoComplete: 'new-password' },
-              { key: 'confirm', label: 'Confirm Password', field: 'confirmPassword', autoComplete: 'new-password' },
-            ].map(({ key, label, field, autoComplete }) => (
-              <div className="ud-settings-field" key={key}>
-                <label htmlFor={`pw-${key}`}>{label}</label>
-                <div className="ud-settings-pw-wrap">
-                  <input
-                    id={`pw-${key}`}
-                    type={showPw[key] ? 'text' : 'password'}
-                    value={pwForm[field]}
-                    onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))}
-                    placeholder={label}
-                    className="ud-settings-input"
-                    autoComplete={autoComplete}
-                  />
-                  <button
-                    type="button"
-                    className="ud-settings-pw-toggle"
-                    onClick={() => setShowPw(p => ({ ...p, [key]: !p[key] }))}
-                    aria-label={showPw[key] ? 'Hide' : 'Show'}
-                  >
-                    <EyeIcon show={showPw[key]} />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {pwMsg.text && (
-              <div className={`ud-settings-msg ${pwMsg.type === 'success' ? 'ud-settings-msg--success' : 'ud-settings-msg--error'}`}>
-                {pwMsg.text}
-              </div>
-            )}
-            <button type="submit" className="ud-settings-save-btn" disabled={pwSaving}>
-              {pwSaving ? <span className="auth-spinner" /> : 'Update Password'}
-            </button>
-            <div className="ud-settings-forgot-wrap">
-              <Link href="/forgot-password" className="ud-settings-forgot-link">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                Forgot your password?
-              </Link>
-            </div>
-          </form>
-        )}
-
-        <div className="ud-settings-divider" />
-
-        <div className="ud-settings-action-row">
-          <div className="ud-settings-action-info">
-            <span className="ud-settings-action-label ud-settings-action-label--danger">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-              {' '}Delete Account
-            </span>
-            <span className="ud-settings-action-sub">Permanently remove your account and data.</span>
-          </div>
-          <button
-            id="delete-account-btn"
-            type="button"
-            className="ud-settings-delete-outline-btn"
-            onClick={() => { setShowDeleteModal(true); setDeleteMsg({ type: '', text: '' }); setDeleteConfirm(''); }}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      <BaseModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Account?"
-        subtitle="Permanent Action Advisory"
-        footer={
-          <div className="ud-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
-            <button
-              type="button"
-              className="ud-modal-cancel-btn"
-              onClick={() => setShowDeleteModal(false)}
-              disabled={deleting}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              id="confirm-delete-btn"
-              className="ud-settings-delete-btn"
-              onClick={handleDeleteAccount}
-              disabled={deleting || !deleteConfirm}
-            >
-              {deleting ? <span className="auth-spinner" /> : 'Delete Account'}
-            </button>
-          </div>
-        }
-        maxWidth="max-w-md"
-        id="ud-delete-modal"
-      >
-        <div style={{ padding: '4px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: '#fee2e2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.88rem', color: '#4a5c54', lineHeight: 1.5 }}>
-            This will permanently delete your account and all associated data. Enter your password to confirm.
-          </p>
-          <input
-            id="delete-confirm-password"
-            type="password"
-            className="ud-settings-input"
-            placeholder="Enter your password"
-            value={deleteConfirm}
-            onChange={e => setDeleteConfirm(e.target.value)}
-            autoFocus
-          />
-          {deleteMsg.text && (
-            <div className="ud-settings-msg ud-settings-msg--error">{deleteMsg.text}</div>
-          )}
-        </div>
-      </BaseModal>
-    </div>
-  );
+  const [profileResetTick, setProfileResetTick] = useState(0);
 
   const renderContent = () => {
     if (activeTab === 'dashboard') return renderDashboard();
@@ -946,7 +499,17 @@ const DentistDashboard = () => {
         />
       </div>
     );
-    if (activeTab === 'settings') return renderSettings();
+    if (activeTab === 'profile' || activeTab === 'settings') {
+      return (
+        <div className="ud-content-inner">
+          <DentistProfileView
+            initialSubView={activeTab === 'settings' ? 'settings' : null}
+            resetTick={profileResetTick}
+            onLogout={handleLogout}
+          />
+        </div>
+      );
+    }
     if (activeTab === 'payments') return <PaymentsTab payments={payments} loading={paymentsLoading} title="Payments & Invoices" onSelectPayment={setSelectedPayment} stats={stats} statsLoaded={statsLoaded} />;
     return null;
   };
@@ -955,11 +518,14 @@ const DentistDashboard = () => {
      LAYOUT
   ============================================================ */
   const dentistUser = {
-    name: userName,
-    role: user?.clinicName || 'Dentist',
+    name: formatDoctorName(userName),
+    role: user?.clinicName || null,
     avatar: initials,
-    onProfileClick: () => setActiveTab('settings'),
-    title: 'Account Settings',
+    onProfileClick: () => {
+      setActiveTab('profile');
+      setProfileResetTick((t) => t + 1);
+    },
+    title: 'My Profile',
   };
 
   return (
@@ -985,8 +551,11 @@ const DentistDashboard = () => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           items={NAV_ITEMS}
-          activeKey={activeTab}
-          onSelect={key => setActiveTab(key)}
+          activeKey={activeTab === 'settings' ? 'profile' : activeTab}
+          onSelect={(key) => {
+            setActiveTab(key);
+            if (key === 'profile') setProfileResetTick((t) => t + 1);
+          }}
           user={dentistUser}
           onLogout={handleLogout}
           logoutId="user-logout-btn"

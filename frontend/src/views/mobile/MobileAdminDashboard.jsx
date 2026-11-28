@@ -20,7 +20,7 @@ import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import StaffManagementView from '../../admin/StaffManagementView';
 import MaintenanceModeController from '../../admin/MaintenanceModeController';
-import { formatINR, formatDate } from '../../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getAudioContext, safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import { useToast } from '../../context/ToastContext';
 import './MobileAdminDashboard.css';
@@ -461,7 +461,7 @@ const MobileAdminDashboard = () => {
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
       title: 'Approve Dentist',
-      message: `Are you sure you want to approve "${userName || 'this dentist'}"?`,
+      message: `Are you sure you want to approve "${formatDoctorName(userName, 'this dentist')}"?`,
       type: 'primary',
       confirmText: 'Approve',
       onConfirm: async () => {
@@ -483,7 +483,7 @@ const MobileAdminDashboard = () => {
   const handleReject = async (userId, userName) => {
     setConfirmConfig({
       title: 'Reject Dentist',
-      message: `Are you sure you want to reject "${userName || 'this dentist'}"?`,
+      message: `Are you sure you want to reject "${formatDoctorName(userName, 'this dentist')}"?`,
       type: 'warning',
       confirmText: 'Reject',
       onConfirm: async () => {
@@ -507,7 +507,7 @@ const MobileAdminDashboard = () => {
   const handleDelete = async (userId, userName) => {
     setConfirmConfig({
       title: 'Delete Dentist',
-      message: `Are you sure you want to delete "${userName || 'this dentist'}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete "${formatDoctorName(userName, 'this dentist')}"? This action cannot be undone.`,
       type: 'danger',
       confirmText: 'Delete',
       onConfirm: async () => {
@@ -1040,7 +1040,7 @@ const MobileAdminDashboard = () => {
                       <div className="ma-uc-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
                       <div className="ma-uc-info">
                         <span className="ma-uc-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          {user?.name || 'Unnamed Dentist'}
+                          {formatDoctorName(user?.name, 'Unnamed Dentist')}
                           <TwentyFirstBadge
                             variant={isArchived ? 'archived' : user.status === 'approved' ? 'approved' : user.status === 'rejected' ? 'rejected' : 'pending'}
                             pulse={!isArchived && user.status === 'pending'}
@@ -1135,7 +1135,7 @@ const MobileAdminDashboard = () => {
                   </svg>
                 </button>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{formatDoctorName(drillDentistOrders.name)}</div>
                   {drillDentistOrders.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>}
                 </div>
               </div>
@@ -1231,7 +1231,7 @@ const MobileAdminDashboard = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div className="ma-uc-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
                             <div>
-                              <span className="ma-card-title">{d.name}</span>
+                              <span className="ma-card-title">{formatDoctorName(d.name, 'Unknown')}</span>
                               {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                             </div>
                           </div>
@@ -1294,7 +1294,7 @@ const MobileAdminDashboard = () => {
                 <option value="all">All Dentists</option>
                 {users.filter(u => u.status === 'approved').map(u => (
                   <option key={u._id || u.id} value={u._id || u.id}>
-                    Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
+                    {formatDoctorName(u.name)} {u.clinicName ? `(${u.clinicName})` : ''}
                   </option>
                 ))}
               </select>
@@ -1320,7 +1320,7 @@ const MobileAdminDashboard = () => {
                   </svg>
                 </button>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1a3028' }}>{formatDoctorName(drillDentistPayments.name)}</div>
                   {drillDentistPayments.clinicName && <div style={{ fontSize: '0.78rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>}
                 </div>
               </div>
@@ -1725,7 +1725,7 @@ const MobileAdminDashboard = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <div className="ma-uc-avatar">{(d.name || 'U').charAt(0).toUpperCase()}</div>
                               <div>
-                                <span className="ma-card-title">{d.name}</span>
+                                <span className="ma-card-title">{formatDoctorName(d.name, 'Unknown')}</span>
                                 {d.clinicName && <div className="ma-card-sub">{d.clinicName}</div>}
                               </div>
                             </div>
@@ -2283,7 +2283,7 @@ const MobileAdminDashboard = () => {
         isOpen={Boolean(payModal)}
         onClose={() => setPayModal(null)}
         title="Record Payment"
-        subtitle={payModal ? `${payModal.caseId} · ${payModal.patientName || ''}${payModal.owner?.name ? ` (Dr. ${payModal.owner.name})` : ''}` : undefined}
+        subtitle={payModal ? `${payModal.caseId} · ${payModal.patientName || ''}${payModal.owner?.name ? ` (${formatDoctorName(payModal.owner.name)})` : ''}` : undefined}
         footer={
           <div className="ma-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button className="ma-modal-btn-cancel" onClick={() => setPayModal(null)}>
@@ -2306,7 +2306,7 @@ const MobileAdminDashboard = () => {
             <div className="ma-modal-info">
               <div><strong>Case:</strong> {payModal.caseId}</div>
               <div><strong>Patient:</strong> {payModal.patientName}</div>
-              {payModal.owner?.name && <div><strong>Dentist:</strong> {payModal.owner.name}</div>}
+              {payModal.owner?.name && <div><strong>Dentist:</strong> {formatDoctorName(payModal.owner.name)}</div>}
             </div>
 
             {/* Mode Switcher */}
@@ -2381,7 +2381,7 @@ const MobileAdminDashboard = () => {
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
         title={`Update Payment Details (${selectedPaymentIds.length} Orders)`}
-        subtitle={drillDentistPayments ? `Dr. ${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
+        subtitle={drillDentistPayments ? `${formatDoctorName(drillDentistPayments.name)}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
         footer={
           <div className="ma-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button className="ma-modal-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>
@@ -2408,7 +2408,7 @@ const MobileAdminDashboard = () => {
               </strong></span>
             </div>
             {drillDentistPayments && (
-              <div><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</div>
+              <div><strong>Dentist:</strong> {formatDoctorName(drillDentistPayments.name)} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</div>
             )}
           </div>
 

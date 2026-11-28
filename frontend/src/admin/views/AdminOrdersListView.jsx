@@ -2,7 +2,7 @@
 import React from 'react';
 import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
-import { formatINR, formatDate } from '../../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
 import { StatusBadge } from '../../components/ui/status-badge';
 
@@ -91,7 +91,7 @@ export default function AdminOrdersListView({
             </svg>
           </button>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{drillDentistOrders.name}</div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{formatDoctorName(drillDentistOrders.name, 'Dentist')}</div>
             {drillDentistOrders.clinicName && (
               <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistOrders.clinicName}</div>
             )}
@@ -145,7 +145,7 @@ export default function AdminOrdersListView({
           <div className={isMobile ? 'ma-order-list' : 'ad-orders-list'}>
             {filteredOrders.map((order) => {
               const oId = order._id || order.id || order.caseId;
-              const dentistName = order.owner?.name || order.dentistName || '—';
+              const dentistName = formatDoctorName(order.owner?.name || order.dentistName, '—');
               const clinicName = order.owner?.clinicName || order.clinicName || '';
 
               return (

@@ -4,7 +4,7 @@ import { Icons as Ico } from '../../components/common/DashboardIcons';
 import EmptyState from '../../components/common/EmptyState';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
-import { formatINR, formatDate } from '../../utils/format';
+import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
 import { getOrderPrice } from '../../utils/pricing';
 import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import DentzySearchBar from '../../components/common/DentzySearchBar';
@@ -92,7 +92,7 @@ export default function AdminPaymentsListView({
               </svg>
             </button>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{drillDentistPayments.name}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1a3028' }}>{formatDoctorName(drillDentistPayments.name, 'Dentist')}</div>
               {drillDentistPayments.clinicName && (
                 <div style={{ fontSize: '0.8rem', color: '#708c80' }}>{drillDentistPayments.clinicName}</div>
               )}
@@ -272,7 +272,7 @@ export default function AdminPaymentsListView({
             {payments.map((p) => {
               const isPaid = (p.paymentStatus || p.status) === 'Paid';
               const pId = p._id || p.id || p.caseId;
-              const dentistName = p.owner?.name || p.dentistName || '—';
+              const dentistName = formatDoctorName(p.owner?.name || p.dentistName, '—');
               const clinicName = p.owner?.clinicName || p.clinicName || '';
 
               return (

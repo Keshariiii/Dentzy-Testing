@@ -14,7 +14,7 @@ import BaseModal from '../components/ui/BaseModal';
 import PrintableInvoice from '../components/common/PrintableInvoice';
 import useDashboardUrlState from '../hooks/useDashboardUrlState';
 import './AdminDashboard.css';
-import { formatINR, formatOrderDateTime } from '../utils/format';
+import { formatINR, formatOrderDateTime, formatDoctorName } from '../utils/format';
 import { safeShowPicker, openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
 import TwentyFirstNoticeBar from '../components/ui/twentyfirst-notice-bar';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
@@ -430,7 +430,7 @@ const AdminDashboard = () => {
   const handleApprove = async (userId, userName) => {
     setConfirmConfig({
       title: 'Approve Dentist',
-      message: `Are you sure you want to approve "${userName || 'this dentist'}"?`,
+      message: `Are you sure you want to approve "${formatDoctorName(userName, 'this dentist')}"?`,
       type: 'primary',
       confirmText: 'Approve',
       onConfirm: async () => {
@@ -452,7 +452,7 @@ const AdminDashboard = () => {
   const handleReject = async (userId, userName) => {
     setConfirmConfig({
       title: 'Reject Dentist',
-      message: `Are you sure you want to reject "${userName || 'this dentist'}"?`,
+      message: `Are you sure you want to reject "${formatDoctorName(userName, 'this dentist')}"?`,
       type: 'warning',
       confirmText: 'Reject',
       onConfirm: async () => {
@@ -477,7 +477,7 @@ const AdminDashboard = () => {
   const handleDelete = async (userId, userName) => {
     setConfirmConfig({
       title: 'Delete Dentist',
-      message: `Are you sure you want to delete "${userName || 'this dentist'}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete "${formatDoctorName(userName, 'this dentist')}"? This action cannot be undone.`,
       type: 'danger',
       confirmText: 'Delete',
       onConfirm: async () => {
@@ -506,7 +506,7 @@ const AdminDashboard = () => {
   const handleRestore = async (userId, userName) => {
     setConfirmConfig({
       title: 'Re-Approve Archived Dentist',
-      message: `Are you sure you want to re-approve "${userName || 'this dentist'}"? Their account will be restored and they will need to use "Forgot Password" to set a new password.`,
+      message: `Are you sure you want to re-approve "${formatDoctorName(userName, 'this dentist')}"? Their account will be restored and they will need to use "Forgot Password" to set a new password.`,
       type: 'primary',
       confirmText: 'Re-Approve',
       onConfirm: async () => {
@@ -1001,7 +1001,7 @@ const AdminDashboard = () => {
                     </button>
                     <p className="ad-section-title" style={{ margin: 0 }}>
                       {drillDentistPayments ? (
-                        `${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}`
+                        `${formatDoctorName(drillDentistPayments.name)}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}`
                       ) : 'Payments & Billing'}
                     </p>
 
@@ -1036,7 +1036,7 @@ const AdminDashboard = () => {
                         <option value="all">All Dentists</option>
                         {users.filter(u => u.status === 'approved').map(u => (
                           <option key={u._id || u.id} value={u._id || u.id}>
-                            Dr. {u.name} {u.clinicName ? `(${u.clinicName})` : ''}
+                            {formatDoctorName(u.name)} {u.clinicName ? `(${u.clinicName})` : ''}
                           </option>
                         ))}
                       </select>
@@ -1336,7 +1336,7 @@ const AdminDashboard = () => {
                           return (
                             <DentzyRowCard
                               key={d._id}
-                              title={d.name}
+                              title={formatDoctorName(d.name, 'Unknown')}
                               subtitle={d.clinicName}
                               onClick={() => setDrillDentistPayments(d)}
                               rightPills={
@@ -1376,7 +1376,7 @@ const AdminDashboard = () => {
                     </button>
                     <p className="ad-section-title" style={{ margin: 0 }}>
                       {drillDentistOrders ? (
-                        `${drillDentistOrders.name}${drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}`
+                        `${formatDoctorName(drillDentistOrders.name)}${drillDentistOrders.clinicName ? ` · ${drillDentistOrders.clinicName}` : ''}`
                       ) : 'Lab Orders'}
                     </p>
                   </div>
@@ -1437,7 +1437,7 @@ const AdminDashboard = () => {
                           return (
                             <DentzyRowCard
                               key={d._id}
-                              title={d.name}
+                              title={formatDoctorName(d.name, 'Unknown')}
                               subtitle={d.clinicName}
                               onClick={() => setDrillDentistOrders(d)}
                               rightPills={
@@ -1521,7 +1521,7 @@ const AdminDashboard = () => {
                         return (
                           <DentzyRowCard
                             key={uId}
-                            title={user?.name || 'Unnamed Dentist'}
+                            title={formatDoctorName(user?.name, 'Unnamed Dentist')}
                             avatarMuted={isArchived}
                             badge={<DentzyStatusPill status={isArchived ? 'archived' : user.status} label={statusLabel} type="account" />}
                             subtitle={`${user?.email || '—'}${user?.phone ? ` · ${user.phone}` : ''}`}
@@ -2119,7 +2119,7 @@ const AdminDashboard = () => {
         isOpen={Boolean(payModal)}
         onClose={() => setPayModal(null)}
         title="Record Payment"
-        subtitle={payModal ? `${payModal.caseId} · ${payModal.patientName || ''}${payModal.owner?.name ? ` (Dr. ${payModal.owner.name})` : ''}` : undefined}
+        subtitle={payModal ? `${payModal.caseId} · ${payModal.patientName || ''}${payModal.owner?.name ? ` (${formatDoctorName(payModal.owner.name)})` : ''}` : undefined}
         footer={
           <div className="ad-pay-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button className="ad-pay-btn-cancel" onClick={() => setPayModal(null)}>Cancel</button>
@@ -2136,7 +2136,7 @@ const AdminDashboard = () => {
             <div className="ad-pay-modal-meta">
               <span><strong>Case:</strong> {payModal.caseId}</span>
               <span><strong>Patient:</strong> {payModal.patientName}</span>
-              {payModal.owner?.name && <span><strong>Dentist:</strong> {payModal.owner.name}</span>}
+              {payModal.owner?.name && <span><strong>Dentist:</strong> {formatDoctorName(payModal.owner.name)}</span>}
             </div>
 
             {/* Mode toggle */}
@@ -2189,7 +2189,7 @@ const AdminDashboard = () => {
         isOpen={batchPayModalOpen}
         onClose={() => setBatchPayModalOpen(false)}
         title={`Update Payment Details (${selectedPaymentIds.length} Orders)`}
-        subtitle={drillDentistPayments ? `Dr. ${drillDentistPayments.name}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
+        subtitle={drillDentistPayments ? `${formatDoctorName(drillDentistPayments.name)}${drillDentistPayments.clinicName ? ` · ${drillDentistPayments.clinicName}` : ''}` : undefined}
         footer={
           <div className="ad-pay-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
             <button className="ad-pay-btn-cancel" onClick={() => setBatchPayModalOpen(false)}>Cancel</button>
@@ -2210,7 +2210,7 @@ const AdminDashboard = () => {
               </strong></span>
             </div>
             {drillDentistPayments && (
-              <span><strong>Dentist:</strong> {drillDentistPayments.name} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</span>
+              <span><strong>Dentist:</strong> {formatDoctorName(drillDentistPayments.name)} {drillDentistPayments.clinicName ? `· ${drillDentistPayments.clinicName}` : ''}</span>
             )}
           </div>
 

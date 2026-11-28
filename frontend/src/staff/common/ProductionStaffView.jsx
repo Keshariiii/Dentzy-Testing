@@ -14,7 +14,7 @@ import DentzySearchBar from '../../components/common/DentzySearchBar';
 import PortalNavbar from '../../components/common/PortalNavbar';
 import PortalSidebar from '../../components/common/PortalSidebar';
 import { parseTeeth } from '../../utils/teeth';
-import { formatDate } from '../../utils/format';
+import { formatDate, formatDoctorName } from '../../utils/format';
 import '../StaffDashboard.css';
 
 const TECHNICIAN_STAGES = [
@@ -39,8 +39,9 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
 
   const apiBase = STAFF_API || '/api/staff';
 
-  // ── Views: 'pending-tasks' | 'all-tasks' | 'settings' ────────────────────
+  // ── Views: 'pending-tasks' | 'all-tasks' | 'profile' ─────────────────────
   const [activeView, setActiveView] = useState('pending-tasks');
+  const [profileResetTick, setProfileResetTick] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Task lists & Loading ─────────────────────────────────────────────────
@@ -188,9 +189,9 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         icon: () => Ico.labOrder(18),
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: () => Ico.settings(18),
+        key: 'profile',
+        label: 'Profile',
+        icon: () => Ico.user(18),
       },
     ],
     [pendingCount]
@@ -312,7 +313,7 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     const priority = order.priority || 'Normal';
     const isUrgent = ['urgent', 'rush', 'high'].includes(priority.toLowerCase());
 
-    const dentist = order.dentistName || order.owner?.name || 'Practicing Dentist';
+    const dentist = formatDoctorName(order.dentistName || order.owner?.name, 'Practicing Dentist');
     const clinic = order.clinicName || order.owner?.clinicName || 'Dental Clinic';
 
     return (
@@ -493,10 +494,13 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
         onClick: () => setActiveView('all-tasks'),
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: (size) => Ico.settings(size || 16),
-        onClick: () => setActiveView('settings'),
+        key: 'profile',
+        label: 'Profile',
+        icon: (size) => Ico.user(size || 16),
+        onClick: () => {
+          setActiveView('profile');
+          setProfileResetTick((t) => t + 1);
+        },
       },
     ],
     [loadingPending, pendingCount]
@@ -506,8 +510,11 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
     name: staff?.displayName || `${departmentName} Staff`,
     role: `${departmentName} Technician`,
     avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : departmentName.charAt(0),
-    onProfileClick: () => setActiveView('settings'),
-    title: 'Staff Profile Settings',
+    onProfileClick: () => {
+      setActiveView('profile');
+      setProfileResetTick((t) => t + 1);
+    },
+    title: 'My Profile',
   };
 
   return (
@@ -715,20 +722,8 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
           </div>
         )}
 
-        {/* VIEW 3: Settings */}
-        {activeView === 'settings' && (
-          <div>
-            <div style={{ marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1a3028', margin: 0 }}>
-                Technician Settings
-              </h2>
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0 0' }}>
-                Manage your staff profile details and change portal password.
-              </p>
-            </div>
-            <StaffSettingsView />
-          </div>
-        )}
+        {/* VIEW 3: Profile */}
+        {activeView === 'profile' && <StaffSettingsView resetTick={profileResetTick} />}
 
       </main>
 
@@ -736,7 +731,10 @@ export default function ProductionStaffView({ departmentName = 'Production', tit
       <TwentyFirstBottomNav
         items={bottomNavItems}
         activeKey={activeView}
-        onChange={setActiveView}
+        onChange={(key) => {
+          setActiveView(key);
+          if (key === 'profile') setProfileResetTick((t) => t + 1);
+        }}
       />
 
     </div>

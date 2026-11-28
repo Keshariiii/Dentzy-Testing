@@ -8,11 +8,8 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { apiFetch } from '../../api/client';
-import { useToast } from '../../context/ToastContext';
 import { Skeleton, SkeletonGroup } from '../../components/Skeleton';
 import {
   RecentOrdersSkeleton,
@@ -24,7 +21,6 @@ import MobileHeader from '../../components/mobile/MobileHeader';
 import { TwentyFirstBottomNav } from '../../components/ui/twentyfirst-bottom-nav';
 import OrderDetailModal from '../../components/OrderDetailModal';
 import PaymentDetailModal from '../../components/PaymentDetailModal';
-import BaseModal from '../../components/ui/BaseModal';
 import useDashboardUrlState from '../../hooks/useDashboardUrlState';
 import EmptyState from '../../components/common/EmptyState';
 import { formatINR, formatDate, formatDoctorName } from '../../utils/format';
@@ -33,6 +29,7 @@ import { safeShowPicker, openInvoiceWindow } from '../../utils/appleCompat';
 import './MobileDashboard.css';
 import ProductionPipeline from '../../components/common/ProductionPipeline';
 import CompletedOrdersView from '../../components/dashboard/CompletedOrdersView';
+import DentistProfileView from '../../components/dashboard/DentistProfileView';
 import TwentyFirstIconButton from '../../components/ui/twentyfirst-icon-button';
 import { StatusBadge } from '../../components/ui/status-badge';
 
@@ -78,25 +75,13 @@ const PriorityBadge = ({ priority }) => {
 };
 
 /* ============================================================
-   HELPERS
-============================================================ */
-
-
-const formatDob = (dob) => {
-  if (!dob) return '—';
-  const d = new Date(dob);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-};
-
-/* ============================================================
    TABS CONFIG — feeds TwentyFirstBottomNav
 ============================================================ */
 const DENTIST_NAV_ITEMS = [
   { key: 'dashboard', label: 'Overview',  icon: (active) => Icons.dashboard(active ? 20 : 19) },
   { key: 'orders',    label: 'Orders',    icon: (active) => Icons.labOrder(active ? 20 : 19) },
   { key: 'payments',  label: 'Payments',  icon: (active) => Icons.payments(active ? 20 : 19) },
-  { key: 'settings',  label: 'Settings',  icon: (active) => Icons.settings(active ? 20 : 19) },
+  { key: 'profile',   label: 'Profile',   icon: (active) => Icons.user(active ? 20 : 19) },
 ];
 
 /* ============================================================
@@ -104,10 +89,10 @@ const DENTIST_NAV_ITEMS = [
 ============================================================ */
 const MobileDashboard = () => {
   const router = useRouter();
-  const { user, logout, authFetch, updateUserState, API_URL, DASH_URL } = useAuth();
-  const { showToast } = useToast();
+  const { user, logout, authFetch, DASH_URL } = useAuth();
 
   const [activeTab, setActiveTab] = useDashboardUrlState('tab', 'dashboard');
+  const [profileResetTick, setProfileResetTick] = useState(0);
   const [search,      setSearch]      = useState('');
   const [stats,       setStats]       = useState(null);
   const [orders,      setOrders]      = useState([]);
@@ -123,38 +108,7 @@ const MobileDashboard = () => {
   // Notice bar state
   const [noticeData, setNoticeData] = useState({ enabled: true, messages: TICKER_MESSAGES });
 
-  // Settings state
-  const [profileForm, setProfileForm]           = useState({ name: '', dob: '', phone: '', clinicName: '', address: '' });
-  const [profileMsg,  setProfileMsg]            = useState({ type: '', text: '' });
-  const [profileSaving, setProfileSaving]       = useState(false);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-
-  const [pwForm,  setPwForm]   = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [pwMsg,   setPwMsg]    = useState({ type: '', text: '' });
-  const [pwSaving, setPwSaving] = useState(false);
-  const [showPw, setShowPw]    = useState({ current: false, new: false, confirm: false });
-  const [showChangePassword, setShowChangePassword] = useState(false);
-
-  const [deleteConfirm, setDeleteConfirm]   = useState('');
-  const [deleteMsg, setDeleteMsg]           = useState({ type: '', text: '' });
-  const [deleting, setDeleting]             = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const userName = user?.name || 'Doctor';
-  const initials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-
-  // Sync profile form
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        name:       user.name       || '',
-        dob:        user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
-        phone:      user.phone      || '',
-        clinicName: user.clinicName || '',
-        address:    user.address    || '',
-      });
-    }
-  }, [user]);
 
   const fetchNotice = useCallback(async () => {
     try {
@@ -252,77 +206,6 @@ const MobileDashboard = () => {
 
   const handleLogout = () => { logout(); router.push('/login'); };
 
-  /* ── Profile save ─────────────────────────── */
-  const handleProfileSave = async (e) => {
-    e.preventDefault();
-    if (profileForm.name.trim().length < 2) {
-      setProfileMsg({ type: 'error', text: 'Name must be at least 2 characters.' });
-      return;
-    }
-    if (profileForm.phone && profileForm.phone.trim().length > 0 && profileForm.phone.trim().length < 7) {
-      setProfileMsg({ type: 'error', text: 'Phone number is too short.' });
-      return;
-    }
-    setProfileSaving(true);
-    setProfileMsg({ type: '', text: '' });
-    try {
-      const data = await apiFetch(`${API_URL}/profile`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: profileForm.name, dob: profileForm.dob || null,
-          phone: profileForm.phone, clinicName: profileForm.clinicName, address: profileForm.address,
-        }),
-      });
-      updateUserState(data.user);
-      setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
-      showToast('Profile updated successfully!', 'success');
-      setIsEditingProfile(false);
-    } catch (err) {
-      setProfileMsg({ type: 'error', text: err.message || 'Failed to update profile.' });
-      showToast(err.message || 'Failed to update profile.', 'error');
-    } finally { setProfileSaving(false); }
-  };
-
-  /* ── Password change ──────────────────────── */
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    setPwMsg({ type: '', text: '' });
-    if (pwForm.newPassword !== pwForm.confirmPassword) {
-      setPwMsg({ type: 'error', text: 'New passwords do not match.' });
-      return;
-    }
-    setPwSaving(true);
-    try {
-      const data = await apiFetch(`${API_URL}/change-password`, {
-        method: 'PUT',
-        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
-      });
-      setPwMsg({ type: 'success', text: data.message || 'Password changed successfully!' });
-      showToast('Password changed successfully!', 'success');
-      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setTimeout(() => { setShowChangePassword(false); setPwMsg({ type: '', text: '' }); }, 1800);
-    } catch (err) {
-      setPwMsg({ type: 'error', text: err.message || 'Failed to change password.' });
-      showToast(err.message || 'Failed to change password.', 'error');
-    } finally { setPwSaving(false); }
-  };
-
-  /* ── Delete account ───────────────────────── */
-  const handleDeleteAccount = async () => {
-    setDeleteMsg({ type: '', text: '' });
-    setDeleting(true);
-    try {
-      await apiFetch(`${API_URL}/profile`, {
-        method: 'DELETE',
-        body: JSON.stringify({ password: deleteConfirm }),
-      });
-      logout();
-      router.push('/login');
-    } catch (err) {
-      setDeleteMsg({ type: 'error', text: err.message || 'Failed to delete account.' });
-    } finally { setDeleting(false); }
-  };
-
   /* ============================================================
      OVERVIEW TAB
   ============================================================ */
@@ -336,7 +219,7 @@ const MobileDashboard = () => {
       { key: 'payments',    icon: Icons.payments(20),  title: 'Payments & Invoices',  desc: 'Review outstanding balances and full payment history.',        cta: 'View Payments', color: 'teal',   onClick: () => setActiveTab('payments') },
       { key: 'pending',     icon: Icons.clock(20),     title: 'Pending Invoices',     desc: 'Cases awaiting payment — clear dues to avoid delays.',        cta: 'View Pending',  color: 'amber',  onClick: () => setActiveTab('payments') },
       { key: 'support',     icon: Icons.chat(20),      title: 'Lab Support',          desc: 'Reach our clinical team for urgent case queries.',            cta: 'Contact',       color: 'teal',   onClick: () => { const el = document.getElementById('m-support-bar'); el?.scrollIntoView({ behavior: 'smooth' }); } },
-      { key: 'settings',    icon: Icons.settings(20),  title: 'Account Settings',     desc: 'Manage profile, change password, and account preferences.',  cta: 'Go to Settings',color: 'teal',   onClick: () => setActiveTab('settings') },
+      { key: 'profile',     icon: Icons.user(20),      title: 'Profile & Settings',   desc: 'Manage clinic details, password, and account settings.',      cta: 'Open Profile',  color: 'teal',   onClick: () => setActiveTab('profile') },
     ];
 
     const RESOURCES = [
@@ -358,7 +241,7 @@ const MobileDashboard = () => {
         {stats && stats.orders.total === 0 && (
           <DentistWelcomeBanner
             userName={userName}
-            onNavigateSettings={() => setActiveTab('settings')}
+            onNavigateProfile={() => setActiveTab('profile')}
             onNavigateOrders={() => setActiveTab('orders')}
           />
         )}
@@ -1012,226 +895,6 @@ const MobileDashboard = () => {
 
 
   /* ============================================================
-     SETTINGS TAB
-  ============================================================ */
-  const renderSettings = () => (
-    <div className="m-tab-content">
-      <h2 className="m-tab-title">Account Settings</h2>
-
-      {/* Profile Card */}
-      <div className="m-settings-card">
-        <div className="m-settings-card__head">
-          <div className="m-settings-avatar">{initials}</div>
-          <div className="m-settings-identity">
-            <span className="m-settings-name">{user?.name}</span>
-            <span className="m-settings-email">{user?.email}</span>
-          </div>
-          {!isEditingProfile && (
-            <TwentyFirstIconButton
-              icon={Icons.pencil(15)}
-              title="Edit Profile"
-              ariaLabel="Edit Profile"
-              onClick={() => { setIsEditingProfile(true); setProfileMsg({ type: '', text: '' }); }}
-              size="md"
-              variant="soft"
-            />
-          )}
-        </div>
-
-        {!isEditingProfile ? (
-          <div className="m-info-rows">
-            {[
-              { label: 'Full Name',    value: user?.name || '—',        icon: Icons.user(12) },
-              { label: 'Date of Birth', value: formatDob(user?.dob),    icon: null },
-              { label: 'Email',         value: user?.email,             icon: Icons.mail(12), verified: true },
-              { label: 'Phone',         value: user?.phone || '—',      icon: Icons.phone(12) },
-              { label: 'Clinic Name',   value: user?.clinicName || '—', icon: null },
-              { label: 'Address',       value: user?.address || '—',    icon: null },
-            ].map((row) => (
-              <div key={row.label} className="m-info-row">
-                <span className="m-info-label">{row.icon} {row.label}</span>
-                <span className="m-info-value">
-                  {row.value}
-                  {row.verified && <span className="m-verified-tag">Verified</span>}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <form className="m-settings-form" onSubmit={handleProfileSave} noValidate>
-            {profileMsg.text && (
-              <div className={`m-msg m-msg--${profileMsg.type}`}>{profileMsg.text}</div>
-            )}
-            <div className="m-form-group">
-              <label>Full Name</label>
-              <input type="text" value={profileForm.name} maxLength={60}
-                onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} autoFocus />
-            </div>
-            <div className="m-form-group">
-              <label>Date of Birth</label>
-              <input
-                type="date"
-                value={profileForm.dob}
-                placeholder="Select Date of Birth"
-                data-empty={!profileForm.dob}
-                onClick={safeShowPicker}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => setProfileForm(p => ({ ...p, dob: e.target.value }))}
-              />
-            </div>
-            <div className="m-form-group">
-              <label>Phone</label>
-              <input type="tel" value={profileForm.phone} maxLength={20} placeholder="Your phone number"
-                onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))} />
-            </div>
-            <div className="m-form-group">
-              <label>Clinic Name</label>
-              <input type="text" value={profileForm.clinicName} maxLength={100} placeholder="Your clinic name"
-                onChange={e => setProfileForm(p => ({ ...p, clinicName: e.target.value }))} />
-            </div>
-            <div className="m-form-group">
-              <label>Address</label>
-              <textarea rows="2" value={profileForm.address} maxLength={300} placeholder="Clinic address"
-                onChange={e => setProfileForm(p => ({ ...p, address: e.target.value }))} />
-            </div>
-            <div className="m-form-actions">
-              <button type="submit" className="m-btn m-btn--primary" disabled={profileSaving}>
-                {profileSaving ? <span className="m-spinner-sm" /> : 'Save Changes'}
-              </button>
-              <button type="button" className="m-btn m-btn--ghost"
-                onClick={() => { setIsEditingProfile(false); setProfileMsg({ type: '', text: '' }); }}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      {/* Security Card */}
-      <div className="m-settings-card">
-        <div className="m-settings-action-row">
-          <div className="m-settings-action-info">
-            <span className="m-settings-action-label">{Icons.shield(14)} Change Password</span>
-            <span className="m-settings-action-sub">Update your login password.</span>
-          </div>
-          <button className="m-settings-edit-btn"
-            onClick={() => { setShowChangePassword(v => !v); setPwMsg({ type: '', text: '' }); setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' }); }}>
-            {showChangePassword ? 'Cancel' : 'Change'}
-          </button>
-        </div>
-
-        {showChangePassword && (
-          <form className="m-settings-form" onSubmit={handlePasswordChange} noValidate>
-            {pwMsg.text && <div className={`m-msg m-msg--${pwMsg.type}`}>{pwMsg.text}</div>}
-            {[
-              { key: 'current', label: 'Current Password', field: 'currentPassword', ac: 'current-password' },
-              { key: 'new',     label: 'New Password',     field: 'newPassword',     ac: 'new-password' },
-              { key: 'confirm', label: 'Confirm Password', field: 'confirmPassword', ac: 'new-password' },
-            ].map(({ key, label, field, ac }) => (
-              <div className="m-form-group" key={key}>
-                <label>{label}</label>
-                <div className="m-pw-wrap">
-                  <input
-                    type={showPw[key] ? 'text' : 'password'}
-                    value={pwForm[field]}
-                    placeholder={label}
-                    autoComplete={ac}
-                    onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))}
-                  />
-                  <button type="button" className="m-pw-eye"
-                    onClick={() => setShowPw(p => ({ ...p, [key]: !p[key] }))}>
-                    {Icons.eye(16, showPw[key])}
-                  </button>
-                </div>
-              </div>
-            ))}
-            <button type="submit" className="m-btn m-btn--primary" disabled={pwSaving}>
-              {pwSaving ? <span className="m-spinner-sm" /> : 'Update Password'}
-            </button>
-            <div className="m-forgot-wrap">
-              <Link href="/forgot-password" className="m-forgot-link">Forgot your password?</Link>
-            </div>
-          </form>
-        )}
-
-        <div className="m-settings-divider" />
-
-        <div className="m-settings-action-row">
-          <div className="m-settings-action-info">
-            <span className="m-settings-action-label m-settings-action-label--danger">
-              {Icons.trash(14)} Delete Account
-            </span>
-            <span className="m-settings-action-sub">Permanently remove your account and data.</span>
-          </div>
-          <button className="m-settings-delete-outline-btn"
-            onClick={() => { setShowDeleteModal(true); setDeleteMsg({ type: '', text: '' }); setDeleteConfirm(''); }}>
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Logout */}
-      <button className="m-logout-btn" onClick={handleLogout}>
-        {Icons.logout(15)} Logout
-      </button>
-
-      {/* Delete Modal */}
-      <BaseModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Account?"
-        subtitle="Permanent Action Advisory"
-        footer={
-          <div className="m-modal-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', width: '100%' }}>
-            <button className="m-btn m-btn--ghost" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
-              Cancel
-            </button>
-            <button className="m-btn m-btn--danger" onClick={handleDeleteAccount}
-              disabled={deleting || !deleteConfirm}>
-              {deleting ? <span className="m-spinner-sm" /> : 'Delete Account'}
-            </button>
-          </div>
-        }
-        maxWidth="max-w-md"
-        id="m-delete-modal"
-      >
-        <div style={{ padding: '4px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: '#fee2e2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.88rem', color: '#4a5c54', lineHeight: 1.5 }}>
-            This will permanently delete your account and all associated data. Enter your password to confirm.
-          </p>
-          <input
-            type="password"
-            className="m-modal-input"
-            placeholder="Enter your password"
-            value={deleteConfirm}
-            onChange={e => setDeleteConfirm(e.target.value)}
-            autoFocus
-          />
-          {deleteMsg.text && (
-            <div className="m-msg m-msg--error">{deleteMsg.text}</div>
-          )}
-        </div>
-      </BaseModal>
-
-      <div className="m-bottom-spacer" />
-    </div>
-  );
-
-  /* ============================================================
      TAB ROUTER
   ============================================================ */
   const renderContent = () => {
@@ -1250,7 +913,18 @@ const MobileDashboard = () => {
         </div>
       );
       case 'payments':  return renderPayments();
-      case 'settings':  return renderSettings();
+      case 'profile':
+      case 'settings':
+        return (
+          <div className="m-tab-content">
+            <DentistProfileView
+              initialSubView={activeTab === 'settings' ? 'settings' : null}
+              resetTick={profileResetTick}
+              onLogout={handleLogout}
+              isMobile={true}
+            />
+          </div>
+        );
       default:          return renderOverview();
     }
   };
@@ -1260,7 +934,13 @@ const MobileDashboard = () => {
   ============================================================ */
   return (
     <div className="m-app-shell">
-      <MobileHeader title={null} onAvatarClick={() => setActiveTab('settings')}>
+      <MobileHeader
+        title={null}
+        onAvatarClick={() => {
+          setActiveTab('profile');
+          setProfileResetTick((t) => t + 1);
+        }}
+      >
         <div className="m-header-search-bar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -1295,8 +975,11 @@ const MobileDashboard = () => {
       {/* -- 21st.dev: Floating Bottom Navigation -- */}
       <TwentyFirstBottomNav
         items={DENTIST_NAV_ITEMS}
-        activeKey={activeTab}
-        onChange={setActiveTab}
+        activeKey={activeTab === 'settings' ? 'profile' : activeTab}
+        onChange={(key) => {
+          setActiveTab(key);
+          if (key === 'profile') setProfileResetTick((t) => t + 1);
+        }}
         layoutId="dentist-nav-pill"
         ariaLabel="Dentist portal navigation"
       />

@@ -14,7 +14,7 @@ import DentzySearchBar from '../../components/common/DentzySearchBar';
 import PortalNavbar from '../../components/common/PortalNavbar';
 import PortalSidebar from '../../components/common/PortalSidebar';
 import { parseTeeth } from '../../utils/teeth';
-import { formatDate } from '../../utils/format';
+import { formatDate, formatDoctorName } from '../../utils/format';
 import '../StaffDashboard.css';
 
 function formatTime(dateStr) {
@@ -33,8 +33,8 @@ function formatTime(dateStr) {
 
 /**
  * DeliveryStaffDashboard — Dedicated dashboard for Delivery personnel.
- * 2 Tabs: 'delivery' | 'settings'. Default: 'delivery'.
- * Mobile: TwentyFirstBottomNav with 2 items (map with pending badge, settings).
+ * 2 Tabs: 'delivery' | 'profile'. Default: 'delivery'.
+ * Mobile: TwentyFirstBottomNav with 2 items (map with pending badge, profile).
  */
 export default function DeliveryStaffDashboard() {
   const { authFetch, STAFF_API, staff, staffLogout } = useStaffAuth();
@@ -42,6 +42,7 @@ export default function DeliveryStaffDashboard() {
   const apiBase = STAFF_API || '/api/staff';
 
   const [activeTab, setActiveTab] = useState('delivery');
+  const [profileResetTick, setProfileResetTick] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterType, setFilterType] = useState('pending'); // 'pending' | 'completed'
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,9 +151,9 @@ export default function DeliveryStaffDashboard() {
         badge: pendingDeliveries.length > 0 ? pendingDeliveries.length : undefined,
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: (active) => Ico.settings(typeof active === 'number' ? active : (active ? 20 : 18)),
+        key: 'profile',
+        label: 'Profile',
+        icon: (active) => Ico.user(typeof active === 'number' ? active : (active ? 20 : 18)),
       },
     ],
     [pendingDeliveries.length]
@@ -168,10 +169,13 @@ export default function DeliveryStaffDashboard() {
         onClick: () => setActiveTab('delivery'),
       },
       {
-        key: 'settings',
-        label: 'Settings',
-        icon: (size) => Ico.settings(size || 16),
-        onClick: () => setActiveTab('settings'),
+        key: 'profile',
+        label: 'Profile',
+        icon: (size) => Ico.user(size || 16),
+        onClick: () => {
+          setActiveTab('profile');
+          setProfileResetTick((t) => t + 1);
+        },
       },
     ],
     [pendingDeliveries.length]
@@ -181,8 +185,11 @@ export default function DeliveryStaffDashboard() {
     name: staff?.displayName || 'Delivery Staff',
     role: 'Delivery Specialist',
     avatar: staff?.displayName ? staff.displayName.charAt(0).toUpperCase() : 'D',
-    onProfileClick: () => setActiveTab('settings'),
-    title: 'Staff Profile Settings',
+    onProfileClick: () => {
+      setActiveTab('profile');
+      setProfileResetTick((t) => t + 1);
+    },
+    title: 'My Profile',
   };
 
   return (
@@ -213,8 +220,8 @@ export default function DeliveryStaffDashboard() {
 
       {/* ── Main Content Area ─────────────────────────────────────────────── */}
       <main className="sd-main" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '16px' }}>
-        {activeTab === 'settings' ? (
-          <StaffSettingsView />
+        {activeTab === 'profile' ? (
+          <StaffSettingsView resetTick={profileResetTick} />
         ) : (
           <div>
             {/* ── Section Title & Filter Toggle ───────────────────────────────── */}
@@ -322,7 +329,7 @@ export default function DeliveryStaffDashboard() {
                   const isDelivered = delivery.stage === 'completed' || delivery.deliveryStatus === 'Delivered';
 
                   const clinicName = delivery.clinicName || delivery.owner?.clinicName || 'Clinic Name Not Provided';
-                  const dentistName = delivery.dentistName || delivery.owner?.name || 'Dentist';
+                  const dentistName = formatDoctorName(delivery.dentistName || delivery.owner?.name, 'Dentist');
                   const address = delivery.deliveryAddress || delivery.owner?.address || 'Address not listed';
                   const phone = delivery.contactPhone || delivery.owner?.phone || '';
 
@@ -445,7 +452,7 @@ export default function DeliveryStaffDashboard() {
                               {clinicName}
                             </div>
                             <div style={{ fontSize: '0.8rem', color: '#527264', fontWeight: 600 }}>
-                              Dr. {dentistName}
+                              {dentistName}
                             </div>
                           </div>
 
@@ -617,7 +624,10 @@ export default function DeliveryStaffDashboard() {
       <TwentyFirstBottomNav
         items={mobileNavItems}
         activeKey={activeTab}
-        onChange={setActiveTab}
+        onChange={(key) => {
+          setActiveTab(key);
+          if (key === 'profile') setProfileResetTick((t) => t + 1);
+        }}
         layoutId="delivery-bottom-nav"
       />
     </div>
