@@ -1,15 +1,13 @@
 'use client';
 import React from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
 /**
  * TwentyFirstNavCard -- 21st.dev
  *
- * Interactive action/navigation card with tactile spring tap feedback,
+ * Interactive action/navigation card with calm border/color feedback,
  * rounded icon container, title, description, and right chevron.
- * Ponytail: minimal props, zero dependencies beyond framer-motion + cn.
- * Impeccable: no emojis, token colors, shadow elevation, 44px touch targets.
+ * Ponytail: plain button with CSS color transitions (no Framer Motion spring bounce).
  *
  * @param {object} props
  * @param {string} props.label - Card title
@@ -31,17 +29,14 @@ export function TwentyFirstNavCard({
   ...props
 }) {
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel || label}
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.985 }}
-      transition={{ duration: 0.15 }}
       className={cn(
         'group flex w-full items-center gap-3 sm:gap-3.5 rounded-2xl bg-white p-3.5 sm:p-4',
-        'text-left shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(30,80,56,0.06)]',
-        'border border-[#e2ece6] hover:border-[#1e5038]/30 cursor-pointer outline-none transition-all duration-200',
+        'text-left shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(30,80,56,0.05)]',
+        'border border-[#e2ece6] hover:border-[#1e5038]/30 cursor-pointer outline-none transition-colors duration-150',
         'focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2',
         className,
       )}
@@ -51,7 +46,7 @@ export function TwentyFirstNavCard({
         className={cn(
           'flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl',
           'bg-[var(--dz-color-primary-muted,#e8f5ee)] text-[var(--dz-color-primary-dark,#1e5038)]',
-          'transition-all duration-200 group-hover:scale-105 group-hover:bg-[var(--dz-color-primary-dark,#1e5038)] group-hover:text-white',
+          'transition-colors duration-150 group-hover:bg-[var(--dz-color-primary-dark,#1e5038)] group-hover:text-white',
         )}
       >
         {icon}
@@ -84,12 +79,12 @@ export function TwentyFirstNavCard({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:stroke-[#1e5038]"
+        className="ml-auto shrink-0 transition-colors duration-150 group-hover:stroke-[#1e5038]"
         aria-hidden="true"
       >
         <polyline points="9 18 15 12 9 6" />
       </svg>
-    </motion.button>
+    </button>
   );
 }
 

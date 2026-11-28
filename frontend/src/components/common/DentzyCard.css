@@ -9,7 +9,7 @@
   border-radius: 14px;
   padding: 16px 20px;
   box-shadow: 0 1px 3px rgba(26, 48, 40, 0.04), 0 1px 2px rgba(26, 48, 40, 0.02);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
   backface-visibility: hidden;
   position: relative;
 }
@@ -19,13 +19,8 @@
 }
 
 .dz-common-card--interactive:hover {
-  transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(30, 80, 56, 0.05);
   border-color: rgba(30, 80, 56, 0.35);
-}
-
-.dz-common-card--interactive:active {
-  transform: scale(0.997);
 }
 
 /* ── Rebalanced Horizontal Row Card (Dentists, Groups, Staff) ─────────────── */

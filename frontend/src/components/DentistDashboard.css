@@ -367,11 +367,11 @@
   box-shadow: var(--dz-card-shadow-rest, 0 1px 3px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02));
   border: var(--dz-card-border, 1px solid var(--border, #e5e7eb));
   backface-visibility: hidden;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .ud-stat-card:hover {
-  transform: var(--dz-card-lift, translateY(-3px));
+  transform: var(--dz-card-lift, none);
   box-shadow: var(--dz-card-shadow-hover, 0 6px 16px -2px rgba(30, 80, 56, 0.08));
   border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
 }
@@ -382,13 +382,9 @@
 }
 
 .ud-stat-card--clickable:hover {
-  transform: var(--dz-card-lift, translateY(-3px));
+  transform: var(--dz-card-lift, none);
   box-shadow: var(--dz-card-shadow-hover, 0 6px 16px -2px rgba(30, 80, 56, 0.08));
   border-color: var(--dz-card-border-hover, var(--dz-color-primary-accent, #1e5038));
-}
-
-.ud-stat-card--clickable:active {
-  transform: scale(0.99);
 }
 
 /* Colored icon containers */
@@ -399,11 +395,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-}
-
-.ud-stat-card:hover .ud-stat-icon-wrap {
-  transform: scale(1.05);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .ud-icon-blue   { background: #ebf3ff; color: #3b82f6; }
@@ -1467,14 +1459,13 @@
   outline: none;
   position: relative;
   overflow: hidden;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 /* Action Card color accents removed for minimalism */
 
 .ud-action-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 32px rgba(30,80,56,0.11);
+  box-shadow: var(--dz-card-shadow-hover, 0 2px 6px rgba(30, 80, 56, 0.05));
   border-color: #c5ddd3;
 }
 
@@ -1532,8 +1523,6 @@
 .ud-action-card--teal .ud-action-cta   { color: var(--dz-color-primary); }
 .ud-action-card--amber .ud-action-cta  { color: #b45309; }
 
-.ud-action-card:hover .ud-action-cta { gap: 9px; }
-
 /* -- Resource Center --------------------------------------------------------- */
 .ud-resources-grid {
   display: flex;
@@ -1549,12 +1538,12 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: box-shadow 0.2s, transform 0.18s;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .ud-resource-card:hover {
-  box-shadow: 0 4px 16px rgba(30,80,56,0.08);
-  transform: translateX(4px);
+  box-shadow: var(--dz-card-shadow-hover, 0 2px 6px rgba(30, 80, 56, 0.05));
+  border-color: rgba(30, 80, 56, 0.3);
 }
 
 .ud-resource-emoji {

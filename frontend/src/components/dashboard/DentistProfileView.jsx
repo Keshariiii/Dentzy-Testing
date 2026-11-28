@@ -49,10 +49,11 @@ export default function DentistProfileView({
   const { user, updateUserState, API_URL } = useAuth();
   const { showToast } = useToast();
 
-  // Sub-view navigation: null (Profile Hub) | 'details' | 'settings'
+  // Sub-view navigation: null (Profile Details + Settings) | 'settings'
   const [subView, setSubView] = useState(initialSubView);
   useEffect(() => {
     setSubView(initialSubView);
+    if (!initialSubView) setIsEditingProfile(false);
   }, [initialSubView, resetTick]);
 
   // ── Profile Form State ────────────────────────────────────────────────────
@@ -97,14 +98,6 @@ export default function DentistProfileView({
   }, [user]);
 
   const userName = user?.name || 'Doctor';
-  const initials =
-    userName
-      .split(' ')
-      .filter(Boolean)
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || 'D';
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -231,98 +224,12 @@ export default function DentistProfileView({
         paddingBottom: isMobile ? '90px' : '32px',
       }}
     >
-      {/* ── LANDING: Profile Hub ──────────────────────────────────────────── */}
+      {/* ── LANDING: Profile Details + Settings + Logout ──────────────────── */}
       {subView === null && (
         <>
           <h2 style={{ fontSize: isMobile ? '1.15rem' : '1.3rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>
             Profile
           </h2>
-
-          {/* Identity Header Card */}
-          <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div
-              style={{
-                width: '54px',
-                height: '54px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #1e5038 0%, #2a7b55 100%)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '1.15rem',
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1a3028', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {formatDoctorName(userName)}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '3px' }}>
-                {user?.clinicName && (
-                  <span style={{ background: '#e8f5ee', color: '#1e5038', padding: '2px 8px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700 }}>
-                    {user.clinicName}
-                  </span>
-                )}
-                <span style={{ fontSize: '0.78rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.email}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Hub Menu Cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <TwentyFirstNavCard
-              label="Clinic & Personal Details"
-              desc="View and update name, date of birth, phone, clinic, and address"
-              icon={Icons.user(20)}
-              onClick={() => setSubView('details')}
-            />
-            <TwentyFirstNavCard
-              label="Settings"
-              desc="Change password, account security, and delete account"
-              icon={Icons.settings(20)}
-              onClick={() => setSubView('settings')}
-            />
-          </div>
-
-          {/* Clean Bottom Logout */}
-          {onLogout && (
-            <button
-              type="button"
-              onClick={onLogout}
-              style={{
-                marginTop: '4px',
-                minHeight: '46px',
-                width: '100%',
-                borderRadius: '14px',
-                border: '1px solid #fecaca',
-                background: '#fff5f5',
-                color: '#dc2626',
-                fontWeight: 700,
-                fontSize: '0.88rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-              }}
-            >
-              {Icons.logout(16)}
-              <span>Log Out</span>
-            </button>
-          )}
-        </>
-      )}
-
-      {/* ── SUB-VIEW 1: Clinic & Personal Details ─────────────────────────── */}
-      {subView === 'details' && (
-        <>
-          {renderSubViewHeader('Clinic & Personal Details', 'Profile / Personal & Clinic Info')}
 
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid #f0f4f2', gap: '12px' }}>
@@ -492,6 +399,39 @@ export default function DentistProfileView({
               </form>
             )}
           </div>
+
+          <TwentyFirstNavCard
+            label="Settings"
+            desc="Change password, account security, and delete account"
+            icon={Icons.settings(20)}
+            onClick={() => setSubView('settings')}
+          />
+
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              style={{
+                marginTop: '4px',
+                minHeight: '46px',
+                width: '100%',
+                borderRadius: '14px',
+                border: '1px solid #fecaca',
+                background: '#fff5f5',
+                color: '#dc2626',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              {Icons.logout(16)}
+              <span>Log Out</span>
+            </button>
+          )}
         </>
       )}
 

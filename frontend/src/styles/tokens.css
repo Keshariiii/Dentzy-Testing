@@ -131,14 +131,14 @@
   --dz-shadow-xl:    0 8px 24px rgba(30, 80, 56, 0.10);
   --dz-shadow-focus: 0 0 0 3px rgba(112, 140, 128, 0.20); /* Focus ring */
 
-  /* ── Unified Card Tokens (14px radius, sage border, subtle shadow & -1px lift) ── */
+  /* ── Unified Card Tokens (14px radius, sage border, calm rest/hover) ────────── */
   --dz-card-radius:          14px;
   --dz-card-icon-radius:     10px;
   --dz-card-border:          1px solid rgba(112, 140, 128, 0.14);
   --dz-card-border-hover:    rgba(30, 80, 56, 0.35);
   --dz-card-shadow-rest:     0 1px 3px rgba(26, 48, 40, 0.04), 0 1px 2px rgba(26, 48, 40, 0.02);
   --dz-card-shadow-hover:    0 2px 6px rgba(30, 80, 56, 0.05);
-  --dz-card-lift:            translateY(-1px);
+  --dz-card-lift:            none;
 
   /* ── Transitions ─────────────────────────────────────────────── */
   --dz-transition-fast:    0.15s ease;

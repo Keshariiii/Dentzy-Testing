@@ -36,13 +36,11 @@ export function VengeanceCard({
       ref={ref}
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-gray-200/80',
-        'bg-white transition-all duration-300',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_16px_-2px_rgba(30,80,56,0.08)] hover:border-[#1e5038]/30',
+        'bg-white transition-colors duration-150',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(30,80,56,0.05)] hover:border-[#1e5038]/30',
         className,
       )}
       onMouseMove={handleMouseMove}
-      whileHover={hoverSpotlight ? { y: -2 } : {}}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       {...props}
     >
       {/* Spotlight overlay */}

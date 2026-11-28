@@ -278,17 +278,17 @@ html {
 }
 
 .service-card:hover {
-  transform: translateY(-8px) scale(1.015);
-  box-shadow: 0 20px 48px rgba(30, 80, 56, 0.14);
+  transform: var(--dz-card-lift, none);
+  box-shadow: 0 6px 18px rgba(30, 80, 56, 0.08);
   border-color: var(--dz-color-primary);
 }
 
 .service-image img {
-  transition: transform 0.55s var(--ease-smooth);
+  transition: transform 0.3s var(--ease-smooth);
 }
 
 .service-card:hover .service-image img {
-  transform: scale(1.08);
+  transform: scale(1.02);
 }
 
 /* ---------------------------------------------------------------------------
@@ -296,17 +296,16 @@ html {
 --------------------------------------------------------------------------- */
 .step-content {
   transition:
-    filter      0.3s var(--ease-smooth),
-    background  0.3s var(--ease-smooth);
+    filter      0.2s var(--ease-smooth),
+    background  0.2s var(--ease-smooth);
 }
 
 .process-step {
-  transition: transform 0.38s var(--ease-expo);
-  will-change: transform;
+  transition: transform 0.2s var(--ease-expo);
 }
 
 .process-step:hover {
-  transform: translateY(-10px) scale(1.04);
+  transform: translateY(-2px);
   z-index: 10;
 }
 
@@ -315,23 +314,23 @@ html {
 --------------------------------------------------------------------------- */
 .makes-us-item {
   transition:
-    transform  var(--trans-slow) var(--ease-smooth),
-    opacity    var(--trans-slow);
+    transform  0.2s var(--ease-smooth),
+    opacity    0.2s;
 }
 
 .makes-us-item:hover {
-  transform: translateY(-8px);
+  transform: translateY(-2px);
 }
 
 .makes-us-image img {
   transition:
-    transform  0.55s var(--ease-smooth),
-    box-shadow var(--trans-slow);
+    transform  0.3s var(--ease-smooth),
+    box-shadow 0.25s;
 }
 
 .makes-us-item:hover .makes-us-image img {
-  transform: scale(1.06);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+  transform: scale(1.02);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
 }
 
 /* h3 underline grows in on hover */

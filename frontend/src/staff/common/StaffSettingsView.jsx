@@ -11,10 +11,9 @@ import { safeShowPicker } from '../../utils/appleCompat';
 import '../StaffDashboard.css';
 
 /**
- * StaffSettingsView — Unified Profile Hub + nested Settings screen for all 8 non-executive staff roles.
+ * StaffSettingsView — Unified Profile Details + nested Settings screen for all 8 non-executive staff roles.
  *
- * Landing (subView === null): Identity Card + Personal & Contact Details + Settings + Logout.
- * Sub-view 'details': Read-only locked fields (Employee ID, Username, Designation) + Editable form.
+ * Landing (subView === null): Identity + Locked & Editable Contact Details + Settings card + Logout.
  * Sub-view 'settings': Security & Password form (zero self-deletion).
  */
 export default function StaffSettingsView({ resetTick = 0 }) {
@@ -24,7 +23,7 @@ export default function StaffSettingsView({ resetTick = 0 }) {
 
   const apiBase = STAFF_API || '/api/staff';
 
-  // Sub-view navigation: null (Profile Hub) | 'details' | 'settings'
+  // Sub-view navigation: null (Profile Details + Settings) | 'settings'
   const [subView, setSubView] = useState(null);
   useEffect(() => {
     setSubView(null);
@@ -184,95 +183,10 @@ export default function StaffSettingsView({ resetTick = 0 }) {
   return (
     <div className="sd-settings-wrapper" style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '32px' }}>
 
-      {/* ── LANDING: Staff Profile Hub ────────────────────────────────────── */}
+      {/* ── LANDING: Staff Profile Details + Settings + Logout ───────────── */}
       {subView === null && (
         <>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1a3028', margin: 0 }}>My Profile</h2>
-
-          {/* Identity Header Card */}
-          <div className="sd-settings-card" style={{ background: '#fff', borderRadius: '16px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', border: '1px solid #eef2f0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div
-              style={{
-                width: '54px',
-                height: '54px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #1e5038 0%, #2a7b55 100%)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '1.15rem',
-                letterSpacing: '0.02em',
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <h3 style={{ fontSize: '1.08rem', fontWeight: 700, color: '#1a3028', margin: 0, lineHeight: 1.3 }}>
-                {staff?.displayName || staff?.username || 'Staff Member'}
-              </h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
-                <span style={{ background: '#eef6f2', color: '#1e5038', padding: '2px 9px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
-                  {staff?.designation || 'Staff'}
-                </span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  @{staff?.username || '—'} · #{staff?.employeeId || '—'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Hub Menu Rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <TwentyFirstNavCard
-              label="Personal & Contact Details"
-              desc="View locked Employee ID & edit name, email, phone, and DOB"
-              icon={Ico.user(20)}
-              onClick={() => setSubView('details')}
-            />
-            <TwentyFirstNavCard
-              label="Settings"
-              desc="Change your staff portal password and account security"
-              icon={Ico.settings(20)}
-              onClick={() => setSubView('settings')}
-            />
-          </div>
-
-          {/* Logout Button */}
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            style={{
-              marginTop: '4px',
-              background: '#fef2f2',
-              color: '#dc2626',
-              border: '1px solid #fecaca',
-              borderRadius: '14px',
-              padding: '12px 18px',
-              fontSize: '0.88rem',
-              fontWeight: 700,
-              cursor: loggingOut ? 'not-allowed' : 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              minHeight: '46px',
-              width: '100%',
-            }}
-          >
-            {Ico.logout(16)}
-            <span>{loggingOut ? 'Logging out...' : 'Log Out of Staff Portal'}</span>
-          </button>
-        </>
-      )}
-
-      {/* ── SUB-VIEW 1: Personal & Contact Details ───────────────────────── */}
-      {subView === 'details' && (
-        <>
-          {renderSubViewHeader('Personal & Contact Details', 'My Profile / Identity & Contact Info')}
           <div className="sd-settings-card" style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', border: '1px solid #eef2f0' }}>
         
         {/* Header with Avatar & Details */}
@@ -486,6 +400,39 @@ export default function StaffSettingsView({ resetTick = 0 }) {
           </div>
         </form>
       </div>
+
+          <TwentyFirstNavCard
+            label="Settings"
+            desc="Change your staff portal password and account security"
+            icon={Ico.settings(20)}
+            onClick={() => setSubView('settings')}
+          />
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            style={{
+              marginTop: '4px',
+              background: '#fef2f2',
+              color: '#dc2626',
+              border: '1px solid #fecaca',
+              borderRadius: '14px',
+              padding: '12px 18px',
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              cursor: loggingOut ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              minHeight: '46px',
+              width: '100%',
+            }}
+          >
+            {Ico.logout(16)}
+            <span>{loggingOut ? 'Logging out...' : 'Log Out of Staff Portal'}</span>
+          </button>
         </>
       )}
 

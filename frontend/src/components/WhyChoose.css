@@ -86,13 +86,12 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1.25rem;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .why-choose-card:hover .why-choose-icon-wrap {
   background: var(--dz-card-border-hover, var(--primary, #1e5038));
   color: #ffffff;
-  transform: scale(1.05);
 }
 
 .why-choose-card-title {
