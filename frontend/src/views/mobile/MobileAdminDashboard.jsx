@@ -35,13 +35,10 @@ import NoticeEditorCard, { STAFF_TICKER_MESSAGES } from '../../components/common
 import SubViewHeader from '../../components/common/SubViewHeader';
 import MonthFilterBar from '../../components/common/MonthFilterBar';
 import { BatchFloatingBar, BatchPaymentModal, PaymentModeToggle, validateBatchPaymentForm } from '../../components/common/BatchSettlementFlow';
-import { SettingsTilesSkeleton } from '../../components/SkeletonBlocks';
 
 const SETTINGS_SUBVIEW_TITLES = {
   notice: 'Dentist Portal Notice Bar',
   'staff-notice': 'Staff Portal Notice Bar',
-  payments: 'Payment & Revenue Overview',
-  users: 'User Accounts Overview',
   account: 'Administrator Account',
   maintenance: 'Maintenance Mode Controller',
 };
@@ -159,7 +156,7 @@ const MobileAdminDashboard = () => {
   // Detail modals
   const [selectedOrder, setSelectedOrder]     = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
+  const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'staff-notice' | 'maintenance' | 'account'
 
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
@@ -1720,18 +1717,6 @@ const MobileAdminDashboard = () => {
                 }}
               />
               <TwentyFirstNavCard
-                label="Payment & Revenue Overview"
-                desc="Billed, collected, and pending revenue statistics"
-                icon={Ico.payments ? Ico.payments(20) : Ico.wallet(20)}
-                onClick={() => setSettingsSubView('payments')}
-              />
-              <TwentyFirstNavCard
-                label="User Accounts Overview"
-                desc="Registered, approved, pending, and rejected dentists"
-                icon={Ico.usersS ? Ico.usersS(20) : Ico.users(20)}
-                onClick={() => setSettingsSubView('users')}
-              />
-              <TwentyFirstNavCard
                 label="Maintenance Mode Controller"
                 desc="Audience targeting, custom message, and live recovery"
                 icon={Ico.shield ? Ico.shield(20) : Ico.lock(20)}
@@ -1801,82 +1786,6 @@ const MobileAdminDashboard = () => {
               />
             )}
 
-            {/* Sub-view 2: Payment & Revenue Overview */}
-            {settingsSubView === 'payments' && (
-              loadingPayments ? (
-                <SettingsTilesSkeleton count={4} variant="mobile" />
-              ) : (
-                <DentzyKpiRow
-                  className="ma-kpi-row"
-                  style={{ marginBottom: 0, width: '100%' }}
-                  items={[
-                    {
-                      key: 'totalBilled',
-                      label: 'Total Billed',
-                      value: formatINR(paymentData.summary?.totalBilled || 0),
-                    },
-                    {
-                      key: 'collected',
-                      label: 'Collected',
-                      value: formatINR(paymentData.summary?.totalCollected || 0),
-                      tone: 'success',
-                      valueColor: '#166534',
-                    },
-                    {
-                      key: 'pending',
-                      label: 'Pending',
-                      value: formatINR(paymentData.summary?.totalPending || 0),
-                      tone: 'warning',
-                    },
-                    {
-                      key: 'records',
-                      label: 'Records',
-                      value: paymentData.summary?.totalPayments || paymentData.payments?.length || 0,
-                      valueColor: '#1e5038',
-                    },
-                  ]}
-                />
-              )
-            )}
-
-            {/* Sub-view 3: User Accounts Overview */}
-            {settingsSubView === 'users' && (
-              !statsLoaded ? (
-                <SettingsTilesSkeleton count={4} variant="mobile" />
-              ) : (
-                <DentzyKpiRow
-                  className="ma-kpi-row"
-                  style={{ marginBottom: 0, width: '100%' }}
-                  items={[
-                    {
-                      key: 'totalRegistered',
-                      label: 'Total Registered',
-                      value: stats.total || 0,
-                    },
-                    {
-                      key: 'approved',
-                      label: 'Approved',
-                      value: stats.approved || 0,
-                      tone: 'success',
-                      valueColor: '#166534',
-                    },
-                    {
-                      key: 'pending',
-                      label: 'Pending',
-                      value: stats.pending || 0,
-                      tone: 'warning',
-                    },
-                    {
-                      key: 'rejected',
-                      label: 'Rejected',
-                      value: stats.rejected || 0,
-                      tone: 'danger',
-                    },
-                  ]}
-                />
-              )
-            )}
-
             {/* Sub-view: Maintenance Mode Controller */}
             {settingsSubView === 'maintenance' && (
               <div style={{ width: '100%' }}>
@@ -1943,8 +1852,6 @@ const MobileAdminDashboard = () => {
           }
           if (key === 'settings') {
             setSettingsSubView(null);
-            fetchStats();
-            fetchPayments();
           }
         }}
         layoutId="admin-nav-pill"

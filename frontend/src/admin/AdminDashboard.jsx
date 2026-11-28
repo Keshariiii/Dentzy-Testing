@@ -18,7 +18,7 @@ import { formatINR, formatOrderDateTime, formatDoctorName } from '../utils/forma
 import { openInvoiceWindow, getAudioContext } from '../utils/appleCompat';
 import TwentyFirstNavCard from '../components/ui/twentyfirst-nav-card';
 import TwentyFirstIconButton from '../components/ui/twentyfirst-icon-button';
-import { DentzyCard, DentzyRowCard, DentzyKpiRow, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
+import { DentzyCard, DentzyRowCard, DentzyCaseChip, DentzyStatusPill } from '../components/common/DentzyCard';
 import { DentzyDataTable } from '../components/common/DentzyChartTable';
 import DentzySearchBar from '../components/common/DentzySearchBar';
 import EmptyState from '../components/common/EmptyState';
@@ -29,10 +29,7 @@ import SubViewHeader from '../components/common/SubViewHeader';
 import MonthFilterBar from '../components/common/MonthFilterBar';
 import { BatchFloatingBar, BatchPaymentModal, PaymentModeToggle, validateBatchPaymentForm } from '../components/common/BatchSettlementFlow';
 import { Skeleton } from '../components/Skeleton';
-import {
-  DataTableSkeleton,
-  SettingsTilesSkeleton,
-} from '../components/SkeletonBlocks';
+import { DataTableSkeleton } from '../components/SkeletonBlocks';
 const dentzyLogo = '/dentzy-logo-v2.png';
 
 import { Icons as Ico } from '../components/common/DashboardIcons';
@@ -41,8 +38,6 @@ import { useToast } from '../context/ToastContext';
 const SETTINGS_SUBVIEW_TITLES = {
   notice: 'Dentist Portal Notice Bar',
   'staff-notice': 'Staff Portal Notice Bar',
-  payments: 'Payment & Revenue Overview',
-  users: 'User Accounts Overview',
   maintenance: 'Maintenance Mode Controller',
   account: 'Administrator Account',
 };
@@ -130,7 +125,7 @@ const AdminDashboard = () => {
   // Drill-down state for dentist-centric views
   const [drillDentistOrders, setDrillDentistOrders] = useState(null);
   const [drillDentistPayments, setDrillDentistPayments] = useState(null);
-  const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'payments' | 'users' | 'account'
+  const [settingsSubView, setSettingsSubView] = useState(null); // null | 'notice' | 'staff-notice' | 'maintenance' | 'account'
   // Notice bar settings state
   const [noticeEnabled, setNoticeEnabled] = useState(true);
   const [noticeMessages, setNoticeMessages] = useState([
@@ -915,8 +910,6 @@ const AdminDashboard = () => {
               onClick: () => {
                 setAdminView('settings');
                 setSettingsSubView(null);
-                fetchStatsRef.current?.();
-                fetchPaymentsRef.current?.();
               },
             },
           ]}
@@ -1551,23 +1544,12 @@ const AdminDashboard = () => {
                         }}
                       />
                       <TwentyFirstNavCard
-                        label="Payment & Revenue Overview"
-                        desc="View total billed, collected, and pending revenue statistics"
-                        icon={Ico.payments ? Ico.payments(22) : Ico.wallet(22)}
-                        onClick={() => setSettingsSubView('payments')}
-                      />
-                      <TwentyFirstNavCard
-                        label="User Accounts Overview"
-                        desc="Track registered, approved, pending, and rejected dentist accounts"
-                        icon={Ico.usersS ? Ico.usersS(22) : Ico.users(22)}
-                        onClick={() => setSettingsSubView('users')}
-                      />
-                      <TwentyFirstNavCard
                         label="Staff Portal Notice Bar"
                         desc="Send a lab-wide announcement banner to all logged-in staff members"
                         icon={Ico.bell ? Ico.bell(22) : Ico.settings(22)}
                         onClick={() => { setSettingsSubView('staff-notice'); if (!staffNoticeLoaded) fetchStaffNotice(); }}
-                      />                      <TwentyFirstNavCard
+                      />
+                      <TwentyFirstNavCard
                         label="Maintenance Mode Controller"
                         desc="Control portal downtime with audience targeting, custom messages, and live checks"
                         icon={Ico.shield ? Ico.shield(22) : Ico.lock(22)}
@@ -1629,83 +1611,6 @@ const AdminDashboard = () => {
                         placeholder="Type a new staff announcement message..."
                       />
                     )}
-                    {settingsSubView === 'payments' && (
-                      loadingPayments ? (
-                        <SettingsTilesSkeleton count={4} variant="pc" />
-                      ) : (
-                        <DentzyCard style={{ padding: '24px' }}>
-                          <DentzyKpiRow
-                            style={{ marginBottom: 0 }}
-                            items={[
-                              {
-                                key: 'totalBilled',
-                                label: 'Total Billed',
-                                value: formatINR(paymentData.summary?.totalBilled || 0),
-                              },
-                              {
-                                key: 'collected',
-                                label: 'Collected',
-                                value: formatINR(paymentData.summary?.totalCollected || 0),
-                                tone: 'success',
-                                valueColor: '#166534',
-                              },
-                              {
-                                key: 'pending',
-                                label: 'Pending',
-                                value: formatINR(paymentData.summary?.totalPending || 0),
-                                tone: 'warning',
-                              },
-                              {
-                                key: 'totalRecords',
-                                label: 'Total Records',
-                                value: paymentData.summary?.totalPayments || paymentData.payments?.length || 0,
-                                valueColor: '#1e5038',
-                              },
-                            ]}
-                          />
-                        </DentzyCard>
-                      )
-                    )}
-
-                    {/* Sub-Page 3: User Accounts Overview */}
-                    {settingsSubView === 'users' && (
-                      !statsLoaded ? (
-                        <SettingsTilesSkeleton count={4} variant="pc" />
-                      ) : (
-                        <DentzyCard style={{ padding: '24px' }}>
-                          <DentzyKpiRow
-                            style={{ marginBottom: 0 }}
-                            items={[
-                              {
-                                key: 'totalRegistered',
-                                label: 'Total Registered',
-                                value: stats.total || 0,
-                              },
-                              {
-                                key: 'approvedAccounts',
-                                label: 'Approved Accounts',
-                                value: stats.approved || 0,
-                                tone: 'success',
-                                valueColor: '#166534',
-                              },
-                              {
-                                key: 'pendingApproval',
-                                label: 'Pending Approval',
-                                value: stats.pending || 0,
-                                tone: 'warning',
-                              },
-                              {
-                                key: 'rejectedAccounts',
-                                label: 'Rejected',
-                                value: stats.rejected || 0,
-                                tone: 'danger',
-                              },
-                            ]}
-                          />
-                        </DentzyCard>
-                      )
-                    )}
-
                     {/* Sub-Page: Maintenance Mode Controller */}
                     {settingsSubView === 'maintenance' && (
                       <MaintenanceModeController
